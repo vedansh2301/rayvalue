@@ -325,7 +325,7 @@ export default function QuoteForm(p: Props) {
         <button type="submit" class={btnPrimary} disabled={sending}>
           {sending ? 'Sending…' : 'Get my free quotes'}
         </button>
-        <p class="mt-2 text-sm text-stone-600">Free. No obligation. We never sell your data to anyone other than up to 3 installers you&rsquo;ve agreed to hear from.</p>
+        <p class="mt-2 text-sm text-stone-600">Free and no obligation. We only share your request with up to 3 local installers.</p>
         {status === 'error' && (
           <p role="alert" class="mt-2 font-medium text-red-800">
             Something went wrong — please try again.

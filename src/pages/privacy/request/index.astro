@@ -40,4 +40,10 @@ const inputCls = 'mt-1 block min-h-11 w-full rounded-lg border border-stone-400 
       <button type="submit" class={btnPrimary}>Send request</button>
     </form>
   </div>
+  <script>
+    // Bundled (not inline) so it is covered by the CSP script hashes. ?type=<request> preselects that option.
+    const type = new URLSearchParams(window.location.search).get('type');
+    const radio = type && /^[a-z_]+$/.test(type) ? document.getElementById(`dr-request-${type}`) : null;
+    if (radio instanceof HTMLInputElement && radio.name === 'request') radio.checked = true;
+  </script>
 </BaseLayout>

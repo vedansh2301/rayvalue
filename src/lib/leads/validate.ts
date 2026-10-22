@@ -22,7 +22,7 @@ export const DATA_REQUEST_LABELS: Record<DataRequestType, string> = {
   delete: 'Delete my data',
   access: 'Send me a copy of my data',
   correct: 'Correct my data',
-  do_not_sell: 'Do not sell or share my data',
+  do_not_sell: 'Do not sell or share my personal information',
 };
 
 const STATE_NAMES: Record<State, string> = { FL: 'Florida', CA: 'California' };
