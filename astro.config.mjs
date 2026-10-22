@@ -26,6 +26,8 @@ export default defineConfig({
   site: 'https://rayvalue.com',
   output: 'static',
   security: { csp: true },
+  // Shiki emits inline styles, which the hashed CSP blocks; guides have no code blocks, so no highlighting.
+  markdown: { syntaxHighlight: false },
   // Static pages stay prerendered. API routes and pages that read the Supabase calculator data
   // opt out (prerender = false) and run as Vercel Functions.
   adapter: vercel(),
