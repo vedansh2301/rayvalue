@@ -1,0 +1,24 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --color-sun-300: #fcd34d;
+  --color-sun-400: #fbbf24;
+  --color-sun-500: #f59e0b;
+  --color-sun-50: #fffbeb;
+  --color-sun-100: #fef3c7;
+  --color-sun-ink: #92400e; /* accent text on light backgrounds, 7:1 on white */
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { @apply bg-stone-50 text-stone-800 font-sans antialiased; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-stone-900; }
+}
+
+/* Long-form text pages */
+.page { @apply mx-auto w-full max-w-3xl px-4 py-12 sm:py-16; }
+.page h1 { @apply text-3xl sm:text-4xl font-bold tracking-tight text-stone-900; }
+.page h2 { @apply mt-10 text-xl font-semibold text-stone-900; }
+.page p, .page li { @apply mt-4 leading-7 text-stone-700; }
+.page a { @apply text-sun-ink underline underline-offset-2 hover:text-stone-900; }
