@@ -26,10 +26,15 @@ rayvalue.com: solar and battery payback calculators for Florida and California h
 
 - `GET /api/pvwatts?lat=&lon=&losses=`: PVWatts v8 proxy (NREL is now NLR: `developer.nlr.gov`). lat/lon must be in FL or CA; `losses` a whole percent from 0 to 60 (the calculator sends the `pvwatts_system_loss_pct` values; the endpoint does not read the database). Unrounded URLs get a 308 to the 2-decimal canonical URL; responses are cached 30 days on Vercel's CDN (`CDN-Cache-Control`). When it is unavailable the calculator falls back to the precomputed `pvwatts_city_production` rows passed in as page props.
 - `POST /api/subscribe`: rate-alert signup (JSON or form). Same-origin only.
+- `POST /api/leads`: installer-quote request from the quote form (JSON or form; plain form posts get 303 -> `/quotes/thanks`). `POST /api/data-requests`: privacy request from `/privacy/request` (303 -> `/privacy/request/thanks`). Same-origin only, 8 KB body cap, honeypot field `website`, 8 s database timeout; logic in `src/lib/server/leads.ts`, validation in `src/lib/leads/`.
 
 ## Supabase (email alerts)
 
 Project `qefnwgdqnkzzdcpwfmkt`, table `public.rate_alert_subscribers` (schema in `supabase/migrations/0001_rate_alert_subscribers.sql`, already applied). Row Level Security is on; the `anon` role (publishable key) has column-level INSERT on `email, state, source` and nothing else, so a leaked publishable key can add a signup but never read the list. A duplicate email returns 409 (unique violation), which the endpoint treats as success. To view signups: Supabase dashboard, Table Editor (or SQL editor) as the project owner.
+
+## Where leads live
+
+Quote requests are stored only in Supabase, table `public.leads`; privacy requests (delete / access / correct / do-not-sell) in `public.data_requests` (schema: `supabase/migrations/0004_leads.sql`, applied). As with the alert signups, `anon` (the publishable key) has column-level INSERT on the user-supplied columns only, and no SELECT, UPDATE or DELETE, so the site can add a lead but a leaked key can never read them. Each lead stores the consent sentence and version the person agreed to (server constant in `src/lib/leads/consent.ts`; bump the version when the text changes), and the estimate they saw (`estimate_snapshot`) when it came from calculator results. To work leads: Supabase dashboard, Table Editor, `leads`; move `status` through `new` / `contacted` / `sold` / `invalid` / `deleted`. Handle `data_requests` the same way (`status` `new` / `in_progress` / `done` / `rejected`).
 
 ## Data
 
