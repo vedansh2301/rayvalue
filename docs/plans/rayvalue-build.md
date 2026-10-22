@@ -21,6 +21,18 @@ Today is 2026-10-22.
 - Placeholder copy the owner must write is marked with the literal text `TODO:` so `grep -r "TODO:" src` finds it.
 - After each task: `npm run build` and `npm test` both pass, then commit (clear message, ending with the line `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`). Do not push; there is no remote.
 
+## PLATFORM CHANGE (2026-10-22, owner instruction): host on Vercel, not Cloudflare
+
+This section supersedes every Cloudflare reference below (Pages, Pages Functions, `functions/` dir, wrangler, `caches.default`, `_headers`, Cloudflare Web Analytics, `.dev.vars`).
+- Vercel project `rayvalue` (team vedanshs-projects-5b6aa829) is linked (`.vercel/`), production at https://rayvalue.vercel.app, domains rayvalue.com (primary) + www → 308 redirect. Deploy = `vercel deploy` (preview) / `vercel deploy --prod`.
+- Install `@astrojs/vercel` and set `adapter: vercel()` keeping `output: 'static'`; API routes are Astro endpoints `src/pages/api/pvwatts.ts` and `src/pages/api/subscribe.ts` with `export const prerender = false` (run as Vercel Functions, Node runtime). Put testable pure logic in `src/lib/server/` (pvwatts.ts, subscribe.ts). Read env via `import.meta.env` / `process.env` server-side only.
+- PVWatts caching: the client calls `/api/pvwatts` with lat/lon already rounded to 2 decimals (the endpoint also rounds and rejects unrounded inputs by redirecting 308 to the rounded URL, or just rounds — implementer's choice, documented), and the response sets `Cache-Control: public, max-age=0` + `CDN-Cache-Control: public, s-maxage=2592000, stale-while-revalidate=86400` so Vercel's CDN caches per URL. Errors: `Cache-Control: no-store`.
+- Env: `NREL_API_KEY` (not yet provided by owner — endpoint returns 503 until set; client falls back to precomputed city data), `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (already set in Vercel for all environments). Local dev reads `.env.local` (gitignored; created by `vercel env pull`). `.dev.vars` remains only as the owner's local credential store — site code never reads `SUPABASE_SECRET_KEY` or `SUPABASE_DB_*`. Replace `.dev.vars.example` with `.env.example` entries for server vars.
+- Analytics: Vercel Web Analytics (cookieless) via `@vercel/analytics` Astro component, replacing Cloudflare Web Analytics (CLAUDE.md rule 7 updated accordingly). Optional Speed Insights: no.
+- Headers/security: `vercel.json` `headers` (CSP etc.) replace `public/_headers`. `vercel.json` currently sets a site-wide `X-Robots-Tag: noindex` for pre-launch; Task 8 removes it at launch. Cache `/_astro/*` immutable.
+- Remove wrangler/preview:cf scripts if added; `npm run preview` (astro preview) for static pages; `vercel dev` for API routes locally.
+- GitHub repo vedansh2301/rayvalue: connect via `vercel git connect` in Task 8 (production branch main).
+
 ## Architecture decisions (rulings already made)
 
 - Astro (latest stable) with `output: 'static'`. API endpoints are **Cloudflare Pages Functions in the root `functions/` directory**, not Astro SSR routes, so no `@astrojs/cloudflare` adapter is needed. Deploy = `wrangler pages deploy dist` (or GitHub → Pages integration), which picks up `functions/` automatically. `wrangler` is a devDependency; `npm run preview:cf` = `astro build && wrangler pages dev dist`.

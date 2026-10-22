@@ -9,7 +9,7 @@ before starting any phase.
 ## Stack
 - Astro (static-first) + TypeScript + Tailwind
 - Calculator UI: one interactive island; everything else static HTML
-- Cloudflare Pages + Pages Functions (PVWatts proxy with caching)
+- Vercel (static + Vercel Functions for the PVWatts proxy and email signup)
 - Vitest for all calculator math
 
 ## Hard rules
@@ -22,7 +22,7 @@ before starting any phase.
    UI components never do math.
 5. Must not look like a government site: no seals, no "official", no .gov styling.
 6. Any page with affiliate links shows the disclosure component above the first link.
-7. No cookies or third-party trackers except Cloudflare Web Analytics.
+7. No cookies or third-party trackers except Vercel Web Analytics (cookieless).
 8. Mobile-first. Lighthouse ≥ 95 for performance and accessibility on every template.
 9. City pages: each needs ≥ 3 unique data-driven sections, and `published: false`
    (noindex, not in sitemap) by default until I review it.
