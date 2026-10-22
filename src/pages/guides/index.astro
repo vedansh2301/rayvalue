@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const guides = (await getCollection('guides'))
+  .filter((g) => !g.data.draft)
+  .sort((a, b) => b.data.updated.getTime() - a.data.updated.getTime());
+---
+<BaseLayout title="Solar and battery guides" description="Plain-language guides on solar and battery payback for Florida and California homeowners." path="/guides">
+  <div class="page">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Guides' }]} />
+    <h1>Guides</h1>
+    <ul class="mt-4 space-y-4">
+      {guides.map((g) => (
+        <li>
+          <a class="text-lg font-semibold underline underline-offset-4" href={`/guides/${g.id}`}>{g.data.title}</a>
+          <p class="text-stone-700">{g.data.description}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>

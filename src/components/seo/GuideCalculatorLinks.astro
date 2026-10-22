@@ -1,0 +1,11 @@
+---
+import { calculatorsForState } from '../../lib/seo/jsonld';
+interface Props { state: 'FL' | 'CA' | 'both' }
+const links = calculatorsForState(Astro.props.state);
+---
+<aside class="mt-8 rounded-lg border border-amber-300 bg-amber-50 p-4" aria-label="Calculators">
+  <p class="font-semibold text-stone-900">Run your own numbers</p>
+  <ul class="mt-2 list-disc pl-5">
+    {links.map((l) => <li><a class="underline underline-offset-4 text-stone-900" href={l.href}>{l.label}</a></li>)}
+  </ul>
+</aside>
