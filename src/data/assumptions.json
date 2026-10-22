@@ -30,8 +30,34 @@
   "ca_self_consumption_share": {
     "kind": "assumption",
     "rationale": "Share of solar output used on site (valued at the retail rate) versus exported at the lower net billing credit, for California homes. Placeholder product choices pending owner review; batteries raise self-consumption.",
-    "solar_only": { "low": 0.3, "likely": 0.4, "high": 0.5 },
-    "solar_plus_1_battery": { "low": 0.55, "likely": 0.7, "high": 0.8 },
-    "solar_plus_2_batteries": { "low": 0.7, "likely": 0.85, "high": 0.95 }
+    "solar_only": {
+      "low": 0.3,
+      "likely": 0.4,
+      "high": 0.5
+    },
+    "solar_plus_1_battery": {
+      "low": 0.55,
+      "likely": 0.7,
+      "high": 0.8
+    },
+    "solar_plus_2_batteries": {
+      "low": 0.7,
+      "likely": 0.85,
+      "high": 0.95
+    }
+  },
+  "annual_rate_escalation": {
+    "kind": "assumption",
+    "rationale": "Yearly growth in the retail electricity rate used in the 25-year projection. No primary source gives a forward forecast for Florida, so the Florida range (2/3/4%) is a product choice around general inflation; EIA reports a Florida residential average of 14.14 cents/kWh in 2024 (eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf). For California the CPUC's 2025 SB 695 report (cpuc.ca.gov) found bundled residential average rates rose about 11%, 8% and 7% a year 2016-2024 for PG&E, SCE and SDG&E and forecast about 6-7% a year for 2025-2028; the California range (3/4.5/6%) is deliberately lower than that recent history because assuming it persists for 25 years is not defensible. Owner to review.",
+    "FL": {
+      "low": 0.02,
+      "likely": 0.03,
+      "high": 0.04
+    },
+    "CA": {
+      "low": 0.03,
+      "likely": 0.045,
+      "high": 0.06
+    }
   }
 }

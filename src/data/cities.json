@@ -15,6 +15,7 @@
       "default_utility_id": "fpl",
       "utility_source_url": "https://www.fpl.com/rates/pdf/electric-tariff-section7.pdf",
       "utility_source_note": "city listed in FPL tariff sheet 7.010, Communities Served",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -27,6 +28,7 @@
       "default_utility_id": "fpl",
       "utility_source_url": "https://www.fpl.com/rates/pdf/electric-tariff-section7.pdf",
       "utility_source_note": "city listed in FPL tariff sheet 7.010, Communities Served",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -39,6 +41,7 @@
       "default_utility_id": "fpl",
       "utility_source_url": "https://www.fpl.com/rates/pdf/electric-tariff-section7.pdf",
       "utility_source_note": "city listed in FPL tariff sheet 7.010, Communities Served",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -51,6 +54,7 @@
       "default_utility_id": "fpl",
       "utility_source_url": "https://www.fpl.com/rates/pdf/electric-tariff-section7.pdf",
       "utility_source_note": "city listed in FPL tariff sheet 7.010, Communities Served",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -63,6 +67,7 @@
       "default_utility_id": "fpl",
       "utility_source_url": "https://www.fpl.com/rates/pdf/electric-tariff-section7.pdf",
       "utility_source_note": "city listed in FPL tariff sheet 7.010, Communities Served",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -75,6 +80,7 @@
       "default_utility_id": "fpl",
       "utility_source_url": "https://www.fpl.com/rates/pdf/electric-tariff-section7.pdf",
       "utility_source_note": "city listed in FPL tariff sheet 7.010, Communities Served",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -87,6 +93,7 @@
       "default_utility_id": "duke-fl",
       "utility_source_url": "https://news.duke-energy.com/florida",
       "utility_source_note": "county level only: Duke Energy Florida's newsroom lists Pinellas County among its served counties; no primary source found that names this city, so confirm the city boundary",
+      "utility_confidence": "county",
       "published": false
     },
     {
@@ -99,6 +106,7 @@
       "default_utility_id": "duke-fl",
       "utility_source_url": "https://news.duke-energy.com/florida",
       "utility_source_note": "county level only: Duke Energy Florida's newsroom lists Pinellas County among its served counties; no primary source found that names this city, so confirm the city boundary",
+      "utility_confidence": "county",
       "published": false
     },
     {
@@ -111,6 +119,7 @@
       "default_utility_id": "teco",
       "utility_source_url": "https://www.tampaelectric.com/economicdevelopment/serviceareaandreliability/",
       "utility_source_note": "county level only: Tampa Electric's service area page says it serves Hillsborough County and parts of Pasco, Pinellas and Polk; it does not name the city, so confirm",
+      "utility_confidence": "county",
       "published": false
     },
     {
@@ -123,6 +132,7 @@
       "default_utility_id": "teco",
       "utility_source_url": "https://www.tampaelectric.com/mediacenter/2024/Tampa-Electric-Restores-Essentially-All-Customers-Across-Tampa-Bay-Region/",
       "utility_source_note": "named by Tampa Electric as an area it serves (October 2024 restoration release)",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -135,6 +145,7 @@
       "default_utility_id": "pge",
       "utility_source_url": "https://www.pge.com/en/featured/pge-service-area.html",
       "utility_source_note": "city listed on PG&E's service area page",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -147,6 +158,7 @@
       "default_utility_id": "pge",
       "utility_source_url": "https://www.pge.com/en/featured/pge-service-area.html",
       "utility_source_note": "city listed on PG&E's service area page",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -159,6 +171,7 @@
       "default_utility_id": "pge",
       "utility_source_url": "https://www.pge.com/en/featured/pge-service-area.html",
       "utility_source_note": "city listed on PG&E's service area page",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -171,6 +184,7 @@
       "default_utility_id": "pge",
       "utility_source_url": "https://www.pge.com/en/featured/pge-service-area.html",
       "utility_source_note": "city listed on PG&E's service area page",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -182,7 +196,8 @@
       "coords_zcta": "93301",
       "default_utility_id": "pge",
       "utility_source_url": "https://www.pge.com/en/featured/pge-service-area.html",
-      "utility_source_note": "listed on PG&E's service area page under Kern County in one of its two lists; confirm",
+      "utility_source_note": "listed on PG&E's service area page under Kern County in one of its two county lists (absent from the other)",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -195,6 +210,7 @@
       "default_utility_id": "sce",
       "utility_source_url": "https://www.sce.com/sites/default/files/inline-files/Incorporated_Cities_and_Counties_and_Unicorporated_Areas_Served_by_SCE.pdf",
       "utility_source_note": "city listed in SCE's 'Incorporated Cities and Counties Served by SCE'",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -207,6 +223,7 @@
       "default_utility_id": "sce",
       "utility_source_url": "https://www.sce.com/sites/default/files/inline-files/Incorporated_Cities_and_Counties_and_Unicorporated_Areas_Served_by_SCE.pdf",
       "utility_source_note": "city listed in SCE's 'Incorporated Cities and Counties Served by SCE'",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -219,6 +236,7 @@
       "default_utility_id": "sce",
       "utility_source_url": "https://www.sce.com/sites/default/files/inline-files/Incorporated_Cities_and_Counties_and_Unicorporated_Areas_Served_by_SCE.pdf",
       "utility_source_note": "city listed in SCE's 'Incorporated Cities and Counties Served by SCE'",
+      "utility_confidence": "city",
       "published": false
     },
     {
@@ -231,6 +249,7 @@
       "default_utility_id": "sdge",
       "utility_source_url": "https://www.sdge.com/customer-choice/community-choice-aggregation/active-ccas",
       "utility_source_note": "city listed among SDG&E-territory communities served by San Diego Community Power; SDG&E's own page does not name individual cities otherwise",
+      "utility_confidence": "indirect",
       "published": false
     },
     {
@@ -243,6 +262,7 @@
       "default_utility_id": "sdge",
       "utility_source_url": "https://www.sdge.com/customer-choice/community-choice-aggregation/active-ccas",
       "utility_source_note": "city listed among SDG&E-territory communities served by San Diego Community Power; SDG&E's own page does not name individual cities otherwise",
+      "utility_confidence": "indirect",
       "published": false
     }
   ]

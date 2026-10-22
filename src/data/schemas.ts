@@ -80,27 +80,47 @@ const TiersSchema = z.array(TierSchema).min(1).superRefine((tiers, ctx) => {
   });
 });
 
+const MonthSchema = z.number().int().min(1).max(12);
+
+/** One season's tier structure. FPL/TECO have a single all-year set; Duke has summer + winter. */
+export const TierSetSchema = z.object({
+  season: z.enum(['all_year', 'summer', 'winter']),
+  /** Calendar months (1-12) this set applies to. */
+  months: z.array(MonthSchema).min(1),
+  tiers: TiersSchema,
+});
+export type TierSet = z.infer<typeof TierSetSchema>;
+
 export const TouRateSchema = z.object({
-  label: z.string().min(1),
+  season: z.enum(['summer', 'winter']),
+  period: z.enum(['peak', 'mid_peak', 'off_peak', 'super_off_peak']),
+  day_type: z.enum(['all', 'weekday', 'weekend']),
+  /** Calendar months (1-12) for this season, or null where the source does not state them. */
+  months: z.array(MonthSchema).min(1).nullable(),
+  /** Human-readable hours, e.g. "4-9 p.m."; display only. */
+  hours: z.string().nullable(),
+  /** All-in $/kWh. */
   rate_per_kwh: z.number().nonnegative().nullable(),
 });
 export type TouRate = z.infer<typeof TouRateSchema>;
 
-/** A low / likely / high triple where each entry may be unknown. */
-export const NullableRangeSchema = z
+/** A sourced low / likely / high line (own provenance), used for costs and average rates. */
+export const SourcedRangeSchema = z
   .object({
-    low: z.number().nullable(),
-    likely: z.number().nullable(),
-    high: z.number().nullable(),
+    low: z.number().nonnegative().nullable(),
+    likely: z.number().nonnegative().nullable(),
+    high: z.number().nonnegative().nullable(),
+    unit: z.string().min(1),
+    note: z.string().nullable(),
+    ...provenanceShape,
   })
-  .superRefine((r, ctx) => {
-    const vals = [r.low, r.likely, r.high];
-    const nums = vals.filter((v): v is number => v !== null);
-    if (nums.some((v, i) => i > 0 && v < nums[i - 1]!)) {
-      ctx.addIssue({ code: 'custom', message: 'range must satisfy low <= likely <= high' });
-    }
+  .superRefine((c, ctx) => {
+    const nums = [c.low, c.likely, c.high].filter((v): v is number => v !== null);
+    if (nums.some((v, i) => i > 0 && v < nums[i - 1]!)) ctx.addIssue({ code: 'custom', message: 'range must satisfy low <= likely <= high' });
+    requireProvenanceWhenNumeric(c, ctx);
+    requireUnverifiedWhenEmpty(c, ctx);
   });
-export type NullableRange = z.infer<typeof NullableRangeSchema>;
+export type SourcedRange = z.infer<typeof SourcedRangeSchema>;
 
 export const UtilitySchema = z
   .object({
@@ -110,38 +130,46 @@ export const UtilitySchema = z
     metering_type: z.enum(['retail_net_metering', 'nem3_net_billing']),
     rate_schedule: z.string().min(1),
     rate_type: z.enum(['tiered', 'tou_summary']),
-    /** tiered only. For seasonal tariffs this is the main (summer) season. */
-    tiers: TiersSchema.nullable(),
-    /** tiered only, optional second season (Duke Energy Florida's winter rate). */
-    winter_tiers: TiersSchema.nullable(),
-    /** tou_summary only: the on/off-peak rates as read from the tariff. */
+    /** tiered only: one set per season; months across sets must cover 1-12 exactly once. */
+    tier_sets: z.array(TierSetSchema).min(1).nullable(),
+    /** tou_summary only: the rates as read from the tariff, one entry per season/period/day type. */
     tou_rates: z.array(TouRateSchema).min(1).nullable(),
-    /** tou_summary only: effective average $/kWh, only if a primary source publishes it. */
-    avg_rate_per_kwh: NullableRangeSchema.nullable(),
+    /** tou_summary only: a PUBLISHED residential class average (own source); never computed here. */
+    avg_rate_per_kwh: SourcedRangeSchema.nullable(),
     tou_note: z.string().nullable(),
     /** CA only: $/kWh credit on baseline usage. */
     baseline_credit_per_kwh: z.number().nonnegative().nullable(),
     rate_note: z.string().nullable(),
     fixed_monthly_charge: z.number().nonnegative().nullable(),
     fixed_charge_note: z.string().nullable(),
-    /** CA only (null for FL). */
+    /** CA only (null for FL). Uses the record-level provenance when filled. */
     avg_export_credit_per_kwh: z.number().nonnegative().nullable(),
+    /** Set when the source is undated, old, or internally inconsistent; listed prominently in TODO-VERIFY. */
+    source_caveat: z.string().nullable(),
     ...provenanceShape,
   })
   .superRefine((u, ctx) => {
     if (u.rate_type === 'tiered') {
-      if (!u.tiers) ctx.addIssue({ code: 'custom', path: ['tiers'], message: 'tiered utilities need tiers' });
+      if (!u.tier_sets) ctx.addIssue({ code: 'custom', path: ['tier_sets'], message: 'tiered utilities need tier_sets' });
+      else {
+        const seen = new Map<number, number>();
+        u.tier_sets.forEach((set) => set.months.forEach((m) => seen.set(m, (seen.get(m) ?? 0) + 1)));
+        for (let m = 1; m <= 12; m++) {
+          if (seen.get(m) !== 1) ctx.addIssue({ code: 'custom', path: ['tier_sets'], message: `month ${m} must be covered by exactly one tier set` });
+        }
+      }
       if (u.tou_rates || u.avg_rate_per_kwh) ctx.addIssue({ code: 'custom', path: ['tou_rates'], message: 'tiered utilities must not set TOU fields' });
     } else {
       if (!u.tou_rates) ctx.addIssue({ code: 'custom', path: ['tou_rates'], message: 'tou_summary utilities need tou_rates' });
-      if (u.tiers || u.winter_tiers) ctx.addIssue({ code: 'custom', path: ['tiers'], message: 'tou_summary utilities must not set tiers' });
-      if (u.avg_rate_per_kwh && !u.tou_note) ctx.addIssue({ code: 'custom', path: ['tou_note'], message: 'avg_rate_per_kwh needs a tou_note explaining its source' });
+      if (u.tier_sets) ctx.addIssue({ code: 'custom', path: ['tier_sets'], message: 'tou_summary utilities must not set tier_sets' });
+      if (!u.avg_rate_per_kwh) ctx.addIssue({ code: 'custom', path: ['avg_rate_per_kwh'], message: 'tou_summary utilities need an avg_rate_per_kwh record (values may be null)' });
     }
-    if (u.winter_tiers && !u.tiers) ctx.addIssue({ code: 'custom', path: ['winter_tiers'], message: 'winter_tiers requires tiers' });
     if (u.state === 'FL' && u.metering_type !== 'retail_net_metering') ctx.addIssue({ code: 'custom', path: ['metering_type'], message: 'FL utilities use retail_net_metering' });
     if (u.state === 'CA' && u.metering_type !== 'nem3_net_billing') ctx.addIssue({ code: 'custom', path: ['metering_type'], message: 'CA utilities use nem3_net_billing' });
     if (u.state === 'FL' && u.avg_export_credit_per_kwh !== null) ctx.addIssue({ code: 'custom', path: ['avg_export_credit_per_kwh'], message: 'export credit is CA only' });
-    requireProvenanceWhenNumeric(u, ctx);
+    // avg_rate_per_kwh carries its own provenance, so it is excluded from the record-level check.
+    const { avg_rate_per_kwh: _avg, ...rest } = u;
+    requireProvenanceWhenNumeric(rest, ctx);
   });
 export type Utility = z.infer<typeof UtilitySchema>;
 export type UtilityId = Utility['id'];
@@ -157,27 +185,12 @@ export const UtilitiesSchema = z.array(UtilitySchema).superRefine((list, ctx) =>
 // -------------------------------------------------------------------- costs
 
 /** One sourced cost line (low / likely / high) with its own provenance. */
-export const CostLineSchema = z
-  .object({
-    low: z.number().nonnegative().nullable(),
-    likely: z.number().nonnegative().nullable(),
-    high: z.number().nonnegative().nullable(),
-    unit: z.string().min(1),
-    note: z.string().nullable(),
-    ...provenanceShape,
-  })
-  .superRefine((c, ctx) => {
-    const nums = [c.low, c.likely, c.high].filter((v): v is number => v !== null);
-    if (nums.some((v, i) => i > 0 && v < nums[i - 1]!)) ctx.addIssue({ code: 'custom', message: 'range must satisfy low <= likely <= high' });
-    requireProvenanceWhenNumeric(c, ctx);
-    requireUnverifiedWhenEmpty(c, ctx);
-  });
-export type CostLine = z.infer<typeof CostLineSchema>;
+export const CostLineSchema = SourcedRangeSchema;
+export type CostLine = SourcedRange;
 
 export const StateCostsSchema = z.object({
   installed_cost_per_watt: CostLineSchema,
   battery_installed_cost: CostLineSchema,
-  annual_rate_escalation: CostLineSchema,
 });
 export type StateCosts = z.infer<typeof StateCostsSchema>;
 
@@ -214,6 +227,7 @@ export const AssumptionsSchema = z
     system_size_cap_kw: assumption({ value: z.number().positive() }),
     panel_degradation_per_year: assumption({ value: z.number().min(0).max(0.05) }),
     analysis_years: assumption({ value: z.number().int().min(1).max(50) }),
+    annual_rate_escalation: assumption({ FL: ShareRangeSchema, CA: ShareRangeSchema }),
     ca_self_consumption_share: assumption({
       solar_only: ShareRangeSchema,
       solar_plus_1_battery: ShareRangeSchema,
@@ -242,6 +256,8 @@ export const CitySchema = z.object({
   utility_source_url: z.url(),
   /** What the source actually shows (city-level vs county-level confirmation). */
   utility_source_note: z.string().min(1),
+  /** How well the source ties this city to the utility: city = names the city, county = names only its county, indirect = inferred from a related list. */
+  utility_confidence: z.enum(['city', 'county', 'indirect']),
   /** City pages are noindex and out of the sitemap until the owner flips this. */
   published: z.boolean(),
 });

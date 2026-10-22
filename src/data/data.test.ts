@@ -38,15 +38,46 @@ describe('data invariants', () => {
     }
   });
 
-  it('tiers are ascending and end open-ended', () => {
+  it('tiers are ascending and end open-ended, and seasons cover every month once', () => {
     for (const u of utilities) {
-      for (const tiers of [u.tiers, u.winter_tiers]) {
-        if (!tiers) continue;
-        const ceilings = tiers.slice(0, -1).map((t) => t.up_to_kwh as number);
+      if (u.rate_type !== 'tiered') continue;
+      const months = u.tier_sets!.flatMap((set) => set.months).sort((a, b) => a - b);
+      expect(months, u.id).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+      for (const set of u.tier_sets!) {
+        const ceilings = set.tiers.slice(0, -1).map((t) => t.up_to_kwh as number);
         expect([...ceilings].sort((a, b) => a - b)).toEqual(ceilings);
         expect(new Set(ceilings).size).toBe(ceilings.length);
-        expect(tiers.at(-1)!.up_to_kwh).toBeNull();
+        expect(set.tiers.at(-1)!.up_to_kwh).toBeNull();
       }
+    }
+  });
+
+  it('uses explicit seasons: FPL/TECO one all-year set, Duke summer + winter', () => {
+    expect(getUtility('fpl')!.tier_sets!.map((s) => s.season)).toEqual(['all_year']);
+    expect(getUtility('teco')!.tier_sets!.map((s) => s.season)).toEqual(['all_year']);
+    const duke = getUtility('duke-fl')!.tier_sets!;
+    expect(duke.find((s) => s.season === 'summer')!.months).toEqual([3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    expect(duke.find((s) => s.season === 'winter')!.months).toEqual([12, 1, 2]);
+  });
+
+  it('TOU rates carry structured season / period / day type', () => {
+    for (const u of utilities) {
+      if (u.rate_type !== 'tou_summary') continue;
+      expect(u.tou_rates!.length, u.id).toBeGreaterThan(0);
+      for (const t of u.tou_rates!) {
+        expect(['summer', 'winter']).toContain(t.season);
+        if (t.months) expect(t.months.every((m) => m >= 1 && m <= 12)).toBe(true);
+      }
+    }
+    // PG&E states its seasons; SDG&E's table does not.
+    expect(getUtility('pge')!.tou_rates!.find((t) => t.season === 'summer')!.months).toEqual([6, 7, 8, 9]);
+    expect(getUtility('sdge')!.tou_rates!.every((t) => t.months === null)).toBe(true);
+  });
+
+  it('CA utilities carry a published residential average rate with its own source', () => {
+    for (const u of getUtilitiesByState('CA')) {
+      expect(u.avg_rate_per_kwh!.likely, u.id).toBeGreaterThan(0.2);
+      expect(u.avg_rate_per_kwh!.source_url, u.id).toMatch(/^https:\/\//);
     }
   });
 
@@ -97,6 +128,15 @@ describe('data invariants', () => {
     }
   });
 
+  it('every city carries a utility confidence, and non-city ones are listed in TODO-VERIFY', () => {
+    const todo = readFileSync(fileURLToPath(new URL('../../docs/TODO-VERIFY.md', import.meta.url)), 'utf8');
+    for (const c of cities) {
+      expect(['city', 'county', 'indirect']).toContain(c.utility_confidence);
+      expect(todo.includes(`\`${c.state}/${c.slug}\``), c.slug).toBe(c.utility_confidence !== 'city');
+    }
+    expect(getCity('CA', 'san-diego')!.utility_confidence).toBe('indirect');
+  });
+
   it('looks cities up by state and slug', () => {
     expect(getCity('FL', 'miami')?.default_utility_id).toBe('fpl');
     expect(getCity('CA', 'miami')).toBeUndefined();
@@ -119,13 +159,17 @@ describe('data invariants', () => {
       expect(a.rationale.length, key).toBeGreaterThan(10);
     }
     expect(assumptions.analysis_years.value).toBe(25);
+    for (const st of ['FL', 'CA'] as const) {
+      const r = assumptions.annual_rate_escalation[st];
+      expect(r.low <= r.likely && r.likely <= r.high).toBe(true);
+    }
   });
 });
 
 describe('schemas reject bad data', () => {
   it('rejects descending tiers', () => {
     const bad = clone(utilitiesJson);
-    bad[0].tiers = [
+    bad[0].tier_sets[0].tiers = [
       { up_to_kwh: 1500, rate_per_kwh: 0.12 },
       { up_to_kwh: 1000, rate_per_kwh: 0.13 },
       { up_to_kwh: null, rate_per_kwh: 0.14 },
@@ -135,7 +179,7 @@ describe('schemas reject bad data', () => {
 
   it('rejects a last tier with a ceiling', () => {
     const bad = clone(utilitiesJson);
-    bad[0].tiers = [{ up_to_kwh: 1000, rate_per_kwh: 0.12 }];
+    bad[0].tier_sets[0].tiers = [{ up_to_kwh: 1000, rate_per_kwh: 0.12 }];
     expect(UtilitiesSchema.safeParse(bad).success).toBe(false);
   });
 
@@ -169,12 +213,36 @@ describe('schemas reject bad data', () => {
     expect(UtilitiesSchema.safeParse(bad).success).toBe(false);
   });
 
-  it('rejects a cost range out of order and a sourced-looking null record', () => {
+  it('rejects tier sets that leave a month uncovered or double-covered', () => {
+    const gap = clone(utilitiesJson);
+    gap[1].tier_sets[1].months = [12, 1]; // Duke winter loses February
+    expect(UtilitiesSchema.safeParse(gap).success).toBe(false);
+    const overlap = clone(utilitiesJson);
+    overlap[1].tier_sets[1].months = [12, 1, 2, 3];
+    expect(UtilitiesSchema.safeParse(overlap).success).toBe(false);
+  });
+
+  it('rejects a TOU rate with an unknown period or an avg_rate record without a source', () => {
+    const badPeriod = clone(utilitiesJson);
+    badPeriod[3].tou_rates[0].period = 'sunrise';
+    expect(UtilitiesSchema.safeParse(badPeriod).success).toBe(false);
+    const noSrc = clone(utilitiesJson);
+    noSrc[3].avg_rate_per_kwh.source_url = null;
+    expect(UtilitiesSchema.safeParse(noSrc).success).toBe(false);
+  });
+
+  it('rejects a city without a valid utility_confidence', () => {
+    const bad = clone(citiesJson);
+    bad.cities[0].utility_confidence = 'maybe';
+    expect(CitiesFileSchema.safeParse(bad).success).toBe(false);
+  });
+
+  it('rejects a cost range out of order and a record with no numbers that still claims a source', () => {
     const bad = clone(costsJson);
     bad.FL.installed_cost_per_watt.low = 6;
     expect(CostsSchema.safeParse(bad).success).toBe(false);
     const bad2 = clone(costsJson);
-    bad2.FL.battery_installed_cost.source_url = 'https://example.com';
+    Object.assign(bad2.FL.battery_installed_cost, { low: null, likely: null, high: null }); // still carries a source
     expect(CostsSchema.safeParse(bad2).success).toBe(false);
   });
 
