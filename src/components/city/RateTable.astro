@@ -1,0 +1,48 @@
+---
+import type { Utility } from '../../data/schemas';
+import { utilityRateRows } from '../../lib/city/view';
+
+interface Props {
+  defaultUtility: Utility | null;
+  others: Utility[];
+  cityName: string;
+}
+const { defaultUtility, others, cityName } = Astro.props;
+const list = [...(defaultUtility ? [defaultUtility] : []), ...others];
+---
+<section aria-labelledby="rates-h">
+  <h2 id="rates-h">Electricity rates near {cityName}</h2>
+  {list.length === 0 ? (
+    <p>Utility rates for this area are being verified.</p>
+  ) : (
+    <>
+      <p>
+        {defaultUtility ? <>We use <strong>{defaultUtility.name}</strong> as the likely utility for {cityName}. Check your bill to confirm yours.</> : 'Utility for this city is being verified.'}
+        {others.length > 0 && ' Other utilities in the state are listed for comparison.'}
+      </p>
+      {list.map((u) => (
+        <div class="mt-6 overflow-x-auto">
+          <table class="w-full min-w-[20rem] border-collapse text-left text-sm">
+            <caption class="pb-2 text-left font-semibold text-stone-900">
+              {u.name}{defaultUtility && u.id === defaultUtility.id ? ' (likely utility for this city)' : ''}
+            </caption>
+            <thead>
+              <tr class="border-b border-stone-300 text-stone-600"><th scope="col" class="py-2 pr-4 font-medium">Item</th><th scope="col" class="py-2 font-medium">Rate</th></tr>
+            </thead>
+            <tbody>
+              {utilityRateRows(u).map((r) => (
+                <tr class="border-b border-stone-200">
+                  <th scope="row" class="py-2 pr-4 font-normal text-stone-700">{r.label}</th>
+                  <td class="py-2 text-stone-900">{r.value ?? <span class="text-stone-600">being verified</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {u.source_url && u.verified_on && (
+            <p class="!mt-2 text-xs text-stone-600">Source: <a href={u.source_url} rel="noopener">utility rate page</a>, read {u.verified_on}.</p>
+          )}
+        </div>
+      ))}
+    </>
+  )}
+</section>

@@ -1,0 +1,109 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import RateTable from '../../../components/city/RateTable.astro';
+import ProductionChart from '../../../components/city/ProductionChart.astro';
+import ExamplePayback from '../../../components/city/ExamplePayback.astro';
+import { DB_PAGE_CACHE_HEADERS, loadCalcConfig, loadCities, loadCity, loadProduction } from '../../../lib/db/repo';
+import {
+  FALLBACK_EXAMPLE_BILLS,
+  STATE_NAMES,
+  exampleRows,
+  introParagraphs,
+  pickProduction,
+  slugFromState,
+  stateFromSlug,
+} from '../../../lib/city/view';
+
+const state = stateFromSlug(Astro.params.state);
+const slug = Astro.params.city ?? '';
+
+let status: 'ok' | 'not_found' | 'unavailable' = 'ok';
+const cityRes = state ? await loadCity(state, slug) : null;
+if (!state || !cityRes) status = 'not_found';
+else if (!cityRes.ok) status = cityRes.error.kind === 'not_found' ? 'not_found' : 'unavailable';
+
+const city = cityRes && cityRes.ok ? cityRes.value : null;
+const stateName = state ? STATE_NAMES[state] : '';
+const stateSlug = state ? slugFromState(state) : 'florida';
+
+const [cfgRes, prodRes, citiesRes] = city && state
+  ? await Promise.all([loadCalcConfig(state), loadProduction(state, city.slug), loadCities(state)])
+  : [null, null, null];
+const cfg = cfgRes && cfgRes.ok ? cfgRes.value : null;
+const production = cfg && prodRes && prodRes.ok ? pickProduction(prodRes.value, cfg.assumptions) : null;
+const defaultUtility = cfg && city ? cfg.utilities.find((u) => u.id === city.default_utility_id) ?? null : null;
+const otherUtilities = cfg && city ? cfg.utilities.filter((u) => u.id !== city.default_utility_id) : [];
+const examples = city
+  ? exampleRows(city, FALLBACK_EXAMPLE_BILLS, cfg ? { utilities: cfg.utilities, costs: cfg.costs, assumptions: cfg.assumptions } : null, production)
+  : [];
+const intro = city ? introParagraphs(city.intro_md) : [];
+const otherCities = citiesRes && citiesRes.ok && city ? citiesRes.value.filter((c) => c.slug !== city.slug && c.published) : [];
+
+if (status === 'not_found') Astro.response.status = 404;
+else if (status === 'unavailable') {
+  Astro.response.status = 503;
+  Astro.response.headers.set('Cache-Control', 'no-store');
+} else for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
+
+const path = `/solar/${stateSlug}/${slug}`;
+const calcHref = `/calculator/${stateSlug}`;
+---
+{status !== 'ok' || !city ? (
+  <BaseLayout title={status === 'not_found' ? 'City not found' : 'Page temporarily unavailable'} description="RayValue city page" path={path} noindex>
+    <div class="page">
+      <h1>{status === 'not_found' ? 'We could not find that city' : 'This page is being verified'}</h1>
+      <p>{status === 'not_found' ? 'We do not have a page for that city yet.' : 'Our data is temporarily unavailable. Please try again in a few minutes.'}</p>
+      <p><a href={calcHref}>Use the {stateName || 'Florida'} solar calculator instead</a></p>
+    </div>
+  </BaseLayout>
+) : (
+  <BaseLayout
+    title={`Solar payback in ${city.name}, ${city.state}`}
+    description={`Electricity rates, sun hours and example solar payback for homeowners in ${city.name}, ${stateName}.`}
+    path={path}
+    noindex={!city.published}
+  >
+    <div class="page">
+      <nav aria-label="Breadcrumb" class="text-sm text-stone-600">
+        <ol class="flex flex-wrap gap-x-2">
+          <li class="!mt-0"><a href="/">Home</a></li>
+          <li class="!mt-0" aria-hidden="true">›</li>
+          <li class="!mt-0"><a href={calcHref}>{stateName} calculator</a></li>
+          <li class="!mt-0" aria-hidden="true">›</li>
+          <li class="!mt-0" aria-current="page">{city.name}</li>
+        </ol>
+      </nav>
+      <h1 class="!mt-4">Solar payback in {city.name}, {city.state}</h1>
+
+      {intro.length > 0 ? intro.map((p) => <p>{p}</p>) : <p>TODO: Write a short owner-written intro for {city.name} (cities.intro_md).</p>}
+
+      <RateTable defaultUtility={defaultUtility} others={otherUtilities} cityName={city.name} />
+      <ProductionChart cityName={city.name} monthly={production?.monthly_kwh_per_kw ?? null} annual={production?.annual_kwh_per_kw ?? null} />
+      <ExamplePayback rows={examples} cityName={city.name} analysisYears={cfg?.assumptions.analysis_years.value ?? 25} />
+
+      <section aria-labelledby="notes-h">
+        <h2 id="notes-h">Local notes for {city.name}</h2>
+        {city.local_notes.length > 0 ? (
+          <ul class="list-disc pl-5">{city.local_notes.map((n) => <li>{n}</li>)}</ul>
+        ) : (
+          <p>TODO: Add local notes for {city.name} (cities.local_notes).</p>
+        )}
+      </section>
+
+      <section aria-labelledby="cta-h" class="mt-10 rounded-lg border border-sun-300 bg-sun-50 p-5">
+        <h2 id="cta-h" class="!mt-0">Run your own numbers</h2>
+        <p>Enter your ZIP and monthly bill to get a payback range for your home.</p>
+        <p><a href={calcHref} class="inline-block rounded-md bg-stone-900 px-4 py-2 font-medium !text-white no-underline hover:bg-stone-700">{stateName} solar calculator</a></p>
+      </section>
+
+      {otherCities.length > 0 && (
+        <nav aria-label={`Other ${stateName} cities`} class="mt-10">
+          <h2>Other {stateName} cities</h2>
+          <ul class="flex flex-wrap gap-x-4">{otherCities.map((c) => <li><a href={`/solar/${stateSlug}/${c.slug}`}>{c.name}</a></li>)}</ul>
+        </nav>
+      )}
+    </div>
+  </BaseLayout>
+)}

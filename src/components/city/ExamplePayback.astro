@@ -1,0 +1,44 @@
+---
+import type { ExampleRow } from '../../lib/city/view';
+import { formatUsd } from '../../lib/format';
+import { formatYears } from '../../lib/city/view';
+
+interface Props {
+  rows: ExampleRow[];
+  cityName: string;
+  analysisYears: number;
+}
+const { rows, cityName, analysisYears } = Astro.props;
+---
+<section aria-labelledby="ex-h">
+  <h2 id="ex-h">Example payback in {cityName}</h2>
+  <p>
+    These use <strong>illustrative example bills</strong>, not averages for {cityName}. They show a solar-only system (no battery, some shading) at the likely utility's rates, with no federal tax credit. Your own numbers will differ; use the calculator for yours.
+  </p>
+  <div class="mt-4 overflow-x-auto">
+    <table class="w-full min-w-[28rem] border-collapse text-left text-sm">
+      <thead>
+        <tr class="border-b border-stone-300 text-stone-600">
+          <th scope="col" class="py-2 pr-3 font-medium">Monthly bill</th>
+          <th scope="col" class="py-2 pr-3 font-medium">System size</th>
+          <th scope="col" class="py-2 pr-3 font-medium">Installed cost</th>
+          <th scope="col" class="py-2 font-medium">Payback (years)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr class="border-b border-stone-200 align-top">
+            <th scope="row" class="py-2 pr-3 font-normal text-stone-900">{formatUsd(r.bill)}</th>
+            <td class="py-2 pr-3">{r.result ? (r.result.size.low === r.result.size.high ? `${r.result.size.low} kW` : `${r.result.size.low}–${r.result.size.high} kW`) : <span class="text-stone-600">being verified</span>}</td>
+            <td class="py-2 pr-3">{r.result ? `${formatUsd(r.result.cost.low)}–${formatUsd(r.result.cost.high)}` : <span class="text-stone-600">being verified</span>}</td>
+            <td class="py-2">
+              {r.result
+                ? `${formatYears(r.result.paybackYears.low, analysisYears)}–${formatYears(r.result.paybackYears.high, analysisYears)} (likely ${formatYears(r.result.paybackYears.likely, analysisYears)})`
+                : <span class="text-stone-600">being verified</span>}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</section>
