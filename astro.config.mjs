@@ -5,7 +5,9 @@ import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import tailwindcss from '@tailwindcss/vite';
+import { loadEnv } from 'vite';
 import { guideFlags, excludedGuideUrls } from './src/lib/seo/guide-flags.ts';
+import { getPublishedCityUrls } from './src/lib/seo/sitemap-cities.ts';
 
 // Server code reads secrets from process.env at request time (never import.meta.env, which Vite inlines
 // into the function bundle). Under `astro dev`, load .env.local (from `vercel env pull`) into process.env.
@@ -22,6 +24,14 @@ const excludedGuides = excludedGuideUrls(
   readdirSync(guideDir).filter((f) => f.endsWith('.mdx')).map((f) => ({ id: f.replace(/\.mdx$/, ''), ...guideFlags(readFileSync(`${guideDir}/${f}`, 'utf8')) })),
 );
 
+// Published city pages are on-demand, so list them for the sitemap from the DB at build time
+// (offline / no env => [], build still succeeds). Unpublished cities are never listed.
+const dbEnv = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
+const cityUrls = await getPublishedCityUrls({
+  url: process.env.SUPABASE_URL || dbEnv.SUPABASE_URL,
+  key: process.env.SUPABASE_PUBLISHABLE_KEY || dbEnv.SUPABASE_PUBLISHABLE_KEY,
+});
+
 export default defineConfig({
   site: 'https://rayvalue.com',
   output: 'static',
@@ -37,8 +47,11 @@ export default defineConfig({
   integrations: [
     mdx(),
     preact(),
-    // Exclude noindex pages (alerts thanks) from the sitemap. Unpublished cities/drafts are never emitted or are handled by Task 6.
-    sitemap({ filter: (page) => !excludedGuides.has(new URL(page).pathname) && !/\/alerts\/thanks\/?$/.test(page) && !/\/api\//.test(page) }),
+    // Sitemap = prerendered pages minus noindex ones (noindex/draft guides, /alerts/thanks, API), plus published cities.
+    sitemap({
+      customPages: cityUrls,
+      filter: (page) => !excludedGuides.has(new URL(page).pathname) && !/\/alerts\/thanks\/?$/.test(page) && !/\/api\//.test(page),
+    }),
   ],
   vite: { plugins: [tailwindcss()] },
 });

@@ -1,0 +1,37 @@
+---
+import { chartBars } from '../../lib/city/view';
+
+interface Props {
+  cityName: string;
+  monthly: readonly number[] | null;
+  annual: number | null;
+}
+const { cityName, monthly, annual } = Astro.props;
+const W = 600, H = 220;
+const bars = monthly ? chartBars(monthly, W, H) : [];
+const title = `Estimated monthly solar output per kW installed in ${cityName}`;
+---
+<section aria-labelledby="prod-h">
+  <h2 id="prod-h">How much sun {cityName} gets</h2>
+  {!monthly ? (
+    <p>Production estimates for this city are being verified.</p>
+  ) : (
+    <>
+      <p>Estimated output of 1 kW of rooftop solar, month by month, from NREL PVWatts weather data{annual ? <>: about {Math.round(annual).toLocaleString('en-US')} kWh per year</> : ''}. Real output depends on your roof, shading and equipment.</p>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="prod-title" class="mt-4 h-auto w-full max-w-2xl">
+        <title id="prod-title">{title}</title>
+        {bars.map((b) => (
+          <>
+            <rect x={b.x} y={b.y} width={b.w} height={b.h} rx="2" class="fill-sun-500" />
+            <text x={b.x + b.w / 2} y={H - 10} text-anchor="middle" font-size="12" class="fill-stone-700">{b.month}</text>
+          </>
+        ))}
+      </svg>
+      <table class="sr-only">
+        <caption>{title} (kWh)</caption>
+        <thead><tr><th scope="col">Month</th><th scope="col">kWh per kW</th></tr></thead>
+        <tbody>{bars.map((b) => <tr><th scope="row">{b.month}</th><td>{Math.round(b.kwh)}</td></tr>)}</tbody>
+      </table>
+    </>
+  )}
+</section>
