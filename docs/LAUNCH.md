@@ -45,21 +45,31 @@ Hosting: Vercel project `rayvalue` (team vedanshs-projects-5b6aa829). Repo: gith
 - Do not add Shiki code highlighting (inline styles conflict with the CSP).
 
 ## Pre-launch checks
-Measured 2026-10-22 on the Phase 8 worktree, mobile Lighthouse against the Vercel build output (`npm run lighthouse`). Calculator and guides pages do not exist on this branch; re-run after integration.
+Measured 2026-10-22 on integrated `build/v1`, mobile Lighthouse (Moto G emulation, simulated throttling).
+On-demand pages (calculator, city, methodology) were measured against the protected preview deployment
+https://rayvalue-h08qtvmq2-vedanshs-projects-5b6aa829.vercel.app (live DB + live PVWatts; preview-only
+vercel.live toolbar blocked). Prerendered pages were measured with `npm run lighthouse` (Vercel build output).
+Preview SEO scores are not meaningful (Vercel adds `X-Robots-Tag: noindex` and auth-gates robots.txt on previews).
 
-| Page | Performance | Accessibility | Notes |
-|---|---|---|---|
-| / | 100 | 100 | |
-| /about | 100 | 100 | |
-| /404 | 100 | 100 | |
-| /calculator/florida | not measured | not measured | page not on this branch |
-| /calculator/california | not measured | not measured | page not on this branch |
-| /guides | not measured | not measured | page not on this branch |
+| Page (template) | Performance | Accessibility | Best practices | Notes |
+|---|---|---|---|---|
+| / (home) | 100 | 100 | 100 | preview and local both 100/100 |
+| /calculator/florida (calculator) | 100 | 100 | 100 | preview; LCP ~1.0 s, CLS 0 |
+| /calculator/california (calculator) | 100 | 100 | 100 | preview; CLS 0.022 |
+| /solar/florida/miami (city) | 98 | 100 | 100 | preview; unpublished (noindex) |
+| /guides (guide index) | 100 | 100 | 100 | |
+| /guides/florida-solar-without-federal-tax-credit (guide) | 98 / 100 | 100 | 100 | preview / local |
+| /alerts/thanks | 100 | 100 | 100 | noindex, not in sitemap |
+| /methodology | 100 | 100 | 100 | preview (on demand) |
+| /about (static content) | 100 | 100 | 100 | |
+| /404 | 100 | 100 | n/a | local (Lighthouse cannot audit a 404 response on the preview) |
 
 | Check | Result |
 |---|---|
 | `npm run check` | 0 errors |
-| `npm test` | 210 passed |
-| `npm run build` | passes |
-| Secrets in built output | none (no sb_secret / sb_publishable / api_key strings; actual env values not found) |
+| `npm test` | 227 passed, 1 skipped (live-DB integration test, opt-in) |
+| `npm run build` | passes, also with an empty environment (no DB secrets) |
+| `npm run db:check` | passes |
+| Secrets in built output | none: no value from `.env.local` (NREL key, Supabase URL/key) appears in `.vercel/output` or `dist` |
+| CSP | headless Chrome on the preview: no CSP violations or console errors on any template; FL (33101, FPL, $200, no battery, no shade) and CA (94103, PG&E, $250, 1 battery, some shade) calculator runs render results |
 | Cookies | no `document.cookie` or `set-cookie` in `src` |
