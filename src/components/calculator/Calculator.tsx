@@ -8,7 +8,7 @@
  * tables) when an estimate is run; both via dynamic import(). The other state's table is never loaded.
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
-import type { TargetedSubmitEvent } from 'preact';
+import type { ComponentChildren, TargetedSubmitEvent } from 'preact';
 import type { BatteryCount, CalcResult, CalcSuccess, Shading } from '../../lib/calc/types';
 import { displayPayback, displayRange, formatKw, formatSignedUsd, type RangeDisplay } from '../../lib/calculator/display';
 import { CALCULATOR_PATHS, STATE_NAMES, UNLISTED_UTILITY, inputsKey, joinNames, parseBill, resultsStale, utilityChoice } from '../../lib/calculator/form';
@@ -19,6 +19,8 @@ import { answerSummaryParts } from '../../lib/calculator/summary';
 import { formatUsd } from '../../lib/format';
 import { parseShareParams, serializeShareParams } from '../../lib/share';
 import { btnPrimary, btnSecondary, btnText } from '../ui/buttons';
+import QuoteForm, { type QuoteContext } from '../quotes/QuoteForm';
+import { estimateSnapshot } from '../../lib/leads/snapshot';
 
 const loadEngine = () => import('../../lib/calculator/engine');
 
@@ -221,7 +223,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     // Collapse only on a successful estimate; otherwise the user likely needs to change answers.
     const success = next.kind === 'result' && next.result.ok;
     setCollapsed(success);
-    setRanInputs(success ? i : null);
+    setRanInputs(next.kind === 'result' ? i : null); // also kept for missing_data, for the quote form
     setBusy(false);
   }
 
@@ -255,6 +257,13 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     goTo(1);
   }
 
+  /** "Change" ZIP on the quote card: back to step 1 of the calculator, answers kept. */
+  function changeZip() {
+    focusStep.current = 'field';
+    setCollapsed(false);
+    setStep(1);
+  }
+
   /** Re-open the form at step 4 (the most-edited step), answers kept; results stay below. */
   function editAnswers() {
     focusStep.current = 'heading';
@@ -275,6 +284,17 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
   const stepTitle = STEPS.find((s) => s.n === step)!.label;
 
   const utilityName = (id: string) => utilities.find((u) => u.id === id)?.name ?? '';
+  /** Quote card for the answers the shown results were run with (null when nothing applies). */
+  const leadCard = (snapshot: QuoteContext['snapshot'], pending: boolean) =>
+    ranInputs && (
+      <LeadCard
+        zip={ranInputs.zip}
+        state={state}
+        pending={pending}
+        onChangeZip={changeZip}
+        context={{ utilityId: ranInputs.utilityId, bill: ranInputs.bill, battery: ranInputs.battery, shading: ranInputs.shading, snapshot }}
+      />
+    );
 
   return (
     <div>
@@ -488,6 +508,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
                 : 'Please check your answers and try again.'}
             </p>
           )}
+          {outcome.kind === 'result' && !outcome.result.ok && outcome.result.reason === 'missing_data' && leadCard(null, true)}
           {outcome.kind === 'result' && outcome.result.ok && (
             <Results
               r={outcome.result}
@@ -497,6 +518,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
               busy={busy}
               onCopy={copyLink}
               onStartOver={startOver}
+              leadCard={leadCard(estimateSnapshot(outcome.result), false)}
             />
           )}
         </section>
@@ -644,6 +666,8 @@ function Results(p: {
   busy: boolean;
   onCopy: () => void;
   onStartOver: () => void;
+  /** The quote card, placed right under the hero metrics. */
+  leadCard: ComponentChildren;
 }) {
   const { r } = p;
   const noUsage = r.annualUsageKwh === 0;
@@ -681,6 +705,13 @@ function Results(p: {
         <dl class="mt-6 grid gap-3 sm:grid-cols-2">
           <Metric variant="hero" label="Payback" d={displayPayback(r.paybackYears, r.analysisYears)} note="Range runs from shortest (best case) to longest" />
           <Metric variant="hero" label={`Net savings over ${r.analysisYears} years`} d={displayRange(r.netSavings25, formatSignedUsd)} note="Bill savings minus upfront cost" />
+        </dl>
+      )}
+
+      {p.leadCard}
+
+      {!noUsage && (
+        <dl class="mt-6 grid gap-3 sm:grid-cols-2">
           <Metric label="Upfront cost" d={displayRange(r.cost, formatUsd)} note="Before any incentives" />
           <Metric label="First-year bill savings" d={displayRange(r.year1Savings, formatUsd)} />
           <Metric variant="compact" label="System size" d={displayRange(r.size, formatKw)} />
@@ -710,5 +741,22 @@ function Results(p: {
         </span>
       </div>
     </div>
+  );
+}
+
+/** "Get real quotes for this system": the quote form, prefilled with the calculator answers. */
+function LeadCard(p: { zip: string; state: 'FL' | 'CA'; pending: boolean; onChangeZip: () => void; context: QuoteContext }) {
+  return (
+    <section aria-labelledby="calc-quote-heading" class="mt-6 rounded-2xl border-2 border-sun-400 bg-sun-50 p-5 sm:p-6">
+      <h3 id="calc-quote-heading" class="text-xl font-bold tracking-tight text-stone-900">
+        Get real quotes for this system
+      </h3>
+      <p class="mb-4 mt-1 text-stone-700">
+        {p.pending
+          ? 'We’re still verifying rates — installers can still quote your home.'
+          : `Compare free quotes from up to 3 installers near ${p.zip}. Your estimate comes with you.`}
+      </p>
+      <QuoteForm id="calc-quote" source="results" pagePath={CALCULATOR_PATHS[p.state]} state={p.state} zip={p.zip} onChangeZip={p.onChangeZip} context={p.context} />
+    </section>
   );
 }

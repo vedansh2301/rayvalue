@@ -49,6 +49,8 @@ export function normalizeEmail(raw: unknown): string | null {
   return e && e.length <= 254 && EMAIL_RE.test(e) ? e : null;
 }
 
+export const PHONE_ERROR = 'Enter a 10-digit US phone number, like 305-555-0123.';
+
 const truthy = (v: unknown) => v === true || v === 'on' || v === 'true' || v === 'yes';
 
 /** Raw fields as posted (form or JSON). Unknown keys are ignored. */
@@ -126,7 +128,7 @@ export function validateLead(f: LeadFields): LeadValidation {
   if (!email) errors.email = 'Enter a valid email address, like name@example.com.';
 
   const phone = normalizePhone(f.phone);
-  if (!phone) errors.phone = 'Enter a 10-digit US phone number, like 305-555-0123.';
+  if (!phone) errors.phone = PHONE_ERROR;
 
   const zip = str(f.zip);
   const chosen = str(f.state).toUpperCase();
