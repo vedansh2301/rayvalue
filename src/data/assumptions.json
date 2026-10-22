@@ -1,0 +1,37 @@
+{
+  "pvwatts_system_loss_pct": {
+    "kind": "assumption",
+    "rationale": "Percent system losses passed to PVWatts per shading level. 14% is the PVWatts default; 20% and 30% are product choices for some and heavy shading, not measured values.",
+    "none": 14,
+    "some": 20,
+    "heavy": 30
+  },
+  "target_offset": {
+    "kind": "assumption",
+    "rationale": "Share of annual usage the recommended system aims to cover. Product choice: size to roughly 90-100% of usage.",
+    "low": 0.9,
+    "high": 1.0
+  },
+  "system_size_cap_kw": {
+    "kind": "assumption",
+    "rationale": "Upper limit on recommended system size so very large bills do not produce unrealistic rooftop systems. Product choice.",
+    "value": 15
+  },
+  "panel_degradation_per_year": {
+    "kind": "assumption",
+    "rationale": "Annual loss in panel output used in the 25-year projection. Product choice (0.5% per year).",
+    "value": 0.005
+  },
+  "analysis_years": {
+    "kind": "assumption",
+    "rationale": "Length of the net-savings projection. Product choice (typical panel warranty length).",
+    "value": 25
+  },
+  "ca_self_consumption_share": {
+    "kind": "assumption",
+    "rationale": "Share of solar output used on site (valued at the retail rate) versus exported at the lower net billing credit, for California homes. Placeholder product choices pending owner review; batteries raise self-consumption.",
+    "solar_only": { "low": 0.3, "likely": 0.4, "high": 0.5 },
+    "solar_plus_1_battery": { "low": 0.55, "likely": 0.7, "high": 0.8 },
+    "solar_plus_2_batteries": { "low": 0.7, "likely": 0.85, "high": 0.95 }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "source": "US Census Bureau ZIP Code Tabulation Area (ZCTA) Gazetteer, internal point (INTPTLAT/INTPTLONG)",
+  "source_url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_Gaz_zcta_national.zip",
+  "gazetteer_year": 2026,
+  "downloaded_on": "2026-10-22",
+  "fl_prefixes": "320-339, 341, 342, 344, 346, 347, 349",
+  "ca_prefixes": "900-961",
+  "fl_count": 1013,
+  "ca_count": 1802,
+  "note": "Coordinates are ZCTA internal points (approximate area centres), rounded to 4 decimals. ZIP to state is by 3-digit prefix, so a few ZCTAs that straddle a state line are assigned by prefix only."
+}

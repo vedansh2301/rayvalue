@@ -1,10 +1,34 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+// Importing the data module validates every src/data/*.json file at build time,
+// so a bad value fails `npm run build`.
+import { getUtilitiesByState, type State } from '../data';
+
+const states: { code: State; label: string }[] = [
+  { code: 'FL', label: 'Florida' },
+  { code: 'CA', label: 'California' },
+];
 ---
 <BaseLayout title="Methodology" description="How RayValue estimates solar system size, cost, savings and payback." path="/methodology">
   <div class="page">
     <h1>Methodology</h1>
     <p>TODO: Explain the calculation steps, data sources, and assumptions behind the calculators.</p>
     <p>TODO: Note that no federal tax credit is applied for installs in 2026 and later.</p>
+
+    <h2>Utility rate sources</h2>
+    <p>Rates come from each utility's own published tariff or rate pages. The page we read for each one:</p>
+    {states.map(({ code, label }) => (
+      <>
+        <h3>{label}</h3>
+        <ul>
+          {getUtilitiesByState(code).map((u) => (
+            <li>
+              <a href={u.source_url ?? undefined} rel="noopener">{u.name}, schedule {u.rate_schedule}</a>
+              {u.verified_on && <> (read {u.verified_on})</>}
+            </li>
+          ))}
+        </ul>
+      </>
+    ))}
   </div>
 </BaseLayout>

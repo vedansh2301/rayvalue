@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "check": "astro check",
     "preview:cf": "astro build && wrangler pages dev dist",
-    "lighthouse": "node scripts/lighthouse.mjs"
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "todo:verify": "node scripts/todo-verify.mjs",
+    "build:zips": "node scripts/build-zips.mjs"
   },
   "dependencies": {
     "@astrojs/preact": "^6.1.1",
@@ -19,7 +21,8 @@
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.4.2",
     "preact": "^11.0.1",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",

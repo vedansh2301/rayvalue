@@ -1,0 +1,66 @@
+{
+  "FL": {
+    "installed_cost_per_watt": {
+      "low": null,
+      "likely": 4.7,
+      "high": null,
+      "unit": "USD per watt DC, gross price before incentives",
+      "note": "Berkeley Lab median installed price for host-owned, stand-alone residential PV installed in Florida in 2024 (2024 dollars; slide 38 chart label). The same slide shows a 20th/80th percentile band but does not label its values, and the only labelled percentiles (slide 35, $3.0/W and $5.2/W) are national, so low and high are left null.",
+      "source_url": "https://emp.lbl.gov/sites/default/files/2025-10/Distributed%20Solar%20&%20Storage-2025%20Data%20Update.pdf",
+      "verified_on": "2026-10-22",
+      "verification": "agent_sourced"
+    },
+    "battery_installed_cost": {
+      "low": null,
+      "likely": null,
+      "high": null,
+      "unit": "USD per battery unit (about 13.5 kWh class), installed",
+      "note": "No primary-source price per installed battery unit was found. Berkeley Lab reports $/kWh for paired PV+storage in California only, and converting it would require assumptions.",
+      "source_url": null,
+      "verified_on": null,
+      "verification": "unverified"
+    },
+    "annual_rate_escalation": {
+      "low": null,
+      "likely": null,
+      "high": null,
+      "unit": "fraction per year (0.03 = 3%)",
+      "note": "No primary-source forecast of Florida residential electricity price growth was found within the research time-box.",
+      "source_url": null,
+      "verified_on": null,
+      "verification": "unverified"
+    }
+  },
+  "CA": {
+    "installed_cost_per_watt": {
+      "low": null,
+      "likely": 4.0,
+      "high": null,
+      "unit": "USD per watt DC, gross price before incentives",
+      "note": "Berkeley Lab median installed price for host-owned, stand-alone residential PV installed in California in 2024 (2024 dollars; slide 38 chart label). Low and high left null for the same reason as Florida.",
+      "source_url": "https://emp.lbl.gov/sites/default/files/2025-10/Distributed%20Solar%20&%20Storage-2025%20Data%20Update.pdf",
+      "verified_on": "2026-10-22",
+      "verification": "agent_sourced"
+    },
+    "battery_installed_cost": {
+      "low": null,
+      "likely": null,
+      "high": null,
+      "unit": "USD per battery unit (about 13.5 kWh class), installed",
+      "note": "No primary-source price per installed battery unit was found. Berkeley Lab reports $/kWh for paired PV+storage in California only, and converting it would require assumptions.",
+      "source_url": null,
+      "verified_on": null,
+      "verification": "unverified"
+    },
+    "annual_rate_escalation": {
+      "low": null,
+      "likely": null,
+      "high": null,
+      "unit": "fraction per year (0.03 = 3%)",
+      "note": "No primary-source forecast of California residential electricity price growth was found within the research time-box.",
+      "source_url": null,
+      "verified_on": null,
+      "verification": "unverified"
+    }
+  }
+}
