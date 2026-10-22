@@ -1,6 +1,6 @@
 ---
 import type { Utility } from '../../data/schemas';
-import { utilityRateRows } from '../../lib/city/view';
+import { isHttpUrl, utilityRateRows } from '../../lib/city/view';
 
 interface Props {
   defaultUtility: Utility | null;
@@ -38,7 +38,7 @@ const list = [...(defaultUtility ? [defaultUtility] : []), ...others];
               ))}
             </tbody>
           </table>
-          {u.source_url && u.verified_on && (
+          {isHttpUrl(u.source_url) && u.verified_on && (
             <p class="!mt-2 text-xs text-stone-600">Source: <a href={u.source_url} rel="noopener">utility rate page</a>, read {u.verified_on}.</p>
           )}
         </div>

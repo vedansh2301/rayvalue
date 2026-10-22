@@ -263,12 +263,18 @@ export const AssumptionsSchema = z
     }),
     /** Placeholder ± spread around a sourced `likely` when a cost line's low/high bound is null. */
     missing_range_spread: assumption({ value: z.number().min(0).max(0.5) }),
+    /**
+     * Illustrative monthly bills (USD) for the city-page example-payback table. Model inputs, not facts.
+     * Optional: when the row is missing the city page hides that table ("being verified"); the calculator is unaffected.
+     */
+    city_example_bills: assumption({ value: z.array(z.number().positive()).min(1).max(6) }).optional(),
   })
   .strict()
   .superRefine((a, ctx) => {
     const l = a.pvwatts_system_loss_pct;
     if (!(l.none <= l.some && l.some <= l.heavy)) ctx.addIssue({ code: 'custom', path: ['pvwatts_system_loss_pct'], message: 'losses must satisfy none <= some <= heavy' });
     if (a.min_system_size_kw.value >= a.system_size_cap_kw.value) ctx.addIssue({ code: 'custom', path: ['min_system_size_kw'], message: 'min_system_size_kw must be below system_size_cap_kw' });
+    if (a.city_example_bills?.value.some((b) => b > a.max_monthly_bill.value)) ctx.addIssue({ code: 'custom', path: ['city_example_bills'], message: 'example bills must not exceed max_monthly_bill' });
     if (a.target_offset.low > a.target_offset.high) ctx.addIssue({ code: 'custom', path: ['target_offset'], message: 'target_offset.low must be <= high' });
   });
 export type Assumptions = z.infer<typeof AssumptionsSchema>;

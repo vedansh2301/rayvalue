@@ -20,11 +20,13 @@ export const slugFromState = (s: 'FL' | 'CA'): StateSlug => (s === 'FL' ? 'flori
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
 
 /**
- * Illustrative monthly bills for the example-payback section. These are model INPUTS, not
- * facts. TODO(controller): move into model_assumptions key `city_example_bills`; until then
- * this fallback is used and labelled "illustrative example bills".
+ * Illustrative monthly bills for the example-payback section, from model_assumptions key
+ * `city_example_bills` (model inputs, not facts). null when the row is missing or assumptions
+ * could not be loaded: the page then shows the section as "being verified". No fallback in code.
  */
-export const FALLBACK_EXAMPLE_BILLS: readonly number[] = [100, 200, 350];
+export function exampleBills(assumptions: Assumptions | null): readonly number[] | null {
+  return assumptions?.city_example_bills?.value ?? null;
+}
 
 /** Owner-written Markdown intro -> plain paragraphs (rendered as escaped text; no HTML is ever injected). */
 export function introParagraphs(md: string | null): string[] {
@@ -35,6 +37,9 @@ export function introParagraphs(md: string | null): string[] {
     .map((p) => p.replace(/^#{1,6}\s+/gm, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').replace(/\s*\n\s*/g, ' ').trim())
     .filter(Boolean);
 }
+
+/** Only http(s) URLs from the DB are rendered as links (blocks javascript:, data: etc.). */
+export const isHttpUrl = (u: string | null | undefined): u is string => typeof u === 'string' && /^https?:\/\//i.test(u);
 
 const usdRate = (n: number) => `$${n.toFixed(3).replace(/0$/, '')}/kWh`;
 export const formatRate = (n: number | null): string | null => (n === null ? null : usdRate(n));

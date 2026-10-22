@@ -161,6 +161,17 @@ describe('schemas reject bad data', () => {
     expect(AssumptionsSchema.safeParse(bad3).success).toBe(false);
   });
 
+  it('treats city_example_bills as optional but validates it when present', () => {
+    const why = 'synthetic test rationale';
+    expect(AssumptionsSchema.safeParse(fixtureAssumptions).success).toBe(true);
+    const good = { ...clone(fixtureAssumptions), city_example_bills: { kind: 'assumption', rationale: why, value: [10, 20] } };
+    expect(AssumptionsSchema.safeParse(good).success).toBe(true);
+    for (const value of [[], [-1], ['x'], [fixtureAssumptions.max_monthly_bill.value + 1]]) {
+      const bad = { ...clone(fixtureAssumptions), city_example_bills: { kind: 'assumption', rationale: why, value } };
+      expect(AssumptionsSchema.safeParse(bad).success).toBe(false);
+    }
+  });
+
   it('rejects bad cities and duplicate slugs', () => {
     expect(CitySchema.safeParse(city({ utility_confidence: 'maybe' })).success).toBe(false);
     expect(CitySchema.safeParse(city({ default_utility_id: 'nope' })).success).toBe(false);

@@ -377,7 +377,7 @@ export function costsToRows(costs: Costs): CostRangeRow[] {
 
 /** All-states rows (state null). `units` optionally labels each key's value. */
 export function assumptionsToRows(a: Assumptions, units: Partial<Record<keyof Assumptions, string>> = {}): ModelAssumptionRow[] {
-  return (Object.keys(a) as (keyof Assumptions)[]).map((key) => {
+  return (Object.keys(a) as (keyof Assumptions)[]).filter((key) => a[key] !== undefined).map((key) => {
     const { kind: _kind, rationale, ...value } = a[key] as { kind: 'assumption'; rationale: string } & Record<string, unknown>;
     return { key, state: null, value, unit: units[key] ?? null, rationale };
   });

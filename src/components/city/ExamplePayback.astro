@@ -4,14 +4,19 @@ import { formatUsd } from '../../lib/format';
 import { formatYears } from '../../lib/city/view';
 
 interface Props {
-  rows: ExampleRow[];
+  /** null = example bills (model_assumptions.city_example_bills) or assumptions unavailable */
+  rows: ExampleRow[] | null;
   cityName: string;
-  analysisYears: number;
+  /** null only when assumptions are unavailable (then every row is "being verified") */
+  analysisYears: number | null;
 }
 const { rows, cityName, analysisYears } = Astro.props;
 ---
 <section aria-labelledby="ex-h">
   <h2 id="ex-h">Example payback in {cityName}</h2>
+  {rows === null || analysisYears === null ? (
+    <p class="text-stone-600">Example payback figures for {cityName} are being verified. Use the calculator for your own numbers.</p>
+  ) : (<>
   <p>
     These use <strong>illustrative example bills</strong>, not averages for {cityName}. They show a solar-only system (no battery, some shading) at the likely utility's rates, with no federal tax credit. Your own numbers will differ; use the calculator for yours.
   </p>
@@ -41,4 +46,5 @@ const { rows, cityName, analysisYears } = Astro.props;
       </tbody>
     </table>
   </div>
+  </>)}
 </section>

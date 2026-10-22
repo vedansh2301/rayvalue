@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chartBars, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows } from './view';
+import { chartBars, exampleBills, isHttpUrl, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows } from './view';
 import { fixtureAssumptions, fixtureCosts, fixtureUtilities, flTwoTier, caFixture } from '../calc/test-fixtures';
 import { fixtureCitiesFile } from '../db/test-rows';
 import type { CityProduction } from '../../data/schemas';
@@ -86,5 +86,22 @@ describe('formatYears', () => {
   it('formats null as more than N', () => {
     expect(formatYears(null, 25)).toBe('more than 25');
     expect(formatYears(7.5, 25)).toBe('7.5');
+  });
+});
+
+describe('exampleBills', () => {
+  it('reads city_example_bills from the assumptions, null when missing or unavailable', () => {
+    expect(exampleBills(null)).toBeNull();
+    expect(exampleBills(fixtureAssumptions)).toBeNull();
+    const a = { ...fixtureAssumptions, city_example_bills: { kind: 'assumption' as const, rationale: 'synthetic test rationale', value: [11, 22] } };
+    expect(exampleBills(a)).toEqual([11, 22]);
+  });
+});
+
+describe('isHttpUrl', () => {
+  it('accepts only http(s) URLs', () => {
+    expect(isHttpUrl('https://example.com/x')).toBe(true);
+    expect(isHttpUrl('http://example.com')).toBe(true);
+    for (const u of ['javascript:alert(1)', 'data:text/html,x', '//example.com', '', null, undefined]) expect(isHttpUrl(u)).toBe(false);
   });
 });

@@ -2,13 +2,14 @@
 export const prerender = false;
 
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import RateTable from '../../../components/city/RateTable.astro';
 import ProductionChart from '../../../components/city/ProductionChart.astro';
 import ExamplePayback from '../../../components/city/ExamplePayback.astro';
 import { DB_PAGE_CACHE_HEADERS, loadCalcConfig, loadCities, loadCity, loadProduction } from '../../../lib/db/repo';
 import {
-  FALLBACK_EXAMPLE_BILLS,
   STATE_NAMES,
+  exampleBills,
   exampleRows,
   introParagraphs,
   pickProduction,
@@ -35,9 +36,10 @@ const cfg = cfgRes && cfgRes.ok ? cfgRes.value : null;
 const production = cfg && prodRes && prodRes.ok ? pickProduction(prodRes.value, cfg.assumptions) : null;
 const defaultUtility = cfg && city ? cfg.utilities.find((u) => u.id === city.default_utility_id) ?? null : null;
 const otherUtilities = cfg && city ? cfg.utilities.filter((u) => u.id !== city.default_utility_id) : [];
-const examples = city
-  ? exampleRows(city, FALLBACK_EXAMPLE_BILLS, cfg ? { utilities: cfg.utilities, costs: cfg.costs, assumptions: cfg.assumptions } : null, production)
-  : [];
+const bills = exampleBills(cfg?.assumptions ?? null);
+const examples = city && bills
+  ? exampleRows(city, bills, cfg ? { utilities: cfg.utilities, costs: cfg.costs, assumptions: cfg.assumptions } : null, production)
+  : null;
 const intro = city ? introParagraphs(city.intro_md) : [];
 const otherCities = citiesRes && citiesRes.ok && city ? citiesRes.value.filter((c) => c.slug !== city.slug && c.published) : [];
 
@@ -45,6 +47,11 @@ if (status === 'not_found') Astro.response.status = 404;
 else if (status === 'unavailable') {
   Astro.response.status = 503;
   Astro.response.headers.set('Cache-Control', 'no-store');
+} else if (!cfg || !prodRes || !prodRes.ok) {
+  // City loaded but its rates/production did not: sections show "being verified". Cache briefly only,
+  // so a transient DB failure is not served from the CDN for a day.
+  Astro.response.headers.set('Cache-Control', 'public, max-age=0');
+  Astro.response.headers.set('CDN-Cache-Control', 'public, s-maxage=60');
 } else for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
 
 const path = `/solar/${stateSlug}/${slug}`;
@@ -66,22 +73,14 @@ const calcHref = `/calculator/${stateSlug}`;
     noindex={!city.published}
   >
     <div class="page">
-      <nav aria-label="Breadcrumb" class="text-sm text-stone-600">
-        <ol class="flex flex-wrap gap-x-2">
-          <li class="!mt-0"><a href="/">Home</a></li>
-          <li class="!mt-0" aria-hidden="true">›</li>
-          <li class="!mt-0"><a href={calcHref}>{stateName} calculator</a></li>
-          <li class="!mt-0" aria-hidden="true">›</li>
-          <li class="!mt-0" aria-current="page">{city.name}</li>
-        </ol>
-      </nav>
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${stateName} calculator`, href: calcHref }, { label: city.name }]} />
       <h1 class="!mt-4">Solar payback in {city.name}, {city.state}</h1>
 
       {intro.length > 0 ? intro.map((p) => <p>{p}</p>) : <p>TODO: Write a short owner-written intro for {city.name} (cities.intro_md).</p>}
 
       <RateTable defaultUtility={defaultUtility} others={otherUtilities} cityName={city.name} />
       <ProductionChart cityName={city.name} monthly={production?.monthly_kwh_per_kw ?? null} annual={production?.annual_kwh_per_kw ?? null} />
-      <ExamplePayback rows={examples} cityName={city.name} analysisYears={cfg?.assumptions.analysis_years.value ?? 25} />
+      <ExamplePayback rows={examples} cityName={city.name} analysisYears={cfg?.assumptions.analysis_years.value ?? null} />
 
       <section aria-labelledby="notes-h">
         <h2 id="notes-h">Local notes for {city.name}</h2>
