@@ -197,7 +197,7 @@
       "default_utility_id": "pge",
       "utility_source_url": "https://www.pge.com/en/featured/pge-service-area.html",
       "utility_source_note": "listed on PG&E's service area page under Kern County in one of its two county lists (absent from the other)",
-      "utility_confidence": "city",
+      "utility_confidence": "indirect",
       "published": false
     },
     {
