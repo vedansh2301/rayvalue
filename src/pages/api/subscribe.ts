@@ -7,9 +7,10 @@ export const prerender = false;
 export const POST: APIRoute = ({ request }) =>
   handleSubscribe(
     request,
+    // Runtime env (process.env); never import.meta.env, which Vite inlines into the bundle at build.
     {
-      SUPABASE_URL: import.meta.env.SUPABASE_URL ?? process.env.SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY: import.meta.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY,
+      SUPABASE_URL: process.env.SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
     },
     fetch,
     ['https://rayvalue.com', 'https://www.rayvalue.com'],

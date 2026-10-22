@@ -5,8 +5,17 @@ import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import tailwindcss from '@tailwindcss/vite';
-
 import { guideFlags, excludedGuideUrls } from './src/lib/seo/guide-flags.ts';
+
+// Server code reads secrets from process.env at request time (never import.meta.env, which Vite inlines
+// into the function bundle). Under `astro dev`, load .env.local (from `vercel env pull`) into process.env.
+if (process.argv.includes('dev')) {
+  try {
+    process.loadEnvFile('.env.local');
+  } catch {
+    /* no .env.local: DB pages show "being verified", /api/pvwatts returns 503 */
+  }
+}
 
 const guideDir = './src/content/guides';
 const excludedGuides = excludedGuideUrls(

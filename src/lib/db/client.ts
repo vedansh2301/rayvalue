@@ -32,15 +32,16 @@ export const err = (kind: DbErrorKind, message: string, issues?: string[]): { ok
 export const DB_TIMEOUT_MS = 8000;
 
 /**
- * Site runtime env (publishable key). Works under Astro/Vite (import.meta.env) and plain Node (process.env).
+ * Site runtime env (publishable key), read at request time — never baked into the build.
  * Returns null when either variable is missing.
  */
 export function siteDbEnv(): DbEnv | null {
-  // process.env first (Vercel Functions runtime); import.meta.env covers `astro dev` reading .env.local.
-  // import.meta.env is undefined when an admin script runs this file with plain Node.
+  // Runtime env only (process.env): Vercel Functions, plain-Node admin scripts, and `astro dev`
+  // (astro.config.mjs loads .env.local into process.env for dev). Never import.meta.env: Vite would
+  // inline the values into the server bundle at build time.
   const proc: Record<string, string | undefined> = typeof process !== 'undefined' ? process.env : {};
-  const url = proc.SUPABASE_URL || import.meta.env?.SUPABASE_URL;
-  const key = proc.SUPABASE_PUBLISHABLE_KEY || import.meta.env?.SUPABASE_PUBLISHABLE_KEY;
+  const url = proc.SUPABASE_URL;
+  const key = proc.SUPABASE_PUBLISHABLE_KEY;
   return url && key ? { url, key } : null;
 }
 
