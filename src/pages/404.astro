@@ -1,7 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { publishedGuides } from '../lib/guides';
+
+const hasGuides = (await publishedGuides()).length > 0;
 ---
-<BaseLayout title="Page not found" description="That page does not exist. Try the solar payback calculators or guides." path="/404" noindex>
+<BaseLayout title="Page not found" description="That page does not exist. Try the solar payback calculators." path="/404" noindex>
   <section class="mx-auto max-w-2xl px-4 py-16">
     <h1 class="text-3xl font-bold text-stone-900">Page not found</h1>
     <p class="mt-3 text-stone-700">We could not find that page. These might help:</p>
@@ -9,7 +12,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <li><a class="font-medium text-amber-800 underline" href="/">Home</a></li>
       <li><a class="font-medium text-amber-800 underline" href="/calculator/florida">Florida solar + battery calculator</a></li>
       <li><a class="font-medium text-amber-800 underline" href="/calculator/california">California solar + battery calculator</a></li>
-      <li><a class="font-medium text-amber-800 underline" href="/guides">Guides</a></li>
+      {hasGuides && <li><a class="font-medium text-amber-800 underline" href="/guides">Guides</a></li>}
     </ul>
   </section>
 </BaseLayout>

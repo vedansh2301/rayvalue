@@ -1,9 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PagePending from '../components/PagePending.astro';
+import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
+
+const path = '/about';
 ---
-<BaseLayout title="About" description="About RayValue, an independent solar payback calculator for Florida and California homeowners." path="/about">
+<BaseLayout title="About" description="About RayValue, an independent solar payback calculator for Florida and California homeowners." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
+    <!-- TODO: owner copy (who runs RayValue, why it exists, how it stays independent) -->
     <h1>About RayValue</h1>
-    <p>TODO: Write the About page: who runs RayValue, why it exists, and how it stays independent.</p>
+    <PagePending />
   </div>
 </BaseLayout>

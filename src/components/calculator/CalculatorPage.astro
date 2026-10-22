@@ -15,6 +15,7 @@ import type { State } from '../../data/schemas';
 import type { CalculatorPageData } from '../../lib/calculator/page-data';
 import { CALCULATOR_PATHS, STATE_NAMES } from '../../lib/calculator/form';
 import { webApplicationJsonLd } from '../../lib/seo/jsonld';
+import { ALERTS_ENABLED } from '../../lib/contact';
 
 interface Props {
   state: State;
@@ -27,7 +28,7 @@ const otherState: State = state === 'FL' ? 'CA' : 'FL';
 
 const offer = data.ok ? data.offer : null;
 const steps = [
-  'We place your ZIP code on the map and look up how much sun a south-facing roof gets there using the PVWatts solar model, adjusted for the shade you picked.',
+  'We place your ZIP code on the map and look up how much sun a rooftop solar array gets there using the PVWatts solar model, adjusted for the shade you picked.',
   'We work backwards from your bill through your utility’s published rates to estimate how much electricity you use in a year.',
   'We size a system to cover most of that usage and price it with a range of local installed costs.',
   `We apply ${name}’s rules for solar you send back to the grid, then project savings with a range of rate increases.`,
@@ -55,12 +56,12 @@ const steps = [
   <div class="mx-auto max-w-3xl space-y-10 px-4 pb-16">
     <section aria-label="Calculator">
       {data.ok ? (
-        <Calculator client:visible {...data.props} />
+        <Calculator client:visible {...data.props} alertsEnabled={ALERTS_ENABLED} />
       ) : (
         <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
           <h2 class="text-xl font-semibold text-stone-900">We&rsquo;re verifying rates &mdash; check back soon</h2>
           <p class="mt-2 leading-7 text-stone-700">
-            The {name} calculator is temporarily unavailable while we check our rate data. Sign up below and we&rsquo;ll let you know when rates change.
+            The {name} calculator is temporarily unavailable while we check our rate data.{ALERTS_ENABLED && <> Sign up below and we&rsquo;ll let you know when rates change.</>}
           </p>
         </div>
       )}
@@ -86,6 +87,6 @@ const steps = [
       </p>
     </section>
 
-    <AlertsSignup state={state} />
+    {ALERTS_ENABLED && <AlertsSignup state={state} />}
   </div>
 </BaseLayout>

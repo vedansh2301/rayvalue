@@ -110,6 +110,12 @@ describe('handleSubscribe', () => {
     expect(JSON.stringify(spy.mock.calls)).not.toContain('sb_publishable_test');
     spy.mockRestore();
   });
+  it('refuses signups while alerts are disabled (no contact address), without storing anything', async () => {
+    const f = mockFetch(201);
+    const res = await handleSubscribe(jsonReq({ email: 'a@b.co', state: 'FL' }), { ...ENV, ALERTS_ENABLED: false }, asFetch(f));
+    expect(res.status).toBe(503);
+    expect(f).not.toHaveBeenCalled();
+  });
   it('403 for cross-origin posts, no fetch', async () => {
     const f = mockFetch(201);
     const res = await handleSubscribe(jsonReq({ email: 'a@b.co', state: 'FL' }, { origin: 'https://evil.example' }), ENV, asFetch(f));

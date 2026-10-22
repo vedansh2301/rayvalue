@@ -1,33 +1,129 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import type { State } from '../data/schemas';
-import { DB_PAGE_CACHE_HEADERS, loadUtilities } from '../lib/db/repo';
+import { DB_PAGE_CACHE_HEADERS, createRepo } from '../lib/db/repo';
+import { isHttpUrl } from '../lib/city/view';
+import { arrayText } from '../lib/calc/text';
 
-// Rendered on demand: the rate sources come from the database, so owner edits show up
-// within ~5 minutes (CDN cache) without a redeploy.
+// Rendered on demand: the sources and the PVWatts array come from the database, so owner edits
+// show up within ~5 minutes (CDN cache) without a redeploy.
 export const prerender = false;
-const loaded = await loadUtilities();
-if (loaded.ok) for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
+const repo = createRepo();
+const [loaded, costs, assumptions] = await Promise.all([repo.loadUtilities(), repo.loadCosts(), repo.loadAssumptions()]);
+const failed = [loaded, costs, assumptions].filter((r) => !r.ok);
+if (failed.length === 0) for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
 else {
   // Do not let the CDN keep the fallback page.
   Astro.response.headers.set('Cache-Control', 'no-store');
-  console.error('methodology: utilities unavailable:', loaded.error.kind, loaded.error.message);
+  for (const r of failed) if (!r.ok) console.error('methodology: data unavailable:', r.error.kind, r.error.message);
 }
 const utilities = loaded.ok ? loaded.value : null;
+const array = assumptions.ok ? assumptions.value.pvwatts_array : null;
 
 const states: { code: State; label: string }[] = [
   { code: 'FL', label: 'Florida' },
   { code: 'CA', label: 'California' },
 ];
+
+/** Distinct sources (by URL) with what they are used for. Only http(s) links are rendered. */
+interface SourceItem { label: string; url: string | null; date: string | null }
+const dedupe = (items: SourceItem[]) => {
+  const seen = new Set<string>();
+  return items.filter((i) => {
+    const k = `${i.url ?? ''}|${i.label}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+};
+const avgRateSources = utilities
+  ? dedupe(utilities.filter((u) => u.avg_rate_per_kwh).map((u) => ({ label: `${u.name} residential average rate`, url: u.avg_rate_per_kwh!.source_url, date: u.avg_rate_per_kwh!.verified_on })))
+  : null;
+const exportSources = utilities
+  ? dedupe(utilities.filter((u) => u.avg_export_credit_per_kwh !== null).map((u) => ({ label: `${u.name} average export credit`, url: u.export_credit_source_url, date: u.export_credit_verified_on })))
+  : null;
+const exportNotes = utilities ? [...new Set(utilities.map((u) => (u.avg_export_credit_per_kwh !== null ? u.export_credit_note : null)).filter((n): n is string => !!n))] : [];
+const costSources = costs.ok
+  ? dedupe(
+      states.flatMap(({ code, label }) => [
+        { label: `${label} installed solar cost`, url: costs.value[code].installed_cost_per_watt.source_url, date: costs.value[code].installed_cost_per_watt.verified_on },
+        { label: `${label} battery cost`, url: costs.value[code].battery_installed_cost.source_url, date: costs.value[code].battery_installed_cost.verified_on },
+      ]),
+    )
+  : null;
 ---
 <BaseLayout title="Methodology" description="How RayValue estimates solar system size, cost, savings and payback." path="/methodology">
   <div class="page">
+    <!-- TODO: owner review -->
     <h1>Methodology</h1>
-    <p>TODO: Explain the calculation steps, data sources, and assumptions behind the calculators.</p>
-    <p>TODO: Note that no federal tax credit is applied for installs in 2026 and later.</p>
+    <p>
+      RayValue estimates what rooftop solar, with or without a battery, could cost and save on a home in Florida or
+      California. Every rate, cost and assumption it uses is stored with its source (for facts) or its reasoning (for
+      our own modeling choices), and every result is shown as a low, likely and high range rather than a single number.
+    </p>
+
+    <h2>How an estimate is built</h2>
+    <ol class="list-decimal space-y-2 pl-6">
+      <li>
+        <strong>Your usage, from your bill.</strong> We work backwards from your average monthly bill through your
+        utility&rsquo;s published rates to estimate how much electricity you use in a year. For Florida utilities we use the
+        tariff&rsquo;s fixed charge and tiered energy rates. For California utilities we subtract the fixed charge and divide by
+        the utility&rsquo;s published residential average rate.
+      </li>
+      <li>
+        <strong>Solar production.</strong> We place your ZIP code on the map and ask the PVWatts model from the National
+        Laboratory of the Rockies (formerly NREL) how much one kilowatt of panels produces there each month, with system
+        losses set by the amount of shade you pick.
+        {array ? <> The array we model is {arrayText(array)}.</> : <> The modeled array settings are being verified.</>}
+        If the live PVWatts service is unavailable, we use results precomputed with the same settings for the nearest listed city.
+      </li>
+      <li>
+        <strong>System size.</strong> We size a system to cover a range of your estimated annual usage, up to a maximum size,
+        which gives the low, likely and high system sizes. Very small results come with a note that solar may not pay off.
+      </li>
+      <li>
+        <strong>Cost.</strong> We price that system with a range of installed costs per watt for your state, and add a range of
+        installed battery costs if you choose one or two batteries. Costs are before any incentives.
+      </li>
+      <li>
+        <strong>Savings, by metering rules.</strong> In Florida (retail net metering), each solar kilowatt-hour offsets one you
+        would have bought, priced through your utility&rsquo;s tiers month by month; the fixed charge and any minimum bill still
+        apply, and solar banked but unused at the end of the year is counted as worth nothing. In California (net billing,
+        often called NEM 3.0), solar you use at home is valued at the retail rate, and solar you send to the grid earns a
+        lower average export credit. A battery raises the share of solar used at home.
+      </li>
+      <li>
+        <strong>Payback and long-term savings.</strong> We project savings year by year, with retail rates rising over time
+        (a range of yearly increases) and panel output slowly declining. Payback is the year cumulative savings first exceed
+        the upfront cost; net savings are total bill savings over the analysis period minus that cost. Future savings are not
+        discounted.
+      </li>
+      <li>
+        <strong>No federal tax credit.</strong> The federal residential clean energy credit (Section 25D) does not apply to
+        installs in 2026 or later, so no federal credit is included anywhere in the results.
+      </li>
+    </ol>
+    <p>
+      Not included: financing costs, maintenance, inverter or battery replacement, and tax effects. An estimate is not a
+      quote; installer prices and your actual usage will differ.
+    </p>
+
+    <h2>Types of sources</h2>
+    <ul class="list-disc space-y-1 pl-6">
+      <li>Utility tariff documents and rate pages, for fixed charges, energy rates and minimum bills.</li>
+      <li>California Public Utilities Commission (CPUC) and Public Advocates Office reports, for California average rates, export credits and rate history.</li>
+      <li>Lawrence Berkeley National Laboratory (LBNL) installed-price data from its Tracking the Sun work, for installed solar prices.</li>
+      <li>U.S. Department of Energy (DOE) solar and storage cost benchmarks, for battery costs.</li>
+      <li>The PVWatts model from the National Laboratory of the Rockies, for solar production.</li>
+      <li>U.S. Census Bureau ZIP Code Tabulation Area data, for the location of each ZIP code.</li>
+    </ul>
+    <p>
+      Choices that are ours rather than facts, such as how fast rates rise, how much solar a home uses directly, and the
+      shade losses, are labeled as assumptions and listed in the &ldquo;How this estimate was built&rdquo; section of every result.
+    </p>
 
     <h2>Utility rate sources</h2>
-    <p>Rates come from each utility's own published tariff or rate pages. The page we read for each one:</p>
+    <p>Rates come from each utility&rsquo;s own published tariff or rate pages. The page we read for each one:</p>
     {!utilities && <p>The list of rate sources is being verified. Please check back shortly.</p>}
     {utilities && states.map(({ code, label }) => (
       <>
@@ -35,12 +131,43 @@ const states: { code: State; label: string }[] = [
         <ul>
           {utilities.filter((u) => u.state === code).map((u) => (
             <li>
-              <a href={u.source_url ?? undefined} rel="noopener">{u.name}, schedule {u.rate_schedule}</a>
+              {isHttpUrl(u.source_url) ? <a href={u.source_url} rel="noopener">{u.name}, schedule {u.rate_schedule}</a> : <>{u.name}, schedule {u.rate_schedule}</>}
               {u.verified_on && <> (read {u.verified_on})</>}
             </li>
           ))}
         </ul>
       </>
     ))}
+
+    <h2>California average rate and export credit sources</h2>
+    {!avgRateSources || !exportSources ? (
+      <p>These sources are being verified. Please check back shortly.</p>
+    ) : (
+      <>
+        <ul>
+          {[...avgRateSources, ...exportSources].map((s) => (
+            <li>
+              {isHttpUrl(s.url) ? <a href={s.url} rel="noopener">{s.label}</a> : <>{s.label} (source being verified)</>}
+              {s.date && <> (read {s.date})</>}
+            </li>
+          ))}
+        </ul>
+        {exportNotes.map((n) => <p class="text-sm text-stone-700">Export credit: {n}</p>)}
+      </>
+    )}
+
+    <h2>Cost sources</h2>
+    {!costSources ? (
+      <p>The list of cost sources is being verified. Please check back shortly.</p>
+    ) : (
+      <ul>
+        {costSources.map((s) => (
+          <li>
+            {isHttpUrl(s.url) ? <a href={s.url} rel="noopener">{s.label}</a> : <>{s.label} (source being verified)</>}
+            {s.date && <> (read {s.date})</>}
+          </li>
+        ))}
+      </ul>
+    )}
   </div>
 </BaseLayout>

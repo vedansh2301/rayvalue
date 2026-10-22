@@ -95,6 +95,8 @@ async function readFields(request: Request): Promise<SubscribeFields | null> {
 export interface SubscribeEnv {
   SUPABASE_URL?: string;
   SUPABASE_PUBLISHABLE_KEY?: string;
+  /** false while there is no public contact address (no deletion path): signups are refused. Default true. */
+  ALERTS_ENABLED?: boolean;
 }
 
 /**
@@ -111,6 +113,7 @@ export async function handleSubscribe(
   const fail = (status: number, error: string) => (html ? redirect(true) : json(status, { ok: false, error }));
 
   if (!isSameOrigin(request, extraAllowedOrigins)) return json(403, { ok: false, error: 'Cross-origin requests are not allowed.' });
+  if (env.ALERTS_ENABLED === false) return fail(503, 'Email alerts are not available yet.');
 
   const fields = await readFields(request);
   if (!fields) return fail(400, 'Could not read the request body.');

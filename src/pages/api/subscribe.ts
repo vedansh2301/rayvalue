@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { ALERTS_ENABLED } from '../../lib/contact';
 import { handleSubscribe } from '../../lib/server/subscribe';
 
 export const prerender = false;
@@ -11,6 +12,8 @@ export const POST: APIRoute = ({ request }) =>
     {
       SUPABASE_URL: process.env.SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+      // Public build-time flag (PUBLIC_CONTACT_EMAIL set): no signups without a deletion contact.
+      ALERTS_ENABLED,
     },
     fetch,
     ['https://rayvalue.com', 'https://www.rayvalue.com'],

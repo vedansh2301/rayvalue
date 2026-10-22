@@ -1,9 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PagePending from '../components/PagePending.astro';
+import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
+
+const path = '/affiliate-disclosure';
 ---
-<BaseLayout title="Affiliate Disclosure" description="How RayValue earns money from affiliate links and how that affects what we show." path="/affiliate-disclosure">
+<BaseLayout title="Affiliate Disclosure" description="How RayValue earns money from affiliate links and how that affects what we show." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
+    <!-- TODO: owner copy (commission from partner links, no extra cost, does not change calculator results) -->
     <h1>Affiliate Disclosure</h1>
-    <p>TODO: Explain that RayValue may earn a commission from partner links, at no extra cost to the reader, and that it does not change the calculator results.</p>
+    <PagePending />
   </div>
 </BaseLayout>

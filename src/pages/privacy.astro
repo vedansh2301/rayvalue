@@ -1,9 +1,51 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { CONTACT_EMAIL } from '../lib/contact';
+import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
+
+const path = '/privacy';
 ---
-<BaseLayout title="Privacy" description="RayValue privacy policy: no cookies, privacy-friendly analytics, and email only if you subscribe." path="/privacy">
+<BaseLayout title="Privacy" description="RayValue privacy policy: no cookies, privacy-friendly analytics, and email only if you subscribe." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
+    <!-- TODO: owner legal review -->
     <h1>Privacy</h1>
-    <p>TODO: Finalize the privacy policy. Points to cover: RayValue does not use cookies; it uses Cloudflare Web Analytics, which does not track individuals; your email is stored only if you subscribe to rate change alerts, and you can ask us to delete it.</p>
+    <p>This is a plain description of what RayValue does with data today.</p>
+
+    <h2>No cookies</h2>
+    <p>RayValue does not set cookies and does not use advertising or cross-site tracking.</p>
+
+    <h2>Analytics</h2>
+    <p>
+      We use Vercel Web Analytics to count page views. It does not use cookies and reports only aggregated
+      numbers, such as how many people viewed a page. We send page addresses without their query string, so the
+      ZIP code and bill amount in a shared calculator link are not part of it.
+    </p>
+
+    <h2>The calculator</h2>
+    <p>
+      Your ZIP code, bill and other answers are used in your browser to run the estimate; we do not save them in a
+      database. To look up how much sun your area gets, the rounded center point of your ZIP code (not your address)
+      is sent to our server, which asks the PVWatts service run by the National Laboratory of the Rockies (formerly
+      NREL). If you copy a link to your estimate, your answers are part of that link.
+    </p>
+
+    <h2>Hosting</h2>
+    <p>
+      The site is hosted by Vercel. As with any website, the hosting provider processes request data such as IP
+      addresses in order to serve pages and protect the site from abuse.
+    </p>
+
+    <h2>Rate change alerts</h2>
+    <p>
+      If you sign up for rate change alerts, we store your email address and your state in our database (hosted by
+      Supabase), only to send you those alerts. We do not sell or share it.
+    </p>
+
+    <h2>Deleting your data</h2>
+    {CONTACT_EMAIL ? (
+      <p>To have your email address deleted, email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> from that address.</p>
+    ) : (
+      <p>A contact address for deletion requests is coming soon. Until it is available, rate change alerts are not offered and no email addresses are collected.</p>
+    )}
   </div>
 </BaseLayout>

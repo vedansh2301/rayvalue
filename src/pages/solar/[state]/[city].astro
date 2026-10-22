@@ -76,20 +76,25 @@ const calcHref = `/calculator/${stateSlug}`;
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${stateName} calculator`, href: calcHref }, { label: city.name }]} />
       <h1 class="!mt-4">Solar payback in {city.name}, {city.state}</h1>
 
-      {intro.length > 0 ? intro.map((p) => <p>{p}</p>) : <p>TODO: Write a short owner-written intro for {city.name} (cities.intro_md).</p>}
+      {intro.length > 0 ? intro.map((p) => <p>{p}</p>) : (
+        <>
+          <Fragment set:html={'<!-- TODO: owner intro (cities.intro_md) -->'} />
+          <p>Below: electricity rates for {city.name}, how much sun a solar array gets here, and example payback for a few illustrative bills.</p>
+        </>
+      )}
 
       <RateTable defaultUtility={defaultUtility} others={otherUtilities} cityName={city.name} />
       <ProductionChart cityName={city.name} monthly={production?.monthly_kwh_per_kw ?? null} annual={production?.annual_kwh_per_kw ?? null} />
       <ExamplePayback rows={examples} cityName={city.name} analysisYears={cfg?.assumptions.analysis_years.value ?? null} />
 
-      <section aria-labelledby="notes-h">
-        <h2 id="notes-h">Local notes for {city.name}</h2>
-        {city.local_notes.length > 0 ? (
+      {city.local_notes.length > 0 ? (
+        <section aria-labelledby="notes-h">
+          <h2 id="notes-h">Local notes for {city.name}</h2>
           <ul class="list-disc pl-5">{city.local_notes.map((n) => <li>{n}</li>)}</ul>
-        ) : (
-          <p>TODO: Add local notes for {city.name} (cities.local_notes).</p>
-        )}
-      </section>
+        </section>
+      ) : (
+        <Fragment set:html={'<!-- TODO: owner local notes (cities.local_notes) -->'} />
+      )}
 
       <section aria-labelledby="cta-h" class="mt-10 rounded-lg border border-sun-300 bg-sun-50 p-5">
         <h2 id="cta-h" class="!mt-0">Run your own numbers</h2>

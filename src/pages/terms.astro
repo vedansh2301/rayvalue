@@ -1,9 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PagePending from '../components/PagePending.astro';
+import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
+
+const path = '/terms';
 ---
-<BaseLayout title="Terms" description="Terms of use for RayValue." path="/terms">
+<BaseLayout title="Terms" description="Terms of use for RayValue." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
+    <!-- TODO: owner legal copy (terms of use; estimates are not quotes or financial advice) -->
     <h1>Terms of use</h1>
-    <p>TODO: Write the terms of use, including that estimates are not quotes or financial advice.</p>
+    <PagePending />
   </div>
 </BaseLayout>

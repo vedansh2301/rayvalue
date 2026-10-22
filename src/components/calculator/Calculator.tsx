@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { TargetedSubmitEvent } from 'preact';
 import type { BatteryCount, CalcResult, CalcSuccess, Shading } from '../../lib/calc/types';
 import { displayPayback, displayRange, formatKw, formatSignedUsd, type RangeDisplay } from '../../lib/calculator/display';
-import { CALCULATOR_PATHS, STATE_NAMES, parseBill } from '../../lib/calculator/form';
+import { CALCULATOR_PATHS, STATE_NAMES, UNLISTED_UTILITY, inputsKey, joinNames, parseBill, resultsStale, utilityChoice } from '../../lib/calculator/form';
 import type { CalculatorProps } from '../../lib/calculator/page-data';
 import { createRunGuard } from '../../lib/calculator/run-guard';
 import { checkZipIn, loadZipTable, type ZipCheck } from '../../lib/calculator/zip';
@@ -80,8 +80,8 @@ const inputCls =
 
 const focusField = (s: Step) => document.getElementById(FIELD_IDS[s])?.focus();
 
-export default function Calculator(props: CalculatorProps) {
-  const { state, utilities, costs, assumptions, fallbackCities, fallbackProduction } = props;
+export default function Calculator(props: CalculatorProps & { alertsEnabled: boolean }) {
+  const { state, utilities, costs, assumptions, fallbackCities, fallbackProduction, alertsEnabled } = props;
   const maxBill = assumptions.max_monthly_bill.value;
   const stateName = STATE_NAMES[state];
 
@@ -95,6 +95,11 @@ export default function Calculator(props: CalculatorProps) {
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [copied, setCopied] = useState<'idle' | 'ok' | 'fail'>('idle');
+  /** inputsKey() of the answers the shown results were computed for (null = nothing shown). */
+  const [ranWith, setRanWith] = useState<string | null>(null);
+  const utilityIds = utilities.map((u) => u.id);
+  const choice = utilityChoice(utilityId, utilityIds);
+  const stale = !busy && outcome !== null && resultsStale(ranWith, { zip, utilityId, billRaw, battery, shading });
 
   const headingRef = useRef<HTMLHeadingElement>(null);
   const resultsRef = useRef<HTMLHeadingElement>(null);
@@ -156,9 +161,10 @@ export default function Calculator(props: CalculatorProps) {
       return z.ok;
     }
     if (s === 2) {
-      const bad = !utilities.some((u) => u.id === utilityId);
-      setErrors((e) => ({ ...e, utility: bad ? 'Choose your electric utility.' : undefined }));
-      return !bad;
+      const c = utilityChoice(utilityId, utilityIds);
+      // "Not listed" is explained next to the select (no estimate can run), so it is not an error.
+      setErrors((e) => ({ ...e, utility: c.kind === 'none' ? 'Choose your electric utility.' : undefined }));
+      return c.kind === 'listed';
     }
     if (s === 3) {
       const b = parseBill(billRaw, maxBill);
@@ -169,8 +175,9 @@ export default function Calculator(props: CalculatorProps) {
     return true;
   }
 
-  async function run(i: RunInput, wantFocus: boolean) {
+  async function run(i: RunInput, wantFocus: boolean, billRawForKey = String(i.bill)) {
     const ticket = runs.start();
+    const key = inputsKey({ zip: i.zip, utilityId: i.utilityId, billRaw: billRawForKey, battery: i.battery, shading: i.shading });
     const current = ticket.isCurrent;
     setBusy(true);
     setCopied('idle');
@@ -209,6 +216,7 @@ export default function Calculator(props: CalculatorProps) {
     }
     focusResults.current = wantFocus;
     setOutcome(next);
+    setRanWith(key);
     setBusy(false);
   }
 
@@ -227,13 +235,14 @@ export default function Calculator(props: CalculatorProps) {
     const z = await checkZip(zip);
     const b = parseBill(billRaw, maxBill);
     if (!z.ok || !b.ok) return;
-    void run({ lat: z.location.lat, lon: z.location.lon, zip: zip.trim(), utilityId, bill: b.value, battery, shading }, true);
+    void run({ lat: z.location.lat, lon: z.location.lon, zip: zip.trim(), utilityId, bill: b.value, battery, shading }, true, billRaw);
   }
 
   function startOver() {
     runs.cancel();
     setBusy(false);
     setOutcome(null);
+    setRanWith(null);
     setCopied('idle');
     window.history.replaceState(null, '', window.location.pathname);
     goTo(1);
@@ -330,7 +339,9 @@ export default function Calculator(props: CalculatorProps) {
               value={utilityId}
               onChange={(e) => setUtilityId(e.currentTarget.value)}
               aria-invalid={errors.utility ? 'true' : 'false'}
-              aria-describedby={errors.utility ? 'calc-utility-hint calc-utility-error' : 'calc-utility-hint'}
+              aria-describedby={
+                errors.utility ? 'calc-utility-hint calc-utility-error' : choice.kind === 'unlisted' ? 'calc-utility-hint calc-utility-unlisted' : 'calc-utility-hint'
+              }
               class={inputCls}
             >
               <option value="">Choose your utility</option>
@@ -339,7 +350,26 @@ export default function Calculator(props: CalculatorProps) {
                   {u.name}
                 </option>
               ))}
+              <option value={UNLISTED_UTILITY}>My utility isn&rsquo;t listed</option>
             </select>
+            <div aria-live="polite">
+              {choice.kind === 'unlisted' && (
+                <div id="calc-utility-unlisted" class="mt-4 rounded-lg border border-stone-300 bg-stone-50 px-4 py-3 text-stone-800">
+                  <p>
+                    The {stateName} calculator currently covers {joinNames(utilities.map((u) => u.name))}. Municipal utilities and electric
+                    cooperatives aren&rsquo;t covered yet, so we can&rsquo;t estimate savings for them.
+                  </p>
+                  {alertsEnabled && (
+                    <p class="mt-2">
+                      <a href="#alerts" class="text-sun-ink underline underline-offset-2">
+                        Sign up for rate change alerts
+                      </a>{' '}
+                      to hear from us when things change.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
             {errors.utility && (
               <p id="calc-utility-error" role="alert" class="mt-2 text-sm font-medium text-red-800">
                 {errors.utility}
@@ -399,9 +429,11 @@ export default function Calculator(props: CalculatorProps) {
               Back
             </button>
           )}
-          <button type="submit" class={btnPrimary} disabled={busy}>
-            {step < 4 ? 'Next' : busy ? 'Calculating…' : outcome ? 'Update my estimate' : 'See my estimate'}
-          </button>
+          {!(step === 2 && choice.kind === 'unlisted') && (
+            <button type="submit" class={btnPrimary} disabled={busy}>
+              {step < 4 ? 'Next' : busy ? 'Calculating…' : outcome ? 'Update my estimate' : 'See my estimate'}
+            </button>
+          )}
         </div>
         </fieldset>
       </form>
@@ -415,6 +447,11 @@ export default function Calculator(props: CalculatorProps) {
           <h2 ref={resultsRef} id="calc-results-heading" tabIndex={-1} class="text-2xl font-bold tracking-tight text-stone-900 focus:outline-none">
             Your solar estimate
           </h2>
+          {stale && (
+            <p role="status" class="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 font-medium text-stone-900">
+              Inputs changed &mdash; update your estimate. The results below are for your previous answers.
+            </p>
+          )}
           {outcome.kind === 'no_production' && (
             <p class="mt-4 text-stone-700">
               We couldn&rsquo;t get solar production data for your area right now. Please try again in a minute.
@@ -424,7 +461,7 @@ export default function Calculator(props: CalculatorProps) {
           {outcome.kind === 'result' && !outcome.result.ok && (
             <p class="mt-4 text-stone-700">
               {outcome.result.reason === 'missing_data'
-                ? 'We’re still verifying rates for this utility, so we can’t show an estimate yet. Check back soon, or sign up below to hear when it’s ready.'
+                ? `We’re still verifying rates for this utility, so we can’t show an estimate yet. Check back soon${alertsEnabled ? ', or sign up below to hear when it’s ready' : ''}.`
                 : 'Please check your answers and try again.'}
             </p>
           )}
