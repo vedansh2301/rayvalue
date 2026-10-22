@@ -1,18 +1,21 @@
-// Runs Lighthouse (mobile defaults) against `astro preview`. Does not build; run `npm run build` first.
+// Runs Lighthouse (mobile defaults) against a tiny static server over the Vercel build output
+// (.vercel/output/static; astro preview is unsupported by the Vercel adapter). On-demand pages (API/DB) are not served. Does not build; run `npm run build` first.
 // Usage: npm run lighthouse [-- /path /other-path ...]
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import http from 'node:http';
+import { extname, join, normalize } from 'node:path';
 import net from 'node:net';
-import { preview } from 'astro';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
 
 const PORT = 4399;
 const THRESHOLD = 95;
-const DEFAULT_PATHS = ['/', '/about', '/methodology', '/affiliate-disclosure', '/privacy', '/terms', '/contact'];
+const DEFAULT_PATHS = ['/', '/about', '/calculator/florida', '/calculator/california', '/guides', '/404'];
 const paths = process.argv.slice(2).length ? process.argv.slice(2) : DEFAULT_PATHS;
 
-if (!existsSync('dist')) {
-  console.error('dist/ not found. Run `npm run build` first.');
+const ROOT = '.vercel/output/static';
+if (!existsSync(ROOT)) {
+  console.error(`${ROOT} not found. Run \`npm run build\` first.`);
   process.exit(1);
 }
 
@@ -27,8 +30,25 @@ if (portInUse) {
   process.exit(1);
 }
 
-// Astro's CLI re-spawns itself and the child outlives a kill, so run preview in-process via the API.
-const server = await preview({ root: '.', server: { port: PORT, host: '127.0.0.1' }, logLevel: 'error' });
+const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.xml': 'application/xml', '.json': 'application/json' };
+const extraHeaders = {};
+for (const rule of JSON.parse(readFileSync('vercel.json', 'utf8')).headers ?? []) {
+  if (rule.source === '/(.*)') for (const h of rule.headers) extraHeaders[h.key] = h.value; // site-wide headers (CSP etc.)
+}
+const resolveFile = (urlPath) => {
+  const clean = normalize(decodeURIComponent(urlPath.split('?')[0])).replace(/^(\.\.[/\\])+/, '');
+  for (const c of [join(ROOT, clean), join(ROOT, clean, 'index.html'), join(ROOT, clean + '.html')]) {
+    if (existsSync(c) && statSync(c).isFile()) return c;
+  }
+  return null;
+};
+const server = http.createServer((req, res) => {
+  const file = resolveFile(req.url);
+  const target = file ?? join(ROOT, '404.html');
+  res.writeHead(file ? 200 : 404, { 'content-type': TYPES[extname(target)] ?? 'application/octet-stream', ...extraHeaders });
+  res.end(readFileSync(target));
+});
+await new Promise((r) => server.listen(PORT, '127.0.0.1', r));
 
 const chrome = { instance: null };
 
@@ -55,6 +75,6 @@ try {
   failed = true;
 } finally {
   await chrome.instance?.kill();
-  await server.stop();
+  await new Promise((r) => server.close(r));
 }
 process.exit(failed ? 1 : 0);

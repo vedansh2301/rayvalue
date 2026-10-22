@@ -7,6 +7,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   site: 'https://rayvalue.com',
   output: 'static',
+  security: { csp: true },
   // Static pages stay prerendered. API routes and pages that read the Supabase calculator data
   // opt out (prerender = false) and run as Vercel Functions.
   adapter: vercel(),
