@@ -13,9 +13,11 @@ before starting any phase.
 - Vitest for all calculator math
 
 ## Hard rules
-1. Never invent numbers. Every rate, cost, incentive or statistic lives in
-   src/data/*.json with `source_url` and `verified_on`. If no verified value
-   exists, use null and add it to docs/TODO-VERIFY.md.
+1. Never invent numbers. Every rate, cost, assumption, city or statistic lives in
+   the Supabase DB (tables in supabase/migrations; edited there, never hardcoded
+   in code) with `source_url` + `verified_on` (facts) or `rationale` (assumptions).
+   If no verified value exists, use null; `npm run todo:verify` lists it in
+   docs/TODO-VERIFY.md.
 2. Federal 25D tax credit = $0 for 2026+ installs. Never show it as available.
 3. Show results as ranges (low / likely / high), never false precision.
 4. All calculator logic = pure functions in src/lib/calc/, fully unit tested.

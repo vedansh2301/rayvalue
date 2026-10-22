@@ -33,6 +33,38 @@ This section supersedes every Cloudflare reference below (Pages, Pages Functions
 - Remove wrangler/preview:cf scripts if added; `npm run preview` (astro preview) for static pages; `vercel dev` for API routes locally.
 - GitHub repo vedansh2301/rayvalue: connect via `vercel git connect` in Task 8 (production branch main).
 
+## DATA IN SUPABASE (2026-10-22, owner instruction): values in the DB, logic in code
+
+Owner: "don't write calculator values in the code — write them in the DB so they are changeable directly in the DB; only logic in code." This supersedes "values live in src/data/*.json" everywhere (CLAUDE.md rule 1 updated).
+
+Principles
+- Every rate, cost, assumption, city, offer and precomputed production value lives in Supabase (project qefnwgdqnkzzdcpwfmkt, schema `public`). The repo keeps only: schema migrations, Zod validators, pure calc logic, UI. No committed JSON snapshots of values. Exception (ruling): the Census ZCTA ZIP→lat/lon table stays as generated static reference data in `src/data/zips/` (it is not a calculator value the owner edits, ~2.8k rows, needed client-side).
+- Owner edits rows in the Supabase Table Editor. Changes reach the site within ~5 minutes with no redeploy: calculator + city pages are server-rendered on demand (`export const prerender = false`) with `CDN-Cache-Control: public, s-maxage=300, stale-while-revalidate=86400`.
+- Reads use the publishable key server-side; RLS: anon SELECT-only on reference tables, no anon writes. `updated_at` maintained by trigger on every table.
+- Provenance stays first-class: fact rows carry `source_url`, `verified_on`, `verification` ('agent_sourced'|'human_verified'|'unverified'), `note`, `source_caveat`; assumption rows carry `rationale`. Check constraints enforce: numeric fact ⇒ source_url and verified_on not null and verification <> 'unverified'.
+- Runtime validation: server code loads rows, maps to the existing domain types (src/data/schemas.ts types used by src/lib/calc), and validates with the existing Zod schemas. Invalid/missing → calc returns `missing_data` / page shows "being verified"; never crash, never invent. `npm run db:check` script validates the live DB with the same Zod schemas and is run in CI/before deploy (fails on invalid data).
+- `docs/TODO-VERIFY.md` is generated from the DB by `npm run todo:verify` (queries a SQL view `todo_verify`), no longer a staleness unit test (tests must not need the network). A Postgres view `todo_verify` lists null facts, agent-sourced values, assumptions, weak city mappings, stale-source caveats — the owner can also query it directly in Supabase.
+
+Tables (migration `supabase/migrations/0002_calculator_data.sql`; names are binding, columns may be refined to fit the existing Zod types exactly)
+- `utilities` (id text pk, name, state 'FL'|'CA', metering_type, rate_type 'tiered'|'tou_summary', fixed_monthly_charge numeric null, fixed_charge_note, minimum_monthly_bill numeric null, minimum_bill_basis, minimum_bill_note, avg_rate_per_kwh numeric null, avg_export_credit_per_kwh numeric null, baseline_credit_per_kwh numeric null, rate_note, tou_note, source_url, verified_on date, verification, source_caveat, updated_at)
+- `utility_tier_sets` (id uuid pk, utility_id fk, season text, months smallint[] check 1–12) ; `utility_tiers` (id, tier_set_id fk cascade, position smallint, up_to_kwh numeric null, rate_per_kwh numeric null, base_rate_per_kwh numeric null, unique(tier_set_id, position))
+- `utility_tou_rates` (id, utility_id fk, season, period, day_type, months smallint[] null, hours text, rate_per_kwh numeric null)
+- `cost_ranges` (state, item 'installed_cost_per_watt'|'battery_installed_cost', low, likely, high numeric null, unit, + provenance; pk(state,item); check low<=likely<=high when present)
+- `model_assumptions` (key text, state text null ('FL'|'CA'|null=all), value jsonb, unit, rationale not null; pk(key, coalesce-state) via unique index) — shading losses, offset range, size cap, min size, max bill, degradation, analysis years, self-consumption shares, escalation ranges, missing_range_spread.
+- `cities` (state, slug, name, lat, lon, default_utility_id fk, utility_confidence, utility_source_url, utility_source_note, published bool default false, local_notes text[] default '{}', intro_md text null (owner-written intro; TODO placeholder when null), updated_at; pk(state, slug))
+- `pvwatts_city_production` (state, slug fk→cities, losses numeric, annual_kwh_per_kw numeric, monthly_kwh_per_kw numeric[12], fetched_on date, params jsonb; pk(state, slug, losses))
+- `offers` (state pk, partner_name, url null, cta_text, active bool default false)
+- existing `rate_alert_subscribers` unchanged.
+
+Migration of current values: a one-off script (NOT committed, kept in the controller workspace) reads the current src/data/*.json (+ pvwatts-cities.json from Task 4) and upserts into the new tables, then the JSON value files are deleted from the repo. Every value keeps its provenance exactly as in the JSON.
+
+Code shape
+- `src/lib/db/client.ts`: tiny fetch-based PostgREST reader (no supabase-js needed; pin it if used) using SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY, server-only.
+- `src/lib/db/repo.ts`: `loadCalcConfig(state)` → `{ utilities, costs, assumptions, offers }` as domain types; `loadCities(state?)`, `loadCity(state, slug)`, `loadProduction(state, slug)`; each validates with Zod and returns typed `Result`s.
+- `src/lib/db/map.ts`: pure row→domain mappers with unit tests (fixtures are synthetic rows in tests, not real values).
+- Calculator page passes the loaded config to the island as props (no client→DB calls); the island calls `calculate()` with it. PVWatts fallback = DB `pvwatts_city_production` rows for the state, passed as props.
+- Build must succeed without network for static pages; on-demand pages fetch at request time.
+
 ## Architecture decisions (rulings already made)
 
 - Astro (latest stable) with `output: 'static'`. API endpoints are **Cloudflare Pages Functions in the root `functions/` directory**, not Astro SSR routes, so no `@astrojs/cloudflare` adapter is needed. Deploy = `wrangler pages deploy dist` (or GitHub → Pages integration), which picks up `functions/` automatically. `wrangler` is a devDependency; `npm run preview:cf` = `astro build && wrangler pages dev dist`.
@@ -111,8 +143,20 @@ Done when tests pass with hand-checked fixtures. Commit.
 
 Done when tests pass, `npm run build` passes, fallback JSON committed. Commit.
 
+### Task 4b: Move calculator data into Supabase (owner instruction)
+
+Implement the "DATA IN SUPABASE" section above end to end:
+- Write `supabase/migrations/0002_calculator_data.sql` (tables, constraints, `updated_at` triggers, RLS enable + anon SELECT grants/policies on reference tables only, `todo_verify` view with `security_invoker = true`, comments on tables/columns explaining units). Apply it to the live project via psql (credentials: SUPABASE_DB_* in /Users/vedansh2301/Desktop/ray/.dev.vars — shell only, never in code), then verify with REST using the publishable key: SELECT works on reference tables, INSERT/UPDATE/DELETE denied, `rate_alert_subscribers` still unreadable.
+- One-off data migration script in the controller workspace (`.superpowers/sdd/rayvalue-build/migrate-json-to-db.mjs`, not committed) upserting every current value with provenance; verify row counts and spot-check values against the JSON before deleting the JSON value files (utilities, costs, assumptions, cities, offers if present, pvwatts-cities). Keep src/data/zips/.
+- `src/lib/db/*` per Code shape; adapt src/data/index.ts (now: schemas/types only + zips), src/lib/geo.ts (`nearestCity` takes the city list as an argument), the calc integration tests (use synthetic fixtures; real-DB integration test runs only when SUPABASE_URL is set, skipped otherwise), and any page that imported data (methodology etc.).
+- Server endpoints/pages that need data set `prerender = false` and the CDN cache headers above. `/api/pvwatts` fallback reads `pvwatts_city_production`.
+- `scripts/precompute-pvwatts.mjs` now upserts into `pvwatts_city_production` (uses SUPABASE_DB_* via psql or the secret key from env at script runtime only — it is an admin script, never deployed); `scripts/todo-verify.mjs` queries the `todo_verify` view; `npm run db:check` validates the live DB with Zod.
+- Update CLAUDE.md-aligned docs: README "Editing calculator values" section (Table Editor walkthrough, provenance rules, how fast changes appear, `npm run todo:verify`).
+- Tests: mappers, repo with mocked fetch, Result/missing-data paths; full suite offline. `npm run build` passes offline (static pages) and `npm run db:check` passes online.
+
 ### Task 5: Calculator UI + results (SPEC Phase 5)
 
+- (Supabase data: per Task 4b, these pages are on-demand with CDN caching and receive config + production fallback from `loadCalcConfig`/DB as island props; no imports of value JSON.)
 - Routes `src/pages/calculator/florida.astro` and `src/pages/calculator/california.astro` (share one `CalculatorPage` layout/component; state passed in). Each renders static intro copy (TODO: placeholders where owner copy is needed), the Preact island `client:load` or `client:visible`, a static "How we calculated this" section (summarising the steps, linking to /methodology), and the alerts signup.
 - Preact island `src/components/calculator/Calculator.tsx`: 4-step form — (1) ZIP (validated with `lookupZip`; out-of-state ZIP → message with link to the other state's calculator), (2) utility dropdown filtered by the page's state (from data; never guessed from ZIP — the city default may NOT preselect either; the user picks), (3) average monthly bill ($, numeric input with sensible bounds), (4) battery (none/1/2) + shading (none/some/heavy) radio groups. Accessible: real `<label>`s, fieldsets/legends, step indicator with `aria-current`, focus moved to step heading on step change, errors linked via `aria-describedby`, works with keyboard, ≥ 44px touch targets.
 - On submit: fetch `/api/pvwatts?lat&lon&losses`; on any failure/timeout (≈6 s) use the precomputed nearest-city value (import only that state's fallback slice to keep bundle small) and show a small "using nearby city estimate" note. Then call `calculate()` from `src/lib/calc` — the component does no arithmetic itself (formatting via `src/lib/format.ts` is fine). `missing_data` result → friendly "We're still verifying rates for this utility" message (no numbers shown).
@@ -127,6 +171,7 @@ Done when build/test/lighthouse pass. Commit.
 
 ### Task 6: City pages, gated (SPEC Phase 6)
 
+- (Supabase data: per Task 4b, city pages are on-demand from the `cities` table; intro comes from `cities.intro_md` (rendered as Markdown, owner-editable in DB) instead of MDX files; `published` from DB; sitemap must query DB at build time for published cities (offline build → no city URLs in sitemap, never fail).)
 - Content collection `cityIntros` (MDX) in `src/content/city-intros/<state>/<slug>.mdx` with frontmatter `{ published: boolean (default false), updated: date, local_notes?: string[] }` — the owner writes the body by hand: create one placeholder MDX per city whose body is a `TODO:` paragraph. Add `@astrojs/mdx`. Use Astro's content layer (`src/content.config.ts`, glob loader).
 - `src/pages/solar/[state]/[city].astro` with `getStaticPaths` from cities.json (`state` param lowercase `florida`/`california` — match calculator URLs — or `fl`/`ca`; choose `florida`/`california` for consistency).
 - Unique data-driven sections (≥ 3, all from data, no invented numbers): (1) local utility rate table (from the city's default utility record + other same-state utilities; null values shown as "being verified"), (2) monthly production chart for the city from pvwatts-cities.json (static inline SVG bar chart, accessible: `<title>`, `role="img"`, plus a visually-hidden data table; no chart JS), (3) example payback for 3 bill sizes ($100, $200, $350 monthly — these are illustrative inputs, label them as examples) computed at build time via `calculate()` with the city's default utility; missing data → "being verified", (4) local notes from frontmatter. Plus the MDX intro and a CTA linking to the state calculator.
