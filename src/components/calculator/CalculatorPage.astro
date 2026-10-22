@@ -9,10 +9,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AlertsSignup from '../AlertsSignup.astro';
 import Disclosure from '../Disclosure.astro';
 import OfferCTA from '../OfferCTA.astro';
+import Breadcrumbs from '../Breadcrumbs.astro';
 import Calculator from './Calculator';
 import type { State } from '../../data/schemas';
 import type { CalculatorPageData } from '../../lib/calculator/page-data';
 import { CALCULATOR_PATHS, STATE_NAMES } from '../../lib/calculator/form';
+import { webApplicationJsonLd } from '../../lib/seo/jsonld';
 
 interface Props {
   state: State;
@@ -36,10 +38,12 @@ const steps = [
   title={`${name} solar payback calculator`}
   description={`Estimate solar and battery cost, savings and payback for your ${name} home, using your utility’s rates and no federal tax credit.`}
   path={CALCULATOR_PATHS[state]}
+  jsonLd={[webApplicationJsonLd(state)]}
 >
   <section class="bg-gradient-to-b from-sun-100 to-stone-50">
-    <div class="mx-auto max-w-3xl px-4 pb-6 pt-10 sm:pt-14">
-      <h1 class="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">{name} solar payback calculator</h1>
+    <div class="mx-auto max-w-3xl px-4 pb-6 pt-6 sm:pt-8">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${name} calculator` }]} />
+      <h1 class="mt-4 text-3xl sm:mt-6 font-bold tracking-tight text-stone-900 sm:text-4xl">{name} solar payback calculator</h1>
       <p class="mt-4 text-lg leading-8 text-stone-700">
         See what rooftop solar, with or without a battery, could cost and save on your home, as honest ranges built from your utility&rsquo;s rates.
       </p>
