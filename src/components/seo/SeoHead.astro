@@ -1,0 +1,28 @@
+---
+import { organizationJsonLd } from '../../lib/seo/jsonld';
+interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  /** Absolute URL of the OG image. */
+  image: string;
+  type?: 'website' | 'article';
+  /** Extra JSON-LD objects (Article, WebApplication, ...). */
+  jsonLd?: object[];
+}
+const { title, description, canonical, image, type = 'website', jsonLd = [] } = Astro.props;
+const all = [organizationJsonLd(Astro.site?.href), ...jsonLd];
+---
+<meta property="og:site_name" content="RayValue" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:type" content={type} />
+<meta property="og:image" content={image} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={image} />
+{all.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)}></script>)}

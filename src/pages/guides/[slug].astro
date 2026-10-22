@@ -1,0 +1,39 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import GuideCalculatorLinks from '../../components/seo/GuideCalculatorLinks.astro';
+import { articleJsonLd } from '../../lib/seo/jsonld';
+
+export async function getStaticPaths() {
+  const guides = (await getCollection('guides')).filter((g) => !g.data.draft);
+  return guides.map((guide) => ({ params: { slug: guide.id }, props: { guide } }));
+}
+const { guide } = Astro.props;
+const { Content } = await render(guide);
+const path = `/guides/${guide.id}`;
+const ld = articleJsonLd({
+  headline: guide.data.title,
+  description: guide.data.description,
+  path,
+  updated: guide.data.updated,
+  image: new URL(`/og/guides/${guide.id}.png`, Astro.site).href,
+}, Astro.site?.href);
+---
+<BaseLayout title={guide.data.title} description={guide.data.description} path={path} ogImagePath={`/og/guides/${guide.id}.png`} ogType="article" jsonLd={[ld]}>
+  <article class="page">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.data.title }]} />
+    <h1>{guide.data.title}</h1>
+    <p class="text-sm text-stone-700">Updated {guide.data.updated.toISOString().slice(0, 10)}</p>
+    <div class="prose-guide mt-4 space-y-4">
+      <Content />
+    </div>
+    <GuideCalculatorLinks state={guide.data.state} />
+    <section class="mt-8" aria-labelledby="sources">
+      <h2 id="sources">Sources</h2>
+      <ul class="list-disc pl-5">
+        {guide.data.sources.map((s) => <li><a class="underline underline-offset-4" href={s.url} rel="noopener">{s.title}</a></li>)}
+      </ul>
+    </section>
+  </article>
+</BaseLayout>
