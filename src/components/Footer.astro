@@ -13,11 +13,11 @@ const links = [
 ];
 ---
 <footer class="mt-auto border-t border-stone-200 bg-white">
-  <div class="mx-auto max-w-5xl px-4 py-8 text-sm text-stone-600">
+  <div class="shell py-8 text-sm text-stone-600">
     <nav aria-label="Footer">
-      <ul class="flex flex-wrap gap-x-5 gap-y-2">
+      <ul class="flex flex-wrap gap-x-3">
         {links.map((l) => (
-          <li><a href={l.href} class="text-stone-700 hover:text-stone-900 hover:underline underline-offset-4">{l.label}</a></li>
+          <li><a href={l.href} class="inline-flex min-h-11 items-center text-stone-700 hover:text-stone-900 hover:underline underline-offset-4">{l.label}</a></li>
         ))}
       </ul>
     </nav>

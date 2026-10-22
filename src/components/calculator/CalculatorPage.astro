@@ -42,7 +42,8 @@ const steps = [
   jsonLd={[webApplicationJsonLd(state)]}
 >
   <section class="bg-gradient-to-b from-sun-100 to-stone-50">
-    <div class="mx-auto max-w-3xl px-4 pb-6 pt-6 sm:pt-8">
+    <div class="shell pb-6 pt-6 sm:pt-8">
+    <div class="max-w-prose">
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${name} calculator` }]} />
       <h1 class="mt-4 text-3xl sm:mt-6 font-bold tracking-tight text-stone-900 sm:text-4xl">{name} solar payback calculator</h1>
       <p class="mt-4 text-lg leading-8 text-stone-700">
@@ -51,9 +52,11 @@ const steps = [
       <!-- TODO: owner intro copy for this calculator (who it is for, what makes the state different). -->
       <p class="mt-3 text-stone-700">Answer four quick questions. Results are shown as low, likely and high ranges, built from your utility&rsquo;s published rates.</p>
     </div>
+    </div>
   </section>
 
-  <div class="mx-auto max-w-3xl space-y-10 px-4 pb-16">
+  <div class="shell pb-16">
+  <div class="max-w-prose space-y-10">
     <section aria-label="Calculator">
       {data.ok ? (
         <Calculator client:visible {...data.props} alertsEnabled={ALERTS_ENABLED} />
@@ -88,5 +91,6 @@ const steps = [
     </section>
 
     {ALERTS_ENABLED && <AlertsSignup state={state} />}
+  </div>
   </div>
 </BaseLayout>

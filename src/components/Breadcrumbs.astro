@@ -4,13 +4,13 @@ interface Props { items: Crumb[] }
 const { items } = Astro.props;
 const ld = safeJsonLd(breadcrumbJsonLd(items, Astro.site?.href));
 ---
-<nav aria-label="Breadcrumb" class="text-sm text-stone-700">
+<nav aria-label="Breadcrumb" class="not-prose text-sm text-stone-700">
   <ol class="flex flex-wrap gap-x-2 gap-y-1">
     {items.map((item, i) => (
       <li class="flex items-center gap-2">
         {item.href && i < items.length - 1
-          ? <a href={item.href} class="underline underline-offset-4 hover:text-stone-900">{item.label}</a>
-          : <span aria-current={i === items.length - 1 ? 'page' : undefined}>{item.label}</span>}
+          ? <a href={item.href} class="text-stone-700 underline underline-offset-4 hover:text-stone-900">{item.label}</a>
+          : <span aria-current={i === items.length - 1 ? 'page' : undefined} class:list={[i === items.length - 1 && 'font-medium text-stone-900']}>{item.label}</span>}
         {i < items.length - 1 && <span aria-hidden="true">/</span>}
       </li>
     ))}
