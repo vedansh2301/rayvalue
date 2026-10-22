@@ -225,6 +225,7 @@ export const AssumptionsSchema = z
     }),
     target_offset: assumption({ low: Share, high: Share }),
     system_size_cap_kw: assumption({ value: z.number().positive() }),
+    min_system_size_kw: assumption({ value: z.number().positive() }),
     panel_degradation_per_year: assumption({ value: z.number().min(0).max(0.05) }),
     analysis_years: assumption({ value: z.number().int().min(1).max(50) }),
     annual_rate_escalation: assumption({ FL: ShareRangeSchema, CA: ShareRangeSchema }),
@@ -233,11 +234,14 @@ export const AssumptionsSchema = z
       solar_plus_1_battery: ShareRangeSchema,
       solar_plus_2_batteries: ShareRangeSchema,
     }),
+    /** Placeholder ± spread around a sourced `likely` when a cost line's low/high bound is null. */
+    missing_range_spread: assumption({ value: z.number().min(0).max(0.5) }),
   })
   .strict()
   .superRefine((a, ctx) => {
     const l = a.pvwatts_system_loss_pct;
     if (!(l.none <= l.some && l.some <= l.heavy)) ctx.addIssue({ code: 'custom', path: ['pvwatts_system_loss_pct'], message: 'losses must satisfy none <= some <= heavy' });
+    if (a.min_system_size_kw.value >= a.system_size_cap_kw.value) ctx.addIssue({ code: 'custom', path: ['min_system_size_kw'], message: 'min_system_size_kw must be below system_size_cap_kw' });
     if (a.target_offset.low > a.target_offset.high) ctx.addIssue({ code: 'custom', path: ['target_offset'], message: 'target_offset.low must be <= high' });
   });
 export type Assumptions = z.infer<typeof AssumptionsSchema>;

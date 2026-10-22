@@ -17,6 +17,11 @@
     "rationale": "Upper limit on recommended system size so very large bills do not produce unrealistic rooftop systems. Product choice.",
     "value": 15
   },
+  "min_system_size_kw": {
+    "kind": "assumption",
+    "rationale": "Below this recommended size the calculator warns that the bill may be too small for solar to make financial sense (fixed installation overhead dominates). Product choice, not a sourced threshold; the system is not resized, only a warning is shown.",
+    "value": 2
+  },
   "panel_degradation_per_year": {
     "kind": "assumption",
     "rationale": "Annual loss in panel output used in the 25-year projection. Product choice (0.5% per year).",
@@ -59,5 +64,10 @@
       "likely": 0.045,
       "high": 0.06
     }
+  },
+  "missing_range_spread": {
+    "kind": "assumption",
+    "rationale": "Placeholder spread used only when a sourced cost line has a likely (median) value but a null low and/or high bound (currently installed cost per watt in FL and CA, and the battery cost high end). The engine fills the missing bound as likely x (1 - spread) or likely x (1 + spread) and says so in the results' assumptions list. Product choice, not a sourced figure; it stops applying as soon as the owner fills the real bounds in costs.json.",
+    "value": 0.15
   }
 }
