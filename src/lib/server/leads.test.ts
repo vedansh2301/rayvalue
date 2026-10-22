@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import { CONSENT_TEXT, CONSENT_VERSION } from '../leads/consent';
 import { handleDataRequest, handleLead, insertRequest, readBody } from './leads';
 
 const ENV = { SUPABASE_URL: 'https://proj.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test' };
@@ -32,7 +31,7 @@ describe('insertRequest', () => {
 });
 
 describe('handleLead', () => {
-  it('inserts a normalized lead with server-side consent; JSON 200', async () => {
+  it('inserts a normalized lead; consent is never taken from the client (the DB sets it); JSON 200', async () => {
     const f = mockFetch(201);
     const res = await handleLead(jsonReq({ ...lead, consent_text: 'I agreed to nothing', consent_version: 'fake' }), ENV, asFetch(f));
     expect(res.status).toBe(200);
@@ -41,8 +40,8 @@ describe('handleLead', () => {
     const [url, init] = f.mock.calls[0]!;
     expect(url).toBe('https://proj.supabase.co/rest/v1/leads');
     const row = JSON.parse(init!.body as string);
-    expect(row).toMatchObject({ phone: '+13055550123', state: 'FL', consent_text: CONSENT_TEXT, consent_version: CONSENT_VERSION, user_agent: 'UA/1' });
-    expect(row).not.toHaveProperty('consent');
+    expect(row).toMatchObject({ phone: '+13055550123', state: 'FL', user_agent: 'UA/1' });
+    for (const k of ['consent', 'consent_text', 'consent_version', 'consent_at']) expect(row).not.toHaveProperty(k);
     expect(row).not.toHaveProperty('status');
   });
   it('field errors -> 400 JSON, no insert', async () => {

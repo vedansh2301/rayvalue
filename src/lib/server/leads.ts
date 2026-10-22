@@ -4,7 +4,6 @@
  * same-origin check, body size cap, honeypot, timeout, no-store, PostgREST insert with the publishable key
  * (anon has column-level INSERT only). Never logs submitted values.
  */
-import { CONSENT_TEXT, CONSENT_VERSION } from '../leads/consent';
 import { validateDataRequest, validateLead, type FieldErrors, type LeadInput } from '../leads/validate';
 import { isSameOrigin, prefersHtml } from './subscribe';
 
@@ -46,9 +45,13 @@ export async function readBody(request: Request, maxBytes = MAX_BODY_BYTES): Pro
   return null;
 }
 
-/** The row inserted into public.leads: the validated lead plus server-side consent and user agent. */
+/**
+ * The row inserted into public.leads: the validated lead plus the user agent. consent_text, consent_version and
+ * consent_at are set by the database trigger (migration 0005, constants equal to src/lib/leads/consent.ts);
+ * anon cannot write those columns.
+ */
 export function leadRow(lead: LeadInput, userAgent: string | null) {
-  return { ...lead, consent_text: CONSENT_TEXT, consent_version: CONSENT_VERSION, user_agent: userAgent ? userAgent.slice(0, 300) : null };
+  return { ...lead, user_agent: userAgent ? userAgent.slice(0, 300) : null };
 }
 
 export function insertRequest(env: { url: string; key: string }, table: 'leads' | 'data_requests', row: object) {

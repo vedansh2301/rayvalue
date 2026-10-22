@@ -1,6 +1,8 @@
 /**
  * The consent sentence shown next to the quote form's checkbox, and stored with every lead.
- * The server stores these constants (never text sent by the client). Change the version whenever the text changes.
+ * The database stores them with every lead via a trigger (supabase/migrations/0005_leads_consent_trigger.sql), never
+ * text sent by a client. When the text changes: bump the version here and add a migration replacing the trigger
+ * function with the same constants (consent.test.ts compares them).
  * Owner: legal review of this consent before paid traffic.
  */
 export const CONSENT_VERSION = '2026-10-22.1';
