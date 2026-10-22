@@ -63,6 +63,9 @@ export default function QuoteForm(p: Props) {
   const [doneName, setDoneName] = useState('');
   const doneRef = useRef<HTMLParagraphElement>(null);
   const fid = (f: string) => `${p.id}-${f}`;
+  // A locked ZIP (results card) always follows the prop: the card stays mounted when the estimate is re-run
+  // for a different ZIP, so copying it into state once would send a stale ZIP.
+  const zipValue = p.onChangeZip ? (p.zip ?? '') : zip;
 
   useEffect(() => {
     if (!p.fromQuery) return;
@@ -88,7 +91,7 @@ export default function QuoteForm(p: Props) {
     first_name: first,
     email,
     phone,
-    zip,
+    zip: zipValue,
     state,
     homeowner,
     timeline,
@@ -221,10 +224,10 @@ export default function QuoteForm(p: Props) {
           </div>
           {p.onChangeZip ? (
             <div>
-              <input type="hidden" name="zip" value={zip} />
+              <input type="hidden" name="zip" value={zipValue} />
               <p class="block font-medium text-stone-900">ZIP code</p>
               <p class="mt-1 flex min-h-11 items-center gap-2 text-stone-900">
-                <span>{zip}</span>
+                <span>{zipValue}</span>
                 <button type="button" class={btnText} onClick={p.onChangeZip}>
                   Change<span class="sr-only"> ZIP code</span>
                 </button>
