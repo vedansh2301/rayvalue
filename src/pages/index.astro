@@ -1,10 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { btnPrimary } from '../components/ui/buttons';
+import { btnPrimary, btnSecondary } from '../components/ui/buttons';
 
 const states = [
-  { name: 'Florida', href: '/calculator/florida', blurb: 'Florida utilities credit the solar you send to the grid through net metering, and we price it through your utility\u2019s own tiered rates. See what rooftop solar and a battery are worth on FPL, Duke Energy Florida or TECO.' },
-  { name: 'California', href: '/calculator/california', blurb: 'Export credits and self-consumption shape the math here. See how solar and a battery affect payback on PG&E, SCE or SDG&E.' },
+  { name: 'Florida', code: 'FL', href: '/calculator/florida', blurb: 'Florida utilities credit the solar you send to the grid through net metering, and we price it through your utility\u2019s own tiered rates. See what rooftop solar and a battery are worth on FPL, Duke Energy Florida or TECO.' },
+  { name: 'California', code: 'CA', href: '/calculator/california', blurb: 'Export credits and self-consumption shape the math here. See how solar and a battery affect payback on PG&E, SCE or SDG&E.' },
 ];
 const steps = [
   { title: 'Tell us about your home', body: 'Pick your state and utility, then enter your average monthly bill and whether you want a battery.' },
@@ -26,9 +26,8 @@ const steps = [
         The federal residential solar tax credit has ended for new installs. RayValue shows Florida and California homeowners what rooftop solar and batteries are worth today, as honest ranges, using your own utility&rsquo;s rates.
       </p>
       <div class="mt-6 flex flex-wrap gap-3">
-        {states.map((s) => (
-          <a href={s.href} class={btnPrimary}>{s.name} calculator<span aria-hidden="true">&rarr;</span></a>
-        ))}
+        <a href="/quotes?source=home" class={btnPrimary}>Get free installer quotes<span aria-hidden="true">&rarr;</span></a>
+        <a href="/calculator/florida" class={btnSecondary}>Check my payback</a>
       </div>
       <p class="mt-4 max-w-(--container-prose) text-sm text-stone-600">Free, no sign-up, and no phone calls.</p>
     </div>
@@ -43,6 +42,9 @@ const steps = [
           <p class="mt-2 flex-1 leading-7 text-stone-700">{s.blurb}</p>
           <a href={s.href} class={`mt-5 w-fit ${btnPrimary}`}>
             {s.name} calculator<span aria-hidden="true">&rarr;</span>
+          </a>
+          <a href={`/quotes?state=${s.code}&source=home`} class="mt-2 inline-flex min-h-11 w-fit items-center font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">
+            Get quotes in {s.name}<span aria-hidden="true" class="ml-1">&rarr;</span>
           </a>
         </li>
       ))}

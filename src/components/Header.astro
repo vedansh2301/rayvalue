@@ -48,6 +48,15 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
             </li>
           );
         })}
+        <li class="shrink-0">
+          <a
+            href="/quotes"
+            aria-current={isCurrent('/quotes') ? 'page' : undefined}
+            class="group ml-1 inline-flex min-h-11 items-center whitespace-nowrap no-underline"
+          >
+            <span class="rounded-full bg-sun-400 px-3 py-1.5 font-semibold text-stone-900 group-hover:bg-sun-500">Get quotes</span>
+          </a>
+        </li>
       </ul>
     </nav>
   </div>

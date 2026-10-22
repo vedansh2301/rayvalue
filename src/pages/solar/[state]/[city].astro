@@ -6,7 +6,7 @@ import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import RateTable from '../../../components/city/RateTable.astro';
 import ProductionChart from '../../../components/city/ProductionChart.astro';
 import ExamplePayback from '../../../components/city/ExamplePayback.astro';
-import { btnPrimary } from '../../../components/ui/buttons';
+import { btnPrimary, btnSecondary } from '../../../components/ui/buttons';
 import { DB_PAGE_CACHE_HEADERS, loadCalcConfig, loadCities, loadCity, loadProduction } from '../../../lib/db/repo';
 import {
   STATE_NAMES,
@@ -57,6 +57,10 @@ else if (status === 'unavailable') {
 
 const path = `/solar/${stateSlug}/${slug}`;
 const calcHref = `/calculator/${stateSlug}`;
+// The city's ZIP (its ZCTA) prefills the quote form when it is a valid 5-digit ZIP; otherwise none.
+const quotesParams = new URLSearchParams({ state: state ?? 'FL', source: `city:${stateSlug}/${slug}` });
+if (city && /^\d{5}$/.test(city.coords_zcta ?? '')) quotesParams.set('zip', city.coords_zcta);
+const quotesHref = `/quotes?${quotesParams.toString()}`;
 ---
 {status !== 'ok' || !city ? (
   <BaseLayout title={status === 'not_found' ? 'City not found' : 'Page temporarily unavailable'} description="RayValue city page" path={path} noindex>
@@ -98,9 +102,12 @@ const calcHref = `/calculator/${stateSlug}`;
       )}
 
       <section aria-labelledby="cta-h" class="mt-10 rounded-lg border border-sun-300 bg-sun-50 p-5">
-        <h2 id="cta-h" class="!mt-0">Run your own numbers</h2>
-        <p>Enter your ZIP and monthly bill to get a payback range for your home.</p>
-        <p><a href={calcHref} class={`not-prose ${btnPrimary}`}>{stateName} solar calculator<span aria-hidden="true">&rarr;</span></a></p>
+        <h2 id="cta-h" class="!mt-0">Get quotes or run your numbers</h2>
+        <p>Compare free quotes from up to 3 local installers, or enter your ZIP and monthly bill to get a payback range for your home.</p>
+        <div class="not-prose mt-4 flex flex-wrap gap-3">
+          <a href={quotesHref} class={btnPrimary}>Get quotes in {city.name}<span aria-hidden="true">&rarr;</span></a>
+          <a href={calcHref} class={btnSecondary}>Run my numbers</a>
+        </div>
       </section>
 
       {otherCities.length > 0 && (
