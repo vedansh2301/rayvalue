@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import QuoteForm from '../../components/quotes/QuoteForm';
+// Static shell; the form is a small island. ?state=FL|CA, ?zip= and ?source= prefill it (read in the browser).
+const points = ['No obligation', 'Up to 3 local installers', 'Your data isn’t sold to anyone else'];
+---
+<BaseLayout
+  title="Get free solar quotes"
+  description="Request free, no-obligation solar quotes from up to 3 local installers in Florida or California."
+  path="/quotes"
+>
+  <div class="shell pb-16 pt-8 sm:pt-10">
+    <div class="max-w-(--container-prose)">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Get quotes' }]} />
+      <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">Get free solar quotes</h1>
+      <ul class="mt-4 space-y-1 text-stone-700">
+        {points.map((p) => (
+          <li class="flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class="shrink-0 text-sun-ink">
+              <path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            {p}
+          </li>
+        ))}
+      </ul>
+      <!-- owner: legal review of consent before paid traffic -->
+      <section aria-label="Quote request" class="mt-8 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+        <QuoteForm client:visible id="quotes" source="quotes_page" pagePath="/quotes" fromQuery />
+      </section>
+      <p class="mt-6 text-stone-700">
+        Want a number first? Try the <a href="/calculator/florida" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">Florida</a> or
+        <a href="/calculator/california" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">California</a> payback calculator.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

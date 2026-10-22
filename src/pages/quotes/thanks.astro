@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+// Static page; /api/leads redirects here (303) for plain form posts, adding ?error=1 when it failed.
+---
+<BaseLayout title="Quote request sent" description="Quote request confirmation." path="/quotes/thanks" noindex>
+  <div class="page">
+    <div id="quotes-ok">
+      <h1>Thanks! Your quote request is in</h1>
+      <p>Up to 3 local solar installers may reach out soon by phone, text or email.</p>
+    </div>
+    <div id="quotes-error" hidden>
+      <h1>We couldn&rsquo;t send your request</h1>
+      <p>Something went wrong, or a field wasn&rsquo;t filled in correctly. Please <a href="/quotes">go back and try again</a>.</p>
+    </div>
+    <p>While you wait: run the <a href="/calculator/florida">Florida calculator</a> or the <a href="/calculator/california">California calculator</a>, or read our <a href="/guides">guides</a>.</p>
+  </div>
+  <script>
+    // Bundled (not inline) so it is covered by the CSP script hashes.
+    if (new URLSearchParams(window.location.search).get('error') === '1') {
+      const ok = document.getElementById('quotes-ok');
+      const err = document.getElementById('quotes-error');
+      if (ok && err) {
+        ok.hidden = true;
+        err.hidden = false;
+        document.title = 'Quote request problem | RayValue';
+      }
+    }
+  </script>
+</BaseLayout>

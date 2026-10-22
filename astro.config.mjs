@@ -33,6 +33,9 @@ const cityUrls = await getPublishedCityUrls({
   key: process.env.SUPABASE_PUBLISHABLE_KEY || dbEnv.SUPABASE_PUBLISHABLE_KEY,
 });
 
+// noindex utility pages (confirmations, privacy request form).
+const NOINDEX_UTILITY_PAGES = new Set(['/alerts/thanks', '/quotes/thanks', '/privacy/request', '/privacy/request/thanks']);
+
 export default defineConfig({
   site: 'https://rayvalue.com',
   output: 'static',
@@ -64,12 +67,12 @@ export default defineConfig({
     mdx(),
     preact(),
     // Sitemap = prerendered pages minus noindex ones (noindex/draft guides, /guides while none is published,
-    // unreviewed static pages, /alerts/thanks, API), plus published cities.
+    // unreviewed static pages, confirmation pages and the privacy request form, API), plus published cities.
     sitemap({
       customPages: cityUrls,
       filter: (page) => {
         const path = new URL(page).pathname.replace(/\/+$/, '') || '/';
-        return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && path !== '/alerts/thanks' && !path.startsWith('/api/');
+        return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/');
       },
     }),
   ],

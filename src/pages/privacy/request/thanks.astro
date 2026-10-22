@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+// Static page; /api/data-requests redirects here (303), adding ?error=1 when it failed.
+---
+<BaseLayout title="Privacy request received" description="Privacy request confirmation." path="/privacy/request/thanks" noindex>
+  <div class="page">
+    <div id="dr-ok">
+      <h1>We received your request</h1>
+      <p>We&rsquo;ll act on it and reply to the email address you gave us.</p>
+    </div>
+    <div id="dr-error" hidden>
+      <h1>We couldn&rsquo;t send your request</h1>
+      <p>Something went wrong, or the email address wasn&rsquo;t valid. Please <a href="/privacy/request">go back and try again</a>.</p>
+    </div>
+    <p>Back to our <a href="/privacy">privacy page</a> or the <a href="/">home page</a>.</p>
+  </div>
+  <script>
+    // Bundled (not inline) so it is covered by the CSP script hashes.
+    if (new URLSearchParams(window.location.search).get('error') === '1') {
+      const ok = document.getElementById('dr-ok');
+      const err = document.getElementById('dr-error');
+      if (ok && err) {
+        ok.hidden = true;
+        err.hidden = false;
+        document.title = 'Privacy request problem | RayValue';
+      }
+    }
+  </script>
+</BaseLayout>

@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import { DATA_REQUEST_LABELS, DATA_REQUEST_TYPES } from '../../../lib/leads/validate';
+import { btnPrimary } from '../../../components/ui/buttons';
+// Plain HTML form (no JavaScript): POST /api/data-requests -> 303 /privacy/request/thanks (or ?error=1).
+const inputCls = 'mt-1 block min-h-11 w-full rounded-lg border border-stone-400 bg-white px-3 py-2 text-base text-stone-900';
+---
+<BaseLayout title="Privacy request" description="Ask RayValue to delete, send, correct or stop sharing your data." path="/privacy/request" noindex>
+  <div class="page">
+    <!-- TODO: owner legal review -->
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Privacy', href: '/privacy' }, { label: 'Privacy request' }]} />
+    <h1 class="!mt-4">Privacy request</h1>
+    <p>Use this form to ask us to delete your data, send you a copy, correct it, or stop sharing it. Use the email address you gave us, so we can find your records.</p>
+    <form method="post" action="/api/data-requests" class="not-prose mt-8 space-y-5 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+      <div class="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+        <label for="dr-website">Leave this field empty</label>
+        <input id="dr-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+      <div>
+        <label for="dr-email" class="block font-medium text-stone-900">Email address</label>
+        <input id="dr-email" name="email" type="email" autocomplete="email" required maxlength="254" class={inputCls} />
+      </div>
+      <fieldset>
+        <legend class="font-medium text-stone-900">What would you like us to do?</legend>
+        <div class="mt-2 grid gap-2">
+          {DATA_REQUEST_TYPES.map((t, i) => (
+            <label for={`dr-request-${t}`} class="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-stone-300 bg-white px-3 py-2 has-[:checked]:border-sun-500 has-[:checked]:bg-sun-50">
+              <input id={`dr-request-${t}`} type="radio" name="request" value={t} required={i === 0} class="h-5 w-5 accent-amber-600" />
+              <span class="font-medium text-stone-900">{DATA_REQUEST_LABELS[t]}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <div>
+        <label for="dr-details" class="block font-medium text-stone-900">Details <span class="font-normal text-stone-600">(optional)</span></label>
+        <textarea id="dr-details" name="details" rows="4" maxlength="1000" aria-describedby="dr-details-hint" class={inputCls}></textarea>
+        <p id="dr-details-hint" class="mt-1 text-sm text-stone-600">Up to 1,000 characters. Please don&rsquo;t include sensitive information.</p>
+      </div>
+      <button type="submit" class={btnPrimary}>Send request</button>
+    </form>
+  </div>
+</BaseLayout>

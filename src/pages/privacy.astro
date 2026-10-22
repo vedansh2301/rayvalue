@@ -5,7 +5,7 @@ import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 
 const path = '/privacy';
 ---
-<BaseLayout title="Privacy" description="RayValue privacy policy: no cookies, privacy-friendly analytics, and email only if you subscribe." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
+<BaseLayout title="Privacy" description="RayValue privacy policy: no cookies, privacy-friendly analytics, and what happens when you request installer quotes." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
     <!-- TODO: owner legal review -->
     <h1>Privacy</h1>
@@ -24,7 +24,7 @@ const path = '/privacy';
     <h2>The calculator</h2>
     <p>
       Your ZIP code, bill and other answers are used in your browser to run the estimate; we do not save them in a
-      database. To look up how much sun your area gets, the rounded center point of your ZIP code (not your address)
+      database unless you request installer quotes (see below). To look up how much sun your area gets, the rounded center point of your ZIP code (not your address)
       is sent to our server, which asks the PVWatts service run by the National Laboratory of the Rockies (formerly
       NREL). If you copy a link to your estimate, your answers are part of that link.
     </p>
@@ -35,17 +35,34 @@ const path = '/privacy';
       addresses in order to serve pages and protect the site from abuse.
     </p>
 
+    <h2>Quote requests</h2>
+    <p>
+      If you ask for installer quotes, we store what you enter in the quote form in our database (hosted by
+      Supabase): your first name, email address, phone number, ZIP code and state, whether you own the home, and when
+      you hope to go solar. When you send the form from your calculator results, we also store your calculator answers
+      (utility, monthly bill, battery and shade) and the estimate you saw. We also store the exact consent wording you
+      agreed to, when you agreed, the page you sent it from, and your browser&rsquo;s user-agent string.
+    </p>
+    <p>
+      We use this to connect you with solar installers: we share it with up to 3 installers serving your area, as you
+      agreed when you checked the consent box. They and RayValue may contact you about solar quotes. We do not share it
+      with anyone else. We keep it until you ask us to delete it.
+    </p>
+
     <h2>Rate change alerts</h2>
     <p>
       If you sign up for rate change alerts, we store your email address and your state in our database (hosted by
       Supabase), only to send you those alerts. We do not sell or share it.
     </p>
 
-    <h2>Deleting your data</h2>
-    {CONTACT_EMAIL ? (
-      <p>To have your email address deleted, email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> from that address.</p>
-    ) : (
-      <p>A contact address for deletion requests is coming soon. Until it is available, rate change alerts are not offered and no email addresses are collected.</p>
+    <h2>Deleting or seeing your data</h2>
+    <p>
+      To ask us to delete your data, send you a copy, correct it, or stop sharing it, use our
+      <a href="/privacy/request">privacy request form</a>. To stop calls, texts or emails from an installer, you can
+      also tell that installer directly.
+    </p>
+    {CONTACT_EMAIL && (
+      <p>You can also email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> from the address you gave us.</p>
     )}
   </div>
 </BaseLayout>
