@@ -8,3 +8,5 @@ dist/
 !.env.example
 .superpowers/
 .DS_Store
+.vercel
+.env*
