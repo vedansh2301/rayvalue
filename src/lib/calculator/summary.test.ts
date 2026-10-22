@@ -25,7 +25,10 @@ describe('answerSummaryText', () => {
     ]);
     expect(answerSummaryParts({ zip: '1', utilityName: 'X', bill: 1, battery: 1, shading: 'some' }).slice(3)).toEqual(['1 battery', 'Some shade']);
   });
-  it('leaves out an unknown utility name', () => {
-    expect(answerSummaryText({ zip: '33101', utilityName: '', bill: 200, battery: 0, shading: 'none' })).toBe('33101 · $200/mo · No battery · Little or no shade');
+  it('says "Utility not listed" for an unlisted or unknown utility', () => {
+    expect(answerSummaryText({ zip: '33101', utilityName: null, bill: 200, battery: 0, shading: 'none' })).toBe(
+      '33101 · Utility not listed · $200/mo · No battery · Little or no shade',
+    );
+    expect(answerSummaryParts({ zip: '33101', utilityName: '', bill: 200, battery: 0, shading: 'none' })[1]).toBe('Utility not listed');
   });
 });

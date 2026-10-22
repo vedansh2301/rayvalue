@@ -280,7 +280,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     <div>
       {collapsed && ranInputs ? (
         <InputSummary
-          parts={answerSummaryParts({ zip: ranInputs.zip, utilityName: utilityName(ranInputs.utilityId), bill: ranInputs.bill, battery: ranInputs.battery, shading: ranInputs.shading })}
+          parts={answerSummaryParts({ zip: ranInputs.zip, utilityName: ranInputs.utilityId === UNLISTED_UTILITY ? null : utilityName(ranInputs.utilityId) || null, bill: ranInputs.bill, battery: ranInputs.battery, shading: ranInputs.shading })}
           onEdit={editAnswers}
         />
       ) : (

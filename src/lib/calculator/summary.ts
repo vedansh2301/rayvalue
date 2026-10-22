@@ -6,7 +6,8 @@ import type { BatteryCount, Shading } from '../calc/types';
 
 export interface SummaryInputs {
   zip: string;
-  utilityName: string;
+  /** The utility's display name; null when it is not listed (or unknown). */
+  utilityName: string | null;
   /** Average monthly bill as parsed from the form (dollars). */
   bill: number;
   battery: BatteryCount;
@@ -24,9 +25,11 @@ export function formatBillPerMonth(bill: number): string {
   return `${(Number.isInteger(bill) ? whole : cents).format(bill)}/mo`;
 }
 
-/** The summary parts, in display order: ZIP · utility · bill · battery · shade. Empty utility names are left out. */
+export const UTILITY_NOT_LISTED = 'Utility not listed';
+
+/** The summary parts, in display order: ZIP · utility · bill · battery · shade. */
 export function answerSummaryParts(i: SummaryInputs): string[] {
-  return [i.zip, i.utilityName, formatBillPerMonth(i.bill), BATTERY_TEXT[i.battery], SHADING_TEXT[i.shading]].filter((s) => s !== '');
+  return [i.zip, i.utilityName || UTILITY_NOT_LISTED, formatBillPerMonth(i.bill), BATTERY_TEXT[i.battery], SHADING_TEXT[i.shading]];
 }
 
 /** One-line summary, e.g. "33101 · Florida Power & Light (FPL) · $200/mo · No battery · Little or no shade". */
