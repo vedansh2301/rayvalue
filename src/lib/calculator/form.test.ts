@@ -1,25 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkZip, parseBill } from './form';
-
-describe('checkZip', () => {
-  it('accepts an in-state ZIP and returns its location', () => {
-    const r = checkZip(' 33101 ', 'FL');
-    expect(r.ok).toBe(true);
-    if (r.ok) expect(r.location.state).toBe('FL');
-  });
-  it('flags malformed input', () => {
-    expect(checkZip('3310', 'FL')).toEqual({ ok: false, error: 'format' });
-    expect(checkZip('abcde', 'FL')).toEqual({ ok: false, error: 'format' });
-    expect(checkZip('', 'CA')).toEqual({ ok: false, error: 'format' });
-  });
-  it('flags ZIPs that are not in either state table', () => {
-    expect(checkZip('10001', 'FL')).toEqual({ ok: false, error: 'not_found' });
-  });
-  it('points out-of-state ZIPs to the other state', () => {
-    expect(checkZip('94103', 'FL')).toEqual({ ok: false, error: 'other_state', otherState: 'CA' });
-    expect(checkZip('33101', 'CA')).toEqual({ ok: false, error: 'other_state', otherState: 'FL' });
-  });
-});
+import { parseBill } from './form';
 
 describe('parseBill', () => {
   it('parses plain and formatted dollar amounts', () => {

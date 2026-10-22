@@ -1,6 +1,7 @@
 // Synthetic numbers only (shape tests); real production values live in the DB.
 import { describe, expect, it, vi } from 'vitest';
-import { coord2, fallbackProduction, fetchLiveProduction, getProduction, parsePvwattsBody, pvwattsUrl, type FallbackCity, type FallbackProduction } from './production';
+import { fallbackProduction, getProduction } from './engine';
+import { coord2, fetchLiveProduction, parsePvwattsBody, pvwattsUrl, type FallbackCity, type FallbackProduction } from './production';
 
 const months = (v: number) => Array.from({ length: 12 }, () => v);
 const cities: FallbackCity[] = [
@@ -50,10 +51,19 @@ describe('fetchLiveProduction', () => {
     expect(await fetchLiveProduction(25.77, -80.19, 14, (async () => { throw new TypeError('offline'); }) as unknown as typeof fetch)).toBeNull();
     expect(await fetchLiveProduction(25.77, -80.19, 14, (async () => new Response('not json')) as unknown as typeof fetch)).toBeNull();
   });
+  const hang = ((_url: string, init?: RequestInit) =>
+    new Promise((_resolve, reject) => init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))))) as unknown as typeof fetch;
   it('gives up after the timeout', async () => {
-    const hang = ((_url: string, init?: RequestInit) =>
-      new Promise((_resolve, reject) => init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))))) as unknown as typeof fetch;
     expect(await fetchLiveProduction(25.77, -80.19, 14, hang, 10)).toBeNull();
+  });
+  it('stops when the caller aborts', async () => {
+    const ac = new AbortController();
+    const p = fetchLiveProduction(25.77, -80.19, 14, hang, 60_000, ac.signal);
+    ac.abort();
+    expect(await p).toBeNull();
+    const f = vi.fn(async () => json(okBody));
+    expect(await fetchLiveProduction(25.77, -80.19, 14, f as unknown as typeof fetch, 60_000, ac.signal)).toBeNull();
+    expect(f).not.toHaveBeenCalled();
   });
 });
 
@@ -80,6 +90,11 @@ describe('getProduction', () => {
   it('falls back to the nearest city', async () => {
     const r = await getProduction(args, (async () => json({}, 502)) as unknown as typeof fetch);
     expect(r).toEqual({ ok: true, source: 'fallback', cityName: 'South Town', production: { annualKwhPerKw: 240, monthlyKwhPerKw: months(20) } });
+  });
+  it('does not fall back after an abort', async () => {
+    const ac = new AbortController();
+    ac.abort();
+    expect(await getProduction(args, (async () => json(okBody)) as unknown as typeof fetch, 6000, ac.signal)).toEqual({ ok: false });
   });
   it('fails when neither is available', async () => {
     expect(await getProduction({ ...args, rows: [] }, (async () => json({}, 502)) as unknown as typeof fetch)).toEqual({ ok: false });

@@ -1,10 +1,9 @@
 /**
- * Client-side solar production lookup: live PVWatts via /api/pvwatts, falling back to the
- * precomputed nearest-city value (rows loaded from the DB and passed in as props).
+ * Client-side live solar production via /api/pvwatts (no geo / ZIP tables imported here,
+ * so it stays in the small initial island chunk). The nearest-city fallback is in engine.ts.
  */
 import type { State } from '../../data/schemas';
 import type { ProductionInput } from '../calc/types';
-import { nearestCity } from '../geo';
 
 export const PVWATTS_TIMEOUT_MS = 6000;
 
@@ -45,16 +44,23 @@ export function parsePvwattsBody(json: unknown): ProductionInput | null {
   return { annualKwhPerKw: annual, monthlyKwhPerKw: monthly as number[] };
 }
 
-/** Live production, or null on any error / non-200 / bad body / timeout. Never throws. */
+/**
+ * Live production, or null on any error / non-200 / bad body / timeout / abort. Never throws.
+ * `signal` lets the caller cancel a superseded request.
+ */
 export async function fetchLiveProduction(
   lat: number,
   lon: number,
   losses: number,
   fetchImpl: typeof fetch = fetch,
   timeoutMs: number = PVWATTS_TIMEOUT_MS,
+  signal?: AbortSignal,
 ): Promise<ProductionInput | null> {
+  if (signal?.aborted) return null;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const onAbort = () => controller.abort();
+  signal?.addEventListener('abort', onAbort, { once: true });
   try {
     const res = await fetchImpl(pvwattsUrl(lat, lon, losses), { signal: controller.signal, headers: { Accept: 'application/json' } });
     if (!res.ok) return null;
@@ -63,42 +69,6 @@ export async function fetchLiveProduction(
     return null;
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
   }
-}
-
-/** Precomputed production of the nearest city (in `state`) that has a row at `losses`. */
-export function fallbackProduction(
-  lat: number,
-  lon: number,
-  state: State,
-  losses: number,
-  cities: readonly FallbackCity[],
-  rows: readonly FallbackProduction[],
-): { production: ProductionInput; city: FallbackCity } | null {
-  const bySlug = new Map(rows.filter((r) => r.losses === losses).map((r) => [r.slug, r]));
-  const city = nearestCity(lat, lon, state, cities.filter((c) => bySlug.has(c.slug)));
-  if (!city) return null;
-  const row = bySlug.get(city.slug)!;
-  const production: ProductionInput = row.monthlyKwhPerKw
-    ? { annualKwhPerKw: row.annualKwhPerKw, monthlyKwhPerKw: row.monthlyKwhPerKw }
-    : { annualKwhPerKw: row.annualKwhPerKw };
-  return { production, city };
-}
-
-export type ProductionLookup =
-  | { ok: true; source: 'live'; production: ProductionInput }
-  | { ok: true; source: 'fallback'; production: ProductionInput; cityName: string }
-  | { ok: false };
-
-/** Live first; on failure the nearest-city fallback; ok:false if neither is available. */
-export async function getProduction(
-  args: { lat: number; lon: number; state: State; losses: number; cities: readonly FallbackCity[]; rows: readonly FallbackProduction[] },
-  fetchImpl: typeof fetch = fetch,
-  timeoutMs: number = PVWATTS_TIMEOUT_MS,
-): Promise<ProductionLookup> {
-  const live = await fetchLiveProduction(args.lat, args.lon, args.losses, fetchImpl, timeoutMs);
-  if (live) return { ok: true, source: 'live', production: live };
-  const fb = fallbackProduction(args.lat, args.lon, args.state, args.losses, args.cities, args.rows);
-  if (fb) return { ok: true, source: 'fallback', production: fb.production, cityName: fb.city.name };
-  return { ok: false };
 }

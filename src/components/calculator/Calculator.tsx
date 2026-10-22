@@ -2,16 +2,23 @@
  * The calculator island. It collects inputs, fetches solar production and calls
  * calculate() from src/lib/calc. It does no calculator math itself: every number shown
  * comes from calculate() (already rounded) and is only formatted here.
+ *
+ * Bundle: the initial chunk holds only the form and formatting. The page state's ZIP table
+ * is loaded on first ZIP check (zip.ts) and the calc engine + fallback (engine.ts, which
+ * pulls in geo.ts) when an estimate is run; both via dynamic import().
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { TargetedSubmitEvent } from 'preact';
-import { calculate, lossesForShading, type BatteryCount, type CalcResult, type CalcSuccess, type Shading } from '../../lib/calc';
+import type { BatteryCount, CalcResult, CalcSuccess, Shading } from '../../lib/calc/types';
 import { displayPayback, displayRange, formatKw, formatSignedUsd, type RangeDisplay } from '../../lib/calculator/display';
-import { CALCULATOR_PATHS, STATE_NAMES, checkZip, parseBill, type ZipCheck } from '../../lib/calculator/form';
+import { CALCULATOR_PATHS, STATE_NAMES, parseBill } from '../../lib/calculator/form';
 import type { CalculatorProps } from '../../lib/calculator/page-data';
-import { getProduction } from '../../lib/calculator/production';
+import { createRunGuard } from '../../lib/calculator/run-guard';
+import { checkZipIn, loadZipTable, type ZipCheck } from '../../lib/calculator/zip';
 import { formatUsd } from '../../lib/format';
 import { parseShareParams, serializeShareParams } from '../../lib/share';
+
+const loadEngine = () => import('../../lib/calculator/engine');
 
 type Step = 1 | 2 | 3 | 4;
 const STEPS: { n: Step; label: string }[] = [
@@ -22,6 +29,8 @@ const STEPS: { n: Step; label: string }[] = [
 ];
 const NEXT: Record<Step, Step> = { 1: 2, 2: 3, 3: 4, 4: 4 };
 const PREV: Record<Step, Step> = { 1: 1, 2: 1, 3: 2, 4: 3 };
+/** The input to focus when a step fails validation. */
+const FIELD_IDS: Record<Step, string> = { 1: 'calc-zip', 2: 'calc-utility', 3: 'calc-bill', 4: 'calc-battery-0' };
 
 const BATTERY_OPTIONS: { value: BatteryCount; label: string; hint: string }[] = [
   { value: 0, label: 'No battery', hint: 'Solar panels only' },
@@ -39,10 +48,21 @@ type Outcome =
   | { kind: 'no_production' }
   | { kind: 'error' };
 
+type ZipError = (ZipCheck & { ok: false }) | { ok: false; error: 'load' };
 interface Errors {
-  zip?: ZipCheck & { ok: false };
+  zip?: ZipError;
   utility?: string;
   bill?: string;
+}
+
+interface RunInput {
+  lat: number;
+  lon: number;
+  zip: string;
+  utilityId: string;
+  bill: number;
+  battery: BatteryCount;
+  shading: Shading;
 }
 
 const BILL_ERRORS = {
@@ -54,9 +74,11 @@ const BILL_ERRORS = {
 const btnPrimary =
   'inline-flex min-h-11 items-center justify-center rounded-lg bg-sun-400 px-5 py-2.5 font-semibold text-stone-900 hover:bg-sun-500 disabled:opacity-60';
 const btnSecondary =
-  'inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-5 py-2.5 font-semibold text-stone-800 hover:bg-stone-100';
+  'inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-5 py-2.5 font-semibold text-stone-800 hover:bg-stone-100 disabled:opacity-60';
 const inputCls =
   'mt-2 block min-h-11 w-full rounded-lg border border-stone-400 bg-white px-3 py-2 text-lg text-stone-900 aria-[invalid=true]:border-red-700';
+
+const focusField = (s: Step) => document.getElementById(FIELD_IDS[s])?.focus();
 
 export default function Calculator(props: CalculatorProps) {
   const { state, utilities, costs, assumptions, fallbackCities, fallbackProduction } = props;
@@ -77,12 +99,15 @@ export default function Calculator(props: CalculatorProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const resultsRef = useRef<HTMLHeadingElement>(null);
   // Focus requests, honoured by the effects below once the matching render has happened.
-  const focusStep = useRef(false);
+  const focusStep = useRef<'heading' | 'field' | null>(null);
   const focusResults = useRef(false);
+  // A run that is superseded (new run) or cancelled ("Start over") is aborted and never committed.
+  const runs = useRef(createRunGuard()).current;
 
   useEffect(() => {
-    if (focusStep.current) headingRef.current?.focus();
-    focusStep.current = false;
+    if (focusStep.current === 'heading') headingRef.current?.focus();
+    if (focusStep.current === 'field') focusField(step);
+    focusStep.current = null;
   }, [step]);
   useEffect(() => {
     if (focusResults.current) resultsRef.current?.focus();
@@ -93,27 +118,40 @@ export default function Calculator(props: CalculatorProps) {
   useEffect(() => {
     const p = parseShareParams(window.location.search);
     if (!p) return;
-    const z = checkZip(p.zip, state);
     const b = parseBill(String(p.bill), maxBill);
-    if (!z.ok || !b.ok || !utilities.some((u) => u.id === p.utility)) return;
-    setZip(p.zip);
-    setUtilityId(p.utility);
-    setBillRaw(String(p.bill));
-    setBattery(p.battery);
-    setShading(p.shading);
-    setStep(4);
-    void run({ lat: z.location.lat, lon: z.location.lon, zip: p.zip, utilityId: p.utility, bill: b.value, battery: p.battery, shading: p.shading }, false);
+    if (!b.ok || !utilities.some((u) => u.id === p.utility)) return;
+    void (async () => {
+      const z = await checkZip(p.zip);
+      if (!z.ok) return;
+      setZip(p.zip);
+      setUtilityId(p.utility);
+      setBillRaw(String(p.bill));
+      setBattery(p.battery);
+      setShading(p.shading);
+      setStep(4);
+      void run({ lat: z.location.lat, lon: z.location.lon, zip: p.zip, utilityId: p.utility, bill: b.value, battery: p.battery, shading: p.shading }, false);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function goTo(s: Step) {
-    focusStep.current = true;
-    setStep(s);
+  /** Loads the state's ZIP table on first use; a load failure is reported as its own error. */
+  async function checkZip(raw: string): Promise<ZipCheck | { ok: false; error: 'load' }> {
+    try {
+      return checkZipIn(raw, state, await loadZipTable(state));
+    } catch {
+      return { ok: false, error: 'load' };
+    }
   }
 
-  function validateStep(s: Step): boolean {
+  function goTo(s: Step, focus: 'heading' | 'field' = 'heading') {
+    focusStep.current = focus;
+    setStep(s);
+    if (s !== 1) void loadEngine().catch(() => undefined); // warm the engine chunk before it is needed
+  }
+
+  async function validateStep(s: Step): Promise<boolean> {
     if (s === 1) {
-      const z = checkZip(zip, state);
+      const z = await checkZip(zip);
       setErrors((e) => ({ ...e, zip: z.ok ? undefined : z }));
       return z.ok;
     }
@@ -131,26 +169,26 @@ export default function Calculator(props: CalculatorProps) {
     return true;
   }
 
-  async function run(
-    i: { lat: number; lon: number; zip: string; utilityId: string; bill: number; battery: BatteryCount; shading: Shading },
-    wantFocus: boolean,
-  ) {
+  async function run(i: RunInput, wantFocus: boolean) {
+    const ticket = runs.start();
+    const current = ticket.isCurrent;
     setBusy(true);
     setCopied('idle');
     let next: Outcome;
     try {
-      const prod = await getProduction({
-        lat: i.lat,
-        lon: i.lon,
-        state,
-        losses: lossesForShading(i.shading, assumptions),
-        cities: fallbackCities,
-        rows: fallbackProduction,
-      });
+      const engine = await loadEngine();
+      if (!current()) return;
+      const prod = await engine.getProduction(
+        { lat: i.lat, lon: i.lon, state, losses: engine.lossesForShading(i.shading, assumptions), cities: fallbackCities, rows: fallbackProduction },
+        undefined,
+        undefined,
+        ticket.signal,
+      );
+      if (!current()) return;
       if (!prod.ok) {
         next = { kind: 'no_production' };
       } else {
-        const result = calculate(
+        const result = engine.calculate(
           { zip: i.zip, utilityId: i.utilityId, avgMonthlyBill: i.bill, battery: i.battery, shading: i.shading },
           { utilities, costs, assumptions, production: prod.production },
         );
@@ -161,6 +199,7 @@ export default function Calculator(props: CalculatorProps) {
         }
       }
     } catch {
+      if (!current()) return;
       next = { kind: 'error' };
     }
     focusResults.current = wantFocus;
@@ -168,21 +207,27 @@ export default function Calculator(props: CalculatorProps) {
     setBusy(false);
   }
 
-  function onSubmit(e: TargetedSubmitEvent<HTMLFormElement>) {
+  async function onSubmit(e: TargetedSubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (step < 4) {
-      if (validateStep(step)) goTo(NEXT[step]);
+    if (busy) return;
+    if (step !== 4) {
+      if (await validateStep(step)) goTo(NEXT[step]);
+      else focusField(step);
       return;
     }
-    const z = checkZip(zip, state);
+    // Final submit: re-check every step; send the user to the first invalid one.
+    for (const s of [1, 2, 3] as const) {
+      if (!(await validateStep(s))) return goTo(s, 'field');
+    }
+    const z = await checkZip(zip);
     const b = parseBill(billRaw, maxBill);
-    if (!z.ok) return goTo(1);
-    if (!utilities.some((u) => u.id === utilityId)) return goTo(2);
-    if (!b.ok) return goTo(3);
+    if (!z.ok || !b.ok) return;
     void run({ lat: z.location.lat, lon: z.location.lon, zip: zip.trim(), utilityId, bill: b.value, battery, shading }, true);
   }
 
   function startOver() {
+    runs.cancel();
+    setBusy(false);
     setOutcome(null);
     setCopied('idle');
     window.history.replaceState(null, '', window.location.pathname);
@@ -204,6 +249,8 @@ export default function Calculator(props: CalculatorProps) {
   return (
     <div>
       <form onSubmit={onSubmit} noValidate class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+        {/* Disabled while an estimate runs, so inputs cannot change under it. */}
+        <fieldset disabled={busy} class="min-w-0">
         <ol class="flex gap-2" aria-label="Progress">
           {STEPS.map((s) => (
             <li
@@ -240,13 +287,15 @@ export default function Calculator(props: CalculatorProps) {
               maxLength={5}
               value={zip}
               onInput={(e) => setZip(e.currentTarget.value)}
+              onFocus={() => void loadZipTable(state).catch(() => undefined)}
               aria-invalid={zipErr ? 'true' : 'false'}
               aria-describedby={zipErr ? 'calc-zip-hint calc-zip-error' : 'calc-zip-hint'}
               class={`${inputCls} max-w-40`}
             />
             {zipErr && (
-              <p id="calc-zip-error" class="mt-2 text-sm font-medium text-red-800">
+              <p id="calc-zip-error" role="alert" class="mt-2 text-sm font-medium text-red-800">
                 {zipErr.error === 'format' && 'Enter a 5-digit ZIP code.'}
+                {zipErr.error === 'load' && 'We couldn’t check your ZIP code just now. Please try again.'}
                 {zipErr.error === 'not_found' && `We don't recognize that ZIP code as a ${stateName} ZIP. Check it and try again.`}
                 {zipErr.error === 'other_state' && (
                   <>
@@ -287,7 +336,7 @@ export default function Calculator(props: CalculatorProps) {
               ))}
             </select>
             {errors.utility && (
-              <p id="calc-utility-error" class="mt-2 text-sm font-medium text-red-800">
+              <p id="calc-utility-error" role="alert" class="mt-2 text-sm font-medium text-red-800">
                 {errors.utility}
               </p>
             )}
@@ -319,7 +368,7 @@ export default function Calculator(props: CalculatorProps) {
               />
             </div>
             {errors.bill && (
-              <p id="calc-bill-error" class="mt-2 text-sm font-medium text-red-800">
+              <p id="calc-bill-error" role="alert" class="mt-2 text-sm font-medium text-red-800">
                 {errors.bill}
               </p>
             )}
@@ -349,6 +398,7 @@ export default function Calculator(props: CalculatorProps) {
             {step < 4 ? 'Next' : busy ? 'Calculating…' : outcome ? 'Update my estimate' : 'See my estimate'}
           </button>
         </div>
+        </fieldset>
       </form>
 
       <div aria-live="polite" class="sr-only">
@@ -379,6 +429,7 @@ export default function Calculator(props: CalculatorProps) {
               fallbackCity={outcome.fallbackCity}
               utilityName={utilities.find((u) => u.id === (outcome.result as CalcSuccess).utilityId)?.name ?? ''}
               copied={copied}
+              busy={busy}
               onCopy={copyLink}
               onStartOver={startOver}
             />
@@ -461,6 +512,7 @@ function Results(p: {
   fallbackCity: string | null;
   utilityName: string;
   copied: 'idle' | 'ok' | 'fail';
+  busy: boolean;
   onCopy: () => void;
   onStartOver: () => void;
 }) {
@@ -496,7 +548,7 @@ function Results(p: {
           <Metric label="System size" d={displayRange(r.size, formatKw)} />
           <Metric label="Upfront cost" d={displayRange(r.cost, formatUsd)} note="Before any incentives" />
           <Metric label="First-year bill savings" d={displayRange(r.year1Savings, formatUsd)} />
-          <Metric label="Payback" d={displayPayback(r.paybackYears, r.analysisYears)} note="Best case listed first" />
+          <Metric label="Payback" d={displayPayback(r.paybackYears, r.analysisYears)} note="Range runs from shortest (best case) to longest" />
           <Metric label={`Net savings over ${r.analysisYears} years`} d={displayRange(r.netSavings25, formatSignedUsd)} note="Bill savings minus upfront cost" />
         </dl>
       )}
@@ -513,10 +565,10 @@ function Results(p: {
       </details>
 
       <div class="mt-6 flex flex-wrap items-center gap-3">
-        <button type="button" class={btnSecondary} onClick={p.onCopy}>
+        <button type="button" class={btnSecondary} onClick={p.onCopy} disabled={p.busy}>
           Copy link to this estimate
         </button>
-        <button type="button" class={btnSecondary} onClick={p.onStartOver}>
+        <button type="button" class={btnSecondary} onClick={p.onStartOver} disabled={p.busy}>
           Start over
         </button>
         <span role="status" class="text-sm text-stone-700">

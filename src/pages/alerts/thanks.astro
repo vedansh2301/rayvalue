@@ -14,11 +14,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     </div>
     <p>Back to the <a href="/calculator/florida">Florida calculator</a> or the <a href="/calculator/california">California calculator</a>.</p>
   </div>
-  <script is:inline>
-    if (new URLSearchParams(location.search).get('error') === '1') {
-      document.getElementById('alerts-ok').hidden = true;
-      document.getElementById('alerts-error').hidden = false;
-      document.title = 'Signup problem | RayValue';
+  <script>
+    // Bundled (not inline) so it is covered by the CSP script hashes.
+    if (new URLSearchParams(window.location.search).get('error') === '1') {
+      const ok = document.getElementById('alerts-ok');
+      const err = document.getElementById('alerts-error');
+      if (ok && err) {
+        ok.hidden = true;
+        err.hidden = false;
+        document.title = 'Signup problem | RayValue';
+      }
     }
   </script>
 </BaseLayout>
