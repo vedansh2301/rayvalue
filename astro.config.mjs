@@ -8,6 +8,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { loadEnv } from 'vite';
 import { guideFlags, excludedGuideUrls } from './src/lib/seo/guide-flags.ts';
 import { getPublishedCityUrls } from './src/lib/seo/sitemap-cities.ts';
+import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
 
 // Server code reads secrets from process.env at request time (never import.meta.env, which Vite inlines
 // into the function bundle). Under `astro dev`, load .env.local (from `vercel env pull`) into process.env.
@@ -35,22 +36,41 @@ const cityUrls = await getPublishedCityUrls({
 export default defineConfig({
   site: 'https://rayvalue.com',
   output: 'static',
-  security: { csp: true },
+  // Hashed CSP for every page. With the Vercel adapter's staticHeaders, Astro sends the policy as an HTTP
+  // header for prerendered pages too (not a <meta> tag, where frame-ancestors would be ignored), and
+  // on-demand pages send it from the function. These directives are added to script-src/style-src hashes.
+  security: {
+    csp: {
+      directives: [
+        "connect-src 'self'",
+        "img-src 'self' data:",
+        "font-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+      ],
+    },
+  },
   // Shiki emits inline styles, which the hashed CSP blocks; guides have no code blocks, so no highlighting.
   markdown: { syntaxHighlight: false },
   // Static pages stay prerendered. API routes and pages that read the Supabase calculator data
   // opt out (prerender = false) and run as Vercel Functions.
-  adapter: vercel(),
+  adapter: vercel({ staticHeaders: true }),
   // Canonical policy: no trailing slash. @astrojs/vercel forces build.format 'directory'; Vercel serves /x from x/index.html.
   trailingSlash: 'never',
   build: { format: 'directory' },
   integrations: [
     mdx(),
     preact(),
-    // Sitemap = prerendered pages minus noindex ones (noindex/draft guides, /alerts/thanks, API), plus published cities.
+    // Sitemap = prerendered pages minus noindex ones (noindex/draft guides, /guides while none is published,
+    // unreviewed static pages, /alerts/thanks, API), plus published cities.
     sitemap({
       customPages: cityUrls,
-      filter: (page) => !excludedGuides.has(new URL(page).pathname) && !/\/alerts\/thanks\/?$/.test(page) && !/\/api\//.test(page),
+      filter: (page) => {
+        const path = new URL(page).pathname.replace(/\/+$/, '') || '/';
+        return !excludedGuides.has(path) && !UNREVIEWED_PAGES.has(path) && path !== '/alerts/thanks' && !path.startsWith('/api/');
+      },
     }),
   ],
   vite: { plugins: [tailwindcss()] },
