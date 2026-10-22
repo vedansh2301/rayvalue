@@ -15,8 +15,10 @@ import { CALCULATOR_PATHS, STATE_NAMES, UNLISTED_UTILITY, inputsKey, joinNames, 
 import type { CalculatorProps } from '../../lib/calculator/page-data';
 import { createRunGuard } from '../../lib/calculator/run-guard';
 import { checkZipIn, loadZipTable, type ZipCheck } from '../../lib/calculator/zip';
+import { answerSummaryParts } from '../../lib/calculator/summary';
 import { formatUsd } from '../../lib/format';
 import { parseShareParams, serializeShareParams } from '../../lib/share';
+import { btnPrimary, btnSecondary, btnText } from '../ui/buttons';
 
 const loadEngine = () => import('../../lib/calculator/engine');
 
@@ -71,10 +73,6 @@ const BILL_ERRORS = {
   too_low: 'Enter an amount greater than $0.',
 } as const;
 
-const btnPrimary =
-  'inline-flex min-h-11 items-center justify-center rounded-lg bg-sun-400 px-5 py-2.5 font-semibold text-stone-900 hover:bg-sun-500 disabled:opacity-60';
-const btnSecondary =
-  'inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-5 py-2.5 font-semibold text-stone-800 hover:bg-stone-100 disabled:opacity-60';
 const inputCls =
   'mt-2 block min-h-11 w-full rounded-lg border border-stone-400 bg-white px-3 py-2 text-lg text-stone-900 aria-[invalid=true]:border-red-700';
 
@@ -97,6 +95,9 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
   const [copied, setCopied] = useState<'idle' | 'ok' | 'fail'>('idle');
   /** inputsKey() of the answers the shown results were computed for (null = nothing shown). */
   const [ranWith, setRanWith] = useState<string | null>(null);
+  /** After a successful estimate the form collapses to a summary of the answers it ran with. */
+  const [collapsed, setCollapsed] = useState(false);
+  const [ranInputs, setRanInputs] = useState<RunInput | null>(null);
   const utilityIds = utilities.map((u) => u.id);
   const choice = utilityChoice(utilityId, utilityIds);
   const stale = !busy && outcome !== null && resultsStale(ranWith, { zip, utilityId, billRaw, battery, shading });
@@ -113,7 +114,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     if (focusStep.current === 'heading') headingRef.current?.focus();
     if (focusStep.current === 'field') focusField(step);
     focusStep.current = null;
-  }, [step]);
+  }, [step, collapsed]);
   useEffect(() => {
     if (focusResults.current) resultsRef.current?.focus();
     focusResults.current = false;
@@ -217,6 +218,10 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     focusResults.current = wantFocus;
     setOutcome(next);
     setRanWith(key);
+    // Collapse only on a successful estimate; otherwise the user likely needs to change answers.
+    const success = next.kind === 'result' && next.result.ok;
+    setCollapsed(success);
+    setRanInputs(success ? i : null);
     setBusy(false);
   }
 
@@ -243,9 +248,18 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     setBusy(false);
     setOutcome(null);
     setRanWith(null);
+    setCollapsed(false);
+    setRanInputs(null);
     setCopied('idle');
     window.history.replaceState(null, '', window.location.pathname);
     goTo(1);
+  }
+
+  /** Re-open the form at step 4 (the most-edited step), answers kept; results stay below. */
+  function editAnswers() {
+    focusStep.current = 'heading';
+    setCollapsed(false);
+    setStep(4);
   }
 
   async function copyLink() {
@@ -260,8 +274,16 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
   const zipErr = errors.zip;
   const stepTitle = STEPS.find((s) => s.n === step)!.label;
 
+  const utilityName = (id: string) => utilities.find((u) => u.id === id)?.name ?? '';
+
   return (
     <div>
+      {collapsed && ranInputs ? (
+        <InputSummary
+          parts={answerSummaryParts({ zip: ranInputs.zip, utilityName: utilityName(ranInputs.utilityId), bill: ranInputs.bill, battery: ranInputs.battery, shading: ranInputs.shading })}
+          onEdit={editAnswers}
+        />
+      ) : (
       <form onSubmit={onSubmit} noValidate class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
         {/* Disabled while an estimate runs, so inputs cannot change under it. */}
         <fieldset disabled={busy} class="min-w-0">
@@ -437,13 +459,14 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
         </div>
         </fieldset>
       </form>
+      )}
 
       <div aria-live="polite" class="sr-only">
         {busy ? 'Calculating your estimate…' : ''}
       </div>
 
       {outcome && (
-        <section aria-labelledby="calc-results-heading" class="mt-8 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+        <section aria-labelledby="calc-results-heading" class="mt-8 rounded-2xl motion-safe:animate-fade-in border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
           <h2 ref={resultsRef} id="calc-results-heading" tabIndex={-1} class="text-2xl font-bold tracking-tight text-stone-900 focus:outline-none">
             Your solar estimate
           </h2>
@@ -469,7 +492,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
             <Results
               r={outcome.result}
               fallbackCity={outcome.fallbackCity}
-              utilityName={utilities.find((u) => u.id === (outcome.result as CalcSuccess).utilityId)?.name ?? ''}
+              utilityName={utilityName(outcome.result.utilityId)}
               copied={copied}
               busy={busy}
               onCopy={copyLink}
@@ -522,16 +545,80 @@ function RadioGroup<V extends string | number>(p: {
   );
 }
 
-function Metric(p: { label: string; d: RangeDisplay; note?: string }) {
+/** The collapsed form: the answers the shown estimate was run with, and a way back into the form. */
+function InputSummary(p: { parts: string[]; onEdit: () => void }) {
   return (
-    <div class="rounded-xl border border-stone-200 bg-stone-50 p-4">
+    <section aria-label="Your answers" class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
+      <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div class="min-w-0">
+          <p class="text-sm font-medium text-stone-700">Your answers</p>
+          <p class="mt-1 text-stone-900">
+            {p.parts.map((t, i) => (
+              <span key={i}>
+                {i > 0 && (
+                  <span aria-hidden="true" class="px-1.5 text-stone-600">
+                    ·
+                  </span>
+                )}
+                {i > 0 && <span class="sr-only">, </span>}
+                <span>{t}</span>
+              </span>
+            ))}
+          </p>
+        </div>
+        <button type="button" class={`-ml-2 self-start sm:ml-0 sm:shrink-0 sm:self-center ${btnText}`} onClick={p.onEdit}>
+          Edit answers
+        </button>
+      </div>
+    </section>
+  );
+}
+
+type MetricVariant = 'hero' | 'standard' | 'compact';
+
+const METRIC_CARD: Record<MetricVariant, string> = {
+  hero: 'rounded-xl border-2 border-sun-300 bg-white p-5',
+  standard: 'rounded-xl border border-stone-200 bg-stone-50 p-4',
+  compact: 'flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 sm:col-span-2',
+};
+
+function Metric(p: { label: string; d: RangeDisplay; note?: string; variant?: MetricVariant }) {
+  const variant = p.variant ?? 'standard';
+  if (variant === 'compact') {
+    return (
+      <div class={METRIC_CARD.compact}>
+        <dt class="text-sm font-medium text-stone-700">{p.label}</dt>
+        <dd class="text-base text-stone-900">
+          {p.d.kind === 'single' ? (
+            <span class="font-semibold">{p.d.value}</span>
+          ) : (
+            <>
+              <span class="sr-only">Likely </span>
+              <span class="font-semibold">{p.d.likely}</span>{' '}
+              <span class="text-stone-700">
+                (<span class="sr-only">range </span>
+                {p.d.low}
+                <span aria-hidden="true">&ndash;</span>
+                <span class="sr-only"> to </span>
+                {p.d.high})
+              </span>
+            </>
+          )}
+          {p.note && <span class="mt-1 block text-xs text-stone-600">{p.note}</span>}
+        </dd>
+      </div>
+    );
+  }
+  const value = variant === 'hero' ? 'text-4xl font-bold tracking-tight text-stone-900' : 'text-2xl font-bold text-stone-900';
+  return (
+    <div class={METRIC_CARD[variant]}>
       <dt class="text-sm font-medium text-stone-700">{p.label}</dt>
       <dd class="mt-1">
         {p.d.kind === 'single' ? (
-          <span class="text-2xl font-bold text-stone-900">{p.d.value}</span>
+          <span class={value}>{p.d.value}</span>
         ) : (
           <>
-            <span class="block text-2xl font-bold text-stone-900">
+            <span class={`block ${value}`}>
               <span class="sr-only">Likely </span>
               {p.d.likely}
               <span class="ml-2 align-middle text-xs font-semibold uppercase tracking-wide text-sun-ink" aria-hidden="true">
@@ -564,8 +651,13 @@ function Results(p: {
     <div>
       {p.utilityName && <p class="mt-2 text-stone-700">For a home on {p.utilityName}.</p>}
 
-      <p class="mt-4 rounded-lg border-l-4 border-sun-400 bg-sun-50 px-4 py-3 font-medium text-stone-900">
-        No federal tax credit applied — the federal residential clean energy credit ended for expenditures after Dec 31, 2025.
+      <p class="mt-2 flex items-start gap-2 text-sm text-stone-700">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class="mt-0.5 shrink-0 text-stone-600">
+          <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+          <path d="M8 7v4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+          <circle cx="8" cy="4.75" r="0.9" fill="currentColor"></circle>
+        </svg>
+        <span>No federal tax credit applied — the federal residential clean energy credit ended for expenditures after Dec 31, 2025.</span>
       </p>
 
       {p.fallbackCity && (
@@ -587,11 +679,11 @@ function Results(p: {
 
       {!noUsage && (
         <dl class="mt-6 grid gap-3 sm:grid-cols-2">
-          <Metric label="System size" d={displayRange(r.size, formatKw)} />
+          <Metric variant="hero" label="Payback" d={displayPayback(r.paybackYears, r.analysisYears)} note="Range runs from shortest (best case) to longest" />
+          <Metric variant="hero" label={`Net savings over ${r.analysisYears} years`} d={displayRange(r.netSavings25, formatSignedUsd)} note="Bill savings minus upfront cost" />
           <Metric label="Upfront cost" d={displayRange(r.cost, formatUsd)} note="Before any incentives" />
           <Metric label="First-year bill savings" d={displayRange(r.year1Savings, formatUsd)} />
-          <Metric label="Payback" d={displayPayback(r.paybackYears, r.analysisYears)} note="Range runs from shortest (best case) to longest" />
-          <Metric label={`Net savings over ${r.analysisYears} years`} d={displayRange(r.netSavings25, formatSignedUsd)} note="Bill savings minus upfront cost" />
+          <Metric variant="compact" label="System size" d={displayRange(r.size, formatKw)} />
         </dl>
       )}
 
@@ -610,7 +702,7 @@ function Results(p: {
         <button type="button" class={btnSecondary} onClick={p.onCopy} disabled={p.busy}>
           Copy link to this estimate
         </button>
-        <button type="button" class={btnSecondary} onClick={p.onStartOver} disabled={p.busy}>
+        <button type="button" class={btnText} onClick={p.onStartOver} disabled={p.busy}>
           Start over
         </button>
         <span role="status" class="text-sm text-stone-700">
