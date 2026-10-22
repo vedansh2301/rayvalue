@@ -19,10 +19,10 @@ const steps = [
 >
   <section class="bg-gradient-to-b from-sun-100 to-stone-50">
     <div class="shell pb-7 pt-14 sm:pb-10 sm:pt-20">
-      <h1 class="max-w-prose text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
+      <h1 class="max-w-(--container-prose) text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
         Does solar still pay off without the federal tax credit?
       </h1>
-      <p class="mt-5 max-w-prose text-lg leading-8 text-stone-700">
+      <p class="mt-5 max-w-(--container-prose) text-lg leading-8 text-stone-700">
         The federal residential solar tax credit has ended for new installs. RayValue shows Florida and California homeowners what rooftop solar and batteries are worth today, as honest ranges, using your own utility&rsquo;s rates.
       </p>
       <div class="mt-6 flex flex-wrap gap-3">
@@ -30,7 +30,7 @@ const steps = [
           <a href={s.href} class={btnPrimary}>{s.name} calculator<span aria-hidden="true">&rarr;</span></a>
         ))}
       </div>
-      <p class="mt-4 max-w-prose text-sm text-stone-600">Free, no sign-up, and no phone calls.</p>
+      <p class="mt-4 max-w-(--container-prose) text-sm text-stone-600">Free, no sign-up, and no phone calls.</p>
     </div>
   </section>
 
@@ -60,6 +60,6 @@ const steps = [
         </li>
       ))}
     </ol>
-    <p class="mt-6 max-w-prose text-stone-700">Curious about the details? Read our <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>.</p>
+    <p class="mt-6 max-w-(--container-prose) text-stone-700">Curious about the details? Read our <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>.</p>
   </section>
 </BaseLayout>

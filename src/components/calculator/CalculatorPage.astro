@@ -43,7 +43,7 @@ const steps = [
 >
   <section class="bg-gradient-to-b from-sun-100 to-stone-50">
     <div class="shell pb-6 pt-6 sm:pt-8">
-    <div class="max-w-prose">
+    <div class="max-w-(--container-prose)">
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${name} calculator` }]} />
       <h1 class="mt-4 text-3xl sm:mt-6 font-bold tracking-tight text-stone-900 sm:text-4xl">{name} solar payback calculator</h1>
       <p class="mt-4 text-lg leading-8 text-stone-700">
@@ -56,7 +56,7 @@ const steps = [
   </section>
 
   <div class="shell pb-16">
-  <div class="max-w-prose space-y-10">
+  <div class="max-w-(--container-prose) space-y-10">
     <section aria-label="Calculator">
       {data.ok ? (
         <Calculator client:visible {...data.props} alertsEnabled={ALERTS_ENABLED} />
