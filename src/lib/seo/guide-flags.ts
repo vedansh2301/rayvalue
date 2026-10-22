@@ -13,9 +13,11 @@ type GuideFlags = { id: string; noindex: boolean; draft: boolean };
 /** A guide is published (linked from the nav, listed on /guides) unless it is a draft. */
 export const hasPublishedGuides = (guides: readonly Pick<GuideFlags, 'draft'>[]): boolean => guides.some((g) => !g.draft);
 
-/** Pathnames to keep out of the sitemap: noindex/draft guides, and /guides itself while no guide is published. */
-export function excludedGuideUrls(guides: GuideFlags[]): Set<string> {
-  const out = new Set(guides.filter((g) => g.noindex || g.draft).map((g) => `/guides/${g.id}`));
-  if (!hasPublishedGuides(guides)) out.add('/guides');
+/** Pathnames to keep out of the sitemap: noindex/draft entries, and the index itself while nothing is published. */
+export function excludedCollectionUrls(base: string, entries: GuideFlags[]): Set<string> {
+  const out = new Set(entries.filter((g) => g.noindex || g.draft).map((g) => `${base}/${g.id}`));
+  if (!hasPublishedGuides(entries)) out.add(base);
   return out;
 }
+
+export const excludedGuideUrls = (guides: GuideFlags[]) => excludedCollectionUrls('/guides', guides);

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { guideFlags, excludedGuideUrls, hasPublishedGuides } from './guide-flags';
+import { guideFlags, excludedGuideUrls, excludedCollectionUrls, hasPublishedGuides } from './guide-flags';
 
 describe('guide flags', () => {
   it('defaults noindex true, draft false', () => {
@@ -22,5 +22,10 @@ describe('guide flags', () => {
     expect([...excludedGuideUrls(all)].sort()).toEqual(['/guides', '/guides/a', '/guides/b']);
     expect(hasPublishedGuides([...all, { id: 'c', noindex: true, draft: false }])).toBe(true);
     expect(excludedGuideUrls([{ id: 'c', noindex: true, draft: false }]).has('/guides')).toBe(false);
+  });
+  it('works for any collection base (blog)', () => {
+    expect([...excludedCollectionUrls('/blog', [])]).toEqual(['/blog']);
+    const s = excludedCollectionUrls('/blog', [{ id: 'p1', noindex: false, draft: false }, { id: 'p2', noindex: true, draft: false }]);
+    expect([...s]).toEqual(['/blog/p2']);
   });
 });

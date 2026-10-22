@@ -6,7 +6,7 @@ import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import tailwindcss from '@tailwindcss/vite';
 import { loadEnv } from 'vite';
-import { guideFlags, excludedGuideUrls } from './src/lib/seo/guide-flags.ts';
+import { guideFlags, excludedGuideUrls, excludedCollectionUrls } from './src/lib/seo/guide-flags.ts';
 import { getPublishedCityUrls } from './src/lib/seo/sitemap-cities.ts';
 import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
 
@@ -20,10 +20,10 @@ if (process.argv.includes('dev')) {
   }
 }
 
-const guideDir = './src/content/guides';
-const excludedGuides = excludedGuideUrls(
-  readdirSync(guideDir).filter((f) => f.endsWith('.mdx')).map((f) => ({ id: f.replace(/\.mdx$/, ''), ...guideFlags(readFileSync(`${guideDir}/${f}`, 'utf8')) })),
-);
+const readFlags = (dir) =>
+  readdirSync(dir).filter((f) => f.endsWith('.mdx')).map((f) => ({ id: f.replace(/\.mdx$/, ''), ...guideFlags(readFileSync(`${dir}/${f}`, 'utf8')) }));
+const excludedGuides = excludedGuideUrls(readFlags('./src/content/guides'));
+const excludedBlog = excludedCollectionUrls('/blog', readFlags('./src/content/blog'));
 
 // Published city pages are on-demand, so list them for the sitemap from the DB at build time
 // (offline / no env => [], build still succeeds). Unpublished cities are never listed.
@@ -69,7 +69,7 @@ export default defineConfig({
       customPages: cityUrls,
       filter: (page) => {
         const path = new URL(page).pathname.replace(/\/+$/, '') || '/';
-        return !excludedGuides.has(path) && !UNREVIEWED_PAGES.has(path) && path !== '/alerts/thanks' && !path.startsWith('/api/');
+        return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && path !== '/alerts/thanks' && !path.startsWith('/api/');
       },
     }),
   ],

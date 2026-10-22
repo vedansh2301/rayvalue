@@ -1,0 +1,47 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import GuideCalculatorLinks from '../../components/seo/GuideCalculatorLinks.astro';
+import { articleJsonLd } from '../../lib/seo/jsonld';
+import { publishedPosts } from '../../lib/blog';
+
+export async function getStaticPaths() {
+  return (await publishedPosts()).map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+const { post } = Astro.props;
+const { Content } = await render(post);
+const path = `/blog/${post.id}`;
+const day = (d: Date) => d.toISOString().slice(0, 10);
+const ld = articleJsonLd({
+  type: 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description,
+  path,
+  published: post.data.published,
+  updated: post.data.updated ?? post.data.published,
+  image: new URL(`/og/blog/${post.id}.png`, Astro.site).href,
+}, Astro.site?.href);
+---
+<BaseLayout title={post.data.title} description={post.data.description} path={path} ogImagePath={`/og/blog/${post.id}.png`} ogType="article" noindex={post.data.noindex} jsonLd={[ld]}>
+  <article class="page">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Blog', href: '/blog' }, { label: post.data.title }]} />
+    <h1>{post.data.title}</h1>
+    <p class="text-sm text-stone-700">
+      Published <time datetime={day(post.data.published)}>{day(post.data.published)}</time>
+      {post.data.updated && <> · Updated <time datetime={day(post.data.updated)}>{day(post.data.updated)}</time></>}
+    </p>
+    <div class="prose-guide mt-4 space-y-4">
+      <Content />
+    </div>
+    {post.data.state && <GuideCalculatorLinks state={post.data.state} />}
+    {post.data.sources.length > 0 && (
+      <section class="mt-8" aria-labelledby="sources">
+        <h2 id="sources">Sources</h2>
+        <ul class="list-disc pl-5">
+          {post.data.sources.map((s) => <li><a class="underline underline-offset-4" href={s.url} rel="noopener">{s.title}</a></li>)}
+        </ul>
+      </section>
+    )}
+  </article>
+</BaseLayout>

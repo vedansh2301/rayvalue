@@ -16,9 +16,11 @@ export const clampTitle = (t: string, max = 90) => (t.length > max ? `${t.slice(
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const guides = (await getCollection('guides')).filter((g) => !g.data.draft);
+  const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
   return [
     { params: { slug: 'default' }, props: { title: 'Solar + battery payback, without the guesswork', kicker: 'RayValue' } },
     ...guides.map((g) => ({ params: { slug: `guides/${g.id}` }, props: { title: g.data.title, kicker: 'RayValue guide' } })),
+    ...posts.map((p) => ({ params: { slug: `blog/${p.id}` }, props: { title: p.data.title, kicker: 'RayValue blog' } })),
   ];
 };
 

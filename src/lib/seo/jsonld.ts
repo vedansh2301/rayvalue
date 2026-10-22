@@ -45,14 +45,15 @@ export function breadcrumbJsonLd(items: Crumb[], site: string = SITE_URL) {
 }
 
 export function articleJsonLd(
-  a: { headline: string; description: string; path: string; updated: Date; image?: string },
+  a: { headline: string; description: string; path: string; updated: Date; published?: Date; image?: string; type?: 'Article' | 'BlogPosting' },
   site: string = SITE_URL,
 ) {
   return {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': a.type ?? 'Article',
     headline: a.headline,
     description: a.description,
+    ...(a.published ? { datePublished: a.published.toISOString().slice(0, 10) } : {}),
     dateModified: a.updated.toISOString().slice(0, 10),
     mainEntityOfPage: absoluteUrl(a.path, site),
     ...(a.image ? { image: a.image } : {}),

@@ -24,6 +24,12 @@ describe('jsonld', () => {
     expect(a.author['@type']).toBe('Organization');
     expect(a.mainEntityOfPage).toBe('https://rayvalue.com/guides/h');
   });
+  it('blog posting carries datePublished', () => {
+    const b = articleJsonLd({ headline: 'B', description: 'D', path: '/blog/b', published: new Date('2026-10-20'), updated: new Date('2026-10-22'), type: 'BlogPosting' });
+    expect(b['@type']).toBe('BlogPosting');
+    expect(b.datePublished).toBe('2026-10-20');
+    expect(b.dateModified).toBe('2026-10-22');
+  });
   it('web application is free finance app', () => {
     const w = webApplicationJsonLd('FL');
     expect(w.applicationCategory).toBe('FinanceApplication');
