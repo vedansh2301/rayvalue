@@ -8,8 +8,7 @@ interface Props {
 }
 const { cityName, monthly, annual } = Astro.props;
 const W = 600, H = 220;
-// Extra top padding leaves room for the value label above the tallest bar.
-const bars = monthly ? chartBars(monthly, W, H, { top: 22, bottom: 28, side: 8 }) : [];
+const bars = monthly ? chartBars(monthly, W, H) : [];
 const title = `Estimated monthly solar output per kW installed in ${cityName}`;
 ---
 <section aria-labelledby="prod-h">

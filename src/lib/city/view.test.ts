@@ -49,8 +49,8 @@ describe('chartBars', () => {
   it('scales the tallest month to full plot height', () => {
     const bars = chartBars([10, 20, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0], 600, 220);
     expect(bars).toHaveLength(12);
-    expect(bars[1]!.h).toBeCloseTo(220 - 12 - 28);
-    expect(bars[0]!.h).toBeCloseTo((220 - 40) / 2);
+    expect(bars[1]!.h).toBeCloseTo(220 - 22 - 28);
+    expect(bars[0]!.h).toBeCloseTo((220 - 50) / 2);
     expect(bars[3]!.h).toBe(0);
   });
   it('handles all zeros', () => {
@@ -61,7 +61,7 @@ describe('chartBars', () => {
     expect(bars.map((b) => b.label).slice(0, 4)).toEqual(['152', '161', '0', '1,235']);
     for (const b of bars) expect(b.labelY).toBeCloseTo(b.y - 4);
     // the tallest bar's label still sits above it, inside the top padding
-    expect(bars[3]!.labelY).toBeCloseTo(12 - 4);
+    expect(bars[3]!.labelY).toBeCloseTo(22 - 4);
     // a zero-height bar's label sits just above the baseline
     expect(bars[2]!.labelY).toBeCloseTo(220 - 28 - 4);
   });

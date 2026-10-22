@@ -95,7 +95,8 @@ export interface Bar {
 export const formatKwhLabel = (kwh: number): string => Math.round(kwh).toLocaleString('en-US');
 
 /** Bar geometry for a 12-month chart in a (width x height) viewBox; bars scale to the largest month. */
-export function chartBars(monthly: readonly number[], width = 600, height = 220, pad = { top: 12, bottom: 28, side: 8 }): Bar[] {
+/** The default top padding leaves room for the value label above the tallest bar. */
+export function chartBars(monthly: readonly number[], width = 600, height = 220, pad = { top: 22, bottom: 28, side: 8 }): Bar[] {
   const max = Math.max(...monthly, 0);
   const plotH = height - pad.top - pad.bottom;
   const slot = (width - pad.side * 2) / monthly.length;
