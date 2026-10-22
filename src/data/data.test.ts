@@ -283,3 +283,20 @@ describe('docs/TODO-VERIFY.md', () => {
     expect(readFileSync(file, 'utf8')).toBe(generateTodoVerify());
   });
 });
+
+describe('pvwatts-cities.json', () => {
+  it('parses, covers every city x configured loss value, and non-null entries are plausible', async () => {
+    const { pvwattsMeta, getPvwattsForCity, cities, assumptions } = await import('./index');
+    expect(pvwattsMeta.endpoint).toContain('pvwatts/v8');
+    const losses = [...new Set(Object.values(assumptions.pvwatts_system_loss_pct).filter((v): v is number => typeof v === 'number'))];
+    for (const c of cities) {
+      for (const l of losses) {
+        const e = getPvwattsForCity(c.state, c.slug, l);
+        if (e === null) continue;
+        expect(e.annual, `${c.state}/${c.slug}@${l}`).toBeGreaterThan(900);
+        expect(e.annual).toBeLessThan(2300);
+        expect(Math.abs(e.monthly.reduce((a, b) => a + b, 0) - e.annual)).toBeLessThan(2);
+      }
+    }
+  });
+});

@@ -76,6 +76,11 @@ export function generateTodoVerify() {
   const assumptions = readJson('src/data/assumptions.json');
   const citiesFile = readJson('src/data/cities.json');
 
+  const pvwatts = readJson('src/data/pvwatts-cities.json');
+  const pvNulls = Object.entries(pvwatts)
+    .filter(([id]) => id !== '_meta')
+    .flatMap(([id, byLoss]) => Object.entries(byLoss).filter(([, v]) => v === null).map(([l]) => `${id} @ losses=${l}`));
+
   const slots = [...utilities.flatMap(utilitySlots), ...costSlots(costs)];
   const nulls = slots.filter((s) => s.value === null);
   const agent = slots.filter((s) => s.value !== null && s.verification === 'agent_sourced');
@@ -99,6 +104,12 @@ export function generateTodoVerify() {
   out.push('Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EIA, NREL/NLR), fill the JSON, set `source_url`, `verified_on`, and `verification`.');
   out.push('');
   for (const s of nulls) out.push(`- [ ] \`${s.path}\`${s.note ? ` — ${s.note}` : ''}`);
+  out.push('');
+  out.push(`## Missing precomputed PVWatts values (${pvNulls.length})`);
+  out.push('');
+  out.push('`src/data/pvwatts-cities.json` entries that are still null (API unreachable or rate-limited). Resumable: run `NREL_API_KEY=... npm run data:pvwatts` to fill them, then `npm run todo:verify`.');
+  out.push('');
+  for (const n of pvNulls) out.push(`- [ ] \`${n}\``);
   out.push('');
   out.push(`## Agent-sourced — needs human confirmation (${agent.length})`);
   out.push('');

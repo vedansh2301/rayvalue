@@ -1,6 +1,7 @@
 import assumptionsJson from './assumptions.json';
 import citiesJson from './cities.json';
 import costsJson from './costs.json';
+import pvwattsJson from './pvwatts-cities.json';
 import utilitiesJson from './utilities.json';
 import caZipsJson from './zips/ca.json';
 import flZipsJson from './zips/fl.json';
@@ -9,10 +10,12 @@ import {
   AssumptionsSchema,
   CitiesFileSchema,
   CostsSchema,
+  PvwattsCitiesSchema,
   UtilitiesSchema,
   ZipMapSchema,
   ZipMetaSchema,
   type City,
+  type PvwattsEntry,
   type State,
   type Utility,
 } from './schemas';
@@ -34,6 +37,13 @@ export const zips = {
   CA: ZipMapSchema.parse(caZipsJson),
 } as const;
 export const zipMeta = ZipMetaSchema.parse(zipMetaJson);
+const pvwatts = PvwattsCitiesSchema.parse(pvwattsJson);
+export const pvwattsMeta = pvwatts.meta;
+
+/** Precomputed PVWatts production (1 kW DC) for a city at a PVWatts `losses` percent; null if not available. */
+export function getPvwattsForCity(state: State, slug: string, losses: number): PvwattsEntry {
+  return pvwatts.cities[`${state}/${slug}`]?.[String(losses)] ?? null;
+}
 
 export function getUtilitiesByState(state: State): Utility[] {
   return utilities.filter((u) => u.state === state);

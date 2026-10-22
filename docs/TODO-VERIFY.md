@@ -31,6 +31,63 @@ Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EI
 - [ ] `costs.json.CA.installed_cost_per_watt.high`
 - [ ] `costs.json.CA.battery_installed_cost.high`
 
+## Missing precomputed PVWatts values (52)
+
+`src/data/pvwatts-cities.json` entries that are still null (API unreachable or rate-limited). Resumable: run `NREL_API_KEY=... npm run data:pvwatts` to fill them, then `npm run todo:verify`.
+
+- [ ] `FL/west-palm-beach @ losses=30`
+- [ ] `FL/fort-myers @ losses=14`
+- [ ] `FL/fort-myers @ losses=20`
+- [ ] `FL/fort-myers @ losses=30`
+- [ ] `FL/sarasota @ losses=14`
+- [ ] `FL/sarasota @ losses=20`
+- [ ] `FL/sarasota @ losses=30`
+- [ ] `FL/daytona-beach @ losses=14`
+- [ ] `FL/daytona-beach @ losses=20`
+- [ ] `FL/daytona-beach @ losses=30`
+- [ ] `FL/st-petersburg @ losses=14`
+- [ ] `FL/st-petersburg @ losses=20`
+- [ ] `FL/st-petersburg @ losses=30`
+- [ ] `FL/clearwater @ losses=14`
+- [ ] `FL/clearwater @ losses=20`
+- [ ] `FL/clearwater @ losses=30`
+- [ ] `FL/tampa @ losses=14`
+- [ ] `FL/tampa @ losses=20`
+- [ ] `FL/tampa @ losses=30`
+- [ ] `FL/brandon @ losses=14`
+- [ ] `FL/brandon @ losses=20`
+- [ ] `FL/brandon @ losses=30`
+- [ ] `CA/san-francisco @ losses=14`
+- [ ] `CA/san-francisco @ losses=20`
+- [ ] `CA/san-francisco @ losses=30`
+- [ ] `CA/san-jose @ losses=14`
+- [ ] `CA/san-jose @ losses=20`
+- [ ] `CA/san-jose @ losses=30`
+- [ ] `CA/oakland @ losses=14`
+- [ ] `CA/oakland @ losses=20`
+- [ ] `CA/oakland @ losses=30`
+- [ ] `CA/fresno @ losses=14`
+- [ ] `CA/fresno @ losses=20`
+- [ ] `CA/fresno @ losses=30`
+- [ ] `CA/bakersfield @ losses=14`
+- [ ] `CA/bakersfield @ losses=20`
+- [ ] `CA/bakersfield @ losses=30`
+- [ ] `CA/irvine @ losses=14`
+- [ ] `CA/irvine @ losses=20`
+- [ ] `CA/irvine @ losses=30`
+- [ ] `CA/long-beach @ losses=14`
+- [ ] `CA/long-beach @ losses=20`
+- [ ] `CA/long-beach @ losses=30`
+- [ ] `CA/santa-clarita @ losses=14`
+- [ ] `CA/santa-clarita @ losses=20`
+- [ ] `CA/santa-clarita @ losses=30`
+- [ ] `CA/san-diego @ losses=14`
+- [ ] `CA/san-diego @ losses=20`
+- [ ] `CA/san-diego @ losses=30`
+- [ ] `CA/chula-vista @ losses=14`
+- [ ] `CA/chula-vista @ losses=20`
+- [ ] `CA/chula-vista @ losses=30`
+
 ## Agent-sourced — needs human confirmation (50)
 
 Read from a primary source page by an agent during the build. Only the owner sets `verification: "human_verified"`.

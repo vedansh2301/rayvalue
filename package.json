@@ -10,14 +10,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "astro check",
-    "preview:cf": "astro build && wrangler pages dev dist",
     "lighthouse": "node scripts/lighthouse.mjs",
     "todo:verify": "node scripts/todo-verify.mjs",
+    "data:pvwatts": "node scripts/precompute-pvwatts.mjs",
     "build:zips": "node scripts/build-zips.mjs"
   },
   "dependencies": {
     "@astrojs/preact": "^6.1.1",
     "@astrojs/sitemap": "^3.7.4",
+    "@astrojs/vercel": "^11.0.16",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.4.2",
     "preact": "^11.0.1",
@@ -29,7 +30,6 @@
     "chrome-launcher": "^1.2.2",
     "lighthouse": "^13.5.0",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.5",
-    "wrangler": "^4.151.3"
+    "vitest": "^5.0.5"
   }
 }

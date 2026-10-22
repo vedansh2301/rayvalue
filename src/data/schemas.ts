@@ -323,3 +323,25 @@ export const ZipMetaSchema = z.object({
   note: z.string(),
 });
 export type ZipMeta = z.infer<typeof ZipMetaSchema>;
+
+// ---------------------------------------------------------------- pvwatts
+/** Precomputed PVWatts v8 output for 1 kW DC (see scripts/precompute-pvwatts.mjs). null = not fetched yet. */
+export const PvwattsEntrySchema = z
+  .object({
+    annual: z.number().positive(),
+    monthly: z.array(z.number().nonnegative()).length(12),
+  })
+  .nullable();
+export const PvwattsMetaSchema = z.object({
+  fetched_on: IsoDate,
+  source_url: z.url(),
+  endpoint: z.url(),
+  params: z.record(z.string(), z.union([z.string(), z.number()])),
+  dataset_note: z.string(),
+  key_kind: z.enum(['DEMO_KEY', 'api_key']),
+});
+export const PvwattsCitiesSchema = z
+  .object({ _meta: PvwattsMetaSchema })
+  .catchall(z.record(z.string().regex(/^\d+(\.\d+)?$/), PvwattsEntrySchema))
+  .transform(({ _meta, ...cities }) => ({ meta: _meta, cities: cities as Record<string, Record<string, z.infer<typeof PvwattsEntrySchema>>> }));
+export type PvwattsEntry = z.infer<typeof PvwattsEntrySchema>;
