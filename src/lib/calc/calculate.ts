@@ -65,9 +65,9 @@ export function calculate(input: CalcInput, ctx: CalcContext): CalcResult {
   const missing: string[] = [];
   const rates = resolveRates(utility);
   if (!rates.ok) missing.push(...rates.missing);
-  const ppw = fillSourcedRange(costs[state].installed_cost_per_watt, `costs.json.${state}.installed_cost_per_watt`, spread);
+  const ppw = fillSourcedRange(costs[state].installed_cost_per_watt, `cost_ranges[${state}/installed_cost_per_watt]`, spread);
   if (!ppw.ok) missing.push(...ppw.missing);
-  const bat = input.battery > 0 ? fillSourcedRange(costs[state].battery_installed_cost, `costs.json.${state}.battery_installed_cost`, spread) : null;
+  const bat = input.battery > 0 ? fillSourcedRange(costs[state].battery_installed_cost, `cost_ranges[${state}/battery_installed_cost]`, spread) : null;
   if (bat && !bat.ok) missing.push(...bat.missing);
   if (!rates.ok || !ppw.ok || (bat && !bat.ok)) return fail('missing_data', missing);
   const model = rates.value;

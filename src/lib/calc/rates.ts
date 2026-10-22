@@ -53,7 +53,7 @@ export type Resolved<T> = { ok: true; value: T } | { ok: false; missing: string[
  * Not needed (so not reported): CA avg_rate_per_kwh.low/high, TOU rates, baseline credit.
  */
 export function resolveRates(u: Utility): Resolved<RateModel> {
-  const p = `utilities.json[${u.id}]`;
+  const p = `utilities[${u.id}]`;
   const missing: string[] = [];
 
   if (u.rate_type === 'tiered') {

@@ -44,27 +44,27 @@ describe('resolveRates', () => {
     u.fixed_monthly_charge = null;
     expect(resolveRates(u)).toEqual({
       ok: false,
-      missing: ['utilities.json[duke-fl].tier_sets[winter].tiers[1].rate_per_kwh', 'utilities.json[duke-fl].fixed_monthly_charge'],
+      missing: ['utilities[duke-fl].tier_sets[winter].tiers[1].rate_per_kwh', 'utilities[duke-fl].fixed_monthly_charge'],
     });
     const c = clone(caFixture);
     c.avg_export_credit_per_kwh = null;
     c.avg_rate_per_kwh!.likely = null;
     expect(resolveRates(c)).toEqual({
       ok: false,
-      missing: ['utilities.json[pge].avg_rate_per_kwh.likely', 'utilities.json[pge].avg_export_credit_per_kwh'],
+      missing: ['utilities[pge].avg_rate_per_kwh.likely', 'utilities[pge].avg_export_credit_per_kwh'],
     });
   });
 
   it('minimum bill: unknown basis, missing amount, missing base rates are all missing data', () => {
     const unknown = clone(flTwoTier);
     unknown.minimum_bill_basis = null;
-    expect(resolveRates(unknown)).toEqual({ ok: false, missing: ['utilities.json[fpl].minimum_monthly_bill'] });
+    expect(resolveRates(unknown)).toEqual({ ok: false, missing: ['utilities[fpl].minimum_monthly_bill'] });
     const noAmount = clone(flMinimum);
     noAmount.minimum_monthly_bill = null;
     noAmount.tier_sets![0]!.tiers[1]!.base_rate_per_kwh = null;
     expect(resolveRates(noAmount)).toEqual({
       ok: false,
-      missing: ['utilities.json[teco].tier_sets[all_year].tiers[1].base_rate_per_kwh', 'utilities.json[teco].minimum_monthly_bill'],
+      missing: ['utilities[teco].tier_sets[all_year].tiers[1].base_rate_per_kwh', 'utilities[teco].minimum_monthly_bill'],
     });
     // basis "none": no minimum, base rates not needed
     expect(resolveRates(flTwoTier).ok && TWO.minimum).toBeNull();
@@ -214,7 +214,7 @@ describe('sizing', () => {
 describe('cost', () => {
   it('fills missing ends with the spread, never collapses to a point', () => {
     const line = { ...fixtureCosts.FL.installed_cost_per_watt, low: null, high: null };
-    const r = fillSourcedRange(line, 'costs.json.FL.installed_cost_per_watt', 0.15);
+    const r = fillSourcedRange(line, 'cost_ranges[FL/installed_cost_per_watt]', 0.15);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     // 3.0 × 0.85 = 2.55; 3.0 × 1.15 = 3.45
@@ -231,9 +231,9 @@ describe('cost', () => {
 
   it('a null likely is missing data', () => {
     const line = { ...fixtureCosts.FL.installed_cost_per_watt, likely: null };
-    expect(fillSourcedRange(line, 'costs.json.FL.installed_cost_per_watt', 0.15)).toEqual({
+    expect(fillSourcedRange(line, 'cost_ranges[FL/installed_cost_per_watt]', 0.15)).toEqual({
       ok: false,
-      missing: ['costs.json.FL.installed_cost_per_watt.likely'],
+      missing: ['cost_ranges[FL/installed_cost_per_watt].likely'],
     });
   });
 

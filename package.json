@@ -11,9 +11,11 @@
     "test:watch": "vitest",
     "check": "astro check",
     "lighthouse": "node scripts/lighthouse.mjs",
-    "todo:verify": "node scripts/todo-verify.mjs",
-    "data:pvwatts": "node scripts/precompute-pvwatts.mjs",
-    "build:zips": "node scripts/build-zips.mjs"
+    "todo:verify": "node --env-file-if-exists=.env.local --env-file-if-exists=.dev.vars scripts/todo-verify.mjs",
+    "data:pvwatts": "node --env-file-if-exists=.env.local --env-file-if-exists=.dev.vars scripts/precompute-pvwatts.mjs",
+    "build:zips": "node scripts/build-zips.mjs",
+    "db:check": "node --env-file-if-exists=.env.local scripts/db-check.mjs",
+    "test:db": "node --env-file-if-exists=.env.local node_modules/vitest/vitest.mjs run"
   },
   "dependencies": {
     "@astrojs/preact": "^6.1.1",

@@ -1,15 +1,13 @@
-import citiesFile from '../data/cities.json';
 import caZips from '../data/zips/ca.json';
 import flZips from '../data/zips/fl.json';
 import type { City, State } from '../data/schemas';
 
 // Raw JSON imports (no Zod) keep the client bundle small. The same files are
-// validated at build time by src/data/index.ts.
+// validated by src/data/index.ts (and its tests).
 const ZIPS: Record<State, Record<string, readonly [number, number]>> = {
   FL: flZips as unknown as Record<string, [number, number]>,
   CA: caZips as unknown as Record<string, [number, number]>,
 };
-const CITIES = citiesFile.cities as City[];
 
 export interface ZipLocation {
   state: State;
@@ -40,11 +38,17 @@ export function haversineKm(lat1: number, lon1: number, lat2: number, lon2: numb
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
-/** The closest city in `state` to the given point, or null if the state has no cities. */
-export function nearestCity(lat: number, lon: number, state: State): City | null {
-  let best: City | null = null;
+/** Anything with a state and coordinates (a City, or a slimmer client-side projection of one). */
+export type Locatable = Pick<City, 'state' | 'lat' | 'lon'>;
+
+/**
+ * The closest of `cities` in `state` to the given point, or null if none is in that state.
+ * The list comes from the database (loadCities) and is passed in, so this stays pure.
+ */
+export function nearestCity<C extends Locatable>(lat: number, lon: number, state: State, cities: readonly C[]): C | null {
+  let best: C | null = null;
   let bestKm = Infinity;
-  for (const city of CITIES) {
+  for (const city of cities) {
     if (city.state !== state) continue;
     const km = haversineKm(lat, lon, city.lat, city.lon);
     if (km < bestKm) {

@@ -46,7 +46,7 @@ export interface ProductionInput {
 }
 
 export interface CalcContext {
-  /** Utility records to look `input.utilityId` up in (normally the parsed utilities.json). */
+  /** Utility records to look `input.utilityId` up in (normally loaded from the database by src/lib/db/repo.ts). */
   utilities: readonly Utility[];
   costs: Costs;
   assumptions: Assumptions;

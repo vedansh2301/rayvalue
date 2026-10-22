@@ -1,151 +1,114 @@
-// Regenerates docs/TODO-VERIFY.md from src/data/*.json.
+// Regenerates docs/TODO-VERIFY.md from the Supabase view `public.todo_verify`.
 //   npm run todo:verify
-// A Vitest test fails if the committed file is stale, so re-run this after any data edit.
-import { readFileSync, writeFileSync } from 'node:fs';
+// ADMIN script (never deployed): reads SUPABASE_URL + SUPABASE_SECRET_KEY from the environment
+// (npm loads .env.local and .dev.vars). The view is not readable with the publishable key.
+// Re-run after editing values in the Supabase Table Editor, then commit the regenerated file.
+import { writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const readJson = (rel) => JSON.parse(readFileSync(join(root, rel), 'utf8'));
+const cell = (s) => String(s).replace(/\|/g, '\\|').replace(/\n/g, ' ');
 
-/** Sourced value slots of one utility. Skips fields that do not apply to its rate type. */
-function utilitySlots(u) {
-  const p = `utilities.json[${u.id}]`;
-  const own = { source_url: u.source_url, verified_on: u.verified_on, verification: u.verification };
-  const slots = [];
-  if (u.rate_type === 'tiered') {
-    for (const set of u.tier_sets ?? []) {
-      set.tiers.forEach((t, i) => {
-        slots.push({ path: `${p}.tier_sets[${set.season}].tiers[${i}].rate_per_kwh`, value: t.rate_per_kwh, ...own });
-        // Base energy rates only matter when the minimum bill is measured against base charges.
-        if (u.minimum_bill_basis === 'base_charges') {
-          slots.push({ path: `${p}.tier_sets[${set.season}].tiers[${i}].base_rate_per_kwh`, value: t.base_rate_per_kwh, ...own });
-        }
-      });
+/** Markdown for the rows of `todo_verify` (pure; rows in any order). */
+export function generateTodoVerify(rows) {
+  const sorted = [...rows].sort((a, b) => {
+    if (a.section !== b.section) return a.section - b.section;
+    for (let i = 0; i < 3; i++) {
+      const d = (a.sort_key?.[i] ?? 0) - (b.sort_key?.[i] ?? 0);
+      if (d) return d;
     }
-  } else {
-    for (const t of u.tou_rates ?? []) {
-      slots.push({ path: `${p}.tou_rates[${t.season}/${t.period}/${t.day_type}].rate_per_kwh`, value: t.rate_per_kwh, ...own });
-    }
-    const a = u.avg_rate_per_kwh;
-    for (const k of ['low', 'likely', 'high']) {
-      slots.push({ path: `${p}.avg_rate_per_kwh.${k}`, value: a[k], source_url: a.source_url, verified_on: a.verified_on, verification: a.verification });
-    }
-  }
-  slots.push({ path: `${p}.fixed_monthly_charge`, value: u.fixed_monthly_charge, note: u.fixed_monthly_charge === null ? u.fixed_charge_note : null, ...own });
-  if (u.state === 'FL' && u.minimum_bill_basis !== 'none') {
-    slots.push({ path: `${p}.minimum_monthly_bill`, value: u.minimum_monthly_bill, note: u.minimum_monthly_bill === null ? u.minimum_bill_note : null, ...own });
-  }
-  if (u.state === 'CA') {
-    slots.push({ path: `${p}.baseline_credit_per_kwh`, value: u.baseline_credit_per_kwh, ...own });
-    slots.push({ path: `${p}.avg_export_credit_per_kwh`, value: u.avg_export_credit_per_kwh, ...own });
-  }
-  return slots;
-}
-
-function costSlots(costs) {
-  const slots = [];
-  for (const state of ['FL', 'CA']) {
-    for (const [line, c] of Object.entries(costs[state])) {
-      for (const k of ['low', 'likely', 'high']) {
-        slots.push({
-          path: `costs.json.${state}.${line}.${k}`,
-          value: c[k],
-          source_url: c.source_url,
-          verified_on: c.verified_on,
-          verification: c.verification,
-        });
-      }
-    }
-  }
-  return slots;
-}
-
-function assumptionRows(a) {
-  return Object.entries(a).map(([key, rec]) => {
-    const { kind, rationale, ...values } = rec;
-    return { key, values: JSON.stringify(values), rationale };
+    return a.path.localeCompare(b.path);
   });
-}
-
-const cell = (s) => String(s).replace(/\|/g, '\\|');
-
-export function generateTodoVerify() {
-  const utilities = readJson('src/data/utilities.json');
-  const costs = readJson('src/data/costs.json');
-  const assumptions = readJson('src/data/assumptions.json');
-  const citiesFile = readJson('src/data/cities.json');
-
-  const pvwatts = readJson('src/data/pvwatts-cities.json');
-  const pvNulls = Object.entries(pvwatts)
-    .filter(([id]) => id !== '_meta')
-    .flatMap(([id, byLoss]) => Object.entries(byLoss).filter(([, v]) => v === null).map(([l]) => `${id} @ losses=${l}`));
-
-  const slots = [...utilities.flatMap(utilitySlots), ...costSlots(costs)];
-  const nulls = slots.filter((s) => s.value === null);
-  const agent = slots.filter((s) => s.value !== null && s.verification === 'agent_sourced');
-  const human = slots.filter((s) => s.value !== null && s.verification === 'human_verified');
-  const cityChecks = citiesFile.cities.filter((c) => c.utility_confidence !== 'city');
-  const caveats = utilities.filter((u) => u.source_caveat);
+  const of = (cat) => sorted.filter((r) => r.category === cat);
+  const caveats = of('stale_source');
+  const nulls = of('null_value');
+  const pv = of('missing_production');
+  const agent = of('agent_sourced');
+  const human = of('human_verified');
+  const assumptions = of('assumption');
+  const cities = of('weak_city_mapping');
 
   const out = [];
   out.push('# TODO-VERIFY');
   out.push('');
-  out.push('Generated by `npm run todo:verify` from `src/data/*.json`. Do not edit by hand; a test fails if this file is stale.');
+  out.push('Generated by `npm run todo:verify` from the Supabase view `todo_verify` (you can also query that view in the Supabase SQL editor). Do not edit by hand; re-run after editing values in the Table Editor and commit the result.');
+  out.push('');
+  out.push('Paths name the table row and column: `utilities[<id>].<column>` (tier and TOU rates: tables `utility_tier_sets` / `utility_tiers` / `utility_tou_rates`; tier positions start at 0), `utilities[<id>].avg_rate_per_kwh.<bound>` = columns `avg_rate_<bound>`, `cost_ranges[<state>/<item>].<bound>`.');
   out.push('');
   out.push(`## Sources likely stale, undated or inconsistent (${caveats.length})`);
   out.push('');
   out.push('Check these first: the figures were read from the page below but the page itself is a weak or possibly outdated source.');
   out.push('');
-  for (const u of caveats) out.push(`- [ ] **${u.name}** (${u.source_url}): ${u.source_caveat}`);
+  for (const r of caveats) {
+    const [name, ...rest] = r.detail.split(': ');
+    out.push(`- [ ] **${name}** (${r.source_url}): ${rest.join(': ')}`);
+  }
   out.push('');
   out.push(`## Null sourced values (${nulls.length})`);
   out.push('');
-  out.push('Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EIA, NREL/NLR), fill the JSON, set `source_url`, `verified_on`, and `verification`.');
+  out.push('Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EIA, NREL/NLR), fill the cell in Supabase, and set `source_url`, `verified_on` and `verification` on the same row.');
   out.push('');
-  for (const s of nulls) out.push(`- [ ] \`${s.path}\`${s.note ? ` — ${s.note}` : ''}`);
+  for (const r of nulls) out.push(`- [ ] \`${r.path}\`${r.detail ? ` — ${r.detail}` : ''}`);
   out.push('');
-  out.push(`## Missing precomputed PVWatts values (${pvNulls.length})`);
+  out.push(`## Missing precomputed PVWatts values (${pv.length})`);
   out.push('');
-  out.push('`src/data/pvwatts-cities.json` entries that are still null (API unreachable or rate-limited). Resumable: run `NREL_API_KEY=... npm run data:pvwatts` to fill them, then `npm run todo:verify`.');
+  out.push('City x losses combinations with no row in `pvwatts_city_production` (used when the live PVWatts call is unavailable). Fill them with `npm run data:pvwatts` (needs `NREL_API_KEY`; resumable), then `npm run todo:verify`.');
   out.push('');
-  for (const n of pvNulls) out.push(`- [ ] \`${n}\``);
+  for (const r of pv) out.push(`- [ ] \`${r.path}\``);
   out.push('');
   out.push(`## Agent-sourced — needs human confirmation (${agent.length})`);
   out.push('');
-  out.push('Read from a primary source page by an agent during the build. Only the owner sets `verification: "human_verified"`.');
+  out.push('Read from a primary source page by an agent during the build. Only the owner sets `verification` to `human_verified`.');
   out.push('');
-  out.push('Three kinds of simple arithmetic on source figures are involved, each explained in the record\'s note: tiered `rate_per_kwh` values are the sum of the per-kWh line items printed on the same tariff document (taxes excluded); per-day fixed charges are converted to monthly as per-day x 365 / 12; and `battery_installed_cost` is (PV+storage benchmark - PV-only benchmark) x 8,000 Wdc. `base_rate_per_kwh` (the base energy charge alone) and `minimum_monthly_bill` are read directly from the tariff document.');
+  out.push('Three kinds of simple arithmetic on source figures are involved, each explained in the row\'s note: tiered `rate_per_kwh` values are the sum of the per-kWh line items printed on the same tariff document (taxes excluded); per-day fixed charges are converted to monthly as per-day x 365 / 12; and `battery_installed_cost` is (PV+storage benchmark - PV-only benchmark) x 8,000 Wdc. `base_rate_per_kwh` (the base energy charge alone) and `minimum_monthly_bill` are read directly from the tariff document.');
   out.push('');
   out.push('| Path | Value | Source | Date |');
   out.push('| --- | --- | --- | --- |');
-  for (const s of agent) out.push(`| \`${cell(s.path)}\` | ${s.value} | ${s.source_url} | ${s.verified_on} |`);
+  for (const r of agent) out.push(`| \`${cell(r.path)}\` | ${r.value} | ${r.source_url} | ${r.verified_on} |`);
   out.push('');
   if (human.length) {
     out.push(`## Human-verified (${human.length})`);
     out.push('');
-    for (const s of human) out.push(`- \`${s.path}\` = ${s.value}`);
+    for (const r of human) out.push(`- \`${r.path}\` = ${r.value}`);
     out.push('');
   }
   out.push('## Model assumptions to review');
   out.push('');
-  out.push('Product choices, not facts (`kind: "assumption"`). Each has a rationale instead of a source.');
+  out.push('Product choices, not facts (table `model_assumptions`). Each has a rationale instead of a source.');
   out.push('');
   out.push('| Assumption | Values | Rationale |');
   out.push('| --- | --- | --- |');
-  for (const r of assumptionRows(assumptions)) out.push(`| \`${r.key}\` | \`${cell(r.values)}\` | ${cell(r.rationale)} |`);
+  for (const r of assumptions) {
+    const nl = r.detail.indexOf('\n');
+    out.push(`| \`${cell(r.path)}\` | \`${cell(r.detail.slice(0, nl))}\` | ${cell(r.detail.slice(nl + 1))} |`);
+  }
   out.push('');
-  out.push(`## City to utility mappings not confirmed at city level (${cityChecks.length})`);
+  out.push(`## City to utility mappings not confirmed at city level (${cities.length})`);
   out.push('');
   out.push('`utility_confidence` is `county` (source names only the county) or `indirect` (inferred from a related list). Confirm the serving utility for the city itself before publishing its page.');
   out.push('');
-  for (const c of cityChecks) out.push(`- [ ] \`${c.state}/${c.slug}\` -> \`${c.default_utility_id}\` [${c.utility_confidence}]: ${c.utility_source_note} (${c.utility_source_url})`);
+  for (const r of cities) out.push(`- [ ] \`${r.path}\` -> \`${r.detail.split(' ')[0]}\` ${r.detail.slice(r.detail.indexOf(' ') + 1)} (${r.source_url})`);
   out.push('');
   return out.join('\n');
 }
 
+async function fetchRows() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY;
+  if (!url || !key) throw new Error('todo:verify needs SUPABASE_URL and SUPABASE_SECRET_KEY in the environment (.env.local / .dev.vars)');
+  const res = await fetch(`${url.replace(/\/+$/, '')}/rest/v1/todo_verify?select=*`, { headers: { apikey: key, Accept: 'application/json' }, signal: AbortSignal.timeout(15000) });
+  if (!res.ok) throw new Error(`todo_verify: HTTP ${res.status}`);
+  return res.json();
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const target = join(root, 'docs', 'TODO-VERIFY.md');
-  writeFileSync(target, generateTodoVerify());
-  console.log(`Wrote ${target}`);
+  try {
+    const target = join(root, 'docs', 'TODO-VERIFY.md');
+    writeFileSync(target, generateTodoVerify(await fetchRows()));
+    console.log(`Wrote ${target}`);
+  } catch (e) {
+    console.error(e instanceof Error ? e.message : e);
+    process.exit(1);
+  }
 }

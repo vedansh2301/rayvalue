@@ -45,20 +45,30 @@ describe('haversineKm', () => {
 });
 
 describe('nearestCity', () => {
-  it('maps a Miami ZIP to Miami', () => {
+  // Synthetic points (test-only), not the real city list (that lives in the database).
+  const CITIES = [
+    { slug: 'fx-south', state: 'FL', lat: 25.77, lon: -80.2 },
+    { slug: 'fx-west', state: 'FL', lat: 27.95, lon: -82.46 },
+    { slug: 'fx-west-2', state: 'FL', lat: 27.91, lon: -82.3 },
+    { slug: 'fx-ca-south', state: 'CA', lat: 32.71, lon: -117.17 },
+    { slug: 'fx-ca-north', state: 'CA', lat: 37.77, lon: -122.41 },
+  ] as const;
+
+  it('maps a ZIP to the closest point in its state', () => {
     const z = lookupZip('33130')!;
-    expect(nearestCity(z.lat, z.lon, z.state)?.slug).toBe('miami');
-  });
-  it('maps a San Diego ZIP to San Diego', () => {
-    const z = lookupZip('92101')!;
-    expect(nearestCity(z.lat, z.lon, z.state)?.slug).toBe('san-diego');
+    expect(nearestCity(z.lat, z.lon, z.state, CITIES)?.slug).toBe('fx-south');
+    const sd = lookupZip('92101')!;
+    expect(nearestCity(sd.lat, sd.lon, sd.state, CITIES)?.slug).toBe('fx-ca-south');
   });
   it('only returns cities in the requested state', () => {
-    // Point in Miami but asking for California returns a California city.
-    expect(nearestCity(25.77, -80.2, 'CA')?.state).toBe('CA');
+    expect(nearestCity(25.77, -80.2, 'CA', CITIES)?.state).toBe('CA');
   });
   it('picks the closer of two nearby cities', () => {
-    // Just north of Tampa downtown
-    expect(nearestCity(27.96, -82.46, 'FL')?.slug).toBe('tampa');
+    expect(nearestCity(27.96, -82.46, 'FL', CITIES)?.slug).toBe('fx-west');
+    expect(nearestCity(27.9, -82.29, 'FL', CITIES)?.slug).toBe('fx-west-2');
+  });
+  it('returns null for an empty list or a state with no cities', () => {
+    expect(nearestCity(25.77, -80.2, 'FL', [])).toBeNull();
+    expect(nearestCity(25.77, -80.2, 'CA', CITIES.filter((c) => c.state === 'FL'))).toBeNull();
   });
 });

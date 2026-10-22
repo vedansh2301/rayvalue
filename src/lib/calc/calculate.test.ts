@@ -335,13 +335,13 @@ describe('edge cases', () => {
       ok: false,
       reason: 'missing_data',
       missing: [
-        'utilities.json[fpl].tier_sets[all_year].tiers[0].rate_per_kwh',
-        'utilities.json[fpl].fixed_monthly_charge',
-        'costs.json.FL.installed_cost_per_watt.likely',
+        'utilities[fpl].tier_sets[all_year].tiers[0].rate_per_kwh',
+        'utilities[fpl].fixed_monthly_charge',
+        'cost_ranges[FL/installed_cost_per_watt].likely',
       ],
     });
     // battery cost only needed when batteries are chosen
-    expect(calculate(fl(185, { battery: 1 }), c)).toMatchObject({ missing: expect.arrayContaining(['costs.json.FL.battery_installed_cost.likely']) });
+    expect(calculate(fl(185, { battery: 1 }), c)).toMatchObject({ missing: expect.arrayContaining(['cost_ranges[FL/battery_installed_cost].likely']) });
   });
 
   it('CA without an export credit → missing_data (no default substituted)', () => {
@@ -350,7 +350,7 @@ describe('edge cases', () => {
     expect(calculate(ca(170), ctx(undefined, { utilities: [u] }))).toEqual({
       ok: false,
       reason: 'missing_data',
-      missing: ['utilities.json[pge].avg_export_credit_per_kwh'],
+      missing: ['utilities[pge].avg_export_credit_per_kwh'],
     });
   });
 

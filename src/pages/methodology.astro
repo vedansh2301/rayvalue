@@ -1,8 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-// Importing the data module validates every src/data/*.json file at build time,
-// so a bad value fails `npm run build`.
-import { getUtilitiesByState, type State } from '../data';
+import type { State } from '../data/schemas';
+import { DB_PAGE_CACHE_HEADERS, loadUtilities } from '../lib/db/repo';
+
+// Rendered on demand: the rate sources come from the database, so owner edits show up
+// within ~5 minutes (CDN cache) without a redeploy.
+export const prerender = false;
+const loaded = await loadUtilities();
+if (loaded.ok) for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
+else {
+  // Do not let the CDN keep the fallback page.
+  Astro.response.headers.set('Cache-Control', 'no-store');
+  console.error('methodology: utilities unavailable:', loaded.error.kind, loaded.error.message);
+}
+const utilities = loaded.ok ? loaded.value : null;
 
 const states: { code: State; label: string }[] = [
   { code: 'FL', label: 'Florida' },
@@ -17,11 +28,12 @@ const states: { code: State; label: string }[] = [
 
     <h2>Utility rate sources</h2>
     <p>Rates come from each utility's own published tariff or rate pages. The page we read for each one:</p>
-    {states.map(({ code, label }) => (
+    {!utilities && <p>The list of rate sources is being verified. Please check back shortly.</p>}
+    {utilities && states.map(({ code, label }) => (
       <>
         <h3>{label}</h3>
         <ul>
-          {getUtilitiesByState(code).map((u) => (
+          {utilities.filter((u) => u.state === code).map((u) => (
             <li>
               <a href={u.source_url ?? undefined} rel="noopener">{u.name}, schedule {u.rate_schedule}</a>
               {u.verified_on && <> (read {u.verified_on})</>}

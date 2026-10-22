@@ -19,7 +19,8 @@ const okFetch = () => vi.fn(async () => new Response(JSON.stringify(fixture), { 
 
 describe('parsePvwattsParams', () => {
   it('accepts configured losses and FL / CA points, rounding to 2 decimals', () => {
-    expect(allowedLosses().sort()).toEqual([14, 20, 30]);
+    expect(allowedLosses()).toEqual(expect.arrayContaining([0, 14, 20, 30, 60]));
+    expect(allowedLosses()).not.toContain(61);
     const r = p('lat=25.7685&lon=-80.2034&losses=14');
     expect(r).toEqual({ ok: true, query: { lat: '25.77', lon: '-80.20', losses: 14, state: 'FL' } });
     expect(p('lat=34.05&lon=-118.24&losses=30')).toMatchObject({ ok: true, query: { state: 'CA', losses: 30 } });
@@ -31,7 +32,8 @@ describe('parsePvwattsParams', () => {
       'lat=25.77&lon=-80.2',
       'lat=40.71&lon=-74.0&losses=14', // New York
       'lat=33.0&lon=-96.8&losses=14', // Texas
-      'lat=25.77&lon=-80.2&losses=15',
+      'lat=25.77&lon=-80.2&losses=61',
+      'lat=25.77&lon=-80.2&losses=14.5',
       'lat=25.77&lon=-80.2&losses=14abc',
       'lat=1e1&lon=-80.2&losses=14',
     ]) {

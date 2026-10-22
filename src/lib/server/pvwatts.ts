@@ -2,11 +2,6 @@
  * PVWatts proxy logic (pure, testable). The Astro endpoint src/pages/api/pvwatts.ts is a thin wrapper.
  * NREL is now NLR (National Laboratory of the Rockies); the v8 API lives at developer.nlr.gov.
  */
-import assumptionsJson from '../../data/assumptions.json';
-import { AssumptionsSchema } from '../../data/schemas';
-
-const assumptions = AssumptionsSchema.parse(assumptionsJson);
-
 export const PVWATTS_URL = 'https://developer.nlr.gov/api/pvwatts/v8.json';
 export const UPSTREAM_TIMEOUT_MS = 15000;
 
@@ -27,8 +22,16 @@ export const BOUNDS = {
   CA: { latMin: 32.4, latMax: 42.1, lonMin: -124.6, lonMax: -114.0 },
 } as const;
 
+/**
+ * Accepted `losses` values: whole percents within the range the assumptions schema allows
+ * (0-60). The configured per-shading values live in the database (model_assumptions); the
+ * endpoint deliberately does not read the DB, so it accepts any whole percent in range,
+ * which still keeps the CDN cache key space small.
+ */
+export const LOSSES_MIN = 0;
+export const LOSSES_MAX = 60;
 export function allowedLosses(): number[] {
-  return [...new Set(Object.values(assumptions.pvwatts_system_loss_pct).filter((v): v is number => typeof v === 'number'))];
+  return Array.from({ length: LOSSES_MAX - LOSSES_MIN + 1 }, (_, i) => LOSSES_MIN + i);
 }
 
 export interface PvwattsQuery {
@@ -63,7 +66,7 @@ export function parsePvwattsParams(params: URLSearchParams, losses: readonly num
   if (!state) return { ok: false, error: 'lat/lon must be inside Florida or California' };
   const rawLosses = params.get('losses');
   const l = rawLosses !== null && /^\d{1,3}(\.\d+)?$/.test(rawLosses) ? Number(rawLosses) : NaN;
-  if (!losses.includes(l)) return { ok: false, error: `losses must be one of ${losses.join(', ')}` };
+  if (!losses.includes(l)) return { ok: false, error: `losses must be a whole percent from ${Math.min(...losses)} to ${Math.max(...losses)}` };
   return { ok: true, query: { lat: round2(lat), lon: round2(lon), losses: l, state } };
 }
 

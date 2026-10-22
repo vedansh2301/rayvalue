@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
 /**
- * Schemas for everything in src/data/*.json. src/data/index.ts parses the JSON with
- * these at import time, so invalid data throws and fails `npm run build`.
+ * Domain schemas for the calculator data. The VALUES live in Supabase (tables in
+ * supabase/migrations/0002_calculator_data.sql); src/lib/db/map.ts turns rows into these
+ * shapes and src/lib/db/repo.ts validates them with these schemas on every load
+ * (`npm run db:check` runs the same validation against the live DB).
  *
  * Two kinds of numbers live in the data:
  *  - FACTS (rates, costs): carry provenance (source_url, verified_on, verification).
@@ -289,22 +291,31 @@ export const CitySchema = z.object({
   utility_confidence: z.enum(['city', 'county', 'indirect']),
   /** City pages are noindex and out of the sitemap until the owner flips this. */
   published: z.boolean(),
+  /** Owner-written local notes shown on the city page. */
+  local_notes: z.array(z.string().min(1)).default([]),
+  /** Owner-written intro (Markdown); null = TODO placeholder. */
+  intro_md: z.string().nullable().default(null),
 });
 export type City = z.infer<typeof CitySchema>;
+
+function noDuplicateCities(cities: readonly City[], ctx: z.RefinementCtx, path: (string | number)[] = []) {
+  const seen = new Set<string>();
+  cities.forEach((c, i) => {
+    const key = `${c.state}/${c.slug}`;
+    if (seen.has(key)) ctx.addIssue({ code: 'custom', path: [...path, i, 'slug'], message: `duplicate city ${key}` });
+    seen.add(key);
+  });
+}
+
+export const CitiesSchema = z.array(CitySchema).superRefine((list, ctx) => noDuplicateCities(list, ctx));
 
 export const CitiesFileSchema = z
   .object({
     coordinates_source: z.object({ description: z.string(), source_url: z.url(), verified_on: IsoDate }),
     cities: z.array(CitySchema).min(1),
   })
-  .superRefine((f, ctx) => {
-    const seen = new Set<string>();
-    f.cities.forEach((c, i) => {
-      const key = `${c.state}/${c.slug}`;
-      if (seen.has(key)) ctx.addIssue({ code: 'custom', path: ['cities', i, 'slug'], message: `duplicate city ${key}` });
-      seen.add(key);
-    });
-  });
+  .superRefine((f, ctx) => noDuplicateCities(f.cities, ctx, ['cities']));
+export type CitiesFile = z.infer<typeof CitiesFileSchema>;
 
 // --------------------------------------------------------------------- zips
 
@@ -325,23 +336,46 @@ export const ZipMetaSchema = z.object({
 export type ZipMeta = z.infer<typeof ZipMetaSchema>;
 
 // ---------------------------------------------------------------- pvwatts
-/** Precomputed PVWatts v8 output for 1 kW DC (see scripts/precompute-pvwatts.mjs). null = not fetched yet. */
-export const PvwattsEntrySchema = z
+
+/** Precomputed PVWatts v8 output for 1 kW DC at one city and one `losses` percent (scripts/precompute-pvwatts.mjs). */
+export const CityProductionSchema = z
   .object({
-    annual: z.number().positive(),
-    monthly: z.array(z.number().nonnegative()).length(12),
+    state: StateSchema,
+    slug: CitySchema.shape.slug,
+    losses: z.number().min(0).max(60),
+    annual_kwh_per_kw: z.number().positive(),
+    monthly_kwh_per_kw: z.array(z.number().nonnegative()).length(12),
+    fetched_on: IsoDate,
+    source_url: z.url(),
+    endpoint: z.url(),
+    params: z.record(z.string(), z.union([z.string(), z.number()])),
+    dataset_note: z.string(),
+    key_kind: z.enum(['DEMO_KEY', 'api_key']),
   })
-  .nullable();
-export const PvwattsMetaSchema = z.object({
-  fetched_on: IsoDate,
-  source_url: z.url(),
-  endpoint: z.url(),
-  params: z.record(z.string(), z.union([z.string(), z.number()])),
-  dataset_note: z.string(),
-  key_kind: z.enum(['DEMO_KEY', 'api_key']),
+  .refine((p) => Math.abs(p.monthly_kwh_per_kw.reduce((a, b) => a + b, 0) - p.annual_kwh_per_kw) < 2, {
+    message: 'monthly values must sum to the annual value',
+  });
+export type CityProduction = z.infer<typeof CityProductionSchema>;
+
+export const CityProductionListSchema = z.array(CityProductionSchema).superRefine((list, ctx) => {
+  const seen = new Set<string>();
+  list.forEach((p, i) => {
+    const key = `${p.state}/${p.slug}@${p.losses}`;
+    if (seen.has(key)) ctx.addIssue({ code: 'custom', path: [i], message: `duplicate production ${key}` });
+    seen.add(key);
+  });
 });
-export const PvwattsCitiesSchema = z
-  .object({ _meta: PvwattsMetaSchema })
-  .catchall(z.record(z.string().regex(/^\d+(\.\d+)?$/), PvwattsEntrySchema))
-  .transform(({ _meta, ...cities }) => ({ meta: _meta, cities: cities as Record<string, Record<string, z.infer<typeof PvwattsEntrySchema>>> }));
-export type PvwattsEntry = z.infer<typeof PvwattsEntrySchema>;
+
+// ------------------------------------------------------------------ offers
+
+/** Partner offer shown with calculator results. Only active offers with a url are ever shown. */
+export const OfferSchema = z
+  .object({
+    state: StateSchema,
+    partner_name: z.string().min(1),
+    url: z.url().startsWith('https://').nullable(),
+    cta_text: z.string().min(1),
+    active: z.boolean(),
+  })
+  .refine((o) => !o.active || o.url !== null, { message: 'an active offer needs a url', path: ['url'] });
+export type Offer = z.infer<typeof OfferSchema>;
