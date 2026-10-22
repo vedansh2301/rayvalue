@@ -12,7 +12,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 ---
 <header class="border-b border-stone-200 bg-white">
   <div class="flex w-full flex-col gap-1 px-gutter pb-1 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-3">
-    <a href="/" class="flex w-fit items-center gap-2.5 text-stone-900 no-underline" aria-label="RayValue home">
+    <a href="/" class="flex min-h-11 w-fit items-center gap-2.5 text-stone-900 no-underline">
       <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
         <circle cx="16" cy="16" r="7" fill="#fbbf24"></circle>
         <g stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round">
@@ -24,8 +24,10 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
         <span class="text-xs text-stone-600">Solar math for your home</span>
       </span>
     </a>
-    <nav aria-label="Main" class="-mx-2 min-w-0">
-      <ul class="scrollbar-none flex flex-nowrap gap-x-1 overflow-x-auto text-sm font-medium sm:gap-x-3">
+    <!-- The ul's 4px padding (offset by the nav's negative margin) keeps focus outlines inside the mobile
+         scroll container, which would otherwise clip them. Desktop does not scroll, so nothing clips there. -->
+    <nav aria-label="Main" class="-mx-3 -my-1 min-w-0">
+      <ul class="scrollbar-none flex flex-nowrap gap-x-1 p-1 text-sm font-medium max-sm:overflow-x-auto sm:gap-x-3">
         {links.map((l) => {
           const current = isCurrent(l.href);
           return (
