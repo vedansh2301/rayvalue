@@ -9,11 +9,12 @@ Check these first: the figures were read from the page below but the page itself
 - [ ] **Tampa Electric (TECO)** (https://www.tampaelectric.com/4ad05f/siteassets/files/rates/resratesinsert_jan2026.pdf): Source is a January 2026 rate insert; fuel and other clauses may have changed since. The insert's basic service charge unit ('0.45 cents per day') is inconsistent with a normal monthly charge, so the fixed charge is null.
 - [ ] **Southern California Edison (SCE)** (https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans): Source is an undated consumer rate-plan page with prices rounded to the cent, not the dated tariff sheet (not found). SCE announced a residential rate change effective October 1, 2026, so these prices may be out of date.
 
-## Null sourced values (16)
+## Null sourced values (17)
 
 Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EIA, NREL/NLR), fill the JSON, set `source_url`, `verified_on`, and `verification`.
 
 - [ ] `utilities.json[teco].fixed_monthly_charge` — NOT FILLED. The cited insert prints the RS basic service charge as '0.45 cents per day', which converts to about $0.14 per month. That is implausibly low for a residential service charge, so it is probably a unit typo for $0.45 per day (about $13.69 per month), but no Tampa Electric tariff sheet confirming $0.45/day was found. Left null until a primary source states the unit unambiguously.
+- [ ] `utilities.json[teco].minimum_monthly_bill` — NOT FILLED. The cited January 2026 insert prints no minimum bill for RS, so whether one applies (and on what basis) is unknown until the RS tariff sheet is checked.
 - [ ] `utilities.json[pge].avg_rate_per_kwh.low`
 - [ ] `utilities.json[pge].avg_rate_per_kwh.high`
 - [ ] `utilities.json[pge].avg_export_credit_per_kwh`
@@ -30,22 +31,30 @@ Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EI
 - [ ] `costs.json.CA.installed_cost_per_watt.high`
 - [ ] `costs.json.CA.battery_installed_cost.high`
 
-## Agent-sourced — needs human confirmation (42)
+## Agent-sourced — needs human confirmation (50)
 
 Read from a primary source page by an agent during the build. Only the owner sets `verification: "human_verified"`.
 
-Three kinds of simple arithmetic on source figures are involved, each explained in the record's note: tiered `rate_per_kwh` values are the sum of the per-kWh line items printed on the same tariff document (taxes excluded); per-day fixed charges are converted to monthly as per-day x 365 / 12; and `battery_installed_cost` is (PV+storage benchmark - PV-only benchmark) x 8,000 Wdc.
+Three kinds of simple arithmetic on source figures are involved, each explained in the record's note: tiered `rate_per_kwh` values are the sum of the per-kWh line items printed on the same tariff document (taxes excluded); per-day fixed charges are converted to monthly as per-day x 365 / 12; and `battery_installed_cost` is (PV+storage benchmark - PV-only benchmark) x 8,000 Wdc. `base_rate_per_kwh` (the base energy charge alone) and `minimum_monthly_bill` are read directly from the tariff document.
 
 | Path | Value | Source | Date |
 | --- | --- | --- | --- |
 | `utilities.json[fpl].tier_sets[all_year].tiers[0].rate_per_kwh` | 0.12258 | https://www.fpl.com/content/dam/fplgp/us/en/rates/pdf/residential-rates-oct2026.pdf | 2026-10-22 |
+| `utilities.json[fpl].tier_sets[all_year].tiers[0].base_rate_per_kwh` | 0.07865 | https://www.fpl.com/content/dam/fplgp/us/en/rates/pdf/residential-rates-oct2026.pdf | 2026-10-22 |
 | `utilities.json[fpl].tier_sets[all_year].tiers[1].rate_per_kwh` | 0.14258 | https://www.fpl.com/content/dam/fplgp/us/en/rates/pdf/residential-rates-oct2026.pdf | 2026-10-22 |
+| `utilities.json[fpl].tier_sets[all_year].tiers[1].base_rate_per_kwh` | 0.08865 | https://www.fpl.com/content/dam/fplgp/us/en/rates/pdf/residential-rates-oct2026.pdf | 2026-10-22 |
 | `utilities.json[fpl].fixed_monthly_charge` | 10.52 | https://www.fpl.com/content/dam/fplgp/us/en/rates/pdf/residential-rates-oct2026.pdf | 2026-10-22 |
+| `utilities.json[fpl].minimum_monthly_bill` | 30 | https://www.fpl.com/content/dam/fplgp/us/en/rates/pdf/residential-rates-oct2026.pdf | 2026-10-22 |
 | `utilities.json[duke-fl].tier_sets[summer].tiers[0].rate_per_kwh` | 0.13591 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
+| `utilities.json[duke-fl].tier_sets[summer].tiers[0].base_rate_per_kwh` | 0.07731 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
 | `utilities.json[duke-fl].tier_sets[summer].tiers[1].rate_per_kwh` | 0.15433 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
+| `utilities.json[duke-fl].tier_sets[summer].tiers[1].base_rate_per_kwh` | 0.08503 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
 | `utilities.json[duke-fl].tier_sets[winter].tiers[0].rate_per_kwh` | 0.14665 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
+| `utilities.json[duke-fl].tier_sets[winter].tiers[0].base_rate_per_kwh` | 0.08805 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
 | `utilities.json[duke-fl].tier_sets[winter].tiers[1].rate_per_kwh` | 0.17232 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
+| `utilities.json[duke-fl].tier_sets[winter].tiers[1].base_rate_per_kwh` | 0.10302 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
 | `utilities.json[duke-fl].fixed_monthly_charge` | 14.43 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
+| `utilities.json[duke-fl].minimum_monthly_bill` | 30 | https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1 | 2026-10-22 |
 | `utilities.json[teco].tier_sets[all_year].tiers[0].rate_per_kwh` | 0.13902 | https://www.tampaelectric.com/4ad05f/siteassets/files/rates/resratesinsert_jan2026.pdf | 2026-10-22 |
 | `utilities.json[teco].tier_sets[all_year].tiers[1].rate_per_kwh` | 0.15902 | https://www.tampaelectric.com/4ad05f/siteassets/files/rates/resratesinsert_jan2026.pdf | 2026-10-22 |
 | `utilities.json[pge].tou_rates[summer/peak/all].rate_per_kwh` | 0.5224 | https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_E-TOU-C.pdf | 2026-10-22 |
@@ -96,6 +105,7 @@ Product choices, not facts (`kind: "assumption"`). Each has a rationale instead 
 | `ca_self_consumption_share` | `{"solar_only":{"low":0.3,"likely":0.4,"high":0.5},"solar_plus_1_battery":{"low":0.55,"likely":0.7,"high":0.8},"solar_plus_2_batteries":{"low":0.7,"likely":0.85,"high":0.95}}` | Share of solar output used on site (valued at the retail rate) versus exported at the lower net billing credit, for California homes. Placeholder product choices pending owner review; batteries raise self-consumption. |
 | `annual_rate_escalation` | `{"FL":{"low":0.02,"likely":0.03,"high":0.04},"CA":{"low":0.03,"likely":0.045,"high":0.06}}` | Yearly growth in the retail electricity rate used in the 25-year projection. Product choices, not sourced facts. Florida: no primary source gives a forward forecast, so 2/3/4% is a choice around general inflation; for context EIA reports a Florida residential average of 14.14 cents/kWh in 2024 (https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf). California: the Public Advocates Office (CPUC) Q2 2026 Electric Rates Report, PDF page 8 (https://www.publicadvocates.cpuc.ca.gov/-/media/cal-advocates-website/files/press-room/reports-and-analyses/260727-public-advocates-office-q2-2026-electric-rates-report.pdf), prints residential average rate increases from January 2016 to June 2026 of +69% (PG&E), +101% (SCE) and +97% (SDG&E). Over those 10.5 years the compound rate is (1 + total change)^(1/10.5) - 1, about 5.1%, 6.9% and 6.7% a year (our arithmetic). The CPUC's 2025 SB 695 report, PDF page 6 (printed page 2) (https://www.cpuc.ca.gov/-/media/cpuc-website/divisions/office-of-governmental-affairs-division/reports/2025/2025-sb-695-report_093025.pdf), prints about 11%, 8% and 7% a year for PG&E, SCE and SDG&E over 2016-2024, and a 2025-2028 forecast of about 6% a year for PG&E and SDG&E and about 7% a year for SCE. The report's footnote 14 defines these as simple averages (total change divided by years), not compound rates. The California range is 3% (low), 4.5% (likely) and 6% (high). The likely value sits below every utility's compound history above; the high value is above PG&E's 5.1% compound history but below SCE's 6.9% and SDG&E's 6.7% and close to the CPUC's 6-7% forecast. It is deliberately not higher because assuming the recent pace persists for 25 years is not defensible. Owner to review. |
 | `missing_range_spread` | `{"value":0.15}` | Placeholder spread used only when a sourced cost line has a likely (median) value but a null low and/or high bound (currently installed cost per watt in FL and CA, and the battery cost high end). The engine fills the missing bound as likely x (1 - spread) or likely x (1 + spread) and says so in the results' assumptions list. Product choice, not a sourced figure; it stops applying as soon as the owner fills the real bounds in costs.json. |
+| `max_monthly_bill` | `{"value":5000}` | Upper limit on the average monthly bill the calculator accepts; larger bills are treated as invalid input. Residential bills above $5,000 a month are out of scope for a rooftop-solar estimate (and very large values would only produce capped results). Product choice, not a sourced figure. |
 
 ## City to utility mappings not confirmed at city level (6)
 

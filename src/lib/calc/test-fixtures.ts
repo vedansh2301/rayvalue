@@ -4,7 +4,8 @@
  * Each fixture is validated against the real Zod schemas so it is a realistic shape.
  *
  * Shared fixture assumptions: offset 90% / 95% (midpoint) / 100%, cap 15 kW, min 2 kW,
- * degradation 0 (so year-n savings only move with escalation), 25 years, spread 15%.
+ * degradation 0 (so year-n savings only move with escalation), 25 years, spread 15%,
+ * max bill $5,000.
  */
 import { AssumptionsSchema, CostsSchema, UtilitiesSchema, type Assumptions, type Costs, type Utility } from '../../data/schemas';
 
@@ -15,6 +16,7 @@ const base = {
   rate_note: null,
   tou_note: null,
   fixed_charge_note: null,
+  minimum_bill_note: null,
   source_caveat: null,
   ...prov,
 };
@@ -33,11 +35,38 @@ export const flTwoTier: Utility = {
   metering_type: 'retail_net_metering',
   rate_schedule: 'FX-1',
   rate_type: 'tiered',
-  tier_sets: [{ season: 'all_year', months: ALL_YEAR, tiers: [{ up_to_kwh: 1000, rate_per_kwh: 0.1 }, { up_to_kwh: null, rate_per_kwh: 0.15 }] }],
+  tier_sets: [{ season: 'all_year', months: ALL_YEAR, tiers: [{ up_to_kwh: 1000, rate_per_kwh: 0.1, base_rate_per_kwh: null }, { up_to_kwh: null, rate_per_kwh: 0.15, base_rate_per_kwh: null }] }],
   tou_rates: null,
   avg_rate_per_kwh: null,
   fixed_monthly_charge: 10,
+  minimum_monthly_bill: null,
+  minimum_bill_basis: 'none',
   avg_export_credit_per_kwh: null,
+};
+
+/**
+ * FL two-tier WITH a minimum bill on base charges (FPL-style): same all-in rates as
+ * flTwoTier ($10 fixed; 1,000 kWh @ $0.10, rest @ $0.15), of which base energy is
+ * $0.06 / $0.08 (clauses $0.04 / $0.07). Minimum $30 on base charges:
+ *   bill(x) = max(30, 10 + base(x)) + clause(x)
+ * base(x) reaches $20 (10 + 20 = 30) at x = 333.3 kWh. Uses id "teco" only for typing.
+ */
+export const flMinimum: Utility = {
+  ...flTwoTier,
+  id: 'teco',
+  name: 'Fixture FL Minimum Bill (synthetic)',
+  tier_sets: [
+    {
+      season: 'all_year',
+      months: ALL_YEAR,
+      tiers: [
+        { up_to_kwh: 1000, rate_per_kwh: 0.1, base_rate_per_kwh: 0.06 },
+        { up_to_kwh: null, rate_per_kwh: 0.15, base_rate_per_kwh: 0.08 },
+      ],
+    },
+  ],
+  minimum_monthly_bill: 30,
+  minimum_bill_basis: 'base_charges',
 };
 
 /**
@@ -54,12 +83,14 @@ export const flSeasonal: Utility = {
   rate_schedule: 'FX-2',
   rate_type: 'tiered',
   tier_sets: [
-    { season: 'summer', months: [3, 4, 5, 6, 7, 8, 9, 10, 11], tiers: [{ up_to_kwh: 1000, rate_per_kwh: 0.1 }, { up_to_kwh: null, rate_per_kwh: 0.2 }] },
-    { season: 'winter', months: [12, 1, 2], tiers: [{ up_to_kwh: 1000, rate_per_kwh: 0.12 }, { up_to_kwh: null, rate_per_kwh: 0.16 }] },
+    { season: 'summer', months: [3, 4, 5, 6, 7, 8, 9, 10, 11], tiers: [{ up_to_kwh: 1000, rate_per_kwh: 0.1, base_rate_per_kwh: null }, { up_to_kwh: null, rate_per_kwh: 0.2, base_rate_per_kwh: null }] },
+    { season: 'winter', months: [12, 1, 2], tiers: [{ up_to_kwh: 1000, rate_per_kwh: 0.12, base_rate_per_kwh: null }, { up_to_kwh: null, rate_per_kwh: 0.16, base_rate_per_kwh: null }] },
   ],
   tou_rates: null,
   avg_rate_per_kwh: null,
   fixed_monthly_charge: 12,
+  minimum_monthly_bill: null,
+  minimum_bill_basis: 'none',
   avg_export_credit_per_kwh: null,
 };
 
@@ -76,16 +107,18 @@ export const caFixture: Utility = {
   tou_rates: [{ season: 'summer', period: 'peak', day_type: 'all', months: null, hours: null, rate_per_kwh: 0.5 }],
   avg_rate_per_kwh: { low: null, likely: 0.3, high: null, unit: 'USD per kWh', note: null, ...prov },
   fixed_monthly_charge: 20,
+  minimum_monthly_bill: null,
+  minimum_bill_basis: 'not_applicable',
   avg_export_credit_per_kwh: 0.04,
 };
 
-export const fixtureUtilities: readonly Utility[] = UtilitiesSchema.parse([flTwoTier, flSeasonal, caFixture]);
+export const fixtureUtilities: readonly Utility[] = UtilitiesSchema.parse([flTwoTier, flSeasonal, flMinimum, caFixture]);
 
 const line = (low: number | null, likely: number | null, high: number | null, unit: string) => ({ low, likely, high, unit, note: null, ...prov });
 
-/** FL $/W 2.5 / 3.0 / 3.5; CA $/W 2.4 / 3.2 / 3.6; battery (both) $10k / $12k / $14k. */
+/** FL $/W 2.5 / 3.0 / 3.6; CA $/W 2.4 / 3.2 / 3.6; battery (both) $10k / $12k / $14k. */
 export const fixtureCosts: Costs = CostsSchema.parse({
-  FL: { installed_cost_per_watt: line(2.5, 3.0, 3.5, 'USD per watt (synthetic)'), battery_installed_cost: line(10000, 12000, 14000, 'USD per battery (synthetic)') },
+  FL: { installed_cost_per_watt: line(2.5, 3.0, 3.6, 'USD per watt (synthetic)'), battery_installed_cost: line(10000, 12000, 14000, 'USD per battery (synthetic)') },
   CA: { installed_cost_per_watt: line(2.4, 3.2, 3.6, 'USD per watt (synthetic)'), battery_installed_cost: line(10000, 12000, 14000, 'USD per battery (synthetic)') },
 });
 
@@ -108,6 +141,7 @@ export const fixtureAssumptions: Assumptions = AssumptionsSchema.parse({
     solar_plus_2_batteries: { low: 0.7, likely: 0.85, high: 0.95 },
   },
   missing_range_spread: { kind: 'assumption', rationale: why, value: 0.15 },
+  max_monthly_bill: { kind: 'assumption', rationale: why, value: 5000 },
 });
 
 /**

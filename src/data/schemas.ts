@@ -64,6 +64,13 @@ export const TierSchema = z.object({
   up_to_kwh: z.number().positive().nullable(),
   /** All-in $/kWh for usage in this tier. */
   rate_per_kwh: z.number().nonnegative().nullable(),
+  /**
+   * The BASE energy part of rate_per_kwh (excludes fuel and other clause charges). Only
+   * needed when the utility's minimum bill applies to base charges; null otherwise/unknown.
+   */
+  base_rate_per_kwh: z.number().nonnegative().nullable(),
+}).refine((t) => t.base_rate_per_kwh === null || t.rate_per_kwh === null || t.base_rate_per_kwh <= t.rate_per_kwh, {
+  message: 'base_rate_per_kwh cannot exceed rate_per_kwh',
 });
 export type Tier = z.infer<typeof TierSchema>;
 
@@ -142,6 +149,19 @@ export const UtilitySchema = z
     rate_note: z.string().nullable(),
     fixed_monthly_charge: z.number().nonnegative().nullable(),
     fixed_charge_note: z.string().nullable(),
+    /** Minimum monthly bill in $ (FL tiered only); null when none applies or it is unknown (see basis). */
+    minimum_monthly_bill: z.number().nonnegative().nullable(),
+    /**
+     * What the minimum is compared against:
+     *  - base_charges: fixed charge + base energy charges; clause charges are billed on top
+     *    (FPL: "monthly base electric service costs fall below $30 ... minimum $30 base bill").
+     *  - total_bill: fixed charge + all energy charges.
+     *  - none: the tariff has no minimum bill.
+     *  - not_applicable: not modeled (CA net billing uses an annual average rate).
+     *  - null: unknown (the calculator then reports missing data for FL).
+     */
+    minimum_bill_basis: z.enum(['base_charges', 'total_bill', 'none', 'not_applicable']).nullable(),
+    minimum_bill_note: z.string().nullable(),
     /** CA only (null for FL). Uses the record-level provenance when filled. */
     avg_export_credit_per_kwh: z.number().nonnegative().nullable(),
     /** Set when the source is undated, old, or internally inconsistent; listed prominently in TODO-VERIFY. */
@@ -166,6 +186,10 @@ export const UtilitySchema = z
     }
     if (u.state === 'FL' && u.metering_type !== 'retail_net_metering') ctx.addIssue({ code: 'custom', path: ['metering_type'], message: 'FL utilities use retail_net_metering' });
     if (u.state === 'CA' && u.metering_type !== 'nem3_net_billing') ctx.addIssue({ code: 'custom', path: ['metering_type'], message: 'CA utilities use nem3_net_billing' });
+    if (u.state === 'CA' && u.minimum_bill_basis !== 'not_applicable') ctx.addIssue({ code: 'custom', path: ['minimum_bill_basis'], message: 'CA utilities use minimum_bill_basis "not_applicable"' });
+    if (u.state === 'FL' && u.minimum_bill_basis === 'not_applicable') ctx.addIssue({ code: 'custom', path: ['minimum_bill_basis'], message: 'FL utilities must state a minimum bill basis (or null if unknown)' });
+    const hasMin = u.minimum_bill_basis === 'base_charges' || u.minimum_bill_basis === 'total_bill';
+    if (!hasMin && u.minimum_monthly_bill !== null) ctx.addIssue({ code: 'custom', path: ['minimum_monthly_bill'], message: 'a minimum_monthly_bill needs basis base_charges or total_bill' });
     if (u.state === 'FL' && u.avg_export_credit_per_kwh !== null) ctx.addIssue({ code: 'custom', path: ['avg_export_credit_per_kwh'], message: 'export credit is CA only' });
     // avg_rate_per_kwh carries its own provenance, so it is excluded from the record-level check.
     const { avg_rate_per_kwh: _avg, ...rest } = u;
@@ -226,6 +250,7 @@ export const AssumptionsSchema = z
     target_offset: assumption({ low: Share, high: Share }),
     system_size_cap_kw: assumption({ value: z.number().positive() }),
     min_system_size_kw: assumption({ value: z.number().positive() }),
+    max_monthly_bill: assumption({ value: z.number().positive() }),
     panel_degradation_per_year: assumption({ value: z.number().min(0).max(0.05) }),
     analysis_years: assumption({ value: z.number().int().min(1).max(50) }),
     annual_rate_escalation: assumption({ FL: ShareRangeSchema, CA: ShareRangeSchema }),

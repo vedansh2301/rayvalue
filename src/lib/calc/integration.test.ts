@@ -20,8 +20,16 @@ function expectedMissing(u: Utility, battery: BatteryCount): string[] {
   const p = `utilities.json[${u.id}]`;
   const out: string[] = [];
   if (u.rate_type === 'tiered') {
-    for (const set of u.tier_sets!) set.tiers.forEach((t, i) => t.rate_per_kwh === null && out.push(`${p}.tier_sets[${set.season}].tiers[${i}].rate_per_kwh`));
+    const onBase = u.minimum_bill_basis === 'base_charges';
+    for (const set of u.tier_sets!) {
+      set.tiers.forEach((t, i) => {
+        if (t.rate_per_kwh === null) out.push(`${p}.tier_sets[${set.season}].tiers[${i}].rate_per_kwh`);
+        if (onBase && t.base_rate_per_kwh === null) out.push(`${p}.tier_sets[${set.season}].tiers[${i}].base_rate_per_kwh`);
+      });
+    }
     if (u.fixed_monthly_charge === null) out.push(`${p}.fixed_monthly_charge`);
+    // Unknown minimum-bill basis, or a stated minimum without an amount.
+    if (u.minimum_bill_basis === null || (u.minimum_bill_basis !== 'none' && u.minimum_monthly_bill === null)) out.push(`${p}.minimum_monthly_bill`);
   } else {
     if (u.fixed_monthly_charge === null) out.push(`${p}.fixed_monthly_charge`);
     if (u.avg_rate_per_kwh?.likely == null) out.push(`${p}.avg_rate_per_kwh.likely`);
@@ -72,13 +80,26 @@ describe.each(utilities.map((u) => [u.id, u] as const))('real utility %s', (_id,
   }
 });
 
+it('FPL and Duke apply their sourced $30 minimum on base charges', () => {
+  for (const id of ['fpl', 'duke-fl'] as const) {
+    const u = utilities.find((x) => x.id === id)!;
+    expect([u.minimum_monthly_bill, u.minimum_bill_basis]).toEqual([30, 'base_charges']);
+    const r = calculate({ zip: ZIP.FL, utilityId: id, avgMonthlyBill: 200, battery: 0, shading: 'none' }, { utilities, costs, assumptions, production: PRODUCTION });
+    expect(r.ok && r.assumptions.some((a) => a.includes('$30.00 minimum monthly bill applies to base charges'))).toBe(true);
+  }
+});
+
 it('real data today: FPL and Duke compute; TECO and every CA utility are blocked on named nulls', () => {
   const run = (id: string, state: 'FL' | 'CA') =>
     calculate({ zip: ZIP[state], utilityId: id, avgMonthlyBill: 200, battery: 0, shading: 'none' }, { utilities, costs, assumptions, production: PRODUCTION });
   expect(run('fpl', 'FL').ok).toBe(true);
   expect(run('duke-fl', 'FL').ok).toBe(true);
   // These expectations document the data as of this commit; update them when the owner fills the values.
-  expect(run('teco', 'FL')).toEqual({ ok: false, reason: 'missing_data', missing: ['utilities.json[teco].fixed_monthly_charge'] });
+  expect(run('teco', 'FL')).toEqual({
+    ok: false,
+    reason: 'missing_data',
+    missing: ['utilities.json[teco].fixed_monthly_charge', 'utilities.json[teco].minimum_monthly_bill'],
+  });
   for (const id of ['pge', 'sce', 'sdge']) {
     expect(run(id, 'CA')).toEqual({ ok: false, reason: 'missing_data', missing: [`utilities.json[${id}].avg_export_credit_per_kwh`] });
   }

@@ -1,5 +1,5 @@
 import type { AvgRates, TieredRates } from './rates';
-import { tierEnergyCost } from './usage';
+import { monthBill } from './usage';
 
 /**
  * FL retail net metering, one year, month by month (January first).
@@ -7,10 +7,11 @@ import { tierEnergyCost } from './usage';
  * Each month m:  available = production_m + bank
  *   if available >= usage: billed kWh = 0, bank = available − usage
  *   else:                  billed kWh = usage − available, bank = 0
- *   saving_m = energyCost_m(usage) − energyCost_m(billed kWh)
+ *   saving_m = monthBill_m(usage) − monthBill_m(billed kWh)
  * Banked kWh offset later months kWh-for-kWh at retail (re-priced through that month's
  * tiers). Whatever is still banked after December is valued at $0 (conservative).
- * The fixed charge is paid either way, so it never appears in the saving.
+ * The fixed charge is paid either way, so it never appears in the saving, and the
+ * minimum bill (if any) floors the solar bill, which caps the saving (see monthBill).
  *
  * @param monthlyUsageKwh usage assumed equal every month (annual ÷ 12)
  * @param monthlyProductionKwh 12 values, index 0 = January
@@ -23,7 +24,7 @@ export function flSavingsYear(rates: TieredRates, monthlyUsageKwh: number, month
     const available = (monthlyProductionKwh[m] ?? 0) + bank;
     const billed = Math.max(0, monthlyUsageKwh - available);
     bank = Math.max(0, available - monthlyUsageKwh);
-    savings += tierEnergyCost(tiers, monthlyUsageKwh) - tierEnergyCost(tiers, billed);
+    savings += monthBill(rates, tiers, monthlyUsageKwh) - monthBill(rates, tiers, billed);
   }
   return savings;
 }

@@ -69,5 +69,10 @@
     "kind": "assumption",
     "rationale": "Placeholder spread used only when a sourced cost line has a likely (median) value but a null low and/or high bound (currently installed cost per watt in FL and CA, and the battery cost high end). The engine fills the missing bound as likely x (1 - spread) or likely x (1 + spread) and says so in the results' assumptions list. Product choice, not a sourced figure; it stops applying as soon as the owner fills the real bounds in costs.json.",
     "value": 0.15
+  },
+  "max_monthly_bill": {
+    "kind": "assumption",
+    "rationale": "Upper limit on the average monthly bill the calculator accepts; larger bills are treated as invalid input. Residential bills above $5,000 a month are out of scope for a rooftop-solar estimate (and very large values would only produce capped results). Product choice, not a sourced figure.",
+    "value": 5000
   }
 }

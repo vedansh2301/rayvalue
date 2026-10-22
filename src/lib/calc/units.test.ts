@@ -11,8 +11,8 @@ import { roundKw, roundKwh, roundPayback, roundUsd, roundYears } from './round';
 import { caSavingsYear, flSavingsYear } from './savings';
 import { sizeSystem } from './sizing';
 import { monthSpan, pct } from './text';
-import { annualBillCost, estimateAnnualKwh, invertTieredBill, tierEnergyCost } from './usage';
-import { caFixture, clone, fixtureAssumptions as A, fixtureCosts, flSeasonal, flTwoTier } from './test-fixtures';
+import { annualBillCost, estimateAnnualKwh, invertTieredBill, monthBill, tierEnergyCost, zeroUsageMonthlyBill } from './usage';
+import { caFixture, clone, fixtureAssumptions as A, fixtureCosts, flMinimum, flSeasonal, flTwoTier } from './test-fixtures';
 
 const tiered = (u: typeof flTwoTier): TieredRates => {
   const r = resolveRates(u);
@@ -28,6 +28,7 @@ const avg = (u: typeof caFixture): AvgRates => {
 const TWO = tiered(flTwoTier);
 const SEAS = tiered(flSeasonal);
 const CA = avg(caFixture);
+const MIN = tiered(flMinimum);
 
 describe('resolveRates', () => {
   it('expands tier sets to 12 calendar months', () => {
@@ -52,6 +53,22 @@ describe('resolveRates', () => {
       ok: false,
       missing: ['utilities.json[pge].avg_rate_per_kwh.likely', 'utilities.json[pge].avg_export_credit_per_kwh'],
     });
+  });
+
+  it('minimum bill: unknown basis, missing amount, missing base rates are all missing data', () => {
+    const unknown = clone(flTwoTier);
+    unknown.minimum_bill_basis = null;
+    expect(resolveRates(unknown)).toEqual({ ok: false, missing: ['utilities.json[fpl].minimum_monthly_bill'] });
+    const noAmount = clone(flMinimum);
+    noAmount.minimum_monthly_bill = null;
+    noAmount.tier_sets![0]!.tiers[1]!.base_rate_per_kwh = null;
+    expect(resolveRates(noAmount)).toEqual({
+      ok: false,
+      missing: ['utilities.json[teco].tier_sets[all_year].tiers[1].base_rate_per_kwh', 'utilities.json[teco].minimum_monthly_bill'],
+    });
+    // basis "none": no minimum, base rates not needed
+    expect(resolveRates(flTwoTier).ok && TWO.minimum).toBeNull();
+    expect(MIN.minimum).toEqual({ amount: 30, basis: 'base_charges' });
   });
 
   it('does not need CA avg rate low/high', () => {
@@ -95,6 +112,39 @@ describe('usage', () => {
       const kwh = invertTieredBill(SEAS, bill);
       expect(Math.abs(annualBillCost(SEAS, kwh) - bill * 12)).toBeLessThan(1e-5);
     }
+  });
+
+  it('minimum bill on base charges: bill = max(30, 10 + base) + clauses', () => {
+    const t = MIN.monthTiers[0]!;
+    expect(monthBill(MIN, t, 0)).toBeCloseTo(30, 9); // max(30, 10) + 0
+    expect(monthBill(MIN, t, 150)).toBeCloseTo(36, 9); // max(30, 10 + 9) + 6
+    expect(monthBill(MIN, t, 500)).toBeCloseTo(60, 9); // max(30, 10 + 30) + 20 = 10 + all-in 50
+    expect(monthBill(MIN, t, 1500)).toBeCloseTo(185, 9); // max(30, 10 + 60 + 40) + 40 + 35
+    expect(monthBill(TWO, TWO.monthTiers[0]!, 150)).toBeCloseTo(25, 9); // no minimum: 10 + 15
+    // total_bill basis: max(30, 10 + all-in)
+    const total = tiered({ ...flMinimum, minimum_bill_basis: 'total_bill' });
+    expect(monthBill(total, t, 150)).toBeCloseTo(30, 9); // max(30, 25)
+    expect(monthBill(total, t, 500)).toBeCloseTo(60, 9);
+    expect(zeroUsageMonthlyBill(MIN)).toBeCloseTo(30, 9);
+    expect(zeroUsageMonthlyBill(TWO)).toBe(10);
+  });
+
+  it('inverts inside the minimum region', () => {
+    // $40: 30 + 0.04x = 40 → 250 kWh (base 25 < 30); $60: 10 + 0.10x = 60 → 500 kWh
+    expect(invertTieredBill(MIN, 40)).toBeCloseTo(250, 5);
+    expect(invertTieredBill(MIN, 60)).toBeCloseTo(500, 5);
+    expect(invertTieredBill(MIN, 30)).toBe(0);
+    expect(invertTieredBill(MIN, 25)).toBe(0);
+  });
+
+  it('bisection terminates and stays accurate for huge bills (no hang, no throw)', () => {
+    // x ≥ 1000: bill = 10 + 100 + 0.15 (x − 1000) → x = (bill − 110) / 0.15 + 1000
+    for (const bill of [2e9, 1e12, 1e21]) {
+      const kwh = invertTieredBill(TWO, bill);
+      expect(Math.abs(kwh / ((bill - 110) / 0.15 + 1000) - 1)).toBeLessThan(1e-8);
+      expect(Math.abs(annualBillCost(TWO, kwh) / (bill * 12) - 1)).toBeLessThan(1e-8);
+    }
+    expect(Number.isFinite(invertTieredBill(SEAS, 1e21))).toBe(true);
   });
 
   it('bill at or below the fixed charge → 0 kWh', () => {
@@ -280,6 +330,12 @@ describe('round + text', () => {
     expect(roundKw(11.44)).toBe(11.4);
     expect(roundUsd(3375)).toBe(3400);
     expect(roundUsd(-40)).toBe(0);
+    expect(roundUsd(-250)).toBe(-300); // half away from zero
+    expect(roundUsd(250)).toBe(300);
+    expect(roundUsd(-249)).toBe(-200);
+    expect(roundUsd(-1602.5)).toBe(-1600);
+    expect(roundYears(-0.25)).toBe(-0.5);
+    expect(roundKw(0.3)).toBe(0.3); // no 0.30000000000000004
     expect(Object.is(roundUsd(-40), 0)).toBe(true);
     expect(roundYears(14.789)).toBe(15);
     expect(roundYears(10.575)).toBe(10.5);

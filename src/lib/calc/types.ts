@@ -26,7 +26,7 @@ export interface CalcInput {
   /** 5-digit ZIP; must be in the utility's state. */
   zip: string;
   utilityId: string;
-  /** Average monthly electric bill in dollars (> 0). */
+  /** Average monthly electric bill in dollars (> 0 and <= assumptions.max_monthly_bill, else invalid_bill). */
   avgMonthlyBill: number;
   battery: BatteryCount;
   /** Only used for the assumptions text; the caller already picked production at lossesForShading(shading). */
@@ -67,9 +67,12 @@ export interface CalcFailure {
  * nearest $100, years to 0.5, annual kWh to the nearest 100).
  *
  * Range composition (see calculate.ts):
- *  - worst ("low outcome")  = highest cost + lowest savings + lowest rate escalation
- *  - likely                 = likely everything
- *  - best ("high outcome")  = lowest cost + highest savings + highest rate escalation
+ *  - size, cost, year1Savings are display ranges over the size range (offset low…high;
+ *    cost low = size.low × $/W.low, high = size.high × $/W.high).
+ *  - paybackYears and netSavings25 are outcome scenarios for ONE system, size.likely:
+ *      worst ("low outcome")  = $/W.high (+ battery high) + lowest savings assumptions + lowest escalation
+ *      likely                 = likely everything
+ *      best ("high outcome")  = $/W.low (+ battery low) + highest savings assumptions + highest escalation
  * `netSavings25.low` is the worst outcome and `.high` the best. `paybackYears.low` is the
  * best case (shortest) and `.high` the worst (longest).
  */
@@ -82,7 +85,7 @@ export interface CalcSuccess {
   size: Range;
   /** Installed cost in USD, before any incentive (no federal credit applies). */
   cost: Range;
-  /** First-year bill savings in USD. */
+  /** First-year bill savings in USD (low = size.low system, high = size.high system). */
   year1Savings: Range;
   paybackYears: PaybackRange;
   /** Cumulative bill savings over the analysis period minus installed cost (undiscounted). */

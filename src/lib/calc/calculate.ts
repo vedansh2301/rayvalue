@@ -9,7 +9,7 @@ import { caSavingsYear, flSavingsYear } from './savings';
 import { sizeSystem, type Sizing } from './sizing';
 import { cents, dollars, monthSpan, num, pct, perKwh, perWatt } from './text';
 import type { CalcContext, CalcFailure, CalcInput, CalcResult, ProductionInput, Range } from './types';
-import { estimateAnnualKwh } from './usage';
+import { estimateAnnualKwh, zeroUsageMonthlyBill } from './usage';
 
 const fail = (reason: CalcFailure['reason'], missing?: string[]): CalcFailure => (missing ? { ok: false, reason, missing } : { ok: false, reason });
 
@@ -31,16 +31,17 @@ interface Scenario {
  * bill → size range → cost range → year-by-year savings for three scenarios → payback
  * and net savings → round.
  *
- * Scenarios (range composition):
- *   worst  = size.low (lowest savings), CA share.low, escalation.low, cost.high
+ * Display ranges (independent, "what system you might get"):
+ *   size:         offset low / likely / high
+ *   cost:         size.low × $/W.low … size.high × $/W.high (+ batteries low … high)
+ *   year1Savings: savings of size.low with CA share.low … size.high with share.high
+ * Outcome scenarios (payback, net savings) all use ONE system size, size.likely, so
+ * cost and savings always describe the same system:
+ *   worst  = size.likely at $/W.high (+ battery high), CA share.low,  escalation.low
  *   likely = likely everything
- *   best   = size.high (highest savings), CA share.high, escalation.high, cost.low
- * year1Savings/netSavings25: low = worst, high = best.
- * paybackYears: low = best (shortest), high = worst (longest).
- *
- * Note the worst scenario pairs the cost of the largest system in the size range with
- * the savings of the smallest (and vice versa for best), so the payback and net-savings
- * ranges are deliberately wide.
+ *   best   = size.likely at $/W.low  (+ battery low),  CA share.high, escalation.high
+ * netSavings25: low = worst, high = best. paybackYears: low = best (shortest), high = worst.
+ * So the worst-case payback cost is size.likely × $/W.high, not the displayed cost.high.
  *
  * Throws (caller bugs, not user errors) on malformed production, battery or shading.
  */
@@ -56,7 +57,7 @@ export function calculate(input: CalcInput, ctx: CalcContext): CalcResult {
   if (!utility) return fail('unknown_utility');
   if (utility.state !== loc.state) return fail('state_mismatch');
   const bill = input.avgMonthlyBill;
-  if (typeof bill !== 'number' || !Number.isFinite(bill) || bill <= 0) return fail('invalid_bill');
+  if (typeof bill !== 'number' || !Number.isFinite(bill) || bill <= 0 || bill > a.max_monthly_bill.value) return fail('invalid_bill');
 
   // ---- data (collect every missing value before giving up)
   const state = utility.state;
@@ -99,15 +100,23 @@ export function calculate(input: CalcInput, ctx: CalcContext): CalcResult {
     return r.retailValue * rateGrowth + r.exportValue; // export credit held flat
   };
 
-  const worst: Scenario = { sizeKw: size.low, share: share.low, escalation: esc.low, cost: cost.high };
-  const likely: Scenario = { sizeKw: size.likely, share: share.likely, escalation: esc.likely, cost: cost.likely };
-  const best: Scenario = { sizeKw: size.high, share: share.high, escalation: esc.high, cost: cost.low };
+  // One system size for every outcome scenario (see the doc comment).
+  const kw = size.likely;
+  const scenarioCost = (end: keyof Range) => kw * 1000 * perWattRange[end] + input.battery * batteryRange[end];
+  const worst: Scenario = { sizeKw: kw, share: share.low, escalation: esc.low, cost: scenarioCost('high') };
+  const likely: Scenario = { sizeKw: kw, share: share.likely, escalation: esc.likely, cost: cost.likely };
+  const best: Scenario = { sizeKw: kw, share: share.high, escalation: esc.high, cost: scenarioCost('low') };
   const flows = (s: Scenario) => projectSavings(years, (n) => savingsInYear(s, n));
   const fw = flows(worst);
   const fl = flows(likely);
   const fb = flows(best);
 
-  const year1Savings: Range = { low: fw[0] ?? 0, likely: fl[0] ?? 0, high: fb[0] ?? 0 };
+  // Year-1 display range follows the size range (year 1 has no escalation or degradation).
+  const year1Savings: Range = {
+    low: savingsInYear({ sizeKw: size.low, share: share.low, escalation: 0, cost: 0 }, 1),
+    likely: fl[0] ?? 0,
+    high: savingsInYear({ sizeKw: size.high, share: share.high, escalation: 0, cost: 0 }, 1),
+  };
   const payback = { low: paybackYears(best.cost, fb), likely: paybackYears(likely.cost, fl), high: paybackYears(worst.cost, fw) };
   const net: Range = { low: netSavings(worst.cost, fw), likely: netSavings(likely.cost, fl), high: netSavings(best.cost, fb) };
 
@@ -183,10 +192,21 @@ function buildAssumptions(t: TextArgs): string[] {
       `Annual usage of about ${num(roundKwh(annualKwh))} kWh is estimated by working backwards from your ${cents(input.avgMonthlyBill)} average monthly bill through ${utility.name} ${utility.rate_schedule} rates: a ${cents(model.fixedMonthly)} monthly fixed charge plus ${seasons.join('; ')} (${source(utility.source_url, utility.verified_on)}). Your bill likely includes taxes and fees these rates leave out, so usage may be slightly overstated.`,
     );
     out.push('Usage is assumed to be the same every month (annual estimate ÷ 12).');
+    const min = model.minimum;
+    if (min) {
+      out.push(
+        min.basis === 'base_charges'
+          ? `A ${cents(min.amount)} minimum monthly bill applies to base charges (the ${cents(model.fixedMonthly)} fixed charge plus base energy charges); fuel and other clause charges are added on top. With solar, a month's bill never drops below this minimum, which limits savings in months solar covers most of your usage.`
+          : `A ${cents(min.amount)} minimum monthly bill applies. With solar, a month's bill never drops below this minimum, which limits savings in months solar covers most of your usage.`,
+      );
+    }
   } else {
     const avg = utility.avg_rate_per_kwh;
     out.push(
       `Annual usage of about ${num(roundKwh(annualKwh))} kWh is estimated as (your ${cents(input.avgMonthlyBill)} average monthly bill − the ${cents(model.fixedMonthly)} monthly fixed charge) ÷ ${perKwh(model.retailRate)}, ${utility.name}'s published residential average rate. That is a class average across all residential plans, not your specific plan (${source(avg?.source_url ?? null, avg?.verified_on ?? null)}).`,
+    );
+    out.push(
+      'That average rate also recovers fixed costs, so dividing your bill after the fixed charge by it may understate your usage, and with it the recommended size and savings (conservative).',
     );
   }
 
@@ -236,7 +256,7 @@ function buildAssumptions(t: TextArgs): string[] {
     `Payback and net savings use a ${years}-year projection with no discounting for the time value of money; payback beyond ${years} years is shown as more than ${years} years.`,
   );
   out.push(
-    'Ranges: the low end pairs the highest cost with the lowest savings and the slowest rate growth; the high end pairs the lowest cost with the highest savings and the fastest rate growth. For payback, the shortest (best case) is listed first.',
+    `Ranges: system size spans the ${pct(sizing.offset.low)}–${pct(sizing.offset.high)} usage targets, and cost and first-year savings follow that size range. Payback and net savings are for the likely size: the low end pairs its highest installed cost with the lowest savings assumptions and slowest rate growth, the high end its lowest cost with the highest savings assumptions and fastest rate growth. For payback, the shortest (best case) is listed first.`,
   );
   out.push('Not included: financing costs, maintenance, inverter or battery replacement, and tax effects.');
   return out;
@@ -247,8 +267,10 @@ function buildWarnings(t: { input: CalcInput; model: RateModel; a: Assumptions; 
   const out: string[] = [];
   const cap = a.system_size_cap_kw.value;
   if (annualKwh === 0) {
+    const floor = zeroUsageMonthlyBill(model);
+    const what = floor > model.fixedMonthly ? `${cents(floor)} minimum monthly bill` : `${cents(model.fixedMonthly)} monthly fixed charge`;
     out.push(
-      `Your ${cents(input.avgMonthlyBill)} bill is at or below the ${cents(model.fixedMonthly)} monthly fixed charge, so no energy usage can be estimated from it. Solar cannot reduce the fixed charge.`,
+      `Your ${cents(input.avgMonthlyBill)} bill is at or below the ${what}, so no energy usage can be estimated from it. Solar cannot reduce the fixed charge.`,
     );
   } else if (sizing.belowMinimum) {
     out.push(

@@ -26,11 +26,13 @@
         "tiers": [
           {
             "up_to_kwh": 1000,
-            "rate_per_kwh": 0.12258
+            "rate_per_kwh": 0.12258,
+            "base_rate_per_kwh": 0.07865
           },
           {
             "up_to_kwh": null,
-            "rate_per_kwh": 0.14258
+            "rate_per_kwh": 0.14258,
+            "base_rate_per_kwh": 0.08865
           }
         ]
       }
@@ -42,6 +44,9 @@
     "tou_note": null,
     "fixed_monthly_charge": 10.52,
     "fixed_charge_note": "RS-1 base charge per month.",
+    "minimum_monthly_bill": 30,
+    "minimum_bill_basis": "base_charges",
+    "minimum_bill_note": "The source prints: 'Residential customers whose monthly base electric service costs fall below $30 are subject to a minimum $30 base bill.' Base costs = the $10.52 base charge + base energy charge (7.865 / 8.865 cents/kWh, stored as base_rate_per_kwh); conservation, capacity, environmental, storm protection, fuel and transition credit are billed on top.",
     "avg_export_credit_per_kwh": null,
     "source_caveat": null,
     "source_url": "https://www.fpl.com/content/dam/fplgp/us/en/rates/pdf/residential-rates-oct2026.pdf",
@@ -72,11 +77,13 @@
         "tiers": [
           {
             "up_to_kwh": 1000,
-            "rate_per_kwh": 0.13591
+            "rate_per_kwh": 0.13591,
+            "base_rate_per_kwh": 0.07731
           },
           {
             "up_to_kwh": null,
-            "rate_per_kwh": 0.15433
+            "rate_per_kwh": 0.15433,
+            "base_rate_per_kwh": 0.08503
           }
         ]
       },
@@ -90,11 +97,13 @@
         "tiers": [
           {
             "up_to_kwh": 1000,
-            "rate_per_kwh": 0.14665
+            "rate_per_kwh": 0.14665,
+            "base_rate_per_kwh": 0.08805
           },
           {
             "up_to_kwh": null,
-            "rate_per_kwh": 0.17232
+            "rate_per_kwh": 0.17232,
+            "base_rate_per_kwh": 0.10302
           }
         ]
       }
@@ -106,6 +115,9 @@
     "tou_note": null,
     "fixed_monthly_charge": 14.43,
     "fixed_charge_note": "RS-1 customer charge, secondary voltage, per month.",
+    "minimum_monthly_bill": 30,
+    "minimum_bill_basis": "base_charges",
+    "minimum_bill_note": "The 'Base Rates by Rate Schedule' table lists 'Minimum Chrg (if applicable) $30.00' for RS-1, among the base rates (customer charge and base energy charge, stored as base_rate_per_kwh); clause charges are in a separate table. Read here as a minimum on base charges with clauses billed on top; the table itself does not spell out the definition, so confirm against the RS-1 tariff sheet.",
     "avg_export_credit_per_kwh": null,
     "source_caveat": null,
     "source_url": "https://www.duke-energy.com/-/media/pdfs/for-your-home/rates/rates-fl/retail-rates-by-rate-schedule.pdf?rev=2396279a52e44ff987d088b6eb69e9d1",
@@ -139,11 +151,13 @@
         "tiers": [
           {
             "up_to_kwh": 1000,
-            "rate_per_kwh": 0.13902
+            "rate_per_kwh": 0.13902,
+            "base_rate_per_kwh": null
           },
           {
             "up_to_kwh": null,
-            "rate_per_kwh": 0.15902
+            "rate_per_kwh": 0.15902,
+            "base_rate_per_kwh": null
           }
         ]
       }
@@ -155,6 +169,9 @@
     "tou_note": null,
     "fixed_monthly_charge": null,
     "fixed_charge_note": "NOT FILLED. The cited insert prints the RS basic service charge as '0.45 cents per day', which converts to about $0.14 per month. That is implausibly low for a residential service charge, so it is probably a unit typo for $0.45 per day (about $13.69 per month), but no Tampa Electric tariff sheet confirming $0.45/day was found. Left null until a primary source states the unit unambiguously.",
+    "minimum_monthly_bill": null,
+    "minimum_bill_basis": null,
+    "minimum_bill_note": "NOT FILLED. The cited January 2026 insert prints no minimum bill for RS, so whether one applies (and on what basis) is unknown until the RS tariff sheet is checked.",
     "avg_export_credit_per_kwh": null,
     "source_caveat": "Source is a January 2026 rate insert; fuel and other clauses may have changed since. The insert's basic service charge unit ('0.45 cents per day') is inconsistent with a normal monthly charge, so the fixed charge is null.",
     "source_url": "https://www.tampaelectric.com/4ad05f/siteassets/files/rates/resratesinsert_jan2026.pdf",
@@ -246,6 +263,9 @@
     "tou_note": "Total bundled rates from the E-TOU-C tariff sheet effective June 1, 2026. A baseline credit applies to baseline usage only. Customers served by a community choice provider (e.g. CleanPowerSF, Peninsula Clean Energy) pay different generation rates.",
     "fixed_monthly_charge": 24.13,
     "fixed_charge_note": "Base Services Charge is published per day by income tier ($0.19713 Tier 1, $0.39688 Tier 2, $0.79343 Tier 3). The monthly figure is Tier 3 (customers not on CARE or FERA, the default) converted as 0.79343 x 365 / 12 (rounded to cents).",
+    "minimum_monthly_bill": null,
+    "minimum_bill_basis": "not_applicable",
+    "minimum_bill_note": null,
     "avg_export_credit_per_kwh": null,
     "source_caveat": null,
     "source_url": "https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_E-TOU-C.pdf",
@@ -380,6 +400,9 @@
     "tou_note": "Prices as shown on SCE's Time-of-Use Residential Rate Plans page for 'TOU-D 4 PM to 9 PM', before the baseline credit and rounded to the nearest cent by SCE.",
     "fixed_monthly_charge": 24.03,
     "fixed_charge_note": "Base Services Charge is published as $0.79 per day; the monthly figure converts it as 0.79 x 365 / 12 (rounded to cents).",
+    "minimum_monthly_bill": null,
+    "minimum_bill_basis": "not_applicable",
+    "minimum_bill_note": null,
     "avg_export_credit_per_kwh": null,
     "source_caveat": "Source is an undated consumer rate-plan page with prices rounded to the cent, not the dated tariff sheet (not found). SCE announced a residential rate change effective October 1, 2026, so these prices may be out of date.",
     "source_url": "https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans",
@@ -459,6 +482,9 @@
     "tou_note": "Total electric rates (bundled service with SDG&E generation) from the TOU-DR1 total rates table effective August 1, 2026; the table does not state the season dates, so months are null. The 'up to 130% of baseline' adjustment credit applies to the first usage each month. Customers on San Diego Community Power or Clean Energy Alliance pay different generation rates.",
     "fixed_monthly_charge": 24.13,
     "fixed_charge_note": "Base Services Charge is published as $0.79343 per day (standard TOU-DR1 customer); the monthly figure converts it as 0.79343 x 365 / 12 (rounded to cents).",
+    "minimum_monthly_bill": null,
+    "minimum_bill_basis": "not_applicable",
+    "minimum_bill_note": null,
     "avg_export_credit_per_kwh": null,
     "source_caveat": null,
     "source_url": "https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf",

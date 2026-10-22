@@ -15,7 +15,13 @@ function utilitySlots(u) {
   const slots = [];
   if (u.rate_type === 'tiered') {
     for (const set of u.tier_sets ?? []) {
-      set.tiers.forEach((t, i) => slots.push({ path: `${p}.tier_sets[${set.season}].tiers[${i}].rate_per_kwh`, value: t.rate_per_kwh, ...own }));
+      set.tiers.forEach((t, i) => {
+        slots.push({ path: `${p}.tier_sets[${set.season}].tiers[${i}].rate_per_kwh`, value: t.rate_per_kwh, ...own });
+        // Base energy rates only matter when the minimum bill is measured against base charges.
+        if (u.minimum_bill_basis === 'base_charges') {
+          slots.push({ path: `${p}.tier_sets[${set.season}].tiers[${i}].base_rate_per_kwh`, value: t.base_rate_per_kwh, ...own });
+        }
+      });
     }
   } else {
     for (const t of u.tou_rates ?? []) {
@@ -27,6 +33,9 @@ function utilitySlots(u) {
     }
   }
   slots.push({ path: `${p}.fixed_monthly_charge`, value: u.fixed_monthly_charge, note: u.fixed_monthly_charge === null ? u.fixed_charge_note : null, ...own });
+  if (u.state === 'FL' && u.minimum_bill_basis !== 'none') {
+    slots.push({ path: `${p}.minimum_monthly_bill`, value: u.minimum_monthly_bill, note: u.minimum_monthly_bill === null ? u.minimum_bill_note : null, ...own });
+  }
   if (u.state === 'CA') {
     slots.push({ path: `${p}.baseline_credit_per_kwh`, value: u.baseline_credit_per_kwh, ...own });
     slots.push({ path: `${p}.avg_export_credit_per_kwh`, value: u.avg_export_credit_per_kwh, ...own });
@@ -95,7 +104,7 @@ export function generateTodoVerify() {
   out.push('');
   out.push('Read from a primary source page by an agent during the build. Only the owner sets `verification: "human_verified"`.');
   out.push('');
-  out.push('Three kinds of simple arithmetic on source figures are involved, each explained in the record\'s note: tiered `rate_per_kwh` values are the sum of the per-kWh line items printed on the same tariff document (taxes excluded); per-day fixed charges are converted to monthly as per-day x 365 / 12; and `battery_installed_cost` is (PV+storage benchmark - PV-only benchmark) x 8,000 Wdc.');
+  out.push('Three kinds of simple arithmetic on source figures are involved, each explained in the record\'s note: tiered `rate_per_kwh` values are the sum of the per-kWh line items printed on the same tariff document (taxes excluded); per-day fixed charges are converted to monthly as per-day x 365 / 12; and `battery_installed_cost` is (PV+storage benchmark - PV-only benchmark) x 8,000 Wdc. `base_rate_per_kwh` (the base energy charge alone) and `minimum_monthly_bill` are read directly from the tariff document.');
   out.push('');
   out.push('| Path | Value | Source | Date |');
   out.push('| --- | --- | --- | --- |');

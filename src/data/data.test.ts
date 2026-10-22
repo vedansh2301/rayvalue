@@ -207,6 +207,18 @@ describe('schemas reject bad data', () => {
     expect(UtilitiesSchema.safeParse(bad).success).toBe(false);
   });
 
+  it('rejects inconsistent minimum-bill fields', () => {
+    const caMin = clone(utilitiesJson);
+    caMin[3].minimum_bill_basis = 'none';
+    expect(UtilitiesSchema.safeParse(caMin).success).toBe(false);
+    const amountWithoutBasis = clone(utilitiesJson);
+    amountWithoutBasis[2].minimum_monthly_bill = 30; // TECO basis is null
+    expect(UtilitiesSchema.safeParse(amountWithoutBasis).success).toBe(false);
+    const baseAboveAllIn = clone(utilitiesJson);
+    baseAboveAllIn[0].tier_sets[0].tiers[0].base_rate_per_kwh = 0.5;
+    expect(UtilitiesSchema.safeParse(baseAboveAllIn).success).toBe(false);
+  });
+
   it('rejects duplicate utility ids', () => {
     const bad = clone(utilitiesJson);
     bad[1].id = 'fpl';
