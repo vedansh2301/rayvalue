@@ -1,12 +1,8 @@
 ---
-import { publishedGuides } from '../lib/guides';
-
-// The Guides link appears automatically once a non-draft guide exists.
-const hasGuides = (await publishedGuides()).length > 0;
 const links = [
   { href: '/calculator/florida', label: 'Florida calculator' },
   { href: '/calculator/california', label: 'California calculator' },
-  ...(hasGuides ? [{ href: '/guides', label: 'Guides' }] : []),
+  { href: '/guides', label: 'Guides' },
 ];
 ---
 <header class="border-b border-stone-200 bg-white">
