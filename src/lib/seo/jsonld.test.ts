@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { absoluteUrl, organizationJsonLd, breadcrumbJsonLd, articleJsonLd, webApplicationJsonLd, calculatorsForState } from './jsonld';
+import { absoluteUrl, organizationJsonLd, breadcrumbJsonLd, articleJsonLd, webApplicationJsonLd, calculatorsForState, safeJsonLd } from './jsonld';
 
 describe('jsonld', () => {
   it('absoluteUrl has no trailing slash except root', () => {
@@ -35,5 +35,11 @@ describe('jsonld', () => {
   it('calculatorsForState', () => {
     expect(calculatorsForState('both').map((c) => c.state)).toEqual(['FL', 'CA']);
     expect(calculatorsForState('CA')).toHaveLength(1);
+  });
+  it('safeJsonLd prevents script breakout and round-trips', () => {
+    const o = { a: '</script><script>alert(1)</script> & > \u2028' };
+    const out = safeJsonLd(o);
+    expect(out).not.toMatch(/[<>&\u2028]/);
+    expect(JSON.parse(out)).toEqual(o);
   });
 });

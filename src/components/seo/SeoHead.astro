@@ -1,5 +1,5 @@
 ---
-import { organizationJsonLd } from '../../lib/seo/jsonld';
+import { organizationJsonLd, safeJsonLd } from '../../lib/seo/jsonld';
 interface Props {
   title: string;
   description: string;
@@ -25,4 +25,4 @@ const all = [organizationJsonLd(Astro.site?.href), ...jsonLd];
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={image} />
-{all.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)}></script>)}
+{all.map((o) => <script type="application/ld+json" set:html={safeJsonLd(o)}></script>)}

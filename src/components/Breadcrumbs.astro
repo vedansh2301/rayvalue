@@ -1,8 +1,8 @@
 ---
-import { breadcrumbJsonLd, type Crumb } from '../lib/seo/jsonld';
+import { breadcrumbJsonLd, safeJsonLd, type Crumb } from '../lib/seo/jsonld';
 interface Props { items: Crumb[] }
 const { items } = Astro.props;
-const ld = JSON.stringify(breadcrumbJsonLd(items, Astro.site?.href));
+const ld = safeJsonLd(breadcrumbJsonLd(items, Astro.site?.href));
 ---
 <nav aria-label="Breadcrumb" class="text-sm text-stone-700">
   <ol class="flex flex-wrap gap-x-2 gap-y-1">

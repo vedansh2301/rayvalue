@@ -1,3 +1,13 @@
+/** Serialize JSON-LD safely for inline <script> embedding (no script breakout). */
+export function safeJsonLd(obj: unknown): string {
+  return JSON.stringify(obj)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 export const SITE_URL = 'https://rayvalue.com';
 export const SITE_NAME = 'RayValue';
 

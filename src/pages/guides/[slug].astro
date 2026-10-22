@@ -20,7 +20,7 @@ const ld = articleJsonLd({
   image: new URL(`/og/guides/${guide.id}.png`, Astro.site).href,
 }, Astro.site?.href);
 ---
-<BaseLayout title={guide.data.title} description={guide.data.description} path={path} ogImagePath={`/og/guides/${guide.id}.png`} ogType="article" jsonLd={[ld]}>
+<BaseLayout title={guide.data.title} description={guide.data.description} path={path} ogImagePath={`/og/guides/${guide.id}.png`} ogType="article" noindex={guide.data.noindex} jsonLd={[ld]}>
   <article class="page">
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.data.title }]} />
     <h1>{guide.data.title}</h1>
