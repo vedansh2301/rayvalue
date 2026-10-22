@@ -25,11 +25,13 @@ const steps = [
       <p class="mt-5 max-w-(--container-prose) text-lg leading-8 text-stone-700">
         The federal residential solar tax credit has ended for new installs. RayValue shows Florida and California homeowners what rooftop solar and batteries are worth today, as honest ranges, using your own utility&rsquo;s rates.
       </p>
-      <div class="mt-6 flex flex-wrap gap-3">
+      <div class="mt-6 flex flex-wrap items-center gap-3">
         <a href="/quotes?source=home" class={btnPrimary}>Get free installer quotes<span aria-hidden="true">&rarr;</span></a>
-        <a href="/calculator/florida" class={btnSecondary}>Check my payback</a>
+        <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <a href="/calculator/florida" class={btnSecondary}>Check my payback</a>
+          <span class="text-sm text-stone-600">The calculator is free &mdash; no sign-up needed.</span>
+        </span>
       </div>
-      <p class="mt-4 max-w-(--container-prose) text-sm text-stone-600">Free, no sign-up, and no phone calls.</p>
     </div>
   </section>
 
