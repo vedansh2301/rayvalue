@@ -11,7 +11,7 @@ Check these first: the figures were read from the page below but the page itself
 - [ ] **Tampa Electric (TECO)** (https://www.tampaelectric.com/4ad05f/siteassets/files/rates/resratesinsert_jan2026.pdf): Source is a January 2026 rate insert; fuel and other clauses may have changed since. The insert's basic service charge unit ('0.45 cents per day') is inconsistent with a normal monthly charge, so the fixed charge is null.
 - [ ] **Southern California Edison (SCE)** (https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans): Source is an undated consumer rate-plan page with prices rounded to the cent, not the dated tariff sheet (not found). SCE announced a residential rate change effective October 1, 2026, so these prices may be out of date.
 
-## Null sourced values (17)
+## Null sourced values (14)
 
 Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EIA, NREL/NLR), fill the cell in Supabase, and set `source_url`, `verified_on` and `verification` on the same row.
 
@@ -19,13 +19,10 @@ Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EI
 - [ ] `utilities[teco].minimum_monthly_bill` — NOT FILLED. The cited January 2026 insert prints no minimum bill for RS, so whether one applies (and on what basis) is unknown until the RS tariff sheet is checked.
 - [ ] `utilities[pge].avg_rate_per_kwh.low`
 - [ ] `utilities[pge].avg_rate_per_kwh.high`
-- [ ] `utilities[pge].avg_export_credit_per_kwh`
 - [ ] `utilities[sce].avg_rate_per_kwh.low`
 - [ ] `utilities[sce].avg_rate_per_kwh.high`
-- [ ] `utilities[sce].avg_export_credit_per_kwh`
 - [ ] `utilities[sdge].avg_rate_per_kwh.low`
 - [ ] `utilities[sdge].avg_rate_per_kwh.high`
-- [ ] `utilities[sdge].avg_export_credit_per_kwh`
 - [ ] `cost_ranges[FL/installed_cost_per_watt].low`
 - [ ] `cost_ranges[FL/installed_cost_per_watt].high`
 - [ ] `cost_ranges[FL/battery_installed_cost].high`
@@ -38,7 +35,7 @@ Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EI
 City x losses combinations with no row in `pvwatts_city_production` (used when the live PVWatts call is unavailable). Fill them with `npm run data:pvwatts` (needs `NREL_API_KEY`; resumable), then `npm run todo:verify`.
 
 
-## Agent-sourced — needs human confirmation (50)
+## Agent-sourced — needs human confirmation (53)
 
 Read from a primary source page by an agent during the build. Only the owner sets `verification` to `human_verified`.
 
@@ -71,6 +68,7 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `utilities[pge].avg_rate_per_kwh.likely` | 0.337 | https://www.publicadvocates.cpuc.ca.gov/-/media/cal-advocates-website/files/press-room/reports-and-analyses/260727-public-advocates-office-q2-2026-electric-rates-report.pdf | 2026-10-22 |
 | `utilities[pge].fixed_monthly_charge` | 24.13 | https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_E-TOU-C.pdf | 2026-10-22 |
 | `utilities[pge].baseline_credit_per_kwh` | 0.0814 | https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_E-TOU-C.pdf | 2026-10-22 |
+| `utilities[pge].avg_export_credit_per_kwh` | 0.05 | https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_E-TOU-C.pdf | 2026-10-22 |
 | `utilities[sce].tou_rates[summer/peak/weekday].rate_per_kwh` | 0.59 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
 | `utilities[sce].tou_rates[summer/off_peak/weekday].rate_per_kwh` | 0.33 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
 | `utilities[sce].tou_rates[summer/mid_peak/weekend].rate_per_kwh` | 0.44 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
@@ -81,6 +79,7 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `utilities[sce].avg_rate_per_kwh.likely` | 0.344 | https://www.publicadvocates.cpuc.ca.gov/-/media/cal-advocates-website/files/press-room/reports-and-analyses/260727-public-advocates-office-q2-2026-electric-rates-report.pdf | 2026-10-22 |
 | `utilities[sce].fixed_monthly_charge` | 24.03 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
 | `utilities[sce].baseline_credit_per_kwh` | 0.09 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
+| `utilities[sce].avg_export_credit_per_kwh` | 0.05 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
 | `utilities[sdge].tou_rates[summer/peak/all].rate_per_kwh` | 0.69135 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
 | `utilities[sdge].tou_rates[summer/off_peak/all].rate_per_kwh` | 0.46421 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
 | `utilities[sdge].tou_rates[summer/super_off_peak/all].rate_per_kwh` | 0.37433 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
@@ -90,6 +89,7 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `utilities[sdge].avg_rate_per_kwh.likely` | 0.455 | https://www.publicadvocates.cpuc.ca.gov/-/media/cal-advocates-website/files/press-room/reports-and-analyses/260727-public-advocates-office-q2-2026-electric-rates-report.pdf | 2026-10-22 |
 | `utilities[sdge].fixed_monthly_charge` | 24.13 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
 | `utilities[sdge].baseline_credit_per_kwh` | 0.10702 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
+| `utilities[sdge].avg_export_credit_per_kwh` | 0.05 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
 | `cost_ranges[FL/installed_cost_per_watt].likely` | 3.1 | https://emp.lbl.gov/sites/default/files/2026-08/Distributed%20Solar%20&%20Storage-2026%20Data%20Update_FINAL.pdf | 2026-10-22 |
 | `cost_ranges[FL/battery_installed_cost].low` | 12400 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-22 |
 | `cost_ranges[FL/battery_installed_cost].likely` | 13120 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-22 |
@@ -106,9 +106,10 @@ Product choices, not facts (table `model_assumptions`). Each has a rationale ins
 | `analysis_years` | `{"value": 25}` | Length of the net-savings projection. Product choice (typical panel warranty length). |
 | `annual_rate_escalation` | `{"CA": {"low": 0.03, "high": 0.06, "likely": 0.045}, "FL": {"low": 0.02, "high": 0.04, "likely": 0.03}}` | Yearly growth in the retail electricity rate used in the 25-year projection. Product choices, not sourced facts. Florida: no primary source gives a forward forecast, so 2/3/4% is a choice around general inflation; for context EIA reports a Florida residential average of 14.14 cents/kWh in 2024 (https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf). California: the Public Advocates Office (CPUC) Q2 2026 Electric Rates Report, PDF page 8 (https://www.publicadvocates.cpuc.ca.gov/-/media/cal-advocates-website/files/press-room/reports-and-analyses/260727-public-advocates-office-q2-2026-electric-rates-report.pdf), prints residential average rate increases from January 2016 to June 2026 of +69% (PG&E), +101% (SCE) and +97% (SDG&E). Over those 10.5 years the compound rate is (1 + total change)^(1/10.5) - 1, about 5.1%, 6.9% and 6.7% a year (our arithmetic). The CPUC's 2025 SB 695 report, PDF page 6 (printed page 2) (https://www.cpuc.ca.gov/-/media/cpuc-website/divisions/office-of-governmental-affairs-division/reports/2025/2025-sb-695-report_093025.pdf), prints about 11%, 8% and 7% a year for PG&E, SCE and SDG&E over 2016-2024, and a 2025-2028 forecast of about 6% a year for PG&E and SDG&E and about 7% a year for SCE. The report's footnote 14 defines these as simple averages (total change divided by years), not compound rates. The California range is 3% (low), 4.5% (likely) and 6% (high). The likely value sits below every utility's compound history above; the high value is above PG&E's 5.1% compound history but below SCE's 6.9% and SDG&E's 6.7% and close to the CPUC's 6-7% forecast. It is deliberately not higher because assuming the recent pace persists for 25 years is not defensible. Owner to review. |
 | `ca_self_consumption_share` | `{"solar_only": {"low": 0.3, "high": 0.5, "likely": 0.4}, "solar_plus_1_battery": {"low": 0.55, "high": 0.8, "likely": 0.7}, "solar_plus_2_batteries": {"low": 0.7, "high": 0.95, "likely": 0.85}}` | Share of solar output used on site (valued at the retail rate) versus exported at the lower net billing credit, for California homes. Placeholder product choices pending owner review; batteries raise self-consumption. |
+| `city_example_bills` | `{"value": [100, 200, 350]}` | Illustrative example monthly electricity bills used only for the example-payback table on city pages. Product choice to show a low, middle and high bill; these are not facts or local averages, and the page labels them as illustrative. |
 | `max_monthly_bill` | `{"value": 5000}` | Upper limit on the average monthly bill the calculator accepts; larger bills are treated as invalid input. Residential bills above $5,000 a month are out of scope for a rooftop-solar estimate (and very large values would only produce capped results). Product choice, not a sourced figure. |
 | `min_system_size_kw` | `{"value": 2}` | Below this recommended size the calculator warns that the bill may be too small for solar to make financial sense (fixed installation overhead dominates). Product choice, not a sourced threshold; the system is not resized, only a warning is shown. |
-| `missing_range_spread` | `{"value": 0.15}` | Placeholder spread used only when a sourced cost line has a likely (median) value but a null low and/or high bound (currently installed cost per watt in FL and CA, and the battery cost high end). The engine fills the missing bound as likely x (1 - spread) or likely x (1 + spread) and says so in the results' assumptions list. Product choice, not a sourced figure; it stops applying as soon as the owner fills the real bounds in costs.json. |
+| `missing_range_spread` | `{"value": 0.15}` | Placeholder spread used only when a sourced cost line has a likely (median) value but a null low and/or high bound (currently installed cost per watt in FL and CA, and the battery cost high end). The engine fills the missing bound as likely x (1 - spread) or likely x (1 + spread) and says so in the results' assumptions list. Product choice, not a sourced figure; it stops applying as soon as the owner fills the real low/high bounds in the cost_ranges table. |
 | `panel_degradation_per_year` | `{"value": 0.005}` | Annual loss in panel output used in the 25-year projection. Product choice (0.5% per year). |
 | `pvwatts_system_loss_pct` | `{"none": 14, "some": 20, "heavy": 30}` | Percent system losses passed to PVWatts per shading level. 14% is the PVWatts default; 20% and 30% are product choices for some and heavy shading, not measured values. |
 | `system_size_cap_kw` | `{"value": 15}` | Upper limit on recommended system size so very large bills do not produce unrealistic rooftop systems. Product choice. |
