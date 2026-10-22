@@ -1,7 +1,8 @@
 // Runs Lighthouse (mobile defaults) against `astro preview`. Does not build; run `npm run build` first.
 // Usage: npm run lighthouse [-- /path /other-path ...]
-import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import net from 'node:net';
+import { preview } from 'astro';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
 
@@ -15,22 +16,24 @@ if (!existsSync('dist')) {
   process.exit(1);
 }
 
-const server = spawn('npx', ['astro', 'preview', '--port', String(PORT), '--host', '127.0.0.1'], { stdio: 'ignore' });
-const chrome = { instance: null };
-
-async function waitForServer() {
-  for (let i = 0; i < 50; i++) {
-    try {
-      if ((await fetch(`http://127.0.0.1:${PORT}/`)).ok) return;
-    } catch {}
-    await new Promise((r) => setTimeout(r, 200));
-  }
-  throw new Error('astro preview did not start');
+// Fail fast if something already listens on the port (a stale server would serve an old dist/).
+const portInUse = await new Promise((resolve) => {
+  const socket = net.connect(PORT, '127.0.0.1');
+  socket.once('connect', () => (socket.destroy(), resolve(true)));
+  socket.once('error', () => resolve(false));
+});
+if (portInUse) {
+  console.error(`Port ${PORT} is already in use; stop that process and retry.`);
+  process.exit(1);
 }
+
+// Astro's CLI re-spawns itself and the child outlives a kill, so run preview in-process via the API.
+const server = await preview({ root: '.', server: { port: PORT, host: '127.0.0.1' }, logLevel: 'error' });
+
+const chrome = { instance: null };
 
 let failed = false;
 try {
-  await waitForServer();
   chrome.instance = await chromeLauncher.launch({ chromeFlags: ['--headless=new', '--no-sandbox'] });
   console.log(`${'URL'.padEnd(28)} perf  a11y`);
   for (const path of paths) {
@@ -52,6 +55,6 @@ try {
   failed = true;
 } finally {
   await chrome.instance?.kill();
-  server.kill();
+  await server.stop();
 }
 process.exit(failed ? 1 : 0);
