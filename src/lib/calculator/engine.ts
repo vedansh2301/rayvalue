@@ -1,11 +1,12 @@
 /**
- * Everything the island needs only when it runs an estimate: the calc engine (which pulls in
- * src/lib/geo.ts and its ZIP tables) and the nearest-city production fallback. The island
+ * Everything the island needs only when it runs an estimate: the calc engine and the
+ * nearest-city production fallback. No ZIP tables: the island passes calculate() a lookup over
+ * the page state's lazily loaded table (calculator/zip.ts). The island
  * loads this module with a dynamic import(), so it is not part of the initial island chunk.
  */
 import type { State } from '../../data/schemas';
 import type { ProductionInput } from '../calc/types';
-import { nearestCity } from '../geo';
+import { nearestCity } from '../distance';
 import { fetchLiveProduction, PVWATTS_TIMEOUT_MS, type FallbackCity, type FallbackProduction } from './production';
 
 export { calculate, lossesForShading } from '../calc';

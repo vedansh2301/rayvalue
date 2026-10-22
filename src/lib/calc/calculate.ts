@@ -1,5 +1,4 @@
 import type { Assumptions, SourcedRange, Utility } from '../../data/schemas';
-import { lookupZip } from '../geo';
 import { costRange, fillSourcedRange, type FilledRange } from './cost';
 import { lossesForShading, monthlyShares, validateProduction } from './production';
 import { netSavings, paybackYears, projectSavings } from './payback';
@@ -51,7 +50,7 @@ export function calculate(input: CalcInput, ctx: CalcContext): CalcResult {
   if (![0, 1, 2].includes(input.battery)) throw new RangeError(`battery must be 0, 1 or 2, got ${input.battery}`);
   if (!['none', 'some', 'heavy'].includes(input.shading)) throw new RangeError(`unknown shading ${input.shading}`);
 
-  const loc = lookupZip(input.zip);
+  const loc = ctx.lookupZip(input.zip);
   if (!loc) return fail('invalid_zip');
   const utility = ctx.utilities.find((u) => u.id === input.utilityId);
   if (!utility) return fail('unknown_utility');

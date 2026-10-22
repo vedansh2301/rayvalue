@@ -7,6 +7,7 @@ import type { Assumptions, City, CityProduction, Utility } from '../../data/sche
 import { calculate, lossesForShading } from '../calc';
 import type { CalcContext, CalcSuccess } from '../calc';
 import { formatUsd } from '../format';
+import { lookupZip } from '../geo'; // server-side only (city pages render on the server)
 
 export const STATE_SLUGS = { florida: 'FL', california: 'CA' } as const;
 export type StateSlug = keyof typeof STATE_SLUGS;
@@ -108,7 +109,7 @@ export interface ExampleRow {
 export function exampleRows(
   city: City,
   bills: readonly number[],
-  ctx: Omit<CalcContext, 'production'> | null,
+  ctx: Omit<CalcContext, 'production' | 'lookupZip'> | null,
   production: CityProduction | null,
   zip = city.coords_zcta,
 ): ExampleRow[] {
@@ -117,7 +118,7 @@ export function exampleRows(
     try {
       const r = calculate(
         { zip, utilityId: city.default_utility_id, avgMonthlyBill: bill, battery: 0, shading: 'some' },
-        { ...ctx, production: { annualKwhPerKw: production.annual_kwh_per_kw, monthlyKwhPerKw: production.monthly_kwh_per_kw } },
+        { ...ctx, lookupZip, production: { annualKwhPerKw: production.annual_kwh_per_kw, monthlyKwhPerKw: production.monthly_kwh_per_kw } },
       );
       return { bill, result: r.ok ? { size: r.size, cost: r.cost, paybackYears: r.paybackYears } : null };
     } catch {

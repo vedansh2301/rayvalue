@@ -10,9 +10,11 @@
 import { describe, expect, it } from 'vitest';
 import { calculate } from './calculate';
 import type { CalcContext, CalcInput, CalcResult, CalcSuccess } from './types';
+import { lookupZip } from '../geo';
 import { CA_ZIP, FL_ZIP, caFixture, clone, fixtureAssumptions, fixtureCosts, fixtureUtilities, flMinimum, flSeasonal, flTwoTier } from './test-fixtures';
 
 const ctx = (production = { annualKwhPerKw: 1500 } as CalcContext['production'], over: Partial<CalcContext> = {}): CalcContext => ({
+  lookupZip,
   utilities: fixtureUtilities,
   costs: fixtureCosts,
   assumptions: fixtureAssumptions,
@@ -405,5 +407,13 @@ describe('edge cases', () => {
     expect(() => calculate(fl(185), ctx({ annualKwhPerKw: -1 }))).toThrow(RangeError);
     expect(() => calculate(fl(185, { battery: 3 as 0 }), ctx())).toThrow(RangeError);
     expect(() => calculate(fl(185, { shading: 'cloudy' as 'none' }), ctx())).toThrow(RangeError);
+  });
+});
+
+describe('injected ZIP lookup', () => {
+  it('resolves the ZIP only through ctx.lookupZip', () => {
+    expect(calculate(fl(185), ctx(undefined, { lookupZip: () => null }))).toEqual({ ok: false, reason: 'invalid_zip' });
+    expect(calculate(fl(185), ctx(undefined, { lookupZip: () => ({ state: 'CA' }) }))).toEqual({ ok: false, reason: 'state_mismatch' });
+    expect(calculate(fl(185, { zip: 'any' }), ctx(undefined, { lookupZip: () => ({ state: 'FL' }) })).ok).toBe(true);
   });
 });

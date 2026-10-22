@@ -4,8 +4,8 @@
  * comes from calculate() (already rounded) and is only formatted here.
  *
  * Bundle: the initial chunk holds only the form and formatting. The page state's ZIP table
- * is loaded on first ZIP check (zip.ts) and the calc engine + fallback (engine.ts, which
- * pulls in geo.ts) when an estimate is run; both via dynamic import().
+ * is loaded on first ZIP check (zip.ts) and the calc engine + fallback (engine.ts, no ZIP
+ * tables) when an estimate is run; both via dynamic import(). The other state's table is never loaded.
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { TargetedSubmitEvent } from 'preact';
@@ -176,8 +176,13 @@ export default function Calculator(props: CalculatorProps) {
     setCopied('idle');
     let next: Outcome;
     try {
-      const engine = await loadEngine();
+      const [engine, zipTable] = await Promise.all([loadEngine(), loadZipTable(state)]);
       if (!current()) return;
+      // calculate() resolves the ZIP through this lookup over the page state's table only.
+      const lookupZip = (z: string) => {
+        const c = checkZipIn(z, state, zipTable);
+        return c.ok ? c.location : null;
+      };
       const prod = await engine.getProduction(
         { lat: i.lat, lon: i.lon, state, losses: engine.lossesForShading(i.shading, assumptions), cities: fallbackCities, rows: fallbackProduction },
         undefined,
@@ -190,7 +195,7 @@ export default function Calculator(props: CalculatorProps) {
       } else {
         const result = engine.calculate(
           { zip: i.zip, utilityId: i.utilityId, avgMonthlyBill: i.bill, battery: i.battery, shading: i.shading },
-          { utilities, costs, assumptions, production: prod.production },
+          { lookupZip, utilities, costs, assumptions, production: prod.production },
         );
         next = { kind: 'result', result, fallbackCity: prod.source === 'fallback' ? prod.cityName : null };
         if (result.ok) {

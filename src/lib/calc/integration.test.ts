@@ -8,6 +8,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Costs, Utility } from '../../data/schemas';
 import { loadCalcConfig, type CalcConfig } from '../db/repo';
+import { lookupZip } from '../geo';
 import { calculate } from './calculate';
 import type { BatteryCount, CalcSuccess, Range } from './types';
 
@@ -66,7 +67,7 @@ describe.skipIf(!LIVE).each(utilities.map((u) => [u.id, u] as const))('real util
       it(`battery ${battery}, $${bill} bill`, () => {
         const r = calculate(
           { zip: ZIP[u.state], utilityId: u.id, avgMonthlyBill: bill, battery, shading: 'none' },
-          { utilities, costs, assumptions: assumptionsFor(u), production: PRODUCTION },
+          { lookupZip, utilities, costs, assumptions: assumptionsFor(u), production: PRODUCTION },
         );
         const missing = expectedMissing(u, battery);
         if (missing.length) {

@@ -46,6 +46,12 @@ export interface ProductionInput {
 }
 
 export interface CalcContext {
+  /**
+   * Resolves input.zip to its state (null = unknown ZIP). Injected so calculate() stays pure and the
+   * engine does not bundle ZIP tables: servers/tests pass geo.lookupZip (both states); the island
+   * passes a lookup over the page state's lazily loaded table.
+   */
+  lookupZip: (zip: string) => { state: State } | null;
   /** Utility records to look `input.utilityId` up in (normally loaded from the database by src/lib/db/repo.ts). */
   utilities: readonly Utility[];
   costs: Costs;
