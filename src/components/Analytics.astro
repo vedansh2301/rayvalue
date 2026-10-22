@@ -2,4 +2,13 @@
 // Vercel Web Analytics: cookieless, no third-party origin (script is served from /_vercel/insights/).
 import VercelAnalytics from '@vercel/analytics/astro';
 ---
+<script>
+  // Must run before the analytics component: it reads window.webAnalyticsBeforeSend when it injects.
+  // Strips query strings (shared calculator links contain the ZIP code and bill) from every event.
+  import { beforeSend } from '../lib/analytics';
+  type Va = (cmd: string, fn: unknown) => void;
+  const w = window as unknown as { webAnalyticsBeforeSend?: unknown; va?: Va };
+  w.webAnalyticsBeforeSend = beforeSend;
+  w.va?.('beforeSend', beforeSend); // in case the analytics script initialized first
+</script>
 <VercelAnalytics />

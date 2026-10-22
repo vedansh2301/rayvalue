@@ -84,6 +84,19 @@ describe('loadCalcConfig', () => {
     expect(r.ok && r.value.offer).toBeNull();
   });
 
+  it('an invalid or unreadable offer hides the offer only (calculator config still loads)', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const tables = defaultTables();
+    (tables.offers as { url: string | null }[])[0]!.url = 'javascript:alert(1)';
+    const bad = await repoWith(fakeRest(tables)).loadCalcConfig('FL');
+    expect(bad.ok && bad.value.offer).toBeNull();
+    expect(bad.ok && bad.value.utilities.length).toBeGreaterThan(0);
+    const down = await repoWith(fakeRest(defaultTables(), (t) => (t === 'offers' ? new Response('x', { status: 500 }) : undefined))).loadCalcConfig('FL');
+    expect(down.ok && down.value.offer).toBeNull();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
   it('invalid data is an `invalid` error with issue paths, never a throw', async () => {
     const tables = defaultTables();
     (tables.cost_ranges as { low: number | null }[])[0]!.low = 99; // low > likely

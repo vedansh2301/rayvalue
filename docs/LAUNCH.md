@@ -4,6 +4,9 @@ Hosting: Vercel project `rayvalue` (team vedanshs-projects-5b6aa829). Repo: gith
 
 ## 1. Vercel
 - [ ] Environment variables (Project > Settings > Environment Variables), all environments: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `NREL_API_KEY` (all set). Optional build var: `PUBLIC_GSC_VERIFICATION`.
+- [ ] **`PUBLIC_CONTACT_EMAIL`** (build time, public): the address readers use to reach you and to ask for their email to be deleted. Not set yet (owner decision). While it is unset, /contact and /privacy say a contact address is coming soon, the rate-alerts signup is not shown on any page, and `/api/subscribe` refuses signups (no email is collected without a deletion path). Set it in Vercel and redeploy to turn alerts on; the address then appears as a mailto link on /contact and /privacy.
+- [ ] Owner copy still to write (pages render neutral "being written" text, are noindex and out of the sitemap; each has an HTML comment `TODO: owner ...`): /about, /contact, /terms, /affiliate-disclosure. /privacy is an accurate factual draft of current data practices awaiting legal review. To publish one, write it and remove its path from `src/lib/seo/unreviewed-pages.ts`. /methodology is indexed and factual; it carries a `TODO: owner review` comment.
+- [ ] Guides: both starter guides are `draft: true` (not built, no OG image, not in the sitemap). /guides shows "Guides are on the way" (noindex) and the Guides nav link is hidden until a guide has `draft: false`; then the link and index appear automatically on the next deploy.
 - [ ] Never add `SUPABASE_SECRET_KEY` or `SUPABASE_DB_*` to Vercel; site code does not read them.
 - [ ] Merge `build/v1` (and the phase branches) into `main`; Vercel deploys `main` to production automatically.
 - [ ] Domain: rayvalue.com is primary and live; `www.rayvalue.com` redirects with 308. Confirm in Settings > Domains. HTTPS is automatic.
@@ -37,12 +40,20 @@ Hosting: Vercel project `rayvalue` (team vedanshs-projects-5b6aa829). Repo: gith
 ## 7. CI
 - GitHub Actions (`.github/workflows/ci.yml`) runs `npm run check`, `npm test`, `npm run build` on every push/PR. A second job runs `npm run db:check` only if repo secrets `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` exist (Settings > Secrets and variables > Actions); otherwise it skips.
 
-## Security headers (vercel.json)
-- Header CSP: `connect-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'` plus nosniff, strict-origin-when-cross-origin, minimal Permissions-Policy, HSTS (1 year, no preload/includeSubDomains), immutable cache for `/_astro/*`.
-- `script-src` / `style-src` come from Astro's built-in hash-based CSP (`security.csp: true` in `astro.config.mjs`), emitted as a `<meta http-equiv="content-security-policy">` on every page. They are intentionally NOT in the header: two CSPs are intersected, so a header `script-src 'self'` would block the hashed inline island/analytics scripts. No `'unsafe-inline'` is used for scripts or styles.
+## Security headers
+- CSP (Astro, `security.csp` in `astro.config.mjs`): hashed `script-src` / `style-src` (no `'unsafe-inline'`) plus `connect-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`. The Vercel adapter runs with `staticHeaders: true`, so Astro sends this as an HTTP header for prerendered pages (via `.vercel/output/config.json` routes) and on-demand pages (from the function). There is no `<meta>` CSP any more (a meta CSP cannot carry `frame-ancestors`).
+- `vercel.json` adds, for every path: a baseline CSP without script/style hashes (`connect-src 'self'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`; covers paths Astro does not, such as unknown-URL 404s and assets), `X-Frame-Options: DENY`, nosniff, strict-origin-when-cross-origin, minimal Permissions-Policy, HSTS (1 year, no preload/includeSubDomains), immutable cache for `/_astro/*`.
+- Analytics strips query strings (`beforeSend`, `src/lib/analytics.ts`): shared calculator links contain the ZIP code and bill.
+- `robots.txt` disallows `/api/`.
+
 - Vercel Web Analytics loads from the same origin (`/_vercel/insights/script.js`), so no external origins are allowed anywhere.
 - JSON-LD blocks are data, not executed. The subscribe form posts to the same origin.
 - Do not add Shiki code highlighting (inline styles conflict with the CSP).
+
+## Abuse limits (Vercel Firewall)
+- Published (2026-10-22, via `vercel firewall rules add` + `publish`): custom rule **"Rate limit API"**: path starts with `/api/`, 30 requests per 60 s per IP, fixed window, action rate_limit (HTTP 429). It covers `/api/pvwatts` and `/api/subscribe`.
+- A stricter separate rule for `/api/subscribe` (5 per minute per IP) was refused on the Hobby plan ("Rate limiting is not available for this plan"; Hobby allows one rate-limit rule). On Pro, add it: `vercel firewall rules add "Rate limit subscribe" --condition '{"type":"path","op":"eq","value":"/api/subscribe"}' --action rate_limit --rate-limit-requests 5 --rate-limit-window 60 --rate-limit-keys ip --yes` then `vercel firewall publish --yes` (or Project > Firewall > Add rule in the dashboard).
+- `/api/pvwatts` also only accepts the `losses` values configured in `model_assumptions.pvwatts_system_loss_pct` and coordinates inside FL/CA, and redirects to one canonical URL per point, so its CDN cache absorbs repeats.
 
 ## Pre-launch checks
 Measured 2026-10-22 on integrated `build/v1`, mobile Lighthouse (Moto G emulation, simulated throttling).

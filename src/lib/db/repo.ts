@@ -98,7 +98,7 @@ export function createRepo(deps: RepoDeps = {}) {
     return validate(AssumptionsSchema, assumptionsFromRows(r.value, state), `model_assumptions${state ? ` (${state})` : ''}`);
   }
 
-  /** Active offer for `state` (null if none). An invalid row is an error, not silently hidden. */
+  /** Active offer for `state` (null if none). An invalid row is an error here; loadCalcConfig turns it into "no offer" (logged). */
   async function loadOffer(state: State): Promise<Result<Offer | null>> {
     const r = await rows<OfferRow>('offers', { select: '*', state: `eq.${state}`, active: 'is.true' });
     if (!r.ok) return r;
@@ -113,8 +113,9 @@ export function createRepo(deps: RepoDeps = {}) {
     if (!u.ok) return u;
     if (!c.ok) return c;
     if (!a.ok) return a;
-    if (!o.ok) return o;
-    return ok({ state, utilities: u.value, costs: c.value, assumptions: a.value, offer: o.value });
+    // Fail closed on the offer only: an invalid or unreadable offers row hides the offer, never the calculator.
+    if (!o.ok) console.error(`offers ${state}: hidden (${o.error.kind}): ${o.error.message}`);
+    return ok({ state, utilities: u.value, costs: c.value, assumptions: a.value, offer: o.ok ? o.value : null });
   }
 
   async function loadCities(state?: State): Promise<Result<City[]>> {
