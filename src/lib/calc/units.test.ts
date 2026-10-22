@@ -10,6 +10,7 @@ import { resolveRates, type AvgRates, type TieredRates } from './rates';
 import { roundKw, roundKwh, roundPayback, roundUsd, roundYears } from './round';
 import { caSavingsYear, flSavingsYear } from './savings';
 import { sizeSystem } from './sizing';
+import { arrayText, compass } from './text';
 import { monthSpan, pct } from './text';
 import { annualBillCost, estimateAnnualKwh, invertTieredBill, monthBill, tierEnergyCost, zeroUsageMonthlyBill } from './usage';
 import { caFixture, clone, fixtureAssumptions as A, fixtureCosts, flMinimum, flSeasonal, flTwoTier } from './test-fixtures';
@@ -353,5 +354,17 @@ describe('round + text', () => {
     expect(pct(0.045)).toBe('4.5%');
     expect(pct(0.005)).toBe('0.5%');
     expect(pct(1)).toBe('100%');
+  });
+});
+
+describe('PVWatts array text', () => {
+  it('names compass points and PVWatts codes', () => {
+    expect(compass(180)).toBe('south');
+    expect(compass(0)).toBe('north');
+    expect(compass(225)).toBe('southwest');
+    expect(compass(359)).toBe('north');
+    expect(arrayText({ tilt: 25, azimuth: 270, module_type: 1, array_type: 0, dataset: 'tmy3' })).toBe(
+      'a fixed open-rack array of premium modules tilted 25° and facing 270° (west), with TMY3 weather data',
+    );
   });
 });

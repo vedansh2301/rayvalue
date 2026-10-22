@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chartBars, exampleBills, isHttpUrl, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows } from './view';
+import { chartBars, exampleBills, exportCreditSource, isHttpUrl, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows } from './view';
 import { fixtureAssumptions, fixtureCosts, fixtureUtilities, flTwoTier, caFixture } from '../calc/test-fixtures';
 import { fixtureCitiesFile } from '../db/test-rows';
 import type { CityProduction } from '../../data/schemas';
@@ -103,5 +103,14 @@ describe('isHttpUrl', () => {
     expect(isHttpUrl('https://example.com/x')).toBe(true);
     expect(isHttpUrl('http://example.com')).toBe(true);
     for (const u of ['javascript:alert(1)', 'data:text/html,x', '//example.com', '', null, undefined]) expect(isHttpUrl(u)).toBe(false);
+  });
+});
+
+describe('exportCreditSource', () => {
+  it('uses the export credit provenance, only for http(s) links and a non-null credit', () => {
+    expect(exportCreditSource(caFixture)).toEqual({ url: 'https://example.com/synthetic-export-credit', date: '2026-01-02', note: 'synthetic export credit note' });
+    expect(exportCreditSource({ ...caFixture, export_credit_source_url: 'javascript:alert(1)' })).toBeNull();
+    expect(exportCreditSource({ ...caFixture, avg_export_credit_per_kwh: null })).toBeNull();
+    expect(exportCreditSource(flTwoTier)).toBeNull();
   });
 });

@@ -6,7 +6,7 @@ import { resolveRates, type RateModel, type TieredRates } from './rates';
 import { roundKw, roundKwh, roundPayback, roundRange, roundUsd } from './round';
 import { caSavingsYear, flSavingsYear } from './savings';
 import { sizeSystem, type Sizing } from './sizing';
-import { cents, dollars, monthSpan, num, pct, perKwh, perWatt } from './text';
+import { arrayText, cents, dollars, monthSpan, num, pct, perKwh, perWatt } from './text';
 import type { CalcContext, CalcFailure, CalcInput, CalcResult, ProductionInput, Range } from './types';
 import { estimateAnnualKwh, zeroUsageMonthlyBill } from './usage';
 
@@ -212,7 +212,7 @@ function buildAssumptions(t: TextArgs): string[] {
   // production + sizing
   const shape = input.shading === 'none' ? 'no' : input.shading;
   out.push(
-    `Solar production of ${num(production.annualKwhPerKw)} kWh per installed kW per year with ${shape} shading (${lossesForShading(input.shading, a)}% system losses)${model.kind === 'tiered' ? (production.monthlyKwhPerKw ? ', spread across the year using the monthly production profile' : ', split evenly across the 12 months') : ''}.`,
+    `Solar production of ${num(production.annualKwhPerKw)} kWh per installed kW per year with ${shape} shading (${lossesForShading(input.shading, a)}% system losses), from the PVWatts model for ${arrayText(a.pvwatts_array)}${model.kind === 'tiered' ? (production.monthlyKwhPerKw ? ', spread across the year using the monthly production profile' : ', split evenly across the 12 months') : ''}.`,
   );
   out.push(
     `The system is sized to cover ${pct(sizing.offset.low)}–${pct(sizing.offset.high)} of estimated annual usage (likely ${pct(sizing.offset.likely)}, the midpoint), capped at ${a.system_size_cap_kw.value} kW.`,
@@ -244,7 +244,7 @@ function buildAssumptions(t: TextArgs): string[] {
   } else {
     const label = input.battery === 0 ? 'solar only' : input.battery === 1 ? 'solar with 1 battery' : 'solar with 2 batteries';
     out.push(
-      `California net billing (NEM 3.0): ${pct(share.low)}–${pct(share.high)} (likely ${pct(share.likely)}) of solar output is used at home (${label}), valued at ${perKwh(model.retailRate)} and capped at your usage; the rest is exported at ${perKwh(model.exportCredit)}, the utility's average export credit (${source(utility.source_url, utility.verified_on)}).`,
+      `California net billing (NEM 3.0): ${pct(share.low)}–${pct(share.high)} (likely ${pct(share.likely)}) of solar output is used at home (${label}), valued at ${perKwh(model.retailRate)} and capped at your usage; the rest is exported at ${perKwh(model.exportCredit)}, an average export credit (${source(utility.export_credit_source_url, utility.export_credit_verified_on)}${utility.export_credit_note ? `; ${utility.export_credit_note}` : ''}).`,
     );
     out.push('The export credit is held flat over time; only the retail rate is escalated.');
   }

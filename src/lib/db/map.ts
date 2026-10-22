@@ -64,6 +64,10 @@ export interface UtilityRow {
   minimum_bill_basis: string | null;
   minimum_bill_note: string | null;
   avg_export_credit_per_kwh: number | null;
+  export_credit_source_url: string | null;
+  export_credit_verified_on: string | null;
+  export_credit_note: string | null;
+  export_credit_verification: string;
   baseline_credit_per_kwh: number | null;
   rate_note: string | null;
   tou_note: string | null;
@@ -218,6 +222,10 @@ export function utilityFromRow(u: UtilityRow): Unvalidated<Utility> {
     minimum_bill_basis: u.minimum_bill_basis,
     minimum_bill_note: u.minimum_bill_note,
     avg_export_credit_per_kwh: u.avg_export_credit_per_kwh,
+    export_credit_source_url: u.export_credit_source_url,
+    export_credit_verified_on: u.export_credit_verified_on,
+    export_credit_note: u.export_credit_note,
+    export_credit_verification: u.export_credit_verification,
     source_caveat: u.source_caveat,
     source_url: u.source_url,
     verified_on: u.verified_on,
@@ -333,6 +341,10 @@ export function utilityToRows(u: Utility, displayOrder: number) {
     minimum_bill_basis: u.minimum_bill_basis,
     minimum_bill_note: u.minimum_bill_note,
     avg_export_credit_per_kwh: u.avg_export_credit_per_kwh,
+    export_credit_source_url: u.export_credit_source_url,
+    export_credit_verified_on: u.export_credit_verified_on,
+    export_credit_note: u.export_credit_note,
+    export_credit_verification: u.export_credit_verification,
     baseline_credit_per_kwh: u.baseline_credit_per_kwh,
     rate_note: u.rate_note,
     tou_note: u.tou_note,

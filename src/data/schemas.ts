@@ -164,8 +164,14 @@ export const UtilitySchema = z
      */
     minimum_bill_basis: z.enum(['base_charges', 'total_bill', 'none', 'not_applicable']).nullable(),
     minimum_bill_note: z.string().nullable(),
-    /** CA only (null for FL). Uses the record-level provenance when filled. */
+    /** CA only (null for FL). Has its OWN provenance (export_credit_*), not the tariff's. */
     avg_export_credit_per_kwh: z.number().nonnegative().nullable(),
+    /** Source of avg_export_credit_per_kwh (e.g. a CPUC report), separate from the tariff source_url. */
+    export_credit_source_url: z.url().nullable(),
+    export_credit_verified_on: IsoDate.nullable(),
+    /** What the export credit figure is and its caveats (e.g. statewide all-hours average). */
+    export_credit_note: z.string().nullable(),
+    export_credit_verification: VerificationSchema,
     /** Set when the source is undated, old, or internally inconsistent; listed prominently in TODO-VERIFY. */
     source_caveat: z.string().nullable(),
     ...provenanceShape,
@@ -193,9 +199,22 @@ export const UtilitySchema = z
     const hasMin = u.minimum_bill_basis === 'base_charges' || u.minimum_bill_basis === 'total_bill';
     if (!hasMin && u.minimum_monthly_bill !== null) ctx.addIssue({ code: 'custom', path: ['minimum_monthly_bill'], message: 'a minimum_monthly_bill needs basis base_charges or total_bill' });
     if (u.state === 'FL' && u.avg_export_credit_per_kwh !== null) ctx.addIssue({ code: 'custom', path: ['avg_export_credit_per_kwh'], message: 'export credit is CA only' });
-    // avg_rate_per_kwh carries its own provenance, so it is excluded from the record-level check.
-    const { avg_rate_per_kwh: _avg, ...rest } = u;
+    // avg_rate_per_kwh and the export credit carry their own provenance, so they are excluded from the record-level check.
+    const {
+      avg_rate_per_kwh: _avg,
+      avg_export_credit_per_kwh: exportCredit,
+      export_credit_source_url: exportUrl,
+      export_credit_verified_on: exportDate,
+      export_credit_note: _exportNote,
+      export_credit_verification: exportVerification,
+      ...rest
+    } = u;
     requireProvenanceWhenNumeric(rest, ctx);
+    if (exportCredit !== null) {
+      if (!exportUrl) ctx.addIssue({ code: 'custom', path: ['export_credit_source_url'], message: 'an export credit needs export_credit_source_url' });
+      if (!exportDate) ctx.addIssue({ code: 'custom', path: ['export_credit_verified_on'], message: 'an export credit needs export_credit_verified_on' });
+      if (exportVerification === 'unverified') ctx.addIssue({ code: 'custom', path: ['export_credit_verification'], message: 'an export credit cannot be "unverified"' });
+    }
   });
 export type Utility = z.infer<typeof UtilitySchema>;
 export type UtilityId = Utility['id'];
@@ -268,6 +287,17 @@ export const AssumptionsSchema = z
      * Optional: when the row is missing the city page hides that table ("being verified"); the calculator is unaffected.
      */
     city_example_bills: assumption({ value: z.array(z.number().positive()).min(1).max(6) }).optional(),
+    /**
+     * PVWatts v8 array inputs used for every production estimate (live /api/pvwatts and the
+     * precomputed fallback). module_type / array_type are PVWatts codes (see PVWATTS_* labels in src/lib/calc/text.ts).
+     */
+    pvwatts_array: assumption({
+      tilt: z.number().min(0).max(90),
+      azimuth: z.number().min(0).lt(360),
+      module_type: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+      array_type: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+      dataset: z.enum(['nsrdb', 'tmy2', 'tmy3', 'intl']),
+    }),
   })
   .strict()
   .superRefine((a, ctx) => {

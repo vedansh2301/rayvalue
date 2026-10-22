@@ -1,6 +1,6 @@
 ---
 import type { Utility } from '../../data/schemas';
-import { isHttpUrl, utilityRateRows } from '../../lib/city/view';
+import { exportCreditSource, isHttpUrl, utilityRateRows } from '../../lib/city/view';
 
 interface Props {
   defaultUtility: Utility | null;
@@ -41,6 +41,14 @@ const list = [...(defaultUtility ? [defaultUtility] : []), ...others];
           {isHttpUrl(u.source_url) && u.verified_on && (
             <p class="!mt-2 text-xs text-stone-600">Source: <a href={u.source_url} rel="noopener">utility rate page</a>, read {u.verified_on}.</p>
           )}
+          {(() => {
+            const ex = exportCreditSource(u);
+            return ex && (
+              <p class="!mt-1 text-xs text-stone-600">
+                Export credit source: <a href={ex.url} rel="noopener">export credit report</a>{ex.date && <>, read {ex.date}</>}.{ex.note && <> {ex.note}</>}
+              </p>
+            );
+          })()}
         </div>
       ))}
     </>

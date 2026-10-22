@@ -23,8 +23,12 @@ for (const state of ['FL', 'CA']) {
   if (cfg && production && cities) {
     const losses = new Set(Object.values(cfg.assumptions.pvwatts_system_loss_pct).filter((v) => typeof v === 'number'));
     const known = new Set(cities.map((c) => `${c.state}/${c.slug}`));
+    const arr = cfg.assumptions.pvwatts_array;
     for (const p of production) {
       if (!losses.has(p.losses)) problems.push(`pvwatts_city_production ${p.state}/${p.slug}@${p.losses}: losses is not a pvwatts_system_loss_pct value`);
+      for (const k of ['tilt', 'azimuth', 'module_type', 'array_type', 'dataset']) {
+        if (String(p.params[k]) !== String(arr[k])) problems.push(`pvwatts_city_production ${p.state}/${p.slug}@${p.losses}: params.${k}=${p.params[k]} differs from pvwatts_array.${k}=${arr[k]} (re-run npm run data:pvwatts -- --refresh)`);
+      }
       if (!known.has(`${p.state}/${p.slug}`)) problems.push(`pvwatts_city_production ${p.state}/${p.slug}: unknown city`);
     }
   }

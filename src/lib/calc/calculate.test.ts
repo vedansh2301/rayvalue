@@ -226,6 +226,11 @@ describe('CA fixture: $170 bill, 1,500 kWh/kW-yr, export credit $0.04', () => {
     expect(r.assumptions.some((s) => s.includes('also recovers fixed costs') && s.includes('understate your usage'))).toBe(true);
     expect(r.assumptions.some((s) => s.includes('30%–50% (likely 40%) of solar output is used at home (solar only)'))).toBe(true);
     expect(r.assumptions.some((s) => s.includes('exported at $0.04/kWh'))).toBe(true);
+    // The export credit cites its OWN source (not the tariff's), with its note.
+    const exp = r.assumptions.find((s) => s.includes('exported at $0.04/kWh'))!;
+    expect(exp).toContain('source: https://example.com/synthetic-export-credit, checked 2026-01-02; synthetic export credit note');
+    expect(exp).not.toContain('example.com/synthetic-fixture');
+    expect(r.assumptions.some((s) => s.includes('PVWatts model for a fixed roof-mounted array of standard modules tilted 20° and facing 180° (south), with NSRDB weather data'))).toBe(true);
     expect(r.assumptions.some((s) => s.includes('export credit is held flat'))).toBe(true);
     expect(r.assumptions.some((s) => s.includes('(your $170.00 average monthly bill − the $20.00 monthly fixed charge) ÷ $0.30/kWh'))).toBe(true);
     expect(r.assumptions.some((s) => s.includes('annual estimate ÷ 12'))).toBe(false);

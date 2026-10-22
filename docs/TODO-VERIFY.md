@@ -68,7 +68,7 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `utilities[pge].avg_rate_per_kwh.likely` | 0.337 | https://www.publicadvocates.cpuc.ca.gov/-/media/cal-advocates-website/files/press-room/reports-and-analyses/260727-public-advocates-office-q2-2026-electric-rates-report.pdf | 2026-10-22 |
 | `utilities[pge].fixed_monthly_charge` | 24.13 | https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_E-TOU-C.pdf | 2026-10-22 |
 | `utilities[pge].baseline_credit_per_kwh` | 0.0814 | https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_E-TOU-C.pdf | 2026-10-22 |
-| `utilities[pge].avg_export_credit_per_kwh` | 0.05 | https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_E-TOU-C.pdf | 2026-10-22 |
+| `utilities[pge].avg_export_credit_per_kwh` | 0.05 | https://www.cpuc.ca.gov/-/media/cpuc-website/divisions/office-of-governmental-affairs-division/reports/2025/2025-sb-695-report_093025.pdf | 2026-10-22 |
 | `utilities[sce].tou_rates[summer/peak/weekday].rate_per_kwh` | 0.59 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
 | `utilities[sce].tou_rates[summer/off_peak/weekday].rate_per_kwh` | 0.33 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
 | `utilities[sce].tou_rates[summer/mid_peak/weekend].rate_per_kwh` | 0.44 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
@@ -79,7 +79,7 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `utilities[sce].avg_rate_per_kwh.likely` | 0.344 | https://www.publicadvocates.cpuc.ca.gov/-/media/cal-advocates-website/files/press-room/reports-and-analyses/260727-public-advocates-office-q2-2026-electric-rates-report.pdf | 2026-10-22 |
 | `utilities[sce].fixed_monthly_charge` | 24.03 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
 | `utilities[sce].baseline_credit_per_kwh` | 0.09 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
-| `utilities[sce].avg_export_credit_per_kwh` | 0.05 | https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans | 2026-10-22 |
+| `utilities[sce].avg_export_credit_per_kwh` | 0.05 | https://www.cpuc.ca.gov/-/media/cpuc-website/divisions/office-of-governmental-affairs-division/reports/2025/2025-sb-695-report_093025.pdf | 2026-10-22 |
 | `utilities[sdge].tou_rates[summer/peak/all].rate_per_kwh` | 0.69135 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
 | `utilities[sdge].tou_rates[summer/off_peak/all].rate_per_kwh` | 0.46421 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
 | `utilities[sdge].tou_rates[summer/super_off_peak/all].rate_per_kwh` | 0.37433 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
@@ -89,7 +89,7 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `utilities[sdge].avg_rate_per_kwh.likely` | 0.455 | https://www.publicadvocates.cpuc.ca.gov/-/media/cal-advocates-website/files/press-room/reports-and-analyses/260727-public-advocates-office-q2-2026-electric-rates-report.pdf | 2026-10-22 |
 | `utilities[sdge].fixed_monthly_charge` | 24.13 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
 | `utilities[sdge].baseline_credit_per_kwh` | 0.10702 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
-| `utilities[sdge].avg_export_credit_per_kwh` | 0.05 | https://www.sdge.com/sites/default/files/regulatory/8-1-26%20Schedule%20TOU-DR1%20Total%20Rates%20Table.pdf | 2026-10-22 |
+| `utilities[sdge].avg_export_credit_per_kwh` | 0.05 | https://www.cpuc.ca.gov/-/media/cpuc-website/divisions/office-of-governmental-affairs-division/reports/2025/2025-sb-695-report_093025.pdf | 2026-10-22 |
 | `cost_ranges[FL/installed_cost_per_watt].likely` | 3.1 | https://emp.lbl.gov/sites/default/files/2026-08/Distributed%20Solar%20&%20Storage-2026%20Data%20Update_FINAL.pdf | 2026-10-22 |
 | `cost_ranges[FL/battery_installed_cost].low` | 12400 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-22 |
 | `cost_ranges[FL/battery_installed_cost].likely` | 13120 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-22 |
@@ -111,6 +111,7 @@ Product choices, not facts (table `model_assumptions`). Each has a rationale ins
 | `min_system_size_kw` | `{"value": 2}` | Below this recommended size the calculator warns that the bill may be too small for solar to make financial sense (fixed installation overhead dominates). Product choice, not a sourced threshold; the system is not resized, only a warning is shown. |
 | `missing_range_spread` | `{"value": 0.15}` | Placeholder spread used only when a sourced cost line has a likely (median) value but a null low and/or high bound (currently installed cost per watt in FL and CA, and the battery cost high end). The engine fills the missing bound as likely x (1 - spread) or likely x (1 + spread) and says so in the results' assumptions list. Product choice, not a sourced figure; it stops applying as soon as the owner fills the real low/high bounds in the cost_ranges table. |
 | `panel_degradation_per_year` | `{"value": 0.005}` | Annual loss in panel output used in the 25-year projection. Product choice (0.5% per year). |
+| `pvwatts_array` | `{"tilt": 20, "azimuth": 180, "dataset": "nsrdb", "array_type": 1, "module_type": 0}` | Array geometry passed to PVWatts for every estimate (live and precomputed): a typical fixed roof-mounted array (array_type 1) with standard modules (module_type 0), tilted 20 degrees and facing due south (azimuth 180), using the NSRDB weather dataset. Product choice for a generic home, not a measurement of any specific roof; real roofs differ in pitch and orientation. |
 | `pvwatts_system_loss_pct` | `{"none": 14, "some": 20, "heavy": 30}` | Percent system losses passed to PVWatts per shading level. 14% is the PVWatts default; 20% and 30% are product choices for some and heavy shading, not measured values. |
 | `system_size_cap_kw` | `{"value": 15}` | Upper limit on recommended system size so very large bills do not produce unrealistic rooftop systems. Product choice. |
 | `target_offset` | `{"low": 0.9, "high": 1}` | Share of annual usage the recommended system aims to cover. Product choice: size to roughly 90-100% of usage. |

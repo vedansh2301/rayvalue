@@ -35,3 +35,34 @@ export function monthSpan(months: readonly number[]): string {
   }
   return [...set].sort((a, b) => a - b).map((m) => MONTHS[m - 1]).join(', ');
 }
+
+/** PVWatts v8 code labels (API documentation names, not values). */
+export const PVWATTS_MODULE_TYPES: Record<number, string> = { 0: 'standard', 1: 'premium', 2: 'thin film' };
+export const PVWATTS_ARRAY_TYPES: Record<number, string> = {
+  0: 'fixed open-rack',
+  1: 'fixed roof-mounted',
+  2: '1-axis tracking',
+  3: '1-axis backtracking',
+  4: '2-axis tracking',
+};
+export const PVWATTS_DATASETS: Record<string, string> = { nsrdb: 'NSRDB', tmy2: 'TMY2', tmy3: 'TMY3', intl: 'international' };
+
+const COMPASS = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+/** 180 → "south" (nearest of 8 compass points). */
+export const compass = (azimuth: number) => COMPASS[Math.round((((azimuth % 360) + 360) % 360) / 45) % 8]!;
+
+export interface PvwattsArray {
+  tilt: number;
+  azimuth: number;
+  module_type: number;
+  array_type: number;
+  dataset: string;
+}
+
+/** "a fixed roof-mounted array of standard modules tilted 20° and facing 180° (south), with NSRDB weather data" */
+export function arrayText(a: PvwattsArray): string {
+  const type = PVWATTS_ARRAY_TYPES[a.array_type] ?? `array type ${a.array_type}`;
+  const mod = PVWATTS_MODULE_TYPES[a.module_type] ?? `module type ${a.module_type}`;
+  const data = PVWATTS_DATASETS[a.dataset] ?? a.dataset;
+  return `a ${type} array of ${mod} modules tilted ${num(a.tilt)}° and facing ${num(a.azimuth)}° (${compass(a.azimuth)}), with ${data} weather data`;
+}

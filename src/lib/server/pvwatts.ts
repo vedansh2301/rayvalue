@@ -1,3 +1,6 @@
+import type { Assumptions } from '../../data/schemas';
+import type { Result } from '../db/client';
+
 /**
  * PVWatts proxy logic (pure, testable). The Astro endpoint src/pages/api/pvwatts.ts is a thin wrapper.
  * NREL is now NLR (National Laboratory of the Rockies); the v8 API lives at developer.nlr.gov.
@@ -5,16 +8,12 @@
 export const PVWATTS_URL = 'https://developer.nlr.gov/api/pvwatts/v8.json';
 export const UPSTREAM_TIMEOUT_MS = 15000;
 
-/** Fixed PVWatts inputs: 1 kW DC, standard modules, fixed roof mount, 20 degree tilt, south-facing. */
-export const FIXED_PARAMS = {
-  system_capacity: '1',
-  module_type: '0',
-  array_type: '1',
-  tilt: '20',
-  azimuth: '180',
-  dataset: 'nsrdb',
-  timeframe: 'monthly',
-} as const;
+/**
+ * Request-shape inputs that are not model choices: results are per 1 kW DC (the calculator scales
+ * them) and monthly. The array geometry (tilt, azimuth, module/array type, dataset) is a model
+ * assumption and comes from the database (model_assumptions.pvwatts_array).
+ */
+export const FIXED_PARAMS = { system_capacity: '1', timeframe: 'monthly' } as const;
 
 /** Generous bounding boxes (FL incl. Keys and panhandle; CA incl. islands). Not exact borders. */
 export const BOUNDS = {
@@ -22,16 +21,18 @@ export const BOUNDS = {
   CA: { latMin: 32.4, latMax: 42.1, lonMin: -124.6, lonMax: -114.0 },
 } as const;
 
-/**
- * Accepted `losses` values: whole percents within the range the assumptions schema allows
- * (0-60). The configured per-shading values live in the database (model_assumptions); the
- * endpoint deliberately does not read the DB, so it accepts any whole percent in range,
- * which still keeps the CDN cache key space small.
- */
-export const LOSSES_MIN = 0;
-export const LOSSES_MAX = 60;
-export function allowedLosses(): number[] {
-  return Array.from({ length: LOSSES_MAX - LOSSES_MIN + 1 }, (_, i) => LOSSES_MIN + i);
+export type PvwattsArray = Assumptions['pvwatts_array'];
+
+/** What the endpoint needs from the database: the accepted `losses` values and the array geometry. */
+export interface PvwattsConfig {
+  /** The configured per-shading losses (model_assumptions.pvwatts_system_loss_pct), ascending, unique. */
+  losses: number[];
+  array: PvwattsArray;
+}
+
+export function pvwattsConfig(a: Assumptions): PvwattsConfig {
+  const { kind: _k, rationale: _r, ...byShading } = a.pvwatts_system_loss_pct;
+  return { losses: [...new Set(Object.values(byShading))].sort((x, y) => x - y), array: a.pvwatts_array };
 }
 
 export interface PvwattsQuery {
@@ -55,7 +56,10 @@ export function round2(n: number): string {
   return s === '-0.00' ? '0.00' : s;
 }
 
-export function parsePvwattsParams(params: URLSearchParams, losses: readonly number[] = allowedLosses()): ParseResult {
+type CoordsResult = { ok: true; lat: number; lon: number; state: 'FL' | 'CA' } | { ok: false; error: string };
+
+/** lat/lon checks (no database needed). */
+export function parseCoords(params: URLSearchParams): CoordsResult {
   const lat = parseNumber(params.get('lat'));
   const lon = parseNumber(params.get('lon'));
   if (lat === null || lon === null) return { ok: false, error: 'lat and lon must be numbers' };
@@ -64,10 +68,17 @@ export function parsePvwattsParams(params: URLSearchParams, losses: readonly num
     return lat >= b.latMin && lat <= b.latMax && lon >= b.lonMin && lon <= b.lonMax;
   });
   if (!state) return { ok: false, error: 'lat/lon must be inside Florida or California' };
+  return { ok: true, lat, lon, state };
+}
+
+/** Full parameter check. `losses` = the configured values (pvwattsConfig); anything else is rejected. */
+export function parsePvwattsParams(params: URLSearchParams, losses: readonly number[]): ParseResult {
+  const c = parseCoords(params);
+  if (!c.ok) return c;
   const rawLosses = params.get('losses');
   const l = rawLosses !== null && /^\d{1,3}(\.\d+)?$/.test(rawLosses) ? Number(rawLosses) : NaN;
-  if (!losses.includes(l)) return { ok: false, error: `losses must be a whole percent from ${Math.min(...losses)} to ${Math.max(...losses)}` };
-  return { ok: true, query: { lat: round2(lat), lon: round2(lon), losses: l, state } };
+  if (!losses.includes(l)) return { ok: false, error: `losses must be one of ${losses.join(', ')}` };
+  return { ok: true, query: { lat: round2(c.lat), lon: round2(c.lon), losses: l, state: c.state } };
 }
 
 /** The one canonical query string for a request; the CDN caches per URL so everything redirects to this. */
@@ -75,10 +86,16 @@ export function canonicalSearch(q: PvwattsQuery): string {
   return `?lat=${q.lat}&lon=${q.lon}&losses=${q.losses}`;
 }
 
-export function buildUpstreamUrl(q: PvwattsQuery, apiKey: string): URL {
+export function buildUpstreamUrl(q: PvwattsQuery, apiKey: string, array: PvwattsArray): URL {
   const u = new URL(PVWATTS_URL);
   u.searchParams.set('api_key', apiKey);
-  for (const [k, v] of Object.entries(FIXED_PARAMS)) u.searchParams.set(k, v);
+  u.searchParams.set('system_capacity', FIXED_PARAMS.system_capacity);
+  u.searchParams.set('module_type', String(array.module_type));
+  u.searchParams.set('array_type', String(array.array_type));
+  u.searchParams.set('tilt', String(array.tilt));
+  u.searchParams.set('azimuth', String(array.azimuth));
+  u.searchParams.set('dataset', array.dataset);
+  u.searchParams.set('timeframe', FIXED_PARAMS.timeframe);
   u.searchParams.set('losses', String(q.losses));
   u.searchParams.set('lat', q.lat);
   u.searchParams.set('lon', q.lon);
@@ -123,14 +140,39 @@ export const SUCCESS_CACHE_HEADERS = {
   'CDN-Cache-Control': 'public, s-maxage=2592000, stale-while-revalidate=86400',
 } as const;
 
-/** Full request handler. `apiKey` undefined => 503. The key never appears in any response or log. */
-export async function handlePvwatts(
-  request: Request,
-  apiKey: string | undefined,
-  fetchImpl: typeof fetch = fetch,
-): Promise<Response> {
+export interface PvwattsDeps {
+  fetch?: typeof fetch;
+  /** Losses allowlist + array geometry from the database (default: repo, cached briefly per instance). */
+  loadConfig?: () => Promise<Result<PvwattsConfig>>;
+}
+
+/** Instance-level cache of the DB config (the CDN caches successful responses per URL anyway). */
+const CONFIG_TTL_MS = 5 * 60 * 1000;
+let cached: { at: number; value: PvwattsConfig } | null = null;
+export async function loadPvwattsConfigFromDb(): Promise<Result<PvwattsConfig>> {
+  if (cached && Date.now() - cached.at < CONFIG_TTL_MS) return { ok: true, value: cached.value };
+  const { createRepo } = await import('../db/repo');
+  const a = await createRepo().loadAssumptions();
+  if (!a.ok) return a;
+  cached = { at: Date.now(), value: pvwattsConfig(a.value) };
+  return { ok: true, value: cached.value };
+}
+
+/**
+ * Full request handler. `apiKey` undefined => 503; database config unavailable => 503 (no-store).
+ * The key never appears in any response or log.
+ */
+export async function handlePvwatts(request: Request, apiKey: string | undefined, deps: PvwattsDeps = {}): Promise<Response> {
+  const fetchImpl = deps.fetch ?? fetch;
   const url = new URL(request.url);
-  const parsed = parsePvwattsParams(url.searchParams);
+  const coords = parseCoords(url.searchParams);
+  if (!coords.ok) return errorResponse(400, coords.error);
+  const config = await (deps.loadConfig ?? loadPvwattsConfigFromDb)();
+  if (!config.ok) {
+    console.error('pvwatts: config unavailable:', config.error.kind, config.error.message);
+    return errorResponse(503, 'Live solar production data is temporarily unavailable.');
+  }
+  const parsed = parsePvwattsParams(url.searchParams, config.value.losses);
   if (!parsed.ok) return errorResponse(400, parsed.error);
   const canonical = canonicalSearch(parsed.query);
   if (url.search !== canonical) {
@@ -140,7 +182,7 @@ export async function handlePvwatts(
   if (!apiKey) return errorResponse(503, 'Live solar production data is temporarily unavailable.');
 
   try {
-    const res = await fetchImpl(buildUpstreamUrl(parsed.query, apiKey), { signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) });
+    const res = await fetchImpl(buildUpstreamUrl(parsed.query, apiKey, config.value.array), { signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) });
     if (!res.ok) {
       console.error(`pvwatts upstream status ${res.status}`);
       return errorResponse(502, 'Solar production service error.');

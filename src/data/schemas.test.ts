@@ -92,6 +92,21 @@ describe('schemas reject bad data', () => {
     expect(UtilitiesSchema.safeParse(bad).success).toBe(false);
   });
 
+  it('requires the export credit to carry its own provenance', () => {
+    for (const patch of [{ export_credit_source_url: null }, { export_credit_verified_on: null }, { export_credit_verification: 'unverified' }]) {
+      const bad = utilities();
+      Object.assign(bad[3], patch);
+      expect(UtilitiesSchema.safeParse(bad).success, JSON.stringify(patch)).toBe(false);
+    }
+    // The tariff provenance does not stand in for the export credit's, and vice versa.
+    const tariffOnly = utilities();
+    Object.assign(tariffOnly[3], { export_credit_source_url: null, export_credit_verified_on: null, export_credit_verification: 'unverified' });
+    expect(UtilitiesSchema.safeParse(tariffOnly).success).toBe(false);
+    const noCredit = utilities();
+    Object.assign(noCredit[3], { avg_export_credit_per_kwh: null, export_credit_source_url: null, export_credit_verified_on: null, export_credit_verification: 'unverified' });
+    expect(UtilitiesSchema.safeParse(noCredit).success).toBe(true);
+  });
+
   it('rejects inconsistent minimum-bill fields', () => {
     const caMin = utilities();
     caMin[3].minimum_bill_basis = 'none';
@@ -169,6 +184,17 @@ describe('schemas reject bad data', () => {
     for (const value of [[], [-1], ['x'], [fixtureAssumptions.max_monthly_bill.value + 1]]) {
       const bad = { ...clone(fixtureAssumptions), city_example_bills: { kind: 'assumption', rationale: why, value } };
       expect(AssumptionsSchema.safeParse(bad).success).toBe(false);
+    }
+  });
+
+  it('requires pvwatts_array and validates its geometry', () => {
+    const missing = clone(fixtureAssumptions) as any;
+    delete missing.pvwatts_array;
+    expect(AssumptionsSchema.safeParse(missing).success).toBe(false);
+    for (const patch of [{ tilt: 91 }, { azimuth: 360 }, { module_type: 3 }, { array_type: 9 }, { dataset: 'other' }, { extra: 1 }]) {
+      const bad = clone(fixtureAssumptions) as any;
+      Object.assign(bad.pvwatts_array, patch);
+      expect(AssumptionsSchema.safeParse(bad).success, JSON.stringify(patch)).toBe(false);
     }
   });
 

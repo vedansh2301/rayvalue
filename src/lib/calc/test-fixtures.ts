@@ -18,6 +18,10 @@ const base = {
   fixed_charge_note: null,
   minimum_bill_note: null,
   source_caveat: null,
+  export_credit_source_url: null,
+  export_credit_verified_on: null,
+  export_credit_note: null,
+  export_credit_verification: 'unverified' as const,
   ...prov,
 };
 
@@ -110,6 +114,10 @@ export const caFixture: Utility = {
   minimum_monthly_bill: null,
   minimum_bill_basis: 'not_applicable',
   avg_export_credit_per_kwh: 0.04,
+  export_credit_source_url: 'https://example.com/synthetic-export-credit',
+  export_credit_verified_on: '2026-01-02',
+  export_credit_note: 'synthetic export credit note',
+  export_credit_verification: 'agent_sourced',
 };
 
 export const fixtureUtilities: readonly Utility[] = UtilitiesSchema.parse([flTwoTier, flSeasonal, flMinimum, caFixture]);
@@ -142,6 +150,7 @@ export const fixtureAssumptions: Assumptions = AssumptionsSchema.parse({
   },
   missing_range_spread: { kind: 'assumption', rationale: why, value: 0.15 },
   max_monthly_bill: { kind: 'assumption', rationale: why, value: 5000 },
+  pvwatts_array: { kind: 'assumption', rationale: why, tilt: 20, azimuth: 180, module_type: 0, array_type: 1, dataset: 'nsrdb' },
 });
 
 /**

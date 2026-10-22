@@ -72,6 +72,12 @@ export function utilityRateRows(u: Utility): RateRow[] {
   return rows;
 }
 
+/** The export credit's own source (CA), for a footnote under the rate table; null when absent or not an http(s) link. */
+export function exportCreditSource(u: Utility): { url: string; date: string | null; note: string | null } | null {
+  if (u.avg_export_credit_per_kwh === null || !isHttpUrl(u.export_credit_source_url)) return null;
+  return { url: u.export_credit_source_url, date: u.export_credit_verified_on, note: u.export_credit_note };
+}
+
 export interface Bar {
   month: string;
   kwh: number;

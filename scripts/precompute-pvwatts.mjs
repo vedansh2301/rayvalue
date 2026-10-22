@@ -2,14 +2,14 @@
 // into Supabase `public.pvwatts_city_production`. Run manually: `npm run data:pvwatts`.
 // ADMIN script (never deployed): reads NREL_API_KEY (falls back to the rate-limited DEMO_KEY),
 // SUPABASE_URL and SUPABASE_SECRET_KEY from the environment (npm loads .env.local and .dev.vars).
-// Cities and the losses values come from the `cities` and `model_assumptions` tables.
+// Cities, the losses values and the array geometry (model_assumptions.pvwatts_array, the same row
+// /api/pvwatts uses) come from the `cities` and `model_assumptions` tables.
 // Resumable: combinations that already have a row are skipped; pass --refresh to refetch all.
 // NREL rebranded to NLR (National Laboratory of the Rockies); developer.nrel.gov no longer resolves.
 
 const BASE = 'https://developer.nlr.gov/api/pvwatts/v8.json';
 const SOURCE_URL = 'https://developer.nlr.gov/docs/solar/pvwatts/v8/';
-const DATASET_NOTE = 'dataset=nsrdb is NSRDB; the response station_info.weather_data_source names the vintage.';
-const PARAMS = { system_capacity: 1, module_type: 0, array_type: 1, tilt: 20, azimuth: 180, dataset: 'nsrdb', timeframe: 'monthly' };
+const datasetNote = (d) => `dataset=${d}; the response station_info.weather_data_source names the vintage.`;
 const key = process.env.NREL_API_KEY || 'DEMO_KEY';
 const usingDemo = key === 'DEMO_KEY';
 const refresh = process.argv.includes('--refresh');
@@ -38,6 +38,14 @@ const cities = await rest('cities?select=state,slug,lat,lon&order=display_order.
 const lossRow = (await rest('model_assumptions?select=value&key=eq.pvwatts_system_loss_pct&state=is.null'))[0];
 if (!lossRow) throw new Error('model_assumptions.pvwatts_system_loss_pct is missing');
 const losses = [...new Set(Object.values(lossRow.value).filter((v) => typeof v === 'number'))].sort((a, b) => a - b);
+const arrayRow = (await rest('model_assumptions?select=value&key=eq.pvwatts_array&state=is.null'))[0];
+if (!arrayRow) throw new Error('model_assumptions.pvwatts_array is missing');
+const { tilt, azimuth, module_type, array_type, dataset } = arrayRow.value;
+if (![tilt, azimuth, module_type, array_type].every((v) => typeof v === 'number') || typeof dataset !== 'string') {
+  throw new Error('model_assumptions.pvwatts_array must hold numeric tilt, azimuth, module_type, array_type and a dataset string');
+}
+// Per 1 kW DC, monthly output (request shape, not model choices) + the DB geometry.
+const PARAMS = { system_capacity: 1, module_type, array_type, tilt, azimuth, dataset, timeframe: 'monthly' };
 const existing = new Set((await rest('pvwatts_city_production?select=state,slug,losses')).map((r) => `${r.state}/${r.slug}@${Number(r.losses)}`));
 
 async function fetchOne(city, l) {
@@ -85,7 +93,7 @@ for (const c of cities) {
       const row = {
         state: c.state, slug: c.slug, losses: l, annual_kwh_per_kw: r.annual, monthly_kwh_per_kw: r.monthly,
         fetched_on: new Date().toISOString().slice(0, 10), source_url: SOURCE_URL, endpoint: BASE, params: PARAMS,
-        dataset_note: DATASET_NOTE, key_kind: usingDemo ? 'DEMO_KEY' : 'api_key',
+        dataset_note: datasetNote(dataset), key_kind: usingDemo ? 'DEMO_KEY' : 'api_key',
       };
       await rest('pvwatts_city_production?on_conflict=state,slug,losses', {
         method: 'POST',
