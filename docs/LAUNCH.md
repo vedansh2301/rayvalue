@@ -84,3 +84,14 @@ Preview SEO scores are not meaningful (Vercel adds `X-Robots-Tag: noindex` and a
 | Secrets in built output | none: no value from `.env.local` (NREL key, Supabase URL/key) appears in `.vercel/output` or `dist` |
 | CSP | headless Chrome on the preview: no CSP violations or console errors on any template; FL (33101, FPL, $200, no battery, no shade) and CA (94103, PG&E, $250, 1 battery, some shade) calculator runs render results |
 | Cookies | no `document.cookie` or `set-cookie` in `src` |
+
+### Re-check after the final-review fixes (2026-10-22, preview https://rayvalue-ds8jourea-vedanshs-projects-5b6aa829.vercel.app)
+| Check | Result |
+|---|---|
+| `npm test` / `npm run test:db` | 245 passed, 1 skipped / 307 passed (with live DB) |
+| `npm run check`, `npm run build` (also empty env), `npm run db:check` | 0 errors / pass / pass |
+| Headers | `/`, `/privacy` (static), `/calculator/florida`, `/solar/florida/miami`, `/methodology` (on demand): one CSP header with hashes + `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `connect-src 'self'`; `X-Frame-Options: DENY` |
+| Visible "TODO" | none in any built page or on-demand page (only HTML comments) |
+| `/api/pvwatts` | `losses=14` 200 (live, 1551.7 kWh/kW); `losses=15` and `losses=0` 400 |
+| Headless Chrome | zero CSP violations / console errors on all templates; FL and CA runs give the same results as before (FL 10.7 kW, $33,300, ~$2,000/yr, payback 14 y; CA 5.3 kW, $30,500, $1,900/yr, 12.5 y); unlisted-utility panel and stale-results notice work; analytics `beforeSend` registered before the first pageview and strips the query |
+| Lighthouse (mobile, preview) | /calculator/florida, /methodology, /: 100 / 100 / 100 (perf / a11y / best practices) |
