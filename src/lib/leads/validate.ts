@@ -34,13 +34,17 @@ const SNAPSHOT_KEYS = ['system_size', 'upfront_cost', 'payback', 'net_savings'] 
 const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const has = (v: unknown) => v !== undefined && v !== null && !(typeof v === 'string' && v.trim() === '');
 
-/** A US phone number as typed -> E.164 "+1XXXXXXXXXX", or null (NANP: area code and exchange start with 2–9). */
+/**
+ * A US phone number as typed -> E.164 "+1XXXXXXXXXX", or null. NANP: area code and exchange start with 2–9 and
+ * are not N11 service codes (211, 311, 411, 911, …).
+ */
 export function normalizePhone(raw: unknown): string | null {
   if (typeof raw !== 'string' || raw.length > 40) return null;
   if (/[^\d\s().+\-]/.test(raw)) return null;
   let d = raw.replace(/\D/g, '');
   if (d.length === 11 && d.startsWith('1')) d = d.slice(1);
   if (!/^[2-9]\d{2}[2-9]\d{6}$/.test(d)) return null;
+  if (d.slice(1, 3) === '11' || d.slice(4, 6) === '11') return null;
   return `+1${d}`;
 }
 

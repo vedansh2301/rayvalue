@@ -29,6 +29,12 @@ describe('normalizePhone', () => {
       expect(normalizePhone(p), p).toBe('+13055550123');
     }
   });
+  it('rejects N11 area codes and exchanges', () => {
+    for (const p of ['911-555-0123', '411-555-0123', '211-555-0123', '305-911-0123', '305-411-0123']) expect(normalizePhone(p), p).toBeNull();
+    expect(normalizePhone('305-511-0123')).toBeNull();
+    expect(normalizePhone('305-512-0123')).toBe('+13055120123');
+    expect(normalizePhone('310-555-0123')).toBe('+13105550123');
+  });
   it('rejects non-NANP and junk', () => {
     for (const p of ['', '555-0123', '105-555-0123', '305-155-0123', '2-305-555-0123', '30555501234', '305555012', 'call me', '305-555-0123 ext 4', 42, null, '1'.repeat(41)]) {
       expect(normalizePhone(p as string), String(p)).toBeNull();

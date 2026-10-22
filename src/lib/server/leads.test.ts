@@ -44,6 +44,20 @@ describe('handleLead', () => {
     for (const k of ['consent', 'consent_text', 'consent_version', 'consent_at']) expect(row).not.toHaveProperty(k);
     expect(row).not.toHaveProperty('status');
   });
+  it('unknown utility_id (FK violation) -> retried without it, lead kept', async () => {
+    const f = vi.fn(async (_u: unknown, i?: RequestInit) =>
+      JSON.parse(i!.body as string).utility_id ? new Response('{"code":"23503"}', { status: 409 }) : new Response(null, { status: 201 }),
+    );
+    const res = await handleLead(jsonReq({ ...lead, utility_id: 'gone-utility' }), ENV, asFetch(f));
+    expect(res.status).toBe(200);
+    expect(f).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(f.mock.calls[1]![1]!.body as string).utility_id).toBeNull();
+  });
+  it('other 409s are not retried', async () => {
+    const f = vi.fn(async () => new Response('{"code":"23505"}', { status: 409 }));
+    expect((await handleLead(jsonReq({ ...lead, utility_id: 'fpl' }), ENV, asFetch(f))).status).toBe(502);
+    expect(f).toHaveBeenCalledTimes(1);
+  });
   it('field errors -> 400 JSON, no insert', async () => {
     const f = mockFetch(201);
     const res = await handleLead(jsonReq({ ...lead, phone: '123', consent: '' }), ENV, asFetch(f));

@@ -65,12 +65,26 @@ export function insertRequest(env: { url: string; key: string }, table: 'leads' 
   };
 }
 
+/** PostgREST answers a foreign-key violation (Postgres 23503) with 409 and the code in the JSON body. */
+async function isForeignKeyViolation(res: Response): Promise<boolean> {
+  if (res.status !== 409) return false;
+  try {
+    return ((await res.json()) as { code?: unknown })?.code === '23503';
+  } catch {
+    return false;
+  }
+}
+
 async function insert(env: LeadsEnv, table: 'leads' | 'data_requests', row: object, fetchImpl: typeof fetch): Promise<boolean> {
   if (!env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY) return false;
   const { url, init } = insertRequest({ url: env.SUPABASE_URL, key: env.SUPABASE_PUBLISHABLE_KEY }, table, row);
   try {
     const res = await fetchImpl(url, { ...init, signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS) });
     if (res.ok) return true;
+    // An unknown utility_id (e.g. a renamed utility) must not lose the lead: keep it without the utility.
+    if (table === 'leads' && 'utility_id' in row && row.utility_id !== null && (await isForeignKeyViolation(res))) {
+      return insert(env, table, { ...row, utility_id: null }, fetchImpl);
+    }
     console.error(`${table}: supabase status ${res.status}`);
   } catch (e) {
     console.error(`${table}: supabase request failed`, e instanceof Error ? e.name : 'error');
