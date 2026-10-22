@@ -1,0 +1,25 @@
+---
+// Partner offer. Render only after <Disclosure /> in the DOM (CLAUDE.md rule 6).
+// The page passes only a visible offer (active, with a URL); anything else renders nothing.
+import type { Offer } from '../data/schemas';
+
+interface Props {
+  offer: Offer | null;
+}
+const { offer } = Astro.props;
+const show = offer && offer.active && offer.url;
+---
+{show && (
+  <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+    <p class="font-semibold text-stone-900">Ready to compare real quotes?</p>
+    <p class="mt-1 text-stone-700">Our partner {offer.partner_name} can connect you with local installers.</p>
+    <a
+      href={offer.url}
+      rel="sponsored noopener"
+      target="_blank"
+      class="mt-4 inline-flex min-h-11 items-center rounded-lg bg-sun-400 px-5 py-2.5 font-semibold text-stone-900 hover:bg-sun-500"
+    >
+      {offer.cta_text}<span class="sr-only"> (opens in a new tab)</span>
+    </a>
+  </div>
+)}

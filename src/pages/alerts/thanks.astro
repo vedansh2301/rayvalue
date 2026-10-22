@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+// Static page; /api/subscribe redirects here (303), adding ?error=1 when the signup failed.
+---
+<BaseLayout title="Rate alerts" description="Rate change alert signup confirmation." path="/alerts/thanks" noindex>
+  <div class="page">
+    <div id="alerts-ok">
+      <h1>You&rsquo;re on the list</h1>
+      <p>Thanks for signing up. We&rsquo;ll email you when utility rates or solar rules change in your state. You can unsubscribe at any time.</p>
+    </div>
+    <div id="alerts-error" hidden>
+      <h1>We couldn&rsquo;t sign you up</h1>
+      <p>Something went wrong on our side, or the email address wasn&rsquo;t valid. Please go back and try again in a minute.</p>
+    </div>
+    <p>Back to the <a href="/calculator/florida">Florida calculator</a> or the <a href="/calculator/california">California calculator</a>.</p>
+  </div>
+  <script>
+    // Bundled (not inline) so it is covered by the CSP script hashes.
+    if (new URLSearchParams(window.location.search).get('error') === '1') {
+      const ok = document.getElementById('alerts-ok');
+      const err = document.getElementById('alerts-error');
+      if (ok && err) {
+        ok.hidden = true;
+        err.hidden = false;
+        document.title = 'Signup problem | RayValue';
+      }
+    }
+  </script>
+</BaseLayout>
