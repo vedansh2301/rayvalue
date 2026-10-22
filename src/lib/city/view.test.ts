@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chartBars, exampleBills, exportCreditSource, isHttpUrl, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows } from './view';
+import { chartBars, formatKwhLabel, exampleBills, exportCreditSource, isHttpUrl, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows } from './view';
 import { fixtureAssumptions, fixtureCosts, fixtureUtilities, flTwoTier, caFixture } from '../calc/test-fixtures';
 import { fixtureCitiesFile } from '../db/test-rows';
 import type { CityProduction } from '../../data/schemas';
@@ -55,6 +55,25 @@ describe('chartBars', () => {
   });
   it('handles all zeros', () => {
     expect(chartBars(Array(12).fill(0)).every((b) => b.h === 0)).toBe(true);
+  });
+  it('labels each bar with whole kWh, 4 units above the bar top', () => {
+    const bars = chartBars([152.4, 160.6, 0, 1234.5, 0, 0, 0, 0, 0, 0, 0, 0], 600, 220);
+    expect(bars.map((b) => b.label).slice(0, 4)).toEqual(['152', '161', '0', '1,235']);
+    for (const b of bars) expect(b.labelY).toBeCloseTo(b.y - 4);
+    // the tallest bar's label still sits above it, inside the top padding
+    expect(bars[3]!.labelY).toBeCloseTo(12 - 4);
+    // a zero-height bar's label sits just above the baseline
+    expect(bars[2]!.labelY).toBeCloseTo(220 - 28 - 4);
+  });
+  it('keeps the raw kWh value unchanged', () => {
+    expect(chartBars([152.4, ...Array(11).fill(0)])[0]!.kwh).toBe(152.4);
+  });
+});
+
+describe('formatKwhLabel', () => {
+  it('rounds to whole kWh with separators', () => {
+    expect(formatKwhLabel(99.5)).toBe('100');
+    expect(formatKwhLabel(1523.4)).toBe('1,523');
   });
 });
 

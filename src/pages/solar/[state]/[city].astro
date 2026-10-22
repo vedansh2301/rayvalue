@@ -6,6 +6,7 @@ import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import RateTable from '../../../components/city/RateTable.astro';
 import ProductionChart from '../../../components/city/ProductionChart.astro';
 import ExamplePayback from '../../../components/city/ExamplePayback.astro';
+import { btnPrimary } from '../../../components/ui/buttons';
 import { DB_PAGE_CACHE_HEADERS, loadCalcConfig, loadCities, loadCity, loadProduction } from '../../../lib/db/repo';
 import {
   STATE_NAMES,
@@ -99,7 +100,7 @@ const calcHref = `/calculator/${stateSlug}`;
       <section aria-labelledby="cta-h" class="mt-10 rounded-lg border border-sun-300 bg-sun-50 p-5">
         <h2 id="cta-h" class="!mt-0">Run your own numbers</h2>
         <p>Enter your ZIP and monthly bill to get a payback range for your home.</p>
-        <p><a href={calcHref} class="inline-block rounded-md bg-stone-900 px-4 py-2 font-medium !text-white no-underline hover:bg-stone-700">{stateName} solar calculator</a></p>
+        <p><a href={calcHref} class={`not-prose ${btnPrimary}`}>{stateName} solar calculator<span aria-hidden="true">&rarr;</span></a></p>
       </section>
 
       {otherCities.length > 0 && (

@@ -85,7 +85,14 @@ export interface Bar {
   y: number;
   w: number;
   h: number;
+  /** Value label shown above the bar: whole kWh, e.g. "152". */
+  label: string;
+  /** Baseline y of the value label: 4 units above the bar top. */
+  labelY: number;
 }
+
+/** Whole kWh for chart labels and the data table, e.g. 1523.6 -> "1,524". */
+export const formatKwhLabel = (kwh: number): string => Math.round(kwh).toLocaleString('en-US');
 
 /** Bar geometry for a 12-month chart in a (width x height) viewBox; bars scale to the largest month. */
 export function chartBars(monthly: readonly number[], width = 600, height = 220, pad = { top: 12, bottom: 28, side: 8 }): Bar[] {
@@ -95,7 +102,8 @@ export function chartBars(monthly: readonly number[], width = 600, height = 220,
   const w = slot * 0.7;
   return monthly.map((kwh, i) => {
     const h = max > 0 ? (kwh / max) * plotH : 0;
-    return { month: MONTHS[i] ?? String(i + 1), kwh, x: pad.side + slot * i + (slot - w) / 2, y: pad.top + plotH - h, w, h };
+    const y = pad.top + plotH - h;
+    return { month: MONTHS[i] ?? String(i + 1), kwh, x: pad.side + slot * i + (slot - w) / 2, y, w, h, label: formatKwhLabel(kwh), labelY: y - 4 };
   });
 }
 
