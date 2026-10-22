@@ -1,0 +1,11 @@
+---
+import CalculatorPage from '../../components/calculator/CalculatorPage.astro';
+import { applyCalculatorPageHeaders, loadCalculatorPageData } from '../../lib/calculator/page-data';
+
+// On demand: calculator values are read from the database at request time (CDN-cached ~5 min).
+export const prerender = false;
+
+const data = await loadCalculatorPageData('CA');
+applyCalculatorPageHeaders(Astro.response.headers, data, 'CA');
+---
+<CalculatorPage state="CA" data={data} />
