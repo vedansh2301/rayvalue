@@ -152,7 +152,7 @@ const FREE_LINE = 'Free, no obligation. Up to 3 local installers. We only share 
 const FREE_LINE_WAITLIST = 'Free, no obligation. We only share your details with installers you agree to.';
 
 function EstimateChip({ chip }: { chip: string | null }) {
-  return chip ? <p class="mt-3 inline-block rounded-full border border-sun-500 bg-white px-3 py-1.5 text-sm font-semibold text-stone-900">{chip}</p> : null;
+  return chip ? <p class="mt-3 inline-block rounded-lg border border-sun-500 bg-white px-3 py-2 text-sm font-semibold leading-5 text-stone-900">{chip}</p> : null;
 }
 
 /** What happens next: share the estimate, up to 3 local installers, compare. Vertical list on mobile. */
@@ -164,7 +164,7 @@ function QuoteBridge({ chip }: { chip: string | null }) {
   ] as const;
   return (
     <div class="mt-3" role="group" aria-label="How it works: share your estimate, up to 3 local installers, compare and choose">
-      {chip && <p class="mb-2 inline-block rounded-full border border-sun-500 bg-white px-3 py-1.5 text-sm font-semibold text-stone-900">{chip}</p>}
+      {chip && <p class="mb-2 inline-block rounded-lg border border-sun-500 bg-white px-3 py-2 text-sm font-semibold leading-5 text-stone-900">{chip}</p>}
       <ol class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 lg:flex-col lg:items-start lg:gap-2">
         {steps.map((st, n) => (
           <li key={st.label} class="!mt-0 flex items-center gap-2 text-sm font-semibold text-stone-900">
