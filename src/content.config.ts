@@ -11,6 +11,8 @@ const guides = defineCollection({
     state: z.enum(['FL', 'CA', 'both']),
     sources: z.array(z.object({ title: z.string(), url: z.string().url() })).min(1),
     draft: z.boolean().optional(),
+    /** Owner-facing notes (unverified items, missing sources). Never rendered. */
+    todo: z.array(z.string()).optional(),
     /** Default true: guides are not indexed (noindex + not in sitemap) until the owner sets false. */
     noindex: z.boolean().default(true),
   }),

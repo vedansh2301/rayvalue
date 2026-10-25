@@ -48,3 +48,10 @@ export function serializeShareParams(p: ShareParams): string {
   q.set('shading', p.shading);
   return `?${q.toString()}`;
 }
+
+/** Just the `?utility=` id (syntax only), for linking into a calculator from a utility page. null when absent or malformed. */
+export function parseUtilityParam(search: string | URLSearchParams): string | null {
+  const p = typeof search === 'string' ? new URLSearchParams(search) : search;
+  const utility = p.get('utility')?.trim() ?? '';
+  return /^[a-z0-9][a-z0-9_-]{0,63}$/.test(utility) ? utility : null;
+}

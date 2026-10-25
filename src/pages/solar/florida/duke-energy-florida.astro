@@ -1,0 +1,10 @@
+---
+// On demand: rates, costs and assumptions are read from the database (CDN-cached ~5 min). Static route: wins over /solar/[state]/[city].
+export const prerender = false;
+import UtilityPage from '../../../components/utility/UtilityPage.astro';
+import { applyUtilityPageHeaders, loadUtilityPageData } from '../../../lib/utility/load';
+
+const data = await loadUtilityPageData('duke-energy-florida');
+applyUtilityPageHeaders(Astro.response, data);
+---
+<UtilityPage data={data} />

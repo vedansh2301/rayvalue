@@ -1,0 +1,14 @@
+---
+import { utilityPagePath, utilityPagesForState } from '../../lib/utility/pages';
+interface Props { state: 'FL' | 'CA'; heading?: string; exclude?: string }
+const { state, heading, exclude } = Astro.props;
+const pages = utilityPagesForState(state).filter((p) => p.slug !== exclude);
+---
+<nav aria-label={heading ?? 'Solar by utility'}>
+  {heading && <h2 class="text-xl font-semibold text-stone-900">{heading}</h2>}
+  <ul class:list={['flex flex-wrap gap-x-4 gap-y-1', heading && 'mt-3']}>
+    {pages.map((p) => (
+      <li><a href={utilityPagePath(p)} class="inline-flex min-h-11 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900">Solar with {p.short}</a></li>
+    ))}
+  </ul>
+</nav>

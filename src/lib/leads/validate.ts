@@ -36,7 +36,7 @@ export const DATA_REQUEST_LABELS: Record<DataRequestType, string> = {
 };
 
 const STATE_NAMES: Record<State, string> = { FL: 'Florida', CA: 'California' };
-const SOURCE_RE = /^(results|quotes_page|home|city:(florida|california)\/[a-z0-9]+(-[a-z0-9]+)*)$/;
+const SOURCE_RE = /^(results|quotes_page|home|utility:(fpl|duke-energy-florida|teco|pge|sce|sdge)|city:(florida|california)\/[a-z0-9]+(-[a-z0-9]+)*)$/;
 const UTILITY_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SNAPSHOT_KEYS = ['system_size', 'upfront_cost', 'payback', 'net_savings'] as const;
 

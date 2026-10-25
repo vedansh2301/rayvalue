@@ -101,7 +101,7 @@ const EMPTY: Values = {
   phone: '',
 };
 
-const SOURCE_PARAM_RE = /^city:(florida|california)\/[a-z0-9-]+$|^home$/;
+const SOURCE_PARAM_RE = /^city:(florida|california)\/[a-z0-9-]+$|^utility:(fpl|duke-energy-florida|teco|pge|sce|sdge)$|^home$/;
 const STEPS = ['Your home', 'Your project', 'Contact'] as const;
 const FIRST_OPTION: Partial<Record<LeadField, string>> = {
   homeowner: 'yes',

@@ -295,6 +295,8 @@ export const AssumptionsSchema = z
      * Optional: when the row is missing the city page hides that table ("being verified"); the calculator is unaffected.
      */
     city_example_bills: assumption({ value: z.array(z.number().positive()).min(1).max(6) }).optional(),
+    /** Illustrative monthly bills (USD) for the worked-examples table on utility pages (/solar/<state>/<utility>). Model inputs, not facts. */
+    utility_example_bills: assumption({ value: z.array(z.number().positive()).min(1).max(6) }).optional(),
     /**
      * Lease / PPA comparison inputs (all optional, bounds null until the owner enters verified market figures;
      * while null the results show explanatory text only). Units: lease_monthly_per_kw = USD per kW of system per
@@ -321,6 +323,7 @@ export const AssumptionsSchema = z
     const l = a.pvwatts_system_loss_pct;
     if (!(l.none <= l.some && l.some <= l.heavy)) ctx.addIssue({ code: 'custom', path: ['pvwatts_system_loss_pct'], message: 'losses must satisfy none <= some <= heavy' });
     if (a.min_system_size_kw.value >= a.system_size_cap_kw.value) ctx.addIssue({ code: 'custom', path: ['min_system_size_kw'], message: 'min_system_size_kw must be below system_size_cap_kw' });
+    if (a.utility_example_bills?.value.some((b) => b > a.max_monthly_bill.value)) ctx.addIssue({ code: 'custom', path: ['utility_example_bills'], message: 'example bills must not exceed max_monthly_bill' });
     if (a.city_example_bills?.value.some((b) => b > a.max_monthly_bill.value)) ctx.addIssue({ code: 'custom', path: ['city_example_bills'], message: 'example bills must not exceed max_monthly_bill' });
     for (const k of LEASE_PPA_KEYS) {
       const r = a[k];

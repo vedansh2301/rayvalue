@@ -18,7 +18,7 @@ import { createRunGuard } from '../../lib/calculator/run-guard';
 import { checkZipIn, loadZipTable, type ZipCheck } from '../../lib/calculator/zip';
 import { answerSummaryParts } from '../../lib/calculator/summary';
 import { formatUsd } from '../../lib/format';
-import { parseShareParams, serializeShareParams } from '../../lib/share';
+import { parseShareParams, parseUtilityParam, serializeShareParams } from '../../lib/share';
 import { btnPrimary, btnSecondary, btnText } from '../ui/buttons';
 import { FinancingPanel, FlBatteryPanel } from './ResultsExtras';
 import ResultsActions from '../quotes/ResultsActions';
@@ -129,7 +129,12 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
   // Prefill and auto-run from a shared link.
   useEffect(() => {
     const p = parseShareParams(window.location.search);
-    if (!p) return;
+    if (!p) {
+      // Linked from a utility page (?utility=fpl): preselect that utility if it belongs to this state.
+      const u = parseUtilityParam(window.location.search);
+      if (u && utilities.some((x) => x.id === u)) setUtilityId(u);
+      return;
+    }
     const b = parseBill(String(p.bill), maxBill);
     if (!b.ok || !utilities.some((u) => u.id === p.utility)) return;
     void (async () => {

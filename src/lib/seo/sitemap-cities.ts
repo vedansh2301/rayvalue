@@ -4,6 +4,8 @@
  * `customPages`. Any failure (no env, offline, bad response) returns [] so a build never fails.
  */
 
+import { RESERVED_CITY_SLUGS } from '../utility/pages.ts';
+
 interface Deps {
   url?: string;
   key?: string;
@@ -32,7 +34,7 @@ export async function getPublishedCityUrls(deps: Deps = {}): Promise<string[]> {
     for (const r of rows) {
       const state = (r as { state?: unknown })?.state;
       const slug = (r as { slug?: unknown })?.slug;
-      if ((state !== 'FL' && state !== 'CA') || typeof slug !== 'string' || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) continue;
+      if ((state !== 'FL' && state !== 'CA') || typeof slug !== 'string' || RESERVED_CITY_SLUGS.has(slug) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) continue;
       out.push(`${site}/solar/${state === 'FL' ? 'florida' : 'california'}/${slug}`);
     }
     return out;

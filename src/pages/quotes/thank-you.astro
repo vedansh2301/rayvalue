@@ -1,6 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { RESPONSE_WINDOW } from '../../lib/contact';
+import { publishedGuides } from '../../lib/guides';
+// Link the full guide once the owner publishes it (draft: false); until then only the inline checklist shows.
+const compareGuide = (await publishedGuides()).some((g) => g.id === 'how-to-compare-solar-quotes');
 // Static page. The quote form saves a small summary (first name, installer names, status) in sessionStorage and
 // redirects here; the script below fills it in. Without it (direct visit, storage blocked) the generic text shows.
 // Fires the quote_submit funnel event once per submission.
@@ -50,6 +53,7 @@ const checklist = [
       </ul>
 
       <h2>How to compare solar quotes</h2>
+      {compareGuide && <p>Read the full guide: <a href="/guides/how-to-compare-solar-quotes">how to compare solar quotes</a>.</p>}
       <ol class="list-decimal pl-6">
         {checklist.map(([title, text]) => (
           <li><strong>{title}.</strong> {text}</li>

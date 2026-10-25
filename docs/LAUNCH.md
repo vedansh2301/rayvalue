@@ -126,3 +126,11 @@ Preview SEO scores are not meaningful (Vercel adds `X-Robots-Tag: noindex` and a
 - [ ] `/admin/leads` is Basic auth over HTTPS; the browser remembers the password for the session. Use a long random password. It is not linked from the site, is `noindex`, disallowed in robots.txt and excluded from the sitemap. Marking returned only works on `sent` leads and records the reason and time.
 - [ ] `crm` delivery is a plain signed JSON POST to the CRM's inbound URL; vendor-specific CRM adapters are not built.
 - [ ] Privacy text now mentions attribution (session storage), repeat requests, Do Not Sell handling and owner summaries; include it in the attorney review. Do Not Sell is matched by email (data_requests carry no phone), also through earlier leads that used the same phone.
+
+## Phase 5: utility pages and draft guides
+
+- Apply `supabase/migrations/0009_utility_example_bills.sql` (adds the illustrative bills 150/250/350 used by `/solar/<state>/<utility>`). Until it is applied the worked-examples table is empty and the pages are noindex and out of the sitemap.
+- A utility page is indexable (and listed in the sitemap at build time) only when its worked examples have real results. TECO stays noindex until its minimum bill is verified (`npm run todo:verify`).
+- Representative ZIP = the utility's best-confirmed city in `cities` (coords_zcta). Confirm the city-to-utility mappings listed in docs/TODO-VERIFY.md.
+- Three draft guides (`is-solar-worth-it-without-tax-credit`, `solar-lease-vs-buy`, `how-to-compare-solar-quotes`) have `draft: true`; unverified items are in each file's frontmatter `todo`. Publishing the compare guide makes /quotes/thank-you link to it.
+- Run `npm run todo:verify` after applying the migration to refresh docs/TODO-VERIFY.md.

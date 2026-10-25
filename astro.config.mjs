@@ -8,6 +8,8 @@ import tailwindcss from '@tailwindcss/vite';
 import { loadEnv } from 'vite';
 import { guideFlags, excludedGuideUrls, excludedCollectionUrls } from './src/lib/seo/guide-flags.ts';
 import { getPublishedCityUrls } from './src/lib/seo/sitemap-cities.ts';
+import { UTILITY_PAGES, utilityPagePath } from './src/lib/utility/pages.ts';
+import { getIndexableUtilityUrls } from './src/lib/utility/sitemap.ts';
 import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
 import { adCspSources, parseAdIds } from './src/lib/ads/config.ts';
 import { trustedFormCsp, trustedFormEnabled } from './src/lib/leads/consent-vendor.ts';
@@ -34,6 +36,13 @@ const cityUrls = await getPublishedCityUrls({
   url: process.env.SUPABASE_URL || dbEnv.SUPABASE_URL,
   key: process.env.SUPABASE_PUBLISHABLE_KEY || dbEnv.SUPABASE_PUBLISHABLE_KEY,
 });
+
+// Utility pages (on demand, from DB data) are listed only when their worked examples have real results.
+process.env.SUPABASE_URL ||= dbEnv.SUPABASE_URL;
+process.env.SUPABASE_PUBLISHABLE_KEY ||= dbEnv.SUPABASE_PUBLISHABLE_KEY;
+const utilityUrls = process.env.SUPABASE_URL ? await getIndexableUtilityUrls() : [];
+
+const utilityPaths = new Set(UTILITY_PAGES.map(utilityPagePath));
 
 // Optional ad/measurement tags (GA4, Google Ads, Meta pixel): OFF unless an ID env var is set. Their third-party
 // origins are added to the CSP only then. Enabling also needs the CLAUDE.md rule-7 amendment, the privacy policy,
@@ -91,9 +100,11 @@ export default defineConfig({
     // Sitemap = prerendered pages minus noindex ones (noindex/draft guides, /guides while none is published,
     // unreviewed static pages, confirmation pages and the privacy request form, API), plus published cities.
     sitemap({
-      customPages: cityUrls,
+      customPages: [...cityUrls, ...utilityUrls],
       filter: (page) => {
         const path = new URL(page).pathname.replace(/\/+$/, '') || '/';
+        // On-demand utility routes are auto-discovered; keep only those whose data makes them indexable.
+        if (utilityPaths.has(path) && !utilityUrls.includes(page)) return false;
         return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/') && !path.startsWith('/admin');
       },
     }),

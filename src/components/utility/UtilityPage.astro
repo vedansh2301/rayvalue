@@ -1,0 +1,160 @@
+---
+/** Utility page body. Data and headers are handled by the route file (lib/utility/load.ts). */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../Breadcrumbs.astro';
+import Faq from '../Faq.astro';
+import UtilityLinks from './UtilityLinks.astro';
+import { btnPrimary, btnSecondary } from '../ui/buttons';
+import { faqJsonLd } from '../../lib/seo/jsonld';
+import { formatUsd } from '../../lib/format';
+import { formatYears, isHttpUrl } from '../../lib/city/view';
+import { STATE_SLUG, utilityPagePath, type UtilityPageMeta } from '../../lib/utility/pages';
+import type { UtilityPageData } from '../../lib/utility/load';
+
+interface Props { data: UtilityPageData }
+const { data } = Astro.props;
+const meta: UtilityPageMeta = data.kind === 'ok' ? data.vm.meta : data.meta;
+const stateName = meta.state === 'FL' ? 'Florida' : 'California';
+const stateSlug = STATE_SLUG[meta.state];
+const path = utilityPagePath(meta);
+const h1 = `Is solar worth it with ${meta.short} in 2026? (No federal tax credit)`;
+const vm = data.kind === 'ok' ? data.vm : null;
+const range = (a: number, b: number, f: (n: number) => string) => (a === b ? f(a) : `${f(a)}–${f(b)}`);
+const paybackText = (r: { paybackYears: { low: number | null; likely: number | null; high: number | null } }) => {
+  const max = vm?.analysisYears ?? 25;
+  return `${formatYears(r.paybackYears.low, max)}–${formatYears(r.paybackYears.high, max)} (likely ${formatYears(r.paybackYears.likely, max)})`;
+};
+---
+{!vm ? (
+  <BaseLayout title={`${meta.short} solar payback`} description={meta.description} path={path} noindex>
+    <div class="page">
+      <h1>{h1}</h1>
+      <p>Our {meta.short} rate data is temporarily unavailable. Please try again in a few minutes, or <a href={`/calculator/${stateSlug}`}>use the {stateName} calculator</a>.</p>
+    </div>
+  </BaseLayout>
+) : (
+  <BaseLayout title={meta.title} description={meta.description} path={path} noindex={!vm.indexable} jsonLd={[faqJsonLd(vm.faq)]}>
+    <div class="page">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${stateName} calculator`, href: `/calculator/${stateSlug}` }, { label: meta.short }]} />
+      <h1 class="!mt-4">{h1}</h1>
+      <p>
+        The federal residential solar credit has ended for 2026 installs, so payback on {vm.utility.name} rates depends on the rates themselves, how your home uses power and what an installer charges.
+        This page shows how {meta.short} bills and credits solar, and worked examples from the same engine as our <a href={`/calculator/${stateSlug}`}>{stateName} calculator</a>.
+      </p>
+      <div class="not-prose mt-4 flex flex-wrap gap-3">
+        <a href={vm.calcHref} class={btnPrimary}>Run my {meta.short} numbers<span aria-hidden="true">&rarr;</span></a>
+        <a href={vm.quotesHref} class={btnSecondary}>Get installer quotes</a>
+      </div>
+
+      <section aria-labelledby="rules-h">
+        <h2 id="rules-h">How {meta.short} bills and credits solar</h2>
+        <p>
+          {meta.short} residential rate schedule: <strong>{vm.utility.rate_schedule}</strong>.
+          {vm.utility.rate_type === 'tiered' ? ' Energy is billed in tiers, so each extra kilowatt-hour solar replaces is worth the rate of the tier it would have been billed in.' : ' This is a time-of-use plan, so the price of power depends on the time of day; we use the published rates and the residential average where the tariff does not give one number.'}
+        </p>
+        {vm.rateRows.length > 0 && (
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full min-w-[20rem] border-collapse text-left text-sm">
+              <caption class="pb-2 text-left font-semibold text-stone-900">{vm.utility.name}: rates used in our model</caption>
+              <thead><tr class="border-b border-stone-300 text-stone-600"><th scope="col" class="py-2 pr-4 font-medium">Item</th><th scope="col" class="py-2 font-medium">Rate</th></tr></thead>
+              <tbody>
+                {vm.rateRows.map((r) => (
+                  <tr class="border-b border-stone-200"><th scope="row" class="py-2 pr-4 font-normal text-stone-900">{r.label}</th><td class="py-2">{r.value ?? <span class="text-stone-600">being verified</span>}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {vm.utility.tou_note && <p class="mt-3 text-sm text-stone-700">{vm.utility.tou_note}</p>}
+        {vm.utility.rate_note && (
+          <details class="mt-3 text-sm text-stone-700"><summary class="cursor-pointer font-medium text-stone-900">How the energy rate is built</summary><p class="mt-2">{vm.utility.rate_note}</p></details>
+        )}
+        {vm.rules.paragraphs.map((p) => <p>{p}</p>)}
+        {vm.utility.source_caveat && <p class="text-sm text-stone-700"><strong>Data note:</strong> {vm.utility.source_caveat}</p>}
+        <p class="text-sm text-stone-700">
+          Rate data read on {vm.utility.verified_on}.
+          {isHttpUrl(vm.utility.source_url) && <> <a href={vm.utility.source_url} rel="noopener">Tariff source</a>.</>}
+          {vm.rules.source && <> Export credit source{vm.rules.source.date ? `, read on ${vm.rules.source.date}` : ''}: <a href={vm.rules.source.url} rel="noopener">CPUC report</a>.</>}
+          {' '}Every source is listed on the <a href="/methodology">methodology page</a>.
+        </p>
+      </section>
+
+      <section aria-labelledby="examples-h">
+        <h2 id="examples-h">Worked examples on {meta.short} rates</h2>
+        {vm.examples.length === 0 || !vm.repCity ? (
+          <p class="text-stone-700">Worked examples for {meta.short} are being verified. Use the <a href={vm.calcHref}>calculator</a> for your own numbers.</p>
+        ) : (
+          <>
+            <p>
+              These use <strong>illustrative monthly bills</strong>, not {meta.short} averages, for a home at a {vm.repCity.name} ZIP code ({vm.repCity.coords_zcta}) with some shade, and no federal tax credit. Ranges are low to high, with the likely value for payback. Your home will differ.
+            </p>
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full min-w-[40rem] border-collapse text-left text-sm">
+                <thead>
+                  <tr class="border-b border-stone-300 text-stone-600">
+                    <th scope="col" class="py-2 pr-3 font-medium">Monthly bill</th>
+                    <th scope="col" class="py-2 pr-3 font-medium">Option</th>
+                    <th scope="col" class="py-2 pr-3 font-medium">System size</th>
+                    <th scope="col" class="py-2 pr-3 font-medium">Installed cost</th>
+                    <th scope="col" class="py-2 pr-3 font-medium">Year-1 savings</th>
+                    <th scope="col" class="py-2 font-medium">Payback (years)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vm.examples.map((r) => (
+                    <tr class="border-b border-stone-200 align-top">
+                      <th scope="row" class="py-2 pr-3 font-normal text-stone-900">{formatUsd(r.bill)}</th>
+                      <td class="py-2 pr-3">{r.battery === 0 ? 'Solar only' : 'Solar + 1 battery'}</td>
+                      {r.result ? (
+                        <>
+                          <td class="py-2 pr-3">{range(r.result.size.low, r.result.size.high, (n) => `${n} kW`)}</td>
+                          <td class="py-2 pr-3">{range(r.result.cost.low, r.result.cost.high, formatUsd)}</td>
+                          <td class="py-2 pr-3">{range(r.result.year1Savings.low, r.result.year1Savings.high, formatUsd)}</td>
+                          <td class="py-2">{paybackText(r.result)}</td>
+                        </>
+                      ) : (
+                        <td colspan="4" class="py-2 text-stone-600">being verified</td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p class="mt-3 text-sm text-stone-700">
+              Payback “more than {vm.analysisYears ?? 25}” means it did not pay back within the {vm.analysisYears ?? 25}-year analysis period. Estimates, not quotes; installer prices and your usage will differ.
+            </p>
+          </>
+        )}
+      </section>
+
+      <section aria-labelledby="changes-h">
+        <h2 id="changes-h">What changes your number</h2>
+        <ul class="list-disc space-y-1 pl-5">
+          <li><strong>Your bill and usage.</strong> Higher use means a bigger system and more bill to offset.</li>
+          <li><strong>Shade and roof direction.</strong> Less sun on the panels means less energy for the same cost.</li>
+          <li><strong>Installer price.</strong> Quotes vary; compare at least a few on the same system size.</li>
+          <li><strong>Rate changes.</strong> If {meta.short}’s rates rise faster or slower than we assume, savings move with them.</li>
+          <li><strong>Credit rules.</strong> Net metering or export credit rules can change, and they affect how solar sent to the grid is valued.</li>
+          <li><strong>A battery.</strong> It adds cost and gives backup power; whether it also saves money depends on the rules above.</li>
+          <li><strong>How you pay.</strong> Our estimates assume buying with cash and leave out financing costs, maintenance and equipment replacement.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="cta-h" class="mt-10 rounded-lg border border-sun-300 bg-sun-50 p-5">
+        <h2 id="cta-h" class="!mt-0">See the numbers for your home</h2>
+        <p>Enter your ZIP code and monthly bill to get a payback range for your own home, or compare free quotes from up to 3 installers.</p>
+        <div class="not-prose mt-4 flex flex-wrap gap-3">
+          <a href={vm.calcHref} class={btnPrimary}>Run my {meta.short} numbers<span aria-hidden="true">&rarr;</span></a>
+          <a href={vm.quotesHref} class={btnSecondary}>Get installer quotes</a>
+        </div>
+      </section>
+
+      <div class="mt-10"><Faq items={vm.faq} id="utility-faq" /></div>
+
+      <div class="mt-10 space-y-6">
+        <UtilityLinks state={meta.state} heading={`Other ${stateName} utilities`} exclude={meta.slug} />
+        <p class="text-stone-700">How the estimates are made: <a href="/methodology">methodology</a>. Back to the <a href={`/calculator/${stateSlug}`}>{stateName} calculator</a>.</p>
+      </div>
+    </div>
+  </BaseLayout>
+)}
