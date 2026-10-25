@@ -71,6 +71,7 @@
 .prose-guide th { @apply text-left font-semibold text-stone-900 border-b border-stone-300 px-3 py-2 whitespace-nowrap; }
 .prose-guide td { @apply border-b border-stone-200 px-3 py-2 align-top tabular-nums; }
 
-/* Blog/guides index state filter: radios + :has(), no JS. Articles covering both states stay visible. */
-.content-index:has(#f-fl:checked) li:has(> article[data-state='CA']),
-.content-index:has(#f-ca:checked) li:has(> article[data-state='FL']) { display: none; }
+/* Blog/guides index state filter: radios + :has(), no JS. Each chip shows only articles tagged with that state. */
+.content-index:has(#f-fl:checked) [data-filterable]:has(> article:not([data-state='FL'])),
+.content-index:has(#f-ca:checked) [data-filterable]:has(> article:not([data-state='CA'])),
+.content-index:has(#f-both:checked) [data-filterable]:has(> article:not([data-state='both'])) { display: none; }

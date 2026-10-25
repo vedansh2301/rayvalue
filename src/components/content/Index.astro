@@ -17,11 +17,14 @@ interface Props { kind: 'blog' | 'guides'; heading: string; intro: string; items
 const { kind, heading, intro, items } = Astro.props;
 const [featured, ...rest] = items;
 const crumbs = [{ label: 'Home', href: '/' }, { label: heading }];
+// Each chip shows only articles tagged with that state (multi-state articles have their own chip). Chips with no articles are left out.
+const count = (st?: 'FL' | 'CA' | 'both') => items.filter((i) => !st || i.state === st).length;
 const FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'fl', label: 'Florida' },
-  { id: 'ca', label: 'California' },
-] as const;
+  { id: 'all', label: 'All', n: count() },
+  { id: 'fl', label: 'Florida', n: count('FL') },
+  { id: 'ca', label: 'California', n: count('CA') },
+  { id: 'both', label: 'Both states', n: count('both') },
+].filter((f) => f.n > 0);
 const source = `${kind === 'blog' ? 'blog' : 'guide'}:index`;
 ---
 <div class="content-index">
@@ -39,7 +42,7 @@ const source = `${kind === 'blog' ? 'blog' : 'guide'}:index`;
 
   <div class="shell pb-14 pt-8 sm:pb-20">
     {featured && (
-      <section aria-label="Latest">
+      <section aria-label="Latest" data-filterable>
         <Card {...featured} featured />
       </section>
     )}
@@ -53,13 +56,13 @@ const source = `${kind === 'blog' ? 'blog' : 'guide'}:index`;
             {FILTERS.map((f) => (
               <span class="inline-flex">
                 <input type="radio" name="state-filter" id={`f-${f.id}`} value={f.id} checked={f.id === 'all'} class="peer sr-only" />
-                <label for={`f-${f.id}`} class="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-stone-300 bg-white px-4 text-sm font-medium text-stone-800 hover:bg-stone-100 peer-checked:border-stone-900 peer-checked:bg-stone-900 peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-stone-900">{f.label}</label>
+                <label for={`f-${f.id}`} class="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-stone-300 bg-white px-4 text-sm font-medium text-stone-800 hover:bg-stone-100 peer-checked:border-stone-900 peer-checked:bg-stone-900 peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-stone-900">{f.label}<span class="ml-1.5 tabular-nums opacity-70">{f.n}</span></label>
               </span>
             ))}
           </fieldset>
         </div>
         <ul class="not-prose mt-5 grid list-none gap-6 p-0 md:grid-cols-2 xl:grid-cols-3">
-          {rest.map((c) => <li class="flex"><Card {...c} /></li>)}
+          {rest.map((c) => <li class="flex" data-filterable><Card {...c} /></li>)}
         </ul>
       </section>
     )}
