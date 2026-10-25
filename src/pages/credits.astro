@@ -6,15 +6,21 @@ const path = '/credits';
 const photos = [
   {
     use: 'Home page hero',
-    desc: 'A solar PV rooftop system on a home in San Pasqual, Los Angeles County, California (March 2017).',
-    credit: 'Laksh Muchhal, U.S. Department of Energy',
-    href: 'https://commons.wikimedia.org/wiki/File:Muchhal_000422_172295_517451_4578_(36155265553).jpg',
+    desc: 'Solar panels on the roof of a private house, 6th Street, Hancock Park, Los Angeles (January 2021).',
+    credit: 'Downtowngal, via Wikimedia Commons',
+    href: 'https://commons.wikimedia.org/wiki/File:Solar_panel_roof_6th_St.jpg',
+    license: 'CC BY-SA 4.0',
+    licenseHref: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    note: 'Resized and cropped.',
   },
   {
     use: 'Get quotes page',
     desc: 'Volunteers installing a rooftop solar system in San Pasqual, Los Angeles County, California (2017).',
     credit: 'Laksh Muchhal, U.S. Department of Energy',
     href: 'https://commons.wikimedia.org/wiki/File:Muchhal_000262_172296_517453_4578_(36963527475).jpg',
+    license: 'Public domain',
+    licenseHref: null,
+    note: '',
   },
 ];
 ---
@@ -23,13 +29,14 @@ const photos = [
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Photo credits' }]} />
     <h1 class="!mt-4">Photo credits</h1>
     <p>
-      The photographs on RayValue are U.S. Department of Energy images in the public domain, so no credit is required.
-      We list them here anyway. Their use does not imply any endorsement by the Department of Energy or any other agency.
+      These are the sources and licenses for the photographs on RayValue. Their use does not imply any endorsement by
+      the photographers, the U.S. Department of Energy or any other agency.
     </p>
     <ul>
       {photos.map((p) => (
         <li>
-          <strong>{p.use}.</strong> {p.desc} Photo by {p.credit}. Public domain.
+          <strong>{p.use}.</strong> {p.desc} Photo by {p.credit}. {p.note}{' '}
+          {p.licenseHref ? <a href={p.licenseHref} rel="license noopener noreferrer">{p.license}</a> : p.license}.{' '}
           <a href={p.href} rel="noopener noreferrer">Source</a>
         </li>
       ))}

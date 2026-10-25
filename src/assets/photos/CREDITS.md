@@ -6,7 +6,8 @@ linked from the footer.
 
 | File | Photographer | Source page | License |
 | --- | --- | --- | --- |
-| ca-rooftop-solar-home.jpg | Laksh Muchhal, U.S. Department of Energy | https://commons.wikimedia.org/wiki/File:Muchhal_000422_172295_517451_4578_(36155265553).jpg | Public domain (U.S. government work) |
+| la-home-rooftop-solar.jpg (home hero) | Downtowngal | https://commons.wikimedia.org/wiki/File:Solar_panel_roof_6th_St.jpg | CC BY-SA 4.0 (attribution on /credits; resized/cropped) |
+
 | ca-rooftop-solar-install.jpg | Laksh Muchhal, U.S. Department of Energy | https://commons.wikimedia.org/wiki/File:Muchhal_000262_172296_517453_4578_(36963527475).jpg | Public domain (U.S. government work) |
 
 Notes: Unsplash and Pexels block automated downloads (bot challenge), so they were not used. Photos of a home

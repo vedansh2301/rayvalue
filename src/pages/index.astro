@@ -5,7 +5,8 @@ import { btnPrimary, btnSecondary } from '../components/ui/buttons';
 import UtilityLinks from '../components/utility/UtilityLinks.astro';
 import Icon, { type IconName } from '../components/icons/Icon';
 import { Picture } from 'astro:assets';
-import heroPhoto from '../assets/photos/ca-rooftop-solar-home.jpg';
+import heroPhoto from '../assets/photos/la-home-rooftop-solar.jpg';
+import StoryCards from '../components/stories/StoryCards.astro';
 import Faq from '../components/Faq.astro';
 import { HOME_FAQ_IDS, faqItems } from '../lib/content/faq';
 import { faqJsonLd } from '../lib/seo/jsonld';
@@ -71,7 +72,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
          formats={['avif', 'webp']}
          widths={[480, 768, 1100]}
          sizes="(min-width: 1024px) 440px, (min-width: 480px) 448px, calc(100vw - 2rem)"
-         alt="Dark rooftop solar panels on a single-story home in California under a clear blue sky"
+         alt="Rooftop solar panels on a white two-story house framed by palm trees and a blue sky in Los Angeles"
          width={1100}
          height={825}
          loading="eager"
@@ -136,6 +137,12 @@ const steps: { title: string; body: string; icon: IconName }[] = [
       ))}
     </ul>
     <p class="mt-6 max-w-(--container-prose) text-stone-700">See the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a> and <a href="/about" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">about RayValue</a>.</p>
+  </section>
+
+  <section aria-labelledby="stories-heading" class="shell pb-16">
+    <h2 id="stories-heading" class="text-2xl font-bold tracking-tight text-stone-900">Real stories from Florida and California</h2>
+    <p class="mt-2 mb-6 max-w-(--container-prose) text-stone-700">Publicly reported accounts of homeowners and communities with solar and batteries, each linked to the original reporting. <a href="/stories" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">See all stories</a>.</p>
+    <StoryCards state="both" limit={4} />
   </section>
 
   <div class="shell pb-16">
