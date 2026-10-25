@@ -24,6 +24,9 @@ which also states that use implies no endorsement.
 | covers/how-to-compare-solar-quotes.jpg | Kristelle Batucal, U.S. Department of Energy | https://commons.wikimedia.org/wiki/File:Batucal_000281_173184_518703_4578_(36963958445).jpg | Public domain |
 | covers/is-solar-worth-it-without-tax-credit.jpg | Olivia Martin, U.S. Department of Energy | https://commons.wikimedia.org/wiki/File:Martin_000410_163328_506909_4578_(36792947532).jpg | Public domain |
 | covers/solar-lease-vs-buy.jpg | Chris Wingard, U.S. Department of Energy | https://commons.wikimedia.org/wiki/File:Wingard_000027_157448_497660_4578_(36293688136).jpg | Public domain |
+| covers/solar-tax-benefits-2026.jpg | MoneyBlogNewz | https://commons.wikimedia.org/wiki/File:Form_4868,_2010,_with_pen_glasses_phone.jpg | CC BY 2.0 (https://creativecommons.org/licenses/by/2.0/); cropped to landscape |
+| covers/florida-solar-tax-benefits-2026.jpg | Paul Krashefski, U.S. Department of Energy | https://commons.wikimedia.org/wiki/File:Krashefski_000384_172797_517878_4578_(36776409046).jpg | Public domain; parking-area rooftop array in Broward County, FL |
+| covers/california-solar-tax-benefits-2026.jpg | Downtowngal | https://commons.wikimedia.org/wiki/File:Solar_panel_roof_6th_St.jpg | CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/) |
 
 | stories/babcock-ranch-hurricane-ian.jpg | NASA/NOAA-20 | https://commons.wikimedia.org/wiki/File:Ian_2022-09-28_1830Z.jpg | Public domain |
 | stories/berkeley-lab-solar-battery-backup.jpg | JPSS imagery: CSU/CIRA and NOAA/NESDIS | https://commons.wikimedia.org/wiki/File:Power_Outages_Across_Florida_Following_Hurricane_Ian_(CIRA_2022-08-30_-_after0).png | Public domain |

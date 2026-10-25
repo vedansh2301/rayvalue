@@ -6,8 +6,9 @@ import GuideCalculatorLinks from '../../components/seo/GuideCalculatorLinks.astr
 import ArticleByline from '../../components/seo/ArticleByline.astro';
 import TableOfContents from '../../components/seo/TableOfContents.astro';
 import Cover from '../../components/content/Cover.astro';
+import Faq from '../../components/Faq.astro';
 import { coverTopic, stateKey } from '../../lib/content/cards';
-import { articleJsonLd } from '../../lib/seo/jsonld';
+import { articleJsonLd, faqJsonLd } from '../../lib/seo/jsonld';
 import { displayDate, showUpdated } from '../../lib/dates';
 
 export async function getStaticPaths() {
@@ -26,8 +27,10 @@ const ld = articleJsonLd({
   updated: guide.data.updated,
   image: new URL(`/og/guides/${guide.id}.png`, Astro.site).href,
 }, Astro.site?.href);
+const faq = (guide.data.faq ?? []).map((f, i) => ({ id: `faq-${i}`, ...f }));
+const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
 ---
-<BaseLayout title={guide.data.seoTitle ?? guide.data.title} ogImageAlt={`${guide.data.title} (RayValue guide)`} publishedTime={guide.data.published} modifiedTime={guide.data.updated} description={guide.data.description} path={path} ogImagePath={`/og/guides/${guide.id}.png`} ogType="article" noindex={guide.data.noindex} jsonLd={[ld]}>
+<BaseLayout title={guide.data.seoTitle ?? guide.data.title} ogImageAlt={`${guide.data.title} (RayValue guide)`} publishedTime={guide.data.published} modifiedTime={guide.data.updated} description={guide.data.description} path={path} ogImagePath={`/og/guides/${guide.id}.png`} ogType="article" noindex={guide.data.noindex} jsonLd={jsonLd}>
   <article class="page">
     <div class="max-w-none lg:grid lg:grid-cols-[minmax(0,var(--container-prose))_minmax(0,1fr)] lg:gap-12 xl:gap-16">
     <div>
@@ -54,6 +57,7 @@ const ld = articleJsonLd({
     <div class="prose-guide mt-4 space-y-4">
       <Content />
     </div>
+    {faq.length > 0 && <div class="mt-10"><Faq items={faq} id="guide-faq" /></div>}
     <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="end" />
     <section class="mt-8" aria-labelledby="sources">
       <h2 id="sources">Sources</h2>

@@ -29,6 +29,8 @@ const guides = defineCollection({
     todo: z.array(z.string()).optional(),
     /** Default true: guides are not indexed (noindex + not in sitemap) until the owner sets false. */
     noindex: z.boolean().default(true),
+    /** Optional visible FAQ, rendered after the body; the same items feed the page's FAQPage JSON-LD. Plain text only. */
+    faq: z.array(z.object({ question: z.string().min(1), answer: z.string().min(1) })).optional(),
     ...coverFields(image),
   }).refine(needsAlt, altMessage),
 });
