@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { buyersOf, statusFilter, validateReturn } from '../../lib/admin/leads';
+import { strictSameOrigin } from '../../lib/admin/auth';
+import { LEAD_STATUSES } from '../../lib/routing/eligibility';
+import { NOINDEX_HEADERS, fetchAdminLeads, guardAdmin, markLeadReturned } from '../../lib/server/admin';
+
+// Owner-only, server-rendered, Basic auth (ADMIN_PASSWORD). Not linked anywhere, noindex, not in the sitemap, disallowed in robots.txt.
+export const prerender = false;
+const env = { SUPABASE_URL: process.env.SUPABASE_URL, SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY, ADMIN_PASSWORD: process.env.ADMIN_PASSWORD };
+
+const denied = await guardAdmin(Astro.request, env);
+if (denied) return denied;
+for (const [k, v] of Object.entries(NOINDEX_HEADERS)) Astro.response.headers.set(k, v);
+
+const url = new URL(Astro.request.url);
+let flash: { ok: boolean; text: string } | null = null;
+if (Astro.request.method === 'POST') {
+  if (!strictSameOrigin(Astro.request)) return new Response('Forbidden', { status: 403, headers: NOINDEX_HEADERS });
+  const form = new URLSearchParams(await Astro.request.text());
+  const v = validateReturn(form);
+  if (!v.ok) flash = { ok: false, text: v.error };
+  else {
+    const r = await markLeadReturned(env, v.id, v.reason);
+    flash = r === 'ok' ? { ok: true, text: 'Marked as returned.' } : { ok: false, text: r === 'not_sent' ? 'Only leads with status "sent" can be marked returned.' : 'Could not save. Try again.' };
+  }
+}
+
+const status = statusFilter(url.searchParams.get('status'));
+const leads = await fetchAdminLeads(env, status);
+const csvHref = `/admin/leads.csv${status ? `?status=${status}` : ''}`;
+const fmt = (iso: string) => iso.slice(0, 16).replace('T', ' ') + ' UTC';
+---
+<BaseLayout title="Leads admin" description="Owner-only lead list." path="/admin/leads" noindex>
+  <div class="shell py-8">
+    <h1 class="text-2xl font-bold text-stone-900">Leads</h1>
+    <p class="mt-1 text-sm text-stone-700">Newest first, up to 200. Contains personal data.</p>
+
+    {flash && <p role="status" class={`mt-4 rounded-lg border px-4 py-3 text-stone-900 ${flash.ok ? 'border-green-300 bg-green-50' : 'border-amber-300 bg-amber-50'}`}>{flash.text}</p>}
+
+    <nav aria-label="Filter by status" class="mt-4 flex flex-wrap gap-2">
+      <a class="rounded border border-stone-300 px-3 py-2 text-sm" aria-current={status === null ? 'page' : undefined} href="/admin/leads">All</a>
+      {LEAD_STATUSES.map((s) => <a class="rounded border border-stone-300 px-3 py-2 text-sm" aria-current={status === s ? 'page' : undefined} href={`/admin/leads?status=${s}`}>{s}</a>)}
+      <a class="rounded bg-stone-900 px-3 py-2 text-sm text-white" href={csvHref}>Export CSV</a>
+    </nav>
+
+    {leads === null && <p class="mt-6 text-stone-900">Could not read leads from the database.</p>}
+    {leads !== null && leads.length === 0 && <p class="mt-6 text-stone-700">No leads{status ? ` with status "${status}"` : ''}.</p>}
+    {leads !== null && leads.length > 0 && (
+      <div class="mt-6 overflow-x-auto" tabindex="0" role="region" aria-label="Leads table">
+        <table class="min-w-full text-left text-sm text-stone-900">
+          <caption class="sr-only">Leads</caption>
+          <thead>
+            <tr class="border-b border-stone-300">
+              <th scope="col" class="px-2 py-2">When</th>
+              <th scope="col" class="px-2 py-2">Status</th>
+              <th scope="col" class="px-2 py-2">Contact</th>
+              <th scope="col" class="px-2 py-2">Where</th>
+              <th scope="col" class="px-2 py-2">Source</th>
+              <th scope="col" class="px-2 py-2">Phone</th>
+              <th scope="col" class="px-2 py-2">Buyers</th>
+              <th scope="col" class="px-2 py-2">Return</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.map((l) => (
+              <tr class="border-b border-stone-200 align-top">
+                <td class="whitespace-nowrap px-2 py-2">{fmt(l.created_at)}</td>
+                <td class="px-2 py-2"><strong>{l.status}</strong>{l.status_reason && <div class="text-stone-700">{l.status_reason}</div>}{l.return_reason && <div class="text-stone-700">Returned: {l.return_reason}</div>}</td>
+                <td class="px-2 py-2">{l.first_name} {l.last_name}<div>{l.email}</div><div>{l.phone}</div></td>
+                <td class="whitespace-nowrap px-2 py-2">{l.state} {l.zip}<div>{l.timeline}</div></td>
+                <td class="px-2 py-2">{l.source}<div class="text-stone-700">{[l.utm_source, l.utm_medium, l.utm_campaign].filter(Boolean).join(' / ') || 'no UTM'}</div></td>
+                <td class="px-2 py-2">{l.phone_verified ? 'verified' : 'not verified'}</td>
+                <td class="px-2 py-2">{buyersOf(l) || 'none'}</td>
+                <td class="px-2 py-2">
+                  {l.status === 'sent' && (
+                    <form method="post" action="/admin/leads" class="flex min-w-48 flex-col gap-1">
+                      <input type="hidden" name="id" value={l.id} />
+                      <label class="sr-only" for={`r-${l.id}`}>Reason for returning this lead</label>
+                      <input id={`r-${l.id}`} name="reason" required minlength="3" maxlength="500" placeholder="Reason" class="rounded border border-stone-400 px-2 py-2" />
+                      <button type="submit" class="rounded bg-stone-900 px-3 py-2 text-white">Mark returned</button>
+                    </form>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+</BaseLayout>

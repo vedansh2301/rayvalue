@@ -10,10 +10,14 @@ import VercelAnalytics from '@vercel/analytics/astro';
   import { initAdTags } from '../lib/ads/adapter';
   import { anyAdTagEnabled, parseAdIds } from '../lib/ads/config';
   import { trackEvent } from '../lib/track';
+  import { captureAttribution } from '../lib/attribution';
   type Va = (cmd: string, fn: unknown) => void;
   const w = window as unknown as { webAnalyticsBeforeSend?: unknown; va?: Va };
   w.webAnalyticsBeforeSend = beforeSend;
   w.va?.('beforeSend', beforeSend); // in case the analytics script initialized first
+
+  // First-touch UTMs / click ids / landing page / referrer for quote requests: sessionStorage only, no cookies.
+  captureAttribution();
 
   // Optional GA4 / Google Ads / Meta pixel: OFF unless an ID env var is set at build time (see docs/LAUNCH.md).
   const ids = parseAdIds(import.meta.env);

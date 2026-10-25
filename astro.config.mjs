@@ -94,7 +94,7 @@ export default defineConfig({
       customPages: cityUrls,
       filter: (page) => {
         const path = new URL(page).pathname.replace(/\/+$/, '') || '/';
-        return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/');
+        return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/') && !path.startsWith('/admin');
       },
     }),
   ],

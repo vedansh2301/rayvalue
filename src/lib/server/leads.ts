@@ -7,13 +7,18 @@
  * state. The consent text is recomputed here from the installers the database says serve the ZIP; text sent by
  * the client is ignored. Never logs submitted values.
  */
+import { sanitizeAttribution } from '../attribution';
 import { consentFor } from '../leads/consent';
 import { leadStatus } from '../leads/status';
+import type { LeadStatus } from '../routing/eligibility';
 import { validateDataRequest, validateLead, type FieldErrors } from '../leads/validate';
 import { adminInsert, type AdminEnv } from './admin-db';
 import { clientIp, cleanPageUrl, json, readBody, MAX_BODY_BYTES } from './http';
 import { lookupInstallers, type InstallersEnv } from './installers';
 import { isSameOrigin, prefersHtml } from './subscribe';
+import { runInBackground } from './background';
+import { LEAD_LIMIT, allowRequest } from './rate-limit';
+import { checkDuplicate, checkSuppressed, newLeadMessage, notifyOwner, routeLead, type RoutingEnv } from './routing';
 import { signLeadToken, verificationEnabled, type VerifyEnv } from './verify';
 
 export { readBody, MAX_BODY_BYTES };
@@ -21,7 +26,7 @@ export const SUPABASE_TIMEOUT_MS = 8000;
 export const LEADS_THANKS = '/quotes/thank-you';
 export const DATA_REQUEST_THANKS = '/privacy/request/thanks';
 
-export interface LeadsEnv extends InstallersEnv, AdminEnv, VerifyEnv {}
+export interface LeadsEnv extends InstallersEnv, AdminEnv, VerifyEnv, RoutingEnv {}
 
 const redirect = (to: string, error: boolean) =>
   new Response(null, { status: 303, headers: { Location: error ? `${to}?error=1` : to, 'Cache-Control': 'no-store' } });
@@ -33,6 +38,21 @@ export const cleanCertUrl = (raw: unknown): string | null => {
   const s = raw.trim().split('?')[0]!;
   return TRUSTEDFORM_RE.test(s) ? s : null;
 };
+
+const ATTR_COLUMNS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'landing_page', 'referrer'] as const;
+/** Sanitized first-touch attribution as lead columns (null when absent). The client sends it as an object or JSON string. */
+export function attributionColumns(raw: unknown): Record<(typeof ATTR_COLUMNS)[number], string | null> {
+  let v = raw;
+  if (typeof v === 'string') {
+    try {
+      v = v.length <= 3000 ? JSON.parse(v) : null;
+    } catch {
+      v = null;
+    }
+  }
+  const a = sanitizeAttribution(v);
+  return Object.fromEntries(ATTR_COLUMNS.map((k) => [k, a[k] ?? null])) as Record<(typeof ATTR_COLUMNS)[number], string | null>;
+}
 
 function installerList(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -57,7 +77,11 @@ export async function handleLead(
 ): Promise<Response> {
   const html = prefersHtml(request);
   if (!isSameOrigin(request, extraAllowedOrigins)) return json(403, { ok: false, error: 'Cross-origin requests are not allowed.' });
-  const fields = await readBody(request);
+  // Best-effort per-IP limit (DB-backed, fails open). Checked before any validation or lookup work.
+  if (!(await allowRequest(env, 'leads', clientIp(request), LEAD_LIMIT.windowSeconds, LEAD_LIMIT.max, fetchImpl))) {
+    return html ? redirect(LEADS_THANKS, true) : new Response(JSON.stringify({ ok: false, error: 'Too many requests. Please wait a few minutes and try again.' }), { status: 429, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': String(LEAD_LIMIT.windowSeconds) } });
+  }
+  const fields = await readBody(request, 16384);
   if (!fields) return html ? redirect(LEADS_THANKS, true) : json(400, { ok: false, fieldErrors: { form: 'Could not read the form. Please try again.' } });
 
   const v = validateLead(fields);
@@ -75,7 +99,34 @@ export async function handleLead(
 
   const consent = consentFor(installers);
   const serviced = installers.length > 0;
-  const status = leadStatus({ serviced, timeline: lead.timeline });
+  const shownStatus = leadStatus({ serviced, timeline: lead.timeline });
+
+  // Dedupe (same phone or email in the last 30 days) and Do Not Sell. Both only matter for leads that would be sold.
+  // If a check cannot be made the lead is still saved, but is NOT routed (status_reason says why) and the owner is told.
+  let status: LeadStatus = shownStatus;
+  let statusReason: string | null = null;
+  let duplicateOf: string | null = null;
+  let routable = shownStatus === 'new';
+  const dup = await checkDuplicate(env, lead, fetchImpl, new Date(nowMs));
+  if (dup.kind === 'duplicate') {
+    status = 'duplicate';
+    statusReason = 'same phone or email within 30 days';
+    duplicateOf = dup.of;
+    routable = false;
+  } else if (dup.kind === 'unknown') {
+    statusReason = 'dedupe_check_failed';
+    routable = false;
+  } else if (routable) {
+    const suppressed = await checkSuppressed(env, lead, fetchImpl);
+    if (suppressed === true) {
+      status = 'disqualified';
+      statusReason = 'do_not_sell';
+      routable = false;
+    } else if (suppressed === null) {
+      statusReason = 'suppression_check_failed';
+      routable = false;
+    }
+  }
   const origins = [new URL(request.url).origin, ...extraAllowedOrigins];
   const row = {
     ...lead,
@@ -88,6 +139,9 @@ export async function handleLead(
     trustedform_cert_url: cleanCertUrl(fields.trustedform_cert_url),
     user_agent: request.headers.get('user-agent')?.slice(0, 300) ?? null,
     phone_verified: false,
+    status_reason: statusReason,
+    duplicate_of: duplicateOf,
+    ...attributionColumns(fields.attribution),
   };
 
   let res = await adminInsert<{ id: string }>(env, 'leads', row, fetchImpl);
@@ -96,8 +150,15 @@ export async function handleLead(
   if (!res || 'conflict' in res) return html ? redirect(LEADS_THANKS, true) : json(502, { ok: false, error: 'Something went wrong — please try again.' });
 
   const leadId = res.row.id;
+  // After the response is on its way: route to buyers (deliveries, retries) and tell the owner. Never blocks the person.
+  const summaryBase = { id: leadId, status, reason: statusReason, state: lead.state, source: lead.source, timeline: lead.timeline, bill_bucket: lead.bill_bucket, phone_verified: false, buyers: [] as string[] };
+  await runInBackground(async () => {
+    const summary = routable ? ((await routeLead(env, leadId, fetchImpl, new Date())) ?? summaryBase) : summaryBase;
+    const msg = newLeadMessage(summary);
+    await notifyOwner(env, msg.subject, msg.lines, fetchImpl);
+  });
   const verify = verificationEnabled(env) ? { token: signLeadToken(env.LEAD_SIGNING_SECRET!, leadId, nowMs) } : null;
-  return html ? redirect(LEADS_THANKS, false) : json(200, { ok: true, status, serviced, installers, lead_id: leadId, verify });
+  return html ? redirect(LEADS_THANKS, false) : json(200, { ok: true, status: shownStatus, serviced, installers, lead_id: leadId, verify });
 }
 
 /** POST /api/data-requests: JSON 200/400/502; form posts 303 -> /privacy/request/thanks (or ?error=1). Anon key (insert-only). */

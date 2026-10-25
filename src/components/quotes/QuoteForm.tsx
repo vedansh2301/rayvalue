@@ -17,6 +17,7 @@ import type { State } from '../../data/schemas';
 import { stateByPrefix } from '../../lib/calculator/zip';
 import { SUBMIT_LABEL, consentFor, splitAtPrivacyPolicy } from '../../lib/leads/consent';
 import { loadTrustedForm, trustedFormEnabled, TRUSTEDFORM_FIELD } from '../../lib/leads/consent-vendor';
+import { readAttribution } from '../../lib/attribution';
 import { fetchQuoteConfig, fetchServiced, lastFour, type ClientQuoteConfig, type Serviced } from '../../lib/leads/client';
 import {
   BATTERY_INTERESTS,
@@ -321,7 +322,7 @@ export default function QuoteForm(p: Props) {
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ ...f, consent_installers: installers, page_url: `${window.location.origin}${window.location.pathname}`, [TRUSTEDFORM_FIELD]: cert }),
+        body: JSON.stringify({ ...f, attribution: readAttribution(), consent_installers: installers, page_url: `${window.location.origin}${window.location.pathname}`, [TRUSTEDFORM_FIELD]: cert }),
       });
       const body = (await res.json().catch(() => null)) as ApiReply | null;
       setSending(false);

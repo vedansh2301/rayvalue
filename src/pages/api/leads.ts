@@ -18,6 +18,12 @@ export const POST: APIRoute = ({ request }) =>
       TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
       TWILIO_VERIFY_SERVICE_SID: process.env.TWILIO_VERIFY_SERVICE_SID,
       LEAD_SIGNING_SECRET: process.env.LEAD_SIGNING_SECRET,
+      // Optional owner alerts + email delivery/fallback (needs RESEND_API_KEY and EMAIL_FROM too).
+      RESEND_API_KEY: process.env.RESEND_API_KEY,
+      EMAIL_FROM: process.env.EMAIL_FROM,
+      OWNER_EMAIL: process.env.OWNER_EMAIL,
+      // Env-var NAMES stored on buyer rows (delivery targets, webhook secrets) are resolved from here.
+      secrets: process.env,
     },
     fetch,
     ['https://rayvalue.com', 'https://www.rayvalue.com'],
