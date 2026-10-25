@@ -7,8 +7,8 @@
  * is loaded on first ZIP check (zip.ts) and the calc engine + fallback (engine.ts, no ZIP
  * tables) when an estimate is run; both via dynamic import(). The other state's table is never loaded.
  */
+import type { ComponentChildren, TargetedSubmitEvent } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import type { TargetedSubmitEvent } from 'preact';
 import type { BatteryCount, CalcResult, CalcSuccess, Shading } from '../../lib/calc/types';
 import { displayPayback, displayRange, formatKw, formatSignedUsd, type RangeDisplay } from '../../lib/calculator/display';
 import { trackEvent } from '../../lib/track';
@@ -85,7 +85,7 @@ const inputCls =
 
 const focusField = (s: Step) => document.getElementById(FIELD_IDS[s])?.focus();
 
-export default function Calculator(props: CalculatorProps & { alertsEnabled: boolean }) {
+export default function Calculator(props: CalculatorProps & { alertsEnabled: boolean; children?: ComponentChildren }) {
   const { state, utilities, costs, assumptions, fallbackCities, fallbackProduction, alertsEnabled } = props;
   const maxBill = assumptions.max_monthly_bill.value;
   const stateName = STATE_NAMES[state];
@@ -324,10 +324,12 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
   const pendingResult = outcome?.kind === 'result' && !outcome.result.ok && outcome.result.reason === 'missing_data';
   /** The quote card goes in the right rail from lg up (and stays inline under the headline numbers below that). */
   const hasLead = Boolean(ranInputs && outcome && (okResult || pendingResult));
+  /** Before the first estimate the page passes an intro panel (photo, steps, trust); it sits left of the form from lg, like /quotes. */
+  const intro = !ranInputs && props.children ? props.children : null;
 
   return (
-    <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_21.25rem] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-6">
-      <div class="min-w-0 lg:col-start-1">
+    <div class={intro ? 'lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-x-10' : 'lg:grid lg:grid-cols-[minmax(0,1fr)_21.25rem] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-6'}>
+      <div class={`min-w-0 ${intro ? 'lg:col-start-2 lg:row-start-1' : 'lg:col-start-1'}`}>
       {collapsed && ranInputs ? (
         <InputSummary
           parts={answerSummaryParts({ zip: ranInputs.zip, utilityName: ranInputs.utilityId === UNLISTED_UTILITY ? null : utilityName(ranInputs.utilityId) || null, bill: ranInputs.bill, battery: ranInputs.battery, shading: ranInputs.shading })}
@@ -559,6 +561,10 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
         >
           {leadCard(okResult ? estimateSnapshot(okResult) : null, !okResult)}
         </div>
+      ) : intro ? (
+        <aside aria-label="How the calculator works" class="mt-6 lg:sticky lg:top-6 lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-start">
+          {intro}
+        </aside>
       ) : (
         <aside aria-label="What you will get" class="hidden lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:block lg:self-start">
           <RailInfo />
