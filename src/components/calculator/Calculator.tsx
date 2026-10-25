@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren, TargetedSubmitEvent } from 'preact';
 import type { BatteryCount, CalcResult, CalcSuccess, Shading } from '../../lib/calc/types';
 import { displayPayback, displayRange, formatKw, formatSignedUsd, type RangeDisplay } from '../../lib/calculator/display';
+import { trackEvent } from '../../lib/track';
 import { CALCULATOR_PATHS, STATE_NAMES, UNLISTED_UTILITY, inputsKey, joinNames, parseBill, resultsStale, utilityChoice } from '../../lib/calculator/form';
 import type { CalculatorProps } from '../../lib/calculator/page-data';
 import { createRunGuard } from '../../lib/calculator/run-guard';
@@ -99,6 +100,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
   const [ranWith, setRanWith] = useState<string | null>(null);
   /** After a successful estimate the form collapses to a summary of the answers it ran with. */
   const [collapsed, setCollapsed] = useState(false);
+  const started = useRef(false);
   const [ranInputs, setRanInputs] = useState<RunInput | null>(null);
   const utilityIds = utilities.map((u) => u.id);
   const choice = utilityChoice(utilityId, utilityIds);
@@ -209,6 +211,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
         );
         next = { kind: 'result', result, fallbackCity: prod.source === 'fallback' ? prod.cityName : null };
         if (result.ok) {
+          trackEvent('calc_complete', { state, battery: i.battery, shading: i.shading });
           const qs = serializeShareParams({ zip: i.zip, utility: i.utilityId, bill: i.bill, battery: i.battery, shading: i.shading });
           window.history.replaceState(null, '', `${window.location.pathname}${qs}`);
         }
@@ -227,11 +230,21 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     setBusy(false);
   }
 
+  /** calc_start: once per page view, on the first focus inside the form (no field values). */
+  function onFirstFocus() {
+    if (started.current) return;
+    started.current = true;
+    trackEvent('calc_start', { state });
+  }
+
   async function onSubmit(e: TargetedSubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (busy) return;
     if (step !== 4) {
-      if (await validateStep(step)) goTo(NEXT[step]);
+      if (await validateStep(step)) {
+        trackEvent('calc_step', { state, step: NEXT[step] });
+        goTo(NEXT[step]);
+      }
       else focusField(step);
       return;
     }
@@ -304,7 +317,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
           onEdit={editAnswers}
         />
       ) : (
-      <form onSubmit={onSubmit} noValidate class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+      <form onSubmit={onSubmit} onFocusIn={onFirstFocus} noValidate class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
         {/* Disabled while an estimate runs, so inputs cannot change under it. */}
         <fieldset disabled={busy} class="min-w-0">
         <ol class="flex gap-2" aria-label="Progress">

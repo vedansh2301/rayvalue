@@ -6,9 +6,26 @@ import VercelAnalytics from '@vercel/analytics/astro';
   // Must run before the analytics component: it reads window.webAnalyticsBeforeSend when it injects.
   // Strips query strings (shared calculator links contain the ZIP code and bill) from every event.
   import { beforeSend } from '../lib/analytics';
+  import { isEventName } from '../lib/events';
+  import { initAdTags } from '../lib/ads/adapter';
+  import { anyAdTagEnabled, parseAdIds } from '../lib/ads/config';
+  import { trackEvent } from '../lib/track';
   type Va = (cmd: string, fn: unknown) => void;
   const w = window as unknown as { webAnalyticsBeforeSend?: unknown; va?: Va };
   w.webAnalyticsBeforeSend = beforeSend;
   w.va?.('beforeSend', beforeSend); // in case the analytics script initialized first
+
+  // Optional GA4 / Google Ads / Meta pixel: OFF unless an ID env var is set at build time (see docs/LAUNCH.md).
+  const ids = parseAdIds(import.meta.env);
+  if (anyAdTagEnabled(ids)) initAdTags(ids);
+
+  // Funnel events for static markup: [data-track="<event>"] (+ data-track-state / data-track-placement), and tel: links.
+  document.addEventListener('click', (e) => {
+    const el = e.target instanceof Element ? e.target.closest<HTMLElement>('[data-track], a[href^="tel:"]') : null;
+    if (!el) return;
+    const name = el.dataset.track ?? 'call_click';
+    if (!isEventName(name)) return;
+    trackEvent(name, { state: el.dataset.trackState, placement: el.dataset.trackPlacement });
+  });
 </script>
 <VercelAnalytics />

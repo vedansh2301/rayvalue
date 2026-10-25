@@ -70,4 +70,4 @@ After editing:
 
 ## Placeholder copy
 
-Text the owner must write is marked `TODO:`. Find it with `grep -r "TODO:" src`.
+Text the owner must write is marked `OWNER:` (pages) or `TODO:` (draft guides/blog), and `{{PLACEHOLDER}}` fields on /about. Find it with `grep -rE "OWNER:|TODO:|\{\{[A-Z_]+\}\}" src`.

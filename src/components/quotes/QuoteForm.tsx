@@ -5,13 +5,13 @@
  *
  * Owner: legal review of the consent text (src/lib/leads/consent.ts) before paid traffic.
  */
-import { track } from '@vercel/analytics';
 import type { TargetedSubmitEvent } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { State } from '../../data/schemas';
 import { CONSENT_LEAD } from '../../lib/leads/consent';
 import type { EstimateSnapshot, FieldErrors, LeadField } from '../../lib/leads/validate';
 import { PHONE_ERROR, TIMELINES, TIMELINE_LABELS, normalizePhone, validateLead } from '../../lib/leads/validate';
+import { trackEvent } from '../../lib/track';
 import { btnPrimary, btnText } from '../ui/buttons';
 
 /** Calculator answers sent along with a lead from the results card. */
@@ -61,6 +61,7 @@ export default function QuoteForm(p: Props) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<Status>('idle');
   const [doneName, setDoneName] = useState('');
+  const started = useRef(false);
   const doneRef = useRef<HTMLParagraphElement>(null);
   const fid = (f: string) => `${p.id}-${f}`;
   // A locked ZIP (results card) always follows the prop: the card stays mounted when the estimate is re-run
@@ -123,6 +124,13 @@ export default function QuoteForm(p: Props) {
     setErrors((e) => ({ ...e, phone: normalizePhone(phone) ? undefined : PHONE_ERROR }));
   }
 
+  /** quote_form_start: once per page view, on the first focus inside the form (no field values). */
+  function onFirstFocus() {
+    if (started.current) return;
+    started.current = true;
+    trackEvent('quote_form_start', { source: source.startsWith('city:') ? 'city' : source, state });
+  }
+
   async function onSubmit(e: TargetedSubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (status === 'sending') return;
@@ -138,7 +146,7 @@ export default function QuoteForm(p: Props) {
       if (res.ok && body?.ok) {
         setDoneName(v.lead.first_name);
         setStatus('done');
-        track('lead_submitted', { source: v.lead.source.startsWith('city:') ? 'city' : v.lead.source, state: v.lead.state });
+        trackEvent('quote_submit', { source: v.lead.source.startsWith('city:') ? 'city' : v.lead.source, state: v.lead.state });
         return;
       }
       if (res.status === 400 && body?.fieldErrors && Object.keys(body.fieldErrors).some((k) => k !== 'form')) {
@@ -169,7 +177,7 @@ export default function QuoteForm(p: Props) {
   const sending = status === 'sending';
 
   return (
-    <form method="post" action="/api/leads" noValidate onSubmit={onSubmit} class="space-y-4">
+    <form method="post" action="/api/leads" noValidate onSubmit={onSubmit} onFocusIn={onFirstFocus} class="space-y-4">
       <fieldset disabled={sending} class="min-w-0 space-y-4">
         {/* Honeypot: hidden from people and assistive tech; bots fill it in. */}
         <div class="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">

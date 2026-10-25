@@ -9,6 +9,7 @@ import { loadEnv } from 'vite';
 import { guideFlags, excludedGuideUrls, excludedCollectionUrls } from './src/lib/seo/guide-flags.ts';
 import { getPublishedCityUrls } from './src/lib/seo/sitemap-cities.ts';
 import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
+import { adCspSources, parseAdIds } from './src/lib/ads/config.ts';
 
 // Server code reads secrets from process.env at request time (never import.meta.env, which Vite inlines
 // into the function bundle). Under `astro dev`, load .env.local (from `vercel env pull`) into process.env.
@@ -33,6 +34,15 @@ const cityUrls = await getPublishedCityUrls({
   key: process.env.SUPABASE_PUBLISHABLE_KEY || dbEnv.SUPABASE_PUBLISHABLE_KEY,
 });
 
+// Optional ad/measurement tags (GA4, Google Ads, Meta pixel): OFF unless an ID env var is set. Their third-party
+// origins are added to the CSP only then. Enabling also needs the CLAUDE.md rule-7 amendment, the privacy policy,
+// a consent banner and the matching change to the static CSP in vercel.json (see docs/LAUNCH.md).
+const ads = adCspSources(parseAdIds({
+  PUBLIC_GA4_ID: process.env.PUBLIC_GA4_ID || dbEnv.PUBLIC_GA4_ID,
+  PUBLIC_GOOGLE_ADS_ID: process.env.PUBLIC_GOOGLE_ADS_ID || dbEnv.PUBLIC_GOOGLE_ADS_ID,
+  PUBLIC_META_PIXEL_ID: process.env.PUBLIC_META_PIXEL_ID || dbEnv.PUBLIC_META_PIXEL_ID,
+}));
+
 // noindex utility pages (confirmations, privacy request form).
 const NOINDEX_UTILITY_PAGES = new Set(['/alerts/thanks', '/quotes/thanks', '/privacy/request', '/privacy/request/thanks']);
 
@@ -45,14 +55,15 @@ export default defineConfig({
   security: {
     csp: {
       directives: [
-        "connect-src 'self'",
-        "img-src 'self' data:",
+        ['connect-src', "'self'", ...ads.connect].join(' '),
+        ['img-src', "'self'", 'data:', ...ads.img].join(' '),
         "font-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
         "frame-ancestors 'none'",
       ],
+      ...(ads.script.length ? { scriptDirective: { resources: ["'self'", ...ads.script] } } : {}),
     },
   },
   // Shiki emits inline styles, which the hashed CSP blocks; guides have no code blocks, so no highlighting.

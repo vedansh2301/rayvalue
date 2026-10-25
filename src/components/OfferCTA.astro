@@ -5,8 +5,10 @@ import type { Offer } from '../data/schemas';
 
 interface Props {
   offer: Offer | null;
+  /** For the results_cta_click event (state only, no personal data). */
+  state?: 'FL' | 'CA';
 }
-const { offer } = Astro.props;
+const { offer, state } = Astro.props;
 const show = offer && offer.active && offer.url;
 ---
 {show && (
@@ -16,6 +18,9 @@ const show = offer && offer.active && offer.url;
     <a
       href={offer.url}
       rel="sponsored noopener"
+      data-track="results_cta_click"
+      data-track-placement="offer"
+      data-track-state={state}
       target="_blank"
       class="mt-4 inline-flex min-h-11 items-center rounded-lg bg-sun-400 px-5 py-2.5 font-semibold text-stone-900 hover:bg-sun-500"
     >
