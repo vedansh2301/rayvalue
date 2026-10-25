@@ -91,3 +91,17 @@ export async function adminUpdate(env: AdminEnv, table: string, filter: Record<s
     return null;
   }
 }
+
+const PAGE_SIZE = 1000;
+
+/** SELECT every matching row, paging with limit/offset (Supabase returns at most 1000 rows per request). null on failure. */
+export async function adminSelectAll<T>(env: AdminEnv, table: string, params: Record<string, string>, fetchImpl: typeof fetch, maxPages = 20): Promise<T[] | null> {
+  const out: T[] = [];
+  for (let page = 0; page < maxPages; page++) {
+    const rows = await adminSelect<T>(env, table, { ...params, limit: String(PAGE_SIZE), offset: String(page * PAGE_SIZE) }, fetchImpl);
+    if (rows === null) return null;
+    out.push(...rows);
+    if (rows.length < PAGE_SIZE) break;
+  }
+  return out;
+}

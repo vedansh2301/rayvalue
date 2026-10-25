@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { applyUnsubscribe } from '../lib/server/unsubscribe';
+
+// Opening the link from a nurture email unsubscribes that address right away (no login). One-click POSTs from mail
+// clients (RFC 8058) do the same. Not indexed, not in the sitemap.
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+Astro.response.headers.set('Referrer-Policy', 'no-referrer');
+
+const env = { SUPABASE_URL: process.env.SUPABASE_URL, SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY, UNSUBSCRIBE_SECRET: process.env.UNSUBSCRIBE_SECRET };
+const token = new URL(Astro.request.url).searchParams.get('t');
+const result = await applyUnsubscribe(env, token);
+if (Astro.request.method === 'POST') {
+  return new Response(result === 'ok' ? 'Unsubscribed' : 'Could not unsubscribe', { status: result === 'ok' ? 200 : result === 'invalid' ? 400 : 502, headers: { 'Cache-Control': 'no-store' } });
+}
+if (result === 'error') Astro.response.status = 502;
+else if (result === 'invalid') Astro.response.status = 400;
+---
+<BaseLayout title="Unsubscribe" description="Stop RayValue emails." path="/unsubscribe" noindex>
+  <div class="shell py-12">
+    <div class="max-w-(--container-prose)">
+      <h1 class="text-3xl font-bold tracking-tight text-stone-900">
+        {result === 'ok' ? 'You are unsubscribed' : result === 'invalid' ? 'This link does not work' : 'Something went wrong'}
+      </h1>
+      {result === 'ok' && <p class="mt-4 leading-7 text-stone-700">We will not send you any more RayValue emails. If you already asked installers to contact you, tell them directly to stop, or use our <a href="/privacy/request" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">privacy request form</a> to delete your data or opt out of sale or sharing.</p>}
+      {result === 'invalid' && <p class="mt-4 leading-7 text-stone-700">The link may be incomplete. Use our <a href="/privacy/request" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">privacy request form</a> to opt out and we will handle it.</p>}
+      {result === 'error' && <p class="mt-4 leading-7 text-stone-700">We could not save your request. Please try the link again in a minute, or use our <a href="/privacy/request" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">privacy request form</a>.</p>}
+    </div>
+  </div>
+</BaseLayout>

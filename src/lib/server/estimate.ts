@@ -9,10 +9,12 @@ import { normalizeEmail, parseSnapshot } from '../leads/validate';
 import { STATE_NAMES } from '../calculator/form';
 import { adminInsert, adminUpdate, type AdminEnv } from './admin-db';
 import { buildEstimateEmail, sendEmail, type EmailEnv } from './email';
+import { MIN_SECRET_LENGTH, signUnsubscribeToken, unsubscribeUrl } from './unsubscribe';
 import { clientIp, json, readBody } from './http';
 import { isSameOrigin } from './subscribe';
 
-export type EstimateEnv = AdminEnv & EmailEnv;
+/** NURTURE_MAILING_ADDRESS + UNSUBSCRIBE_SECRET add an unsubscribe link and the mailing address to the estimate email. */
+export type EstimateEnv = AdminEnv & EmailEnv & { NURTURE_MAILING_ADDRESS?: string; UNSUBSCRIBE_SECRET?: string; SITE_URL?: string };
 
 const SOURCE_RE = /^(results|quotes_page|renter)$/;
 const truthy = (v: unknown) => v === true || v === 'on' || v === 'true' || v === 'yes';
@@ -52,7 +54,12 @@ export async function handleEstimateEmail(request: Request, env: EstimateEnv, fe
   );
   if (!saved || 'conflict' in saved) return json(502, { ok: false, error: 'Something went wrong — please try again.' });
 
-  const msg = buildEstimateEmail(email!, snapshot, state ? STATE_NAMES[state] : null);
+  const site = (env.SITE_URL || 'https://rayvalue.com').replace(/\/+$/, '');
+  const footer =
+    env.NURTURE_MAILING_ADDRESS?.trim() && env.UNSUBSCRIBE_SECRET && env.UNSUBSCRIBE_SECRET.length >= MIN_SECRET_LENGTH
+      ? { unsubscribeUrl: unsubscribeUrl(site, signUnsubscribeToken('e', saved.row.id, env.UNSUBSCRIBE_SECRET)), mailingAddress: env.NURTURE_MAILING_ADDRESS.trim() }
+      : null;
+  const msg = buildEstimateEmail(email!, snapshot, state ? STATE_NAMES[state] : null, site, footer);
   const result = msg ? await sendEmail(env, msg, fetchImpl) : 'disabled';
   const emailStatus = !msg ? 'skipped' : result === 'sent' ? 'sent' : result === 'failed' ? 'failed' : 'pending';
   if (emailStatus !== 'pending') await adminUpdate(env, 'estimate_requests', { id: `eq.${saved.row.id}` }, { email_status: emailStatus }, fetchImpl);
