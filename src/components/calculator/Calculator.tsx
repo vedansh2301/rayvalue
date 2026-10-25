@@ -85,7 +85,7 @@ const inputCls =
 
 const focusField = (s: Step) => document.getElementById(FIELD_IDS[s])?.focus();
 
-export default function Calculator(props: CalculatorProps & { alertsEnabled: boolean; children?: ComponentChildren }) {
+export default function Calculator(props: CalculatorProps & { alertsEnabled: boolean; children?: ComponentChildren; below?: ComponentChildren }) {
   const { state, utilities, costs, assumptions, fallbackCities, fallbackProduction, alertsEnabled } = props;
   const maxBill = assumptions.max_monthly_bill.value;
   const stateName = STATE_NAMES[state];
@@ -324,11 +324,12 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
   const pendingResult = outcome?.kind === 'result' && !outcome.result.ok && outcome.result.reason === 'missing_data';
   /** The quote card goes in the right rail from lg up (and stays inline under the headline numbers below that). */
   const hasLead = Boolean(ranInputs && outcome && (okResult || pendingResult));
-  /** Before the first estimate the page passes an intro panel (photo, steps, trust); it sits left of the form from lg, like /quotes. */
+  /** Before the first estimate the page passes a photo (left column from lg, stretched to the form column's height,
+   *  like /quotes) and `below` (steps and trust lines, under the form). */
   const intro = !ranInputs && props.children ? props.children : null;
 
   return (
-    <div class={intro ? 'lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-x-10' : 'lg:grid lg:grid-cols-[minmax(0,1fr)_21.25rem] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-6'}>
+    <div class={intro ? 'lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-stretch lg:gap-x-10' : 'lg:grid lg:grid-cols-[minmax(0,1fr)_21.25rem] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-6'}>
       <div class={`min-w-0 ${intro ? 'lg:col-start-2 lg:row-start-1' : 'lg:col-start-1'}`}>
       {collapsed && ranInputs ? (
         <InputSummary
@@ -518,6 +519,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
         </fieldset>
       </form>
       )}
+      {intro && props.below && <div class="mt-6">{props.below}</div>}
 
       <div aria-live="polite" class="sr-only">
         {busy ? 'Calculating your estimate…' : ''}
@@ -562,9 +564,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
           {leadCard(okResult ? estimateSnapshot(okResult) : null, !okResult)}
         </div>
       ) : intro ? (
-        <aside aria-label="How the calculator works" class="mt-6 lg:sticky lg:top-6 lg:col-start-1 lg:row-start-1 lg:mt-0 lg:self-start">
-          {intro}
-        </aside>
+        <div class="hidden lg:col-start-1 lg:row-start-1 lg:block">{intro}</div>
       ) : (
         <aside aria-label="What you will get" class="hidden lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:block lg:self-start">
           <RailInfo />
