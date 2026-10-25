@@ -30,12 +30,12 @@ const checklist = [
         <ul id="ty-installers" class="list-disc pl-6"></ul>
         <p id="ty-nurture" hidden>You said you&rsquo;re just researching, so we&rsquo;ve marked your request as early-stage.</p>
         {RESPONSE_WINDOW && <p>Expect to hear from them {RESPONSE_WINDOW}.</p>}
-        <p id="ty-unverified" hidden>Tip: installers can reach you faster if your mobile number is correct. Reply to any installer message with STOP to opt out.</p>
+        <p id="ty-unverified" hidden>Installers will call or text the number you gave. If it was mistyped, submit the form again with the right number.</p>
       </section>
 
       <section id="ty-unserviced" hidden>
         <h2>What happens next</h2>
-        <p>We don&rsquo;t have installers near you yet &mdash; we&rsquo;ll email you when we do. Your details are saved only for that.</p>
+        <p><span id="ty-unserviced-lead">We don&rsquo;t have installers near you yet &mdash; we&rsquo;ll email you when we do.</span> <span id="ty-unserviced-zip" hidden></span> Your details are saved only for that.</p>
       </section>
 
       <section id="ty-generic">
@@ -85,6 +85,12 @@ const checklist = [
         $('ty-generic')!.hidden = true;
         if (s.status === 'unserviced' || !s.serviced) {
           $('ty-unserviced')!.hidden = false;
+          if (s.zip) {
+            $('ty-unserviced-lead')!.textContent = `We don’t have installers near ${s.zip} yet.`;
+            const z = $('ty-unserviced-zip')!;
+            z.textContent = `We’ll match you as soon as an installer covers ${s.zip}.`;
+            z.hidden = false;
+          }
         } else {
           $('ty-serviced')!.hidden = false;
           const list = $('ty-installers')!;
@@ -94,7 +100,7 @@ const checklist = [
             list.appendChild(li);
           }
           if (s.status === 'nurture') $('ty-nurture')!.hidden = false;
-          if (!s.phoneVerified) $('ty-unverified')!.hidden = false;
+          if (!s.phoneVerified && s.otpOffered) $('ty-unverified')!.hidden = false;
         }
         if (!s.tracked) {
           trackEvent('quote_submit', { source: s.source, state: s.state });

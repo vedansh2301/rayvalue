@@ -7,7 +7,7 @@
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { State } from '../../data/schemas';
-import { fetchQuoteConfig, type ClientQuoteConfig } from '../../lib/leads/client';
+import { fetchQuoteConfig, fetchServiced, type ClientQuoteConfig } from '../../lib/leads/client';
 import { estimateChip } from '../../lib/leads/snapshot';
 import Icon from '../icons/Icon';
 import { isStaffedNow } from '../../lib/leads/hours';
@@ -23,6 +23,8 @@ interface Props {
   context: QuoteContext;
   /** Rates are still being verified: there is no estimate to email. */
   pending: boolean;
+  /** Tells the page when the fixed bottom bar shows, so the page can leave room for it at its end. */
+  onStickyChange?: (shown: boolean) => void;
 }
 
 export default function ResultsActions(p: Props) {
@@ -30,6 +32,8 @@ export default function ResultsActions(p: Props) {
   const [primaryVisible, setPrimaryVisible] = useState(true);
   const [footerVisible, setFooterVisible] = useState(false);
   const [config, setConfig] = useState<ClientQuoteConfig | null>(null);
+  /** null until the lookup answers (or if it fails): treated as served. */
+  const [serviced, setServiced] = useState<boolean | null>(null);
   const [now, setNow] = useState(() => new Date());
   const primaryRef = useRef<HTMLElement>(null);
 
@@ -43,6 +47,14 @@ export default function ResultsActions(p: Props) {
       clearInterval(t);
     };
   }, [p.state]);
+
+  useEffect(() => {
+    let live = true;
+    void fetchServiced(p.zip).then((r) => live && r && setServiced(r.serviced));
+    return () => {
+      live = false;
+    };
+  }, [p.zip]);
 
   // The sticky bar hides while the primary card or the footer is on screen, so it never covers them.
   useEffect(() => {
@@ -69,29 +81,34 @@ export default function ResultsActions(p: Props) {
   }
 
   const call = config?.call && isStaffedNow(now, config.call.hours) ? config.call : null;
+  const waitlist = serviced === false;
   const showSticky = !open && !primaryVisible && !footerVisible;
+  useEffect(() => {
+    p.onStickyChange?.(showSticky);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSticky]);
 
   return (
     <div class="mt-6 space-y-4">
       {/* 1. Primary */}
       <section ref={primaryRef} aria-labelledby="calc-quote-heading" class="scroll-mt-4 rounded-2xl border-2 border-sun-400 bg-sun-50 p-5 sm:p-6">
         <h3 id="calc-quote-heading" class="text-xl font-bold tracking-tight text-stone-900">
-          Next step: real prices
+          {waitlist ? `Get notified when installers cover ${p.zip}` : 'Next step: real prices'}
         </h3>
-        <QuoteBridge chip={estimateChip(p.context.snapshot)} />
+        {waitlist ? <EstimateChip chip={estimateChip(p.context.snapshot)} /> : <QuoteBridge chip={estimateChip(p.context.snapshot)} />}
         {p.pending && <p class="mt-1 text-stone-700">We&rsquo;re still verifying rates &mdash; installers can still quote your home.</p>}
         {!open ? (
           <>
             <div class="mt-3">
               <button type="button" class={`${btnPrimary} w-full sm:w-auto`} aria-expanded="false" aria-controls="calc-quote-form" onClick={() => openForm('primary')}>
-                Get real installer prices for this system
+                {waitlist ? 'Join the installer waitlist' : 'Get real installer prices for this system'}
               </button>
             </div>
-            <p class="mt-2 text-stone-700">Free, no obligation. Up to 3 local installers. We only share your details with installers you agree to.</p>
+            <p class="mt-2 text-stone-700">{waitlist ? FREE_LINE_WAITLIST : FREE_LINE}</p>
           </>
         ) : (
           <div id="calc-quote-form" class="mt-3">
-            <p class="mb-4 text-stone-700">Free, no obligation. Up to 3 local installers. We only share your details with installers you agree to.</p>
+            <p class="mb-4 text-stone-700">{waitlist ? FREE_LINE_WAITLIST : FREE_LINE}</p>
             <QuoteForm id="calc-quote" source="results" pagePath={p.pagePath} state={p.state} zip={p.zip} context={p.context} autoFocus />
           </div>
         )}
@@ -121,12 +138,19 @@ export default function ResultsActions(p: Props) {
       {showSticky && (
         <div class="fixed inset-x-0 bottom-0 z-40 border-t border-stone-300 bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] sm:hidden">
           <button type="button" class={`${btnPrimary} w-full`} onClick={() => openForm('sticky')}>
-            Get real installer prices
+            {waitlist ? 'Join the installer waitlist' : 'Get real installer prices'}
           </button>
         </div>
       )}
     </div>
   );
+}
+
+const FREE_LINE = 'Free, no obligation. Up to 3 local installers. We only share your details with installers you agree to.';
+const FREE_LINE_WAITLIST = 'Free, no obligation. We only share your details with installers you agree to.';
+
+function EstimateChip({ chip }: { chip: string | null }) {
+  return chip ? <p class="mt-3 inline-block rounded-full border border-sun-500 bg-white px-3 py-1.5 text-sm font-semibold text-stone-900">{chip}</p> : null;
 }
 
 /** What happens next: share the estimate, up to 3 local installers, compare. Vertical list on mobile. */

@@ -25,10 +25,11 @@ const ld = articleJsonLd({
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.data.title }]} />
     <h1>{guide.data.title}</h1>
     <p class="text-sm text-stone-700">Updated {guide.data.updated.toISOString().slice(0, 10)}</p>
+    <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="top" />
     <div class="prose-guide mt-4 space-y-4">
       <Content />
     </div>
-    <GuideCalculatorLinks state={guide.data.state} />
+    <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="end" />
     <section class="mt-8" aria-labelledby="sources">
       <h2 id="sources">Sources</h2>
       <ul class="list-disc pl-5">

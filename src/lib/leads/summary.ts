@@ -13,12 +13,16 @@ export interface LeadSummary {
   source: string;
   /** quote_submit already fired for this submission. */
   tracked: boolean;
+  /** The SMS code step was offered (so the thank-you page can tell "skipped" from "never offered"). */
+  otpOffered?: boolean;
+  /** The ZIP they submitted (for the "installers cover {zip}" copy). Empty when unknown. */
+  zip?: string;
 }
 
 export const SUMMARY_KEY = 'rv_lead_summary';
 
 /** Event-property form of a lead source: all city pages share one label. */
-export const eventSource = (source: string): string => (source.startsWith('city:') ? 'city' : source);
+export const eventSource = (source: string): string => (source.startsWith('city:') ? 'city' : source.startsWith('blog:') ? 'blog' : source.startsWith('guide:') ? 'guide' : source);
 
 const STATUSES = ['new', 'unserviced', 'nurture'] as const;
 
@@ -45,6 +49,8 @@ export function parseSummary(raw: unknown): LeadSummary | null {
     state: o.state,
     source: typeof o.source === 'string' ? o.source.slice(0, 100) : 'quotes_page',
     tracked: o.tracked === true,
+    otpOffered: o.otpOffered === true,
+    zip: typeof o.zip === 'string' && /^\d{5}$/.test(o.zip) ? o.zip : '',
   };
 }
 

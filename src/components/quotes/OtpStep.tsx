@@ -99,6 +99,13 @@ export default function OtpStep(p: Props) {
       <p role="status" class="text-stone-800">
         {message}
       </p>
+      <form
+        class="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void check();
+        }}
+      >
       <div>
         <label for={`${p.id}-otp`} class="block font-medium text-stone-900">
           6-digit code
@@ -122,7 +129,7 @@ export default function OtpStep(p: Props) {
         )}
       </div>
       <div class="flex flex-wrap items-center gap-3">
-        <button type="button" class={btnPrimary} onClick={check} disabled={busy || sends === 0}>
+        <button type="submit" class={btnPrimary} disabled={busy || sends === 0}>
           {busy ? 'Checking…' : 'Confirm number'}
         </button>
         <button type="button" class={btnSecondary} onClick={send} disabled={!canResend}>
@@ -132,6 +139,7 @@ export default function OtpStep(p: Props) {
           Skip for now
         </button>
       </div>
+      </form>
       <p class="text-sm text-stone-600">Message and data rates may apply. You can ask for up to {MAX_SENDS} codes.</p>
     </div>
   );

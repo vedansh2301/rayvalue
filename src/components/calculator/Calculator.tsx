@@ -105,6 +105,8 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
   /** After a successful estimate the form collapses to a summary of the answers it ran with. */
   const [collapsed, setCollapsed] = useState(false);
   const started = useRef(false);
+  /** The phone-only sticky quote bar is showing: the results end with room for it. */
+  const [stickyShown, setStickyShown] = useState(false);
   const [ranInputs, setRanInputs] = useState<RunInput | null>(null);
   const utilityIds = utilities.map((u) => u.id);
   const choice = utilityChoice(utilityId, utilityIds);
@@ -124,7 +126,12 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     focusStep.current = null;
   }, [step, collapsed]);
   useEffect(() => {
-    if (focusResults.current) resultsRef.current?.focus();
+    if (focusResults.current && resultsRef.current) {
+      // Focus without the browser's own jump, then scroll so the headline numbers sit under the heading.
+      resultsRef.current.focus({ preventScroll: true });
+      const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      resultsRef.current.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    }
     focusResults.current = false;
   }, [outcome]);
 
@@ -295,6 +302,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     }
   }
 
+  const quotesHref = `/quotes?state=${state}${/^\d{5}$/.test(zip.trim()) ? `&zip=${zip.trim()}` : ''}`;
   const zipErr = errors.zip;
   const stepTitle = STEPS.find((s) => s.n === step)!.label;
 
@@ -306,6 +314,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
         zip={ranInputs.zip}
         state={state}
         pending={pending}
+        onStickyChange={setStickyShown}
         pagePath={CALCULATOR_PATHS[state]}
         context={{ utilityId: ranInputs.utilityId, bill: ranInputs.bill, battery: ranInputs.battery, shading: ranInputs.shading, snapshot }}
       />
@@ -416,6 +425,12 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
                     The {stateName} calculator currently covers {joinNames(utilities.map((u) => u.name))}. Municipal utilities and electric
                     cooperatives aren&rsquo;t covered yet, so we can&rsquo;t estimate savings for them.
                   </p>
+                  <p class="mt-3">
+                    <a href={quotesHref} class={btnPrimary}>
+                      Get installer quotes anyway
+                    </a>
+                  </p>
+                  <p class="mt-2 text-sm text-stone-700">Installers may still serve your home even though we can&rsquo;t estimate savings for your utility.</p>
                   {alertsEnabled && (
                     <p class="mt-2">
                       <a href="#alerts" class="text-sun-ink underline underline-offset-2">
@@ -502,7 +517,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
 
       {outcome && (
         <section aria-labelledby="calc-results-heading" class="mt-8 rounded-2xl motion-safe:animate-fade-in border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
-          <h2 ref={resultsRef} id="calc-results-heading" tabIndex={-1} class="text-2xl font-bold tracking-tight text-stone-900 focus:outline-none">
+          <h2 ref={resultsRef} id="calc-results-heading" tabIndex={-1} class="scroll-mt-4 text-2xl font-bold tracking-tight text-stone-900 focus:outline-none">
             Your solar estimate
           </h2>
           {stale && (
@@ -537,6 +552,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
               state={state}
               assumptions={assumptions}
               batteries={ranInputs?.battery ?? 0}
+              stickySpacer={stickyShown}
             />
           )}
         </section>
@@ -614,42 +630,22 @@ function InputSummary(p: { parts: string[]; onEdit: () => void }) {
   );
 }
 
-type MetricVariant = 'hero' | 'standard' | 'compact';
+type MetricVariant = 'hero' | 'standard';
 
+/** One card family: same radius and padding; the two headline numbers (payback, net savings) get a stronger border and larger value. */
 const METRIC_CARD: Record<MetricVariant, string> = {
-  hero: 'rounded-xl border-2 border-sun-300 bg-white p-5',
+  hero: 'rounded-xl border-2 border-sun-300 bg-white p-4',
   standard: 'rounded-xl border border-stone-200 bg-stone-50 p-4',
-  compact: 'flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 sm:col-span-2',
 };
 
-function Metric(p: { label: string; d: RangeDisplay; note?: string; variant?: MetricVariant }) {
+/** "10.7 kW (9.1 kW to 12.4 kW)": a displayed range as one phrase (formatting only). */
+function rangeText(d: RangeDisplay): string {
+  return d.kind === 'single' ? d.value : `${d.likely} (${d.low} to ${d.high})`;
+}
+
+function Metric(p: { label: string; d: RangeDisplay; note?: string; variant?: MetricVariant; extra?: string }) {
   const variant = p.variant ?? 'standard';
-  if (variant === 'compact') {
-    return (
-      <div class={METRIC_CARD.compact}>
-        <dt class="text-sm font-medium text-stone-700">{p.label}</dt>
-        <dd class="text-base text-stone-900">
-          {p.d.kind === 'single' ? (
-            <span class="font-semibold">{p.d.value}</span>
-          ) : (
-            <>
-              <span class="sr-only">Likely </span>
-              <span class="font-semibold">{p.d.likely}</span>{' '}
-              <span class="text-stone-700">
-                (<span class="sr-only">range </span>
-                {p.d.low}
-                <span aria-hidden="true">&ndash;</span>
-                <span class="sr-only"> to </span>
-                {p.d.high})
-              </span>
-            </>
-          )}
-          {p.note && <span class="mt-1 block text-xs text-stone-600">{p.note}</span>}
-        </dd>
-      </div>
-    );
-  }
-  const value = variant === 'hero' ? 'text-4xl font-bold tracking-tight text-stone-900' : 'text-2xl font-bold text-stone-900';
+  const value = variant === 'hero' ? 'text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl' : 'text-2xl font-bold text-stone-900';
   return (
     <div class={METRIC_CARD[variant]}>
       <dt class="text-sm font-medium text-stone-700">{p.label}</dt>
@@ -671,6 +667,7 @@ function Metric(p: { label: string; d: RangeDisplay; note?: string; variant?: Me
           </>
         )}
         {p.note && <span class="mt-1 block text-xs text-stone-600">{p.note}</span>}
+        {p.extra && <span class="mt-2 block border-t border-stone-200 pt-2 text-sm text-stone-800">{p.extra}</span>}
       </dd>
     </div>
   );
@@ -690,6 +687,8 @@ function Results(p: {
   assumptions: CalculatorProps['assumptions'];
   /** Batteries in the answers these results were run with. */
   batteries: BatteryCount;
+  /** Add room at the end so the fixed bottom bar never covers the last buttons. */
+  stickySpacer: boolean;
 }) {
   const { r } = p;
   const noUsage = r.annualUsageKwh === 0;
@@ -697,6 +696,15 @@ function Results(p: {
   return (
     <div>
       {p.utilityName && <p class="mt-2 text-stone-700">For a home on {p.utilityName}.</p>}
+
+      {!noUsage && (
+        <dl class="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Metric variant="hero" label="Payback" d={displayPayback(r.paybackYears, r.analysisYears)} note="Range runs from shortest (best case) to longest" />
+          <Metric variant="hero" label={`Net savings over ${r.analysisYears} years`} d={displayRange(r.netSavings25, formatSignedUsd)} note="Bill savings minus upfront cost" />
+          <Metric label="Upfront cost" d={displayRange(r.cost, formatUsd)} note="Before any incentives" extra={`System size: ${rangeText(displayRange(r.size, formatKw))}`} />
+          <Metric label="First-year bill savings" d={displayRange(r.year1Savings, formatUsd)} />
+        </dl>
+      )}
 
       <p class="mt-2 flex items-start gap-2 text-sm text-stone-700">
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class="mt-0.5 shrink-0 text-stone-600">
@@ -724,24 +732,9 @@ function Results(p: {
         </div>
       )}
 
-      {!noUsage && (
-        <dl class="mt-6 grid gap-3 sm:grid-cols-2">
-          <Metric variant="hero" label="Payback" d={displayPayback(r.paybackYears, r.analysisYears)} note="Range runs from shortest (best case) to longest" />
-          <Metric variant="hero" label={`Net savings over ${r.analysisYears} years`} d={displayRange(r.netSavings25, formatSignedUsd)} note="Bill savings minus upfront cost" />
-        </dl>
-      )}
-
       {!noUsage && chart && <SavingsChart chart={chart} years={r.analysisYears} />}
 
       {p.leadCard}
-
-      {!noUsage && (
-        <dl class="mt-6 grid gap-3 sm:grid-cols-2">
-          <Metric label="Upfront cost" d={displayRange(r.cost, formatUsd)} note="Before any incentives" />
-          <Metric label="First-year bill savings" d={displayRange(r.year1Savings, formatUsd)} />
-          <Metric variant="compact" label="System size" d={displayRange(r.size, formatKw)} />
-        </dl>
-      )}
 
       {!noUsage && <FinancingPanel r={r} assumptions={p.assumptions} />}
       {p.state === 'FL' && <FlBatteryPanel batteries={p.batteries} />}
@@ -768,6 +761,7 @@ function Results(p: {
           {p.copied === 'ok' ? 'Link copied.' : p.copied === 'fail' ? 'Copy failed. Copy the address from your browser bar instead.' : ''}
         </span>
       </div>
+      {p.stickySpacer && <div class="h-20 sm:hidden" aria-hidden="true" />}
     </div>
   );
 }

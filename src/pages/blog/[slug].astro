@@ -31,10 +31,11 @@ const ld = articleJsonLd({
       Published <time datetime={day(post.data.published)}>{day(post.data.published)}</time>
       {post.data.updated && <> · Updated <time datetime={day(post.data.updated)}>{day(post.data.updated)}</time></>}
     </p>
+    <GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="top" />
     <div class="prose-guide mt-4 space-y-4">
       <Content />
     </div>
-    {post.data.state && <GuideCalculatorLinks state={post.data.state} />}
+    <GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="end" />
     {post.data.sources.length > 0 && (
       <section class="mt-8" aria-labelledby="sources">
         <h2 id="sources">Sources</h2>

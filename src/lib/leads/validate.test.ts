@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanPath, normalizePhone, parseSnapshot, stepOfField, validateContact, validateDataRequest, validateHome, validateLead, validateProject } from './validate';
+import { SOURCE_PARAM_RE, cleanPath, normalizePhone, parseSnapshot, stepOfField, validateContact, validateDataRequest, validateHome, validateLead, validateProject } from './validate';
 
 export const good = {
   zip: '33101',
@@ -50,12 +50,12 @@ describe('validateHome', () => {
   it('accepts a complete step, trims and collapses the address, maps "other" utility to null', () => {
     const h = validateHome(good);
     expect(h.errors).toEqual({});
-    expect(h.value).toEqual({ zip: '33101', state: 'FL', street_address: '123 Palm Ave', homeowner: true, bill_bucket: '150_200', utility_id: 'fpl' });
+    expect(h.value).toEqual({ zip: '33101', state: 'FL', homeowner: true, bill_bucket: '150_200', utility_id: 'fpl' });
     expect(validateHome({ ...good, utility_id: 'other' }).value?.utility_id).toBeNull();
   });
   it('requires every field', () => {
     const h = validateHome({});
-    expect(Object.keys(h.errors).sort()).toEqual(['bill_bucket', 'homeowner', 'street_address', 'utility_id', 'zip']);
+    expect(Object.keys(h.errors).sort()).toEqual(['bill_bucket', 'homeowner', 'utility_id', 'zip']);
   });
   it('validates the ZIP against FL and CA and an optional chosen state', () => {
     expect(validateHome({ ...good, state: 'FL' }).value?.state).toBe('FL');
@@ -90,12 +90,18 @@ describe('validateProject', () => {
 });
 
 describe('validateContact', () => {
+  it('requires and trims the street address (step 3)', () => {
+    expect(validateContact({ ...good, street_address: '' }).errors.street_address).toMatch(/street address/);
+    expect(validateContact({ ...good, street_address: '12' }).errors.street_address).toMatch(/full street address/);
+    expect(validateContact({ ...good, street_address: 'x'.repeat(201) }).errors.street_address).toMatch(/200/);
+    expect(stepOfField('street_address')).toBe(3);
+  });
   it('trims, lowercases the email and normalizes the phone', () => {
-    expect(validateContact(good).value).toEqual({ first_name: 'Ana', last_name: 'Diaz', email: 'ana@example.com', phone: '+13052010123' });
+    expect(validateContact(good).value).toEqual({ street_address: '123 Palm Ave', first_name: 'Ana', last_name: 'Diaz', email: 'ana@example.com', phone: '+13052010123' });
   });
   it('checks email format, phone, names and consent', () => {
     const e = validateContact({ first_name: ' ', last_name: 'x'.repeat(61), email: 'ana@', phone: '555-555-5555', consent: 'off' }).errors;
-    expect(Object.keys(e).sort()).toEqual(['consent', 'email', 'first_name', 'last_name', 'phone']);
+    expect(Object.keys(e).sort()).toEqual(['consent', 'email', 'first_name', 'last_name', 'phone', 'street_address']);
   });
   it('requires consent to be checked', () => {
     for (const consent of [undefined, '', 'off', 'false', false]) expect(validateContact({ ...good, consent }).errors.consent, String(consent)).toBeTruthy();
@@ -190,5 +196,20 @@ describe('validateDataRequest', () => {
     const v = validateDataRequest({ email: 'nope', request: 'sell', details: 'x'.repeat(1001) });
     expect(v.kind === 'invalid' && Object.keys(v.fieldErrors).sort()).toEqual(['details', 'email', 'request']);
     expect(validateDataRequest({ website: 'x' }).kind).toBe('honeypot');
+  });
+});
+
+describe('SOURCE_PARAM_RE', () => {
+  it('accepts page sources, including go and blog/guide slugs', () => {
+    for (const s of ['home', 'go', 'city:florida/miami', 'utility:fpl', 'blog:solar-battery-fl', 'guide:net-metering-2']) expect(SOURCE_PARAM_RE.test(s), s).toBe(true);
+  });
+  it('rejects anything else', () => {
+    for (const s of ['', 'go2', 'go:x', 'blog:', 'blog:Bad Slug', 'guide:a/b', 'blog:<script>', 'results', 'utility:other', 'blog:' + 'a'.repeat(81)]) expect(SOURCE_PARAM_RE.test(s), s).toBe(false);
+  });
+  it('lets the server keep those sources', () => {
+    for (const source of ['go', 'blog:solar-battery-fl', 'guide:net-metering']) {
+      const v = validateLead({ ...good, source });
+      expect(v.kind === 'ok' && v.lead.source).toBe(source);
+    }
   });
 });

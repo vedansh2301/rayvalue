@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ogImagePath } from '../lib/seo/og';
-import { btnPrimary, btnSecondary } from '../components/ui/buttons';
+import { btnPrimary, btnText } from '../components/ui/buttons';
 import UtilityLinks from '../components/utility/UtilityLinks.astro';
 import Icon, { type IconName } from '../components/icons/Icon';
 import { Picture } from 'astro:assets';
@@ -46,7 +46,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
       <p class="mt-5 max-w-(--container-prose) text-lg leading-8 text-stone-700">
         The federal tax credit is gone, so we show Florida and California homeowners honest cost, savings and payback ranges from their own utility&rsquo;s rates.
       </p>
-      <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+      <div class="mt-6">
         <div role="group" aria-labelledby="hero-state-label" class="flex flex-col gap-2">
           <p id="hero-state-label" class="text-sm font-medium text-stone-700">Pick your state to start</p>
           <div class="flex flex-col gap-2 sm:flex-row">
@@ -54,7 +54,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
             <a href="/calculator/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
           </div>
         </div>
-        <a href="/quotes?source=home" class={`${btnSecondary} sm:self-end`}>Get installer quotes</a>
+        <p class="mt-2"><a href="/quotes?source=home" class={btnText}>Get installer quotes <span aria-hidden="true">&rarr;</span></a></p>
       </div>
       <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-stone-800" aria-label="Why use RayValue">
         {trust.map((t) => (
@@ -151,4 +151,16 @@ const steps: { title: string; body: string; icon: IconName }[] = [
       <Faq items={faq} id="home-faq" />
     </div>
   </div>
+
+  <section aria-labelledby="closing-cta" class="shell pb-16">
+    <div class="rounded-2xl border border-sun-300 bg-sun-50 p-6 sm:p-8">
+      <h2 id="closing-cta" class="text-2xl font-bold tracking-tight text-stone-900">Ready to see your numbers?</h2>
+      <p class="mt-2 max-w-(--container-prose) text-stone-800">It takes about a minute, it&rsquo;s free, and no federal tax credit is assumed.</p>
+      <div class="mt-5 flex flex-col gap-2 sm:flex-row">
+        <a href="/calculator/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
+        <a href="/calculator/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
+      </div>
+      <p class="mt-3"><a href="/quotes?source=home" class={btnText}>or get installer quotes</a></p>
+    </div>
+  </section>
 </BaseLayout>

@@ -5,12 +5,14 @@
  * Owner: attorney review of the consent wording (src/lib/leads/consent.ts, ESTIMATE_EMAIL_CONSENT_TEXT).
  */
 import type { TargetedSubmitEvent } from 'preact';
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { State } from '../../data/schemas';
 import { ESTIMATE_EMAIL_CONSENT_TEXT, splitAtPrivacyPolicy } from '../../lib/leads/consent';
 import type { EstimateSnapshot } from '../../lib/leads/validate';
 import { normalizeEmail } from '../../lib/leads/validate';
 import { trackEvent } from '../../lib/track';
+import { CONTACT_EMAIL } from '../../lib/contact';
+import { submitErrorText } from '../../lib/leads/client';
 import { btnSecondary } from '../ui/buttons';
 
 interface Props {
@@ -31,7 +33,13 @@ export default function EstimateEmailForm(p: Props) {
   const [status, setStatus] = useState<Status>('idle');
   const [emailed, setEmailed] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
+  const alertRef = useRef<HTMLParagraphElement>(null);
   const consentParts = splitAtPrivacyPolicy(ESTIMATE_EMAIL_CONSENT_TEXT);
+
+  // On a failed send, move focus to the message; the button stays enabled and the typed email is kept.
+  useEffect(() => {
+    if (status === 'error') alertRef.current?.focus();
+  }, [status]);
 
   async function onSubmit(e: TargetedSubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -141,8 +149,8 @@ export default function EstimateEmailForm(p: Props) {
         {sending ? 'Sending…' : 'Email me this estimate'}
       </button>
       {status === 'error' && (
-        <p role="alert" class="font-medium text-red-800">
-          Something went wrong — please try again.
+        <p ref={alertRef} tabIndex={-1} role="alert" class="font-medium text-red-800 focus:outline-none">
+          {submitErrorText(CONTACT_EMAIL)}
         </p>
       )}
     </form>
