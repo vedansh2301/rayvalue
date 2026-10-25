@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+
+const path = '/credits';
+const photos = [
+  {
+    use: 'Home page hero',
+    desc: 'A solar PV rooftop system on a home in San Pasqual, Los Angeles County, California (March 2017).',
+    credit: 'Laksh Muchhal, U.S. Department of Energy',
+    href: 'https://commons.wikimedia.org/wiki/File:Muchhal_000422_172295_517451_4578_(36155265553).jpg',
+  },
+  {
+    use: 'Get quotes page',
+    desc: 'Volunteers installing a rooftop solar system in San Pasqual, Los Angeles County, California (2017).',
+    credit: 'Laksh Muchhal, U.S. Department of Energy',
+    href: 'https://commons.wikimedia.org/wiki/File:Muchhal_000262_172296_517453_4578_(36963527475).jpg',
+  },
+];
+---
+<BaseLayout title="Photo credits" description="Sources and licenses for the photographs used on RayValue." path={path} noindex>
+  <div class="page">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Photo credits' }]} />
+    <h1 class="!mt-4">Photo credits</h1>
+    <p>
+      The photographs on RayValue are U.S. Department of Energy images in the public domain, so no credit is required.
+      We list them here anyway. Their use does not imply any endorsement by the Department of Energy or any other agency.
+    </p>
+    <ul>
+      {photos.map((p) => (
+        <li>
+          <strong>{p.use}.</strong> {p.desc} Photo by {p.credit}. Public domain.
+          <a href={p.href} rel="noopener noreferrer">Source</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>

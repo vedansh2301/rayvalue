@@ -34,7 +34,7 @@ if (portInUse) {
   process.exit(1);
 }
 
-const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.xml': 'application/xml', '.json': 'application/json' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.xml': 'application/xml', '.json': 'application/json', '.avif': 'image/avif', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.png': 'image/png' };
 const extraHeaders = {};
 for (const rule of JSON.parse(readFileSync('vercel.json', 'utf8')).headers ?? []) {
   if (rule.source === '/(.*)') for (const h of rule.headers) extraHeaders[h.key] = h.value; // site-wide headers (CSP etc.)
