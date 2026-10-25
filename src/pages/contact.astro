@@ -8,13 +8,9 @@ const path = '/contact';
 ---
 <BaseLayout title="Contact" description="Contact RayValue." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
-    {/* OWNER: set PUBLIC_CONTACT_EMAIL (see docs/LAUNCH.md), then remove /contact from UNREVIEWED_PAGES. */}
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Contact' }]} />
     <h1 class="!mt-4">Contact</h1>
-    {CONTACT_EMAIL ? (
-      <p>Email us at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
-    ) : (
-      <p>To access, correct or delete your information, or to opt out, use the <a href="/privacy/request">privacy request form</a>.</p>
-    )}
+    {CONTACT_EMAIL && <p>Email us at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>}
+    <p>To access, correct or delete your information, or to opt out, {CONTACT_EMAIL ? 'you can also ' : ''}use the <a href="/privacy/request">privacy request form</a>.</p>
   </div>
 </BaseLayout>
