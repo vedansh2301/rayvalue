@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { ogImagePath } from '../lib/seo/og';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import type { State } from '../data/schemas';
 import { DB_PAGE_CACHE_HEADERS, createRepo } from '../lib/db/repo';
@@ -53,7 +54,7 @@ const costSources = costs.ok
     )
   : null;
 ---
-<BaseLayout title="Methodology" description="How RayValue estimates solar system size, cost, savings and payback." path="/methodology">
+<BaseLayout title="Methodology" description="How RayValue estimates solar system size, cost, savings and payback." path="/methodology" ogImagePath={ogImagePath('methodology')}>
   <div class="page">
     <!-- TODO: owner review -->
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Methodology' }]} />

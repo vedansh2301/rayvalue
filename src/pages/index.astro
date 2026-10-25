@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { ogImagePath } from '../lib/seo/og';
 import { btnPrimary, btnSecondary } from '../components/ui/buttons';
 
 const states = [
@@ -16,6 +17,7 @@ const steps = [
   title="RayValue | Solar payback calculator for Florida and California homeowners"
   description="Honest solar and battery payback estimates for Florida and California homeowners, calculated without the federal tax credit."
   path="/"
+  ogImagePath={ogImagePath('home')}
 >
   <section class="bg-gradient-to-b from-sun-100 to-stone-50">
     <div class="shell pb-7 pt-14 sm:pb-10 sm:pt-20">
