@@ -20,6 +20,8 @@ import { answerSummaryParts } from '../../lib/calculator/summary';
 import { formatUsd } from '../../lib/format';
 import { parseShareParams, parseUtilityParam, serializeShareParams } from '../../lib/share';
 import { btnPrimary, btnSecondary, btnText } from '../ui/buttons';
+import SavingsChart from './SavingsChart';
+import { buildSavingsChart } from '../../lib/calc/chart';
 import { FinancingPanel, FlBatteryPanel } from './ResultsExtras';
 import ResultsActions from '../quotes/ResultsActions';
 import type { QuoteContext } from '../quotes/QuoteForm';
@@ -691,6 +693,7 @@ function Results(p: {
 }) {
   const { r } = p;
   const noUsage = r.annualUsageKwh === 0;
+  const chart = noUsage ? null : buildSavingsChart(r);
   return (
     <div>
       {p.utilityName && <p class="mt-2 text-stone-700">For a home on {p.utilityName}.</p>}
@@ -727,6 +730,8 @@ function Results(p: {
           <Metric variant="hero" label={`Net savings over ${r.analysisYears} years`} d={displayRange(r.netSavings25, formatSignedUsd)} note="Bill savings minus upfront cost" />
         </dl>
       )}
+
+      {!noUsage && chart && <SavingsChart chart={chart} years={r.analysisYears} />}
 
       {p.leadCard}
 

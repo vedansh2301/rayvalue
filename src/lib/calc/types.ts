@@ -100,6 +100,9 @@ export interface CalcSuccess {
   year1ProductionKwh: number;
   /** Bill savings per year (USD, nearest dollar) for the likely scenario, years 1…analysisYears. Basis for the lease/PPA comparison. */
   yearlySavings: number[];
+  /** Same as yearlySavings for the low-outcome (worst) and high-outcome (best) scenarios; used for the chart band. */
+  yearlySavingsLow: number[];
+  yearlySavingsHigh: number[];
   /** Length of the projection in years (assumptions.analysis_years). */
   analysisYears: number;
   /** Human-readable statements of every value the result rests on. */

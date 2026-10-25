@@ -433,3 +433,15 @@ describe('lease/PPA basis fields', () => {
     expect(r.yearlySavings[1]!).toBeGreaterThan(r.yearlySavings[0]!); // 2% escalation, no degradation in the fixture
   });
 });
+
+describe('scenario savings series (chart band)', () => {
+  it('low-outcome <= likely <= high-outcome every year, and their sums match net savings + cost scenarios', () => {
+    const r = ok(calculate(fl(185), ctx()));
+    expect(r.yearlySavingsLow).toHaveLength(r.analysisYears);
+    expect(r.yearlySavingsHigh).toHaveLength(r.analysisYears);
+    r.yearlySavings.forEach((v, i) => {
+      expect(r.yearlySavingsLow[i]!).toBeLessThanOrEqual(v);
+      expect(r.yearlySavingsHigh[i]!).toBeGreaterThanOrEqual(v);
+    });
+  });
+});

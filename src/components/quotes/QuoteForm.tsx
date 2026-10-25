@@ -14,6 +14,7 @@
 import type { ComponentChildren, TargetedSubmitEvent } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { State } from '../../data/schemas';
+import Icon, { type IconName } from '../icons/Icon';
 import { stateByPrefix } from '../../lib/calculator/zip';
 import { SUBMIT_LABEL, consentFor, splitAtPrivacyPolicy } from '../../lib/leads/consent';
 import { loadTrustedForm, trustedFormEnabled, TRUSTEDFORM_FIELD } from '../../lib/leads/consent-vendor';
@@ -115,6 +116,12 @@ const FIRST_OPTION: Partial<Record<LeadField, string>> = {
 
 const inputCls =
   'mt-1 block min-h-11 w-full rounded-lg border border-stone-400 bg-white px-3 py-2 text-base text-stone-900 aria-[invalid=true]:border-red-700';
+const HOMEOWNER_ICONS: Record<'yes' | 'no', IconName> = { yes: 'home', no: 'key' };
+const TIMELINE_ICONS: Record<(typeof TIMELINES)[number], IconName> = { asap: 'bolt', '1_3_months': 'calendar', '3_6_months': 'calendar-plus', researching: 'search' };
+
+/** Icon tile: the radio stays in the DOM (keyboard and screen readers) but is visually replaced by the tile's border and fill. */
+const tileCls =
+  'flex min-h-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-stone-300 bg-white px-2 py-2 text-center has-[:checked]:border-sun-500 has-[:checked]:bg-sun-50 has-[:checked]:ring-2 has-[:checked]:ring-sun-400 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-stone-900';
 const cardCls =
   'flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-stone-300 bg-white px-3 py-2 has-[:checked]:border-sun-500 has-[:checked]:bg-sun-50';
 
@@ -506,7 +513,7 @@ export default function QuoteForm(p: Props) {
               </div>
             </div>
 
-            <ChoiceGroup id={fid('')} name="homeowner" legend="Do you own this home?" options={['yes', 'no'] as const} labels={{ yes: 'Yes', no: 'No' }} value={values.homeowner} onChange={(v) => set('homeowner', v)} error={err('homeowner')} errorId={errors.homeowner ? fid('homeowner-error') : undefined} cols="grid-cols-2 sm:max-w-sm" />
+            <ChoiceGroup id={fid('')} name="homeowner" legend="Do you own this home?" options={['yes', 'no'] as const} labels={{ yes: 'Yes', no: 'No' }} icons={HOMEOWNER_ICONS} value={values.homeowner} onChange={(v) => set('homeowner', v)} error={err('homeowner')} errorId={errors.homeowner ? fid('homeowner-error') : undefined} cols="grid-cols-2 sm:max-w-sm" />
 
             <ChoiceGroup id={fid('')} name="bill_bucket" legend="Average monthly electric bill" options={BILL_BUCKETS} labels={BILL_BUCKET_LABELS} value={values.bill_bucket} onChange={(v) => set('bill_bucket', v)} error={err('bill_bucket')} errorId={errors.bill_bucket ? fid('bill_bucket-error') : undefined} cols="grid-cols-2 sm:grid-cols-3" />
 
@@ -534,7 +541,7 @@ export default function QuoteForm(p: Props) {
             <ChoiceGroup id={fid('')} name="roof_age" legend="How old is your roof?" options={ROOF_AGES} labels={ROOF_AGE_LABELS} value={values.roof_age} onChange={(v) => set('roof_age', v)} error={err('roof_age')} errorId={errors.roof_age ? fid('roof_age-error') : undefined} cols="grid-cols-2 sm:grid-cols-4" />
             <ChoiceGroup id={fid('')} name="battery_interest" legend="Do you want a battery?" options={BATTERY_INTERESTS} labels={BATTERY_INTEREST_LABELS} value={values.battery_interest} onChange={(v) => set('battery_interest', v)} error={err('battery_interest')} errorId={errors.battery_interest ? fid('battery_interest-error') : undefined} cols="grid-cols-3 sm:max-w-md" />
             <ChoiceGroup id={fid('')} name="pay_method" legend="How would you like to pay?" options={PAY_METHODS} labels={PAY_METHOD_LABELS} value={values.pay_method} onChange={(v) => set('pay_method', v)} error={err('pay_method')} errorId={errors.pay_method ? fid('pay_method-error') : undefined} cols="grid-cols-2 sm:grid-cols-4" />
-            <ChoiceGroup id={fid('')} name="timeline" legend="When are you hoping to go solar?" options={TIMELINES} labels={TIMELINE_LABELS} value={values.timeline} onChange={(v) => set('timeline', v)} error={err('timeline')} errorId={errors.timeline ? fid('timeline-error') : undefined} cols="grid-cols-2 sm:grid-cols-4" />
+            <ChoiceGroup id={fid('')} name="timeline" legend="When are you hoping to go solar?" options={TIMELINES} labels={TIMELINE_LABELS} icons={TIMELINE_ICONS} value={values.timeline} onChange={(v) => set('timeline', v)} error={err('timeline')} errorId={errors.timeline ? fid('timeline-error') : undefined} cols="grid-cols-2 sm:grid-cols-4" />
           </>
         )}
 
@@ -560,7 +567,7 @@ export default function QuoteForm(p: Props) {
 
             {/* ATTORNEY REVIEW REQUIRED: consent wording (src/lib/leads/consent.ts). Shown exactly as it will be stored. */}
             <div>
-              <label for={fid('consent')} class="flex cursor-pointer items-start gap-3 text-sm leading-6 text-stone-700">
+              <label for={fid('consent')} class="flex max-w-[60ch] cursor-pointer items-start gap-3 text-sm leading-6 text-stone-700">
                 <input
                   id={fid('consent')}
                   name="consent"
@@ -674,6 +681,8 @@ function ChoiceGroup<V extends string>(p: {
   legend: string;
   options: readonly V[];
   labels: Record<V, string>;
+  /** Optional decorative icon per option (the text label always carries the meaning). */
+  icons?: Partial<Record<V, IconName>>;
   value: string;
   onChange: (v: V) => void;
   error: ComponentChildren;
@@ -685,8 +694,9 @@ function ChoiceGroup<V extends string>(p: {
       <legend class="font-medium text-stone-900">{p.legend}</legend>
       <div class={`mt-2 grid gap-2 ${p.cols}`}>
         {p.options.map((o) => (
-          <label key={o} for={`${p.id}${p.name}-${o}`} class={cardCls}>
-            <input id={`${p.id}${p.name}-${o}`} type="radio" name={p.name} value={o} checked={p.value === o} onChange={() => p.onChange(o)} class="h-5 w-5 shrink-0 accent-amber-600" />
+          <label key={o} for={`${p.id}${p.name}-${o}`} class={p.icons?.[o] ? tileCls : cardCls}>
+            <input id={`${p.id}${p.name}-${o}`} type="radio" name={p.name} value={o} checked={p.value === o} onChange={() => p.onChange(o)} class={p.icons?.[o] ? 'sr-only' : 'h-5 w-5 shrink-0 accent-amber-600'} />
+            {p.icons?.[o] && <Icon name={p.icons[o]!} class="text-stone-900" />}
             <span class="text-sm font-medium text-stone-900 sm:text-base">{p.labels[o]}</span>
           </label>
         ))}

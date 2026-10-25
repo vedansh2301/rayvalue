@@ -8,6 +8,8 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { State } from '../../data/schemas';
 import { fetchQuoteConfig, type ClientQuoteConfig } from '../../lib/leads/client';
+import { estimateChip } from '../../lib/leads/snapshot';
+import Icon from '../icons/Icon';
 import { isStaffedNow } from '../../lib/leads/hours';
 import { trackEvent } from '../../lib/track';
 import { btnPrimary } from '../ui/buttons';
@@ -76,6 +78,7 @@ export default function ResultsActions(p: Props) {
         <h3 id="calc-quote-heading" class="text-xl font-bold tracking-tight text-stone-900">
           Next step: real prices
         </h3>
+        <QuoteBridge chip={estimateChip(p.context.snapshot)} />
         {p.pending && <p class="mt-1 text-stone-700">We&rsquo;re still verifying rates &mdash; installers can still quote your home.</p>}
         {!open ? (
           <>
@@ -122,6 +125,26 @@ export default function ResultsActions(p: Props) {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Visual bridge: this estimate -> up to 3 installers (generic placeholders, no names or logos) -> compare quotes. Decorative; the text carries the meaning. */
+function QuoteBridge({ chip }: { chip: string | null }) {
+  return (
+    <div class="mt-3 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center" aria-label="How it works: your estimate, up to 3 installers, compare quotes" role="group">
+      {chip && <span class="rounded-full border border-sun-500 bg-white px-3 py-1.5 text-center text-sm font-semibold text-stone-900">{chip}</span>}
+      {chip && <Icon name="arrow" class="hidden text-stone-700 sm:block" />}
+      <ul class="flex items-center justify-center gap-2" aria-label="Up to 3 installers">
+        {[1, 2, 3].map((n) => (
+          <li key={n} class="flex h-14 w-16 flex-col items-center justify-center rounded-lg border border-stone-300 bg-white">
+            <Icon name="tool" />
+            <span class="text-xs font-medium text-stone-700">Installer {n}</span>
+          </li>
+        ))}
+      </ul>
+      <Icon name="arrow" class="hidden text-stone-700 sm:block" />
+      <span class="flex items-center justify-center gap-2 text-sm font-semibold text-stone-900"><Icon name="scale" />Compare up to 3 real quotes</span>
     </div>
   );
 }

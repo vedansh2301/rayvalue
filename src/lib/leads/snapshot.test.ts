@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CalcSuccess } from '../calc/types';
-import { estimateSnapshot } from './snapshot';
+import { estimateChip, estimateSnapshot } from './snapshot';
 import { parseSnapshot } from './validate';
 
 const r = {
@@ -22,5 +22,16 @@ describe('estimateSnapshot', () => {
     });
     // survives the server's validation unchanged
     expect(parseSnapshot(JSON.stringify(s))).toEqual(s);
+  });
+});
+
+describe('estimateChip', () => {
+  it('summarizes the likely payback and net savings', () => {
+    expect(estimateChip(estimateSnapshot(r))).toBe('Likely: 14 years payback \u00b7 $37,200 net savings');
+    expect(estimateChip({ payback: { value: '7 years' }, net_savings: { value: '$9,000' } })).toBe('Likely: 7 years payback \u00b7 $9,000 net savings');
+  });
+  it('is null without a snapshot or when a value is missing', () => {
+    expect(estimateChip(null)).toBeNull();
+    expect(estimateChip({ payback: { value: '7 years' } })).toBeNull();
   });
 });

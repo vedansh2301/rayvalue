@@ -17,3 +17,13 @@ export function estimateSnapshot(r: CalcSuccess): EstimateSnapshot {
     net_savings: toValue(displayRange(r.netSavings25, formatSignedUsd)),
   };
 }
+
+const likelyOf = (v: SnapshotValue | undefined): string | null => (v ? ('value' in v ? v.value : v.likely) : null);
+
+/** One-line "likely" summary of the estimate for the quote bridge chip, built from the displayed snapshot text. Null when there is none. */
+export function estimateChip(s: EstimateSnapshot | null): string | null {
+  const payback = likelyOf(s?.payback);
+  const net = likelyOf(s?.net_savings);
+  if (!payback || !net) return null;
+  return `Likely: ${payback} payback · ${net} net savings`;
+}
