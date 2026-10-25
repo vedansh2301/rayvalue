@@ -45,7 +45,7 @@ EIA has also noted, in a national article using 2015 survey data, that monthly h
 
 ## How solar output moves through the year
 
-Solar production does not mirror the air-conditioning load. To see the pattern, we ran the NLR PVWatts v8 model (NLR is the National Laboratory of the Rockies, formerly NREL) for three Florida cities in October 2026. The inputs were a 1 kW system, fixed roof-style mount, 20 degree tilt, facing south, with the model's default 14% system losses. Weather data came from the NSRDB tmy-2020 dataset. The locations used were latitude/longitude 25.76, -80.19 (Miami), 28.54, -81.38 (Orlando) and 30.33, -81.66 (Jacksonville), with array type 1 (fixed open rack/roof-style setup in the API) and azimuth 180. These are modeled typical-year values, not forecasts for any specific roof.
+Solar production does not mirror the air-conditioning load. To see the pattern, we ran the NLR PVWatts v8 model (NLR is the National Laboratory of the Rockies, formerly NREL) for three Florida cities in October 2026. The inputs were a 1 kW system, fixed roof-style mount, 20 degree tilt, facing south, with system losses set to a fixed 14% (we chose this value, since the API requires one; PVWatts losses can otherwise vary with the shade level selected, so these runs did not vary it). Weather data came from the NSRDB tmy-2020 dataset. The locations used were latitude/longitude 25.76, -80.19 (Miami), 28.54, -81.38 (Orlando) and 30.33, -81.66 (Jacksonville), with array type 1 (Fixed - Roof Mounted in the API) and azimuth 180. These are modeled typical-year values, not forecasts for any specific roof.
 
 | City | Lowest month | Highest month | June to August share of annual output |
 |---|---|---|---|
