@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly PUBLIC_GA4_ID?: string;
   readonly PUBLIC_GOOGLE_ADS_ID?: string;
   readonly PUBLIC_META_PIXEL_ID?: string;
+  readonly PUBLIC_GOOGLE_ADS_CALC_LABEL?: string;
+  readonly PUBLIC_GOOGLE_ADS_QUOTE_LABEL?: string;
 }
 
 interface ImportMetaEnv {

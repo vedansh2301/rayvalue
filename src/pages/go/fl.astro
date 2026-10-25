@@ -1,0 +1,13 @@
+---
+import GoLanding from '../../components/go/GoPage.astro';
+import { applyCalculatorPageHeaders, loadCalculatorPageData } from '../../lib/calculator/page-data';
+import { GO_PAGES } from '../../lib/go';
+
+// Paid-traffic landing page: noindex, not in the sitemap. On demand like the calculator (values come from the database).
+export const prerender = false;
+
+const page = GO_PAGES.find((g) => g.state === 'FL')!;
+const data = await loadCalculatorPageData('FL');
+applyCalculatorPageHeaders(Astro.response.headers, data, 'FL');
+---
+<GoLanding page={page} data={data} />

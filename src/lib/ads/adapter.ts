@@ -4,7 +4,7 @@
  * Scripts are injected from fixed Google/Meta origins that astro.config.mjs adds to the CSP only when enabled.
  */
 import { stripQuery } from '../analytics';
-import { googleEnabled, type AdIds } from './config';
+import { googleEnabled, type AdConversions, type AdIds } from './config';
 
 type Fn = (...args: unknown[]) => void;
 interface AdWindow {
@@ -21,8 +21,11 @@ function loadScript(src: string) {
   document.head.appendChild(s);
 }
 
-export function initAdTags(ids: AdIds): void {
+let conversions: AdConversions = { calc_complete: null, quote_submit: null };
+
+export function initAdTags(ids: AdIds, conv?: AdConversions): void {
   if (typeof window === 'undefined') return;
+  if (conv) conversions = conv;
   const win = w();
   if (googleEnabled(ids)) {
     const first = (ids.ga4 ?? ids.googleAds) as string;
@@ -62,7 +65,12 @@ export function forwardToAdTags(name: string, props: Record<string, string | num
   const win = w();
   try {
     win.gtag?.('event', name, props);
+    // Meta: the standard Lead event for a quote request, custom events otherwise.
+    if (name === 'quote_submit') win.fbq?.('track', 'Lead');
     win.fbq?.('trackCustom', name, props);
+    // Google Ads conversions only fire for the actions the owner configured (never PII: props are allowlisted).
+    const sendTo = name === 'calc_complete' ? conversions.calc_complete : name === 'quote_submit' ? conversions.quote_submit : null;
+    if (sendTo) win.gtag?.('event', 'conversion', { send_to: sendTo });
   } catch {
     /* ad tags must never break the page */
   }

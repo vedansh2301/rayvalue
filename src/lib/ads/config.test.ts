@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adCspSources, anyAdTagEnabled, parseAdIds } from './config';
+import { adCspSources, anyAdTagEnabled, parseAdConversions, parseAdIds } from './config';
 
 describe('ad tag config', () => {
   it('is fully off by default and adds no CSP origins', () => {
@@ -19,5 +19,18 @@ describe('ad tag config', () => {
     const m = parseAdIds({ PUBLIC_META_PIXEL_ID: '123456789012345' });
     expect(adCspSources(m).script).toEqual(['https://connect.facebook.net']);
     expect(adCspSources(m).connect).not.toContain('https://www.googletagmanager.com');
+  });
+});
+
+describe('Google Ads conversion labels', () => {
+  it('are null by default and reject malformed values', () => {
+    expect(parseAdConversions({})).toEqual({ calc_complete: null, quote_submit: null });
+    expect(parseAdConversions({ PUBLIC_GOOGLE_ADS_QUOTE_LABEL: '"><script>' }).quote_submit).toBeNull();
+  });
+  it('accept AW-id/label send_to values', () => {
+    expect(parseAdConversions({ PUBLIC_GOOGLE_ADS_QUOTE_LABEL: 'AW-123456789/AbCdEf12', PUBLIC_GOOGLE_ADS_CALC_LABEL: 'AW-123456789/ZyXwVu34' })).toEqual({
+      calc_complete: 'AW-123456789/ZyXwVu34',
+      quote_submit: 'AW-123456789/AbCdEf12',
+    });
   });
 });

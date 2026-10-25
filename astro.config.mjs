@@ -10,6 +10,7 @@ import { guideFlags, excludedGuideUrls, excludedCollectionUrls } from './src/lib
 import { getPublishedCityUrls } from './src/lib/seo/sitemap-cities.ts';
 import { UTILITY_PAGES, utilityPagePath } from './src/lib/utility/pages.ts';
 import { getIndexableUtilityUrls } from './src/lib/utility/sitemap.ts';
+import { isGoPath } from './src/lib/go.ts';
 import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
 import { adCspSources, parseAdIds } from './src/lib/ads/config.ts';
 import { trustedFormCsp, trustedFormEnabled } from './src/lib/leads/consent-vendor.ts';
@@ -105,7 +106,7 @@ export default defineConfig({
         const path = new URL(page).pathname.replace(/\/+$/, '') || '/';
         // On-demand utility routes are auto-discovered; keep only those whose data makes them indexable.
         if (utilityPaths.has(path) && !utilityUrls.includes(page)) return false;
-        return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/') && !path.startsWith('/admin');
+        return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/') && !path.startsWith('/admin') && !isGoPath(path) && path !== '/unsubscribe';
       },
     }),
   ],

@@ -5,7 +5,8 @@ import { publishedPosts } from '../lib/blog';
 // Guides/Blog show only once each has >= NAV_MIN_PUBLISHED published items (src/lib/nav.ts).
 // Full-bleed header (owner decision): logo pinned to the left gutter, nav to the right gutter at any width.
 // Mobile (<640px): nav gets its own single row with short labels; the full name is in `title`.
-const links = headerLinks({ guides: (await publishedGuides()).length, blog: (await publishedPosts()).length });
+const { logoOnly = false } = Astro.props as { logoOnly?: boolean };
+const links = logoOnly ? [] : headerLinks({ guides: (await publishedGuides()).length, blog: (await publishedPosts()).length });
 const path = Astro.url.pathname.replace(/\/+$/, '');
 const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
 ---
@@ -25,7 +26,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     </a>
     <!-- The ul's 4px padding (offset by the nav's negative margin) keeps focus outlines inside the mobile
          scroll container, which would otherwise clip them. Desktop does not scroll, so nothing clips there. -->
-    <nav aria-label="Main" class="-mx-3 -my-1 min-w-0">
+    {!logoOnly && <nav aria-label="Main" class="-mx-3 -my-1 min-w-0">
       <ul class="scrollbar-none flex flex-nowrap gap-x-1 p-1 text-sm font-medium max-sm:overflow-x-auto sm:gap-x-3">
         {links.map((l) => {
           const current = isCurrent(l.href);
@@ -57,6 +58,6 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
           </a>
         </li>
       </ul>
-    </nav>
+    </nav>}
   </div>
 </header>

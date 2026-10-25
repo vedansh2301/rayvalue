@@ -41,3 +41,18 @@ export function adCspSources(ids: AdIds): { script: string[]; connect: string[];
   }
   return out;
 }
+
+/**
+ * Google Ads conversion actions, as "AW-123456789/AbCdEf" send_to values copied from the Ads UI. Optional: without
+ * them Google Ads still gets the events through gtag but no conversion is counted. Only the two ad conversions
+ * exist: finishing the calculator and submitting the quote form.
+ */
+export interface AdConversions {
+  calc_complete: string | null;
+  quote_submit: string | null;
+}
+const SEND_TO_RE = /^AW-\d{6,15}\/[A-Za-z0-9_-]{6,40}$/;
+
+export function parseAdConversions(env: { PUBLIC_GOOGLE_ADS_CALC_LABEL?: unknown; PUBLIC_GOOGLE_ADS_QUOTE_LABEL?: unknown }): AdConversions {
+  return { calc_complete: pick(env.PUBLIC_GOOGLE_ADS_CALC_LABEL, SEND_TO_RE), quote_submit: pick(env.PUBLIC_GOOGLE_ADS_QUOTE_LABEL, SEND_TO_RE) };
+}

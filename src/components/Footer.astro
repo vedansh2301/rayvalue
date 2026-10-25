@@ -1,5 +1,6 @@
 ---
-const links = [
+const { legalOnly = false } = Astro.props as { legalOnly?: boolean };
+const all = [
   { href: '/calculator/florida', label: 'Florida calculator' },
   { href: '/calculator/california', label: 'California calculator' },
   { href: '/about', label: 'About' },
@@ -12,6 +13,8 @@ const links = [
   { href: '/contact', label: 'Contact' },
   { href: '/privacy/request?type=do_not_sell', label: 'Do Not Sell or Share My Personal Information' },
 ];
+const LEGAL = new Set(['/affiliate-disclosure', '/privacy', '/terms', '/privacy/request?type=do_not_sell']);
+const links = legalOnly ? all.filter((l) => LEGAL.has(l.href)) : all;
 ---
 <footer class="mt-auto border-t border-stone-200 bg-white">
   <div class="shell py-8 text-sm text-stone-600">

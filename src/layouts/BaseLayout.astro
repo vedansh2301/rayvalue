@@ -16,9 +16,11 @@ interface Props {
   ogType?: 'website' | 'article';
   /** Extra JSON-LD objects for this page. */
   jsonLd?: object[];
+  /** Paid-traffic landing pages: logo-only header and legal-links-only footer. */
+  minimal?: boolean;
 }
 
-const { title, description, path, noindex = false, ogImagePath = '/og/default.png', ogType = 'website', jsonLd = [] } = Astro.props;
+const { title, description, path, noindex = false, ogImagePath = '/og/default.png', ogType = 'website', jsonLd = [], minimal = false } = Astro.props;
 // Policy: trailingSlash 'never' + build.format 'directory' => canonical has no trailing slash (except root).
 const canonical = new URL(path === '/' ? '/' : path.replace(/\/+$/, ''), Astro.site).href;
 const fullTitle = path === '/' ? title : `${title} | RayValue`;
@@ -41,11 +43,11 @@ const gscToken = import.meta.env.PUBLIC_GSC_VERIFICATION;
   </head>
   <body class="flex min-h-screen flex-col">
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-stone-900 focus:px-3 focus:py-2 focus:text-white">Skip to content</a>
-    <Header />
+    <Header logoOnly={minimal} />
     <main id="main">
       <slot />
     </main>
-    <Footer />
+    <Footer legalOnly={minimal} />
     <Analytics />
   </body>
 </html>

@@ -8,7 +8,7 @@ import VercelAnalytics from '@vercel/analytics/astro';
   import { beforeSend } from '../lib/analytics';
   import { isEventName } from '../lib/events';
   import { initAdTags } from '../lib/ads/adapter';
-  import { anyAdTagEnabled, parseAdIds } from '../lib/ads/config';
+  import { anyAdTagEnabled, parseAdConversions, parseAdIds } from '../lib/ads/config';
   import { trackEvent } from '../lib/track';
   import { captureAttribution } from '../lib/attribution';
   type Va = (cmd: string, fn: unknown) => void;
@@ -21,7 +21,7 @@ import VercelAnalytics from '@vercel/analytics/astro';
 
   // Optional GA4 / Google Ads / Meta pixel: OFF unless an ID env var is set at build time (see docs/LAUNCH.md).
   const ids = parseAdIds(import.meta.env);
-  if (anyAdTagEnabled(ids)) initAdTags(ids);
+  if (anyAdTagEnabled(ids)) initAdTags(ids, parseAdConversions(import.meta.env));
 
   // Funnel events for static markup: [data-track="<event>"] (+ data-track-state / data-track-placement), and tel: links.
   document.addEventListener('click', (e) => {
