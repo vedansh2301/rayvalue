@@ -1,0 +1,25 @@
+---
+import Cover from './Cover.astro';
+import type { Topic, StateKey } from '../../lib/content/cards';
+import { stateTag } from '../../lib/content/tags';
+
+interface Props {
+  href: string; title: string; description: string; topic: Topic; state: StateKey;
+  dateLabel: string; datetime: string; readMin: number; featured?: boolean;
+}
+const { href, title, description, topic, state, dateLabel, datetime, readMin, featured = false } = Astro.props;
+const CHIP: Record<StateKey, string> = { FL: 'bg-sky-100 text-sky-900', CA: 'bg-emerald-100 text-emerald-900', both: 'bg-sun-100 text-stone-900' };
+---
+<article data-state={state} class:list={['group relative flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-stone-900 hover:border-sun-400', featured && 'lg:flex-row']}>
+  <Cover topic={topic} state={state} class={featured ? 'aspect-[16/7] sm:aspect-video lg:aspect-auto lg:w-2/5 lg:shrink-0' : 'aspect-[16/7]'} />
+  <div class:list={['flex flex-1 flex-col p-5', featured && 'lg:p-8']}>
+    <p class="flex flex-wrap items-center gap-2 text-xs font-medium">
+      <span class={`rounded-full px-2.5 py-1 ${CHIP[state]}`}>{stateTag(state)}</span>
+      <span class="text-stone-600">{readMin} min read</span>
+      {featured && <span class="rounded-full bg-stone-900 px-2.5 py-1 text-white">Latest</span>}
+    </p>
+    <h2 class:list={['mt-3! font-semibold leading-snug text-stone-900', featured ? 'text-2xl lg:text-3xl' : 'text-lg']}><a class="no-underline hover:underline underline-offset-4 after:absolute after:inset-0 focus-visible:outline-none" href={href}>{title}</a></h2>
+    <p class:list={['mt-2 text-stone-700', featured ? 'text-base leading-7 lg:text-lg lg:leading-8' : 'leading-7']}>{description}</p>
+    <p class="mt-auto pt-4 text-sm text-stone-600"><time datetime={datetime}>{dateLabel}</time></p>
+  </div>
+</article>

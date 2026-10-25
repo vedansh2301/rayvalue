@@ -1,0 +1,90 @@
+---
+/** Shared layout for the /blog and /guides indexes: hero band, state filter (CSS only), featured card, grid, CTA band. */
+import Breadcrumbs from '../Breadcrumbs.astro';
+import HeroArt from './HeroArt.astro';
+import Card from './Card.astro';
+import Icon from '../icons/Icon';
+import { btnPrimary } from '../ui/buttons';
+import type { Topic, StateKey } from '../../lib/content/cards';
+
+export interface IndexItem {
+  href: string; title: string; description: string; topic: Topic; state: StateKey;
+  dateLabel: string; datetime: string; readMin: number;
+}
+interface Props { kind: 'blog' | 'guides'; heading: string; intro: string; items: IndexItem[] }
+const { kind, heading, intro, items } = Astro.props;
+const [featured, ...rest] = items;
+const crumbs = [{ label: 'Home', href: '/' }, { label: heading }];
+const FILTERS = [
+  { id: 'all', label: 'All' },
+  { id: 'fl', label: 'Florida' },
+  { id: 'ca', label: 'California' },
+] as const;
+const source = `${kind === 'blog' ? 'blog' : 'guide'}:index`;
+---
+<div class="content-index">
+  <section class="bg-gradient-to-b from-sun-100 to-stone-50">
+    <div class="shell grid items-center gap-8 pb-8 pt-8 sm:pb-12 sm:pt-10 md:grid-cols-[3fr_2fr]">
+      <div>
+        <Breadcrumbs items={crumbs} />
+        <h1 class="mt-6 text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">{heading}</h1>
+        <p class="mt-4 max-w-(--container-prose) text-lg leading-8 text-stone-700">{intro}</p>
+        <p class="mt-4 text-sm font-medium text-stone-800">No federal tax credit assumed. Every article lists its sources.</p>
+      </div>
+      <div class="hidden md:block md:mx-auto md:w-full md:max-w-sm lg:max-w-md"><HeroArt /></div>
+    </div>
+  </section>
+
+  <div class="shell pb-14 pt-8 sm:pb-20">
+    {featured && (
+      <section aria-label="Latest">
+        <Card {...featured} featured />
+      </section>
+    )}
+
+    {rest.length > 0 && (
+      <section class="mt-10" aria-labelledby="more-h">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="more-h" class="mt-0! text-xl font-semibold text-stone-900">More {kind === 'blog' ? 'posts' : 'guides'}</h2>
+          <fieldset class="m-0 flex items-center gap-2 border-0 p-0">
+            <legend class="sr-only">Show articles for</legend>
+            {FILTERS.map((f) => (
+              <span class="inline-flex">
+                <input type="radio" name="state-filter" id={`f-${f.id}`} value={f.id} checked={f.id === 'all'} class="peer sr-only" />
+                <label for={`f-${f.id}`} class="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-stone-300 bg-white px-4 text-sm font-medium text-stone-800 hover:bg-stone-100 peer-checked:border-stone-900 peer-checked:bg-stone-900 peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-stone-900">{f.label}</label>
+              </span>
+            ))}
+          </fieldset>
+        </div>
+        <ul class="not-prose mt-5 grid list-none gap-6 p-0 md:grid-cols-2 xl:grid-cols-3">
+          {rest.map((c) => <li class="flex"><Card {...c} /></li>)}
+        </ul>
+      </section>
+    )}
+
+    <section class="mt-14 rounded-3xl bg-stone-900 p-6 text-white sm:p-10" aria-labelledby="cta-h">
+      <h2 id="cta-h" class="mt-0! max-w-2xl text-2xl font-semibold text-white sm:text-3xl">Turn the reading into your own numbers</h2>
+      <p class="mt-3 max-w-2xl text-stone-200">Four quick questions give you low, likely and high ranges for cost, savings and payback on your home, with no federal tax credit assumed.</p>
+      <ul class="not-prose mt-6 grid list-none gap-4 p-0 md:grid-cols-3">
+        <li class="flex flex-col rounded-2xl bg-white p-5 text-stone-900">
+          <Icon name="florida" size={32} />
+          <p class="mt-3 font-semibold">Florida calculator</p>
+          <p class="mt-1 mb-4 text-sm text-stone-700">Net metering and tiered rates on FPL, Duke Energy Florida or TECO.</p>
+          <a href="/calculator/florida" class={`${btnPrimary} mt-auto`} data-track="results_cta_click" data-track-placement={`${kind}_rail`} data-track-state="FL">Run Florida numbers</a>
+        </li>
+        <li class="flex flex-col rounded-2xl bg-white p-5 text-stone-900">
+          <Icon name="california" size={32} />
+          <p class="mt-3 font-semibold">California calculator</p>
+          <p class="mt-1 mb-4 text-sm text-stone-700">NEM 3.0 export credits and batteries on PG&amp;E, SCE or SDG&amp;E.</p>
+          <a href="/calculator/california" class={`${btnPrimary} mt-auto`} data-track="results_cta_click" data-track-placement={`${kind}_rail`} data-track-state="CA">Run California numbers</a>
+        </li>
+        <li class="flex flex-col rounded-2xl bg-sun-100 p-5 text-stone-900">
+          <Icon name="users" size={32} />
+          <p class="mt-3 font-semibold">Compare installer quotes</p>
+          <p class="mt-1 mb-4 text-sm text-stone-800">Ask for up to 3 local installers to reach out. Free, no obligation.</p>
+          <a href={`/quotes?source=${source}`} class="mt-auto inline-flex min-h-11 items-center font-semibold text-stone-900 underline underline-offset-4" data-track="results_cta_click" data-track-placement={`${kind}_rail`}>Get free installer quotes</a>
+        </li>
+      </ul>
+    </section>
+  </div>
+</div>

@@ -34,6 +34,8 @@ const ld = articleJsonLd({
 ---
 <BaseLayout title={post.data.seoTitle ?? post.data.title} ogImageAlt={`${post.data.title} (RayValue blog)`} publishedTime={post.data.published} modifiedTime={post.data.updated ?? post.data.published} description={post.data.description} path={path} ogImagePath={`/og/blog/${post.id}.png`} ogType="article" noindex={post.data.noindex} jsonLd={[ld]}>
   <article class="page">
+    <div class="max-w-none lg:grid lg:grid-cols-[minmax(0,var(--container-prose))_minmax(0,1fr)] lg:gap-12 xl:gap-16">
+    <div>
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Blog', href: '/blog' }, { label: post.data.title }]} />
     <h1>{post.data.title}</h1>
     <p class="text-sm text-stone-700">
@@ -41,7 +43,7 @@ const ld = articleJsonLd({
       {showUpdated(post.data.published, post.data.updated) && <> · Updated <time datetime={day(post.data.updated!)}>{displayDate(post.data.updated!)}</time></>}
     </p>
     <ArticleByline hasSources={post.data.sources.length > 0} />
-    <GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="top" />
+    <div class="lg:hidden"><GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="top" /></div>
     <TableOfContents headings={headings} />
     <div class="prose-guide mt-4 space-y-4">
       <Content />
@@ -56,5 +58,13 @@ const ld = articleJsonLd({
         </ul>
       </section>
     )}
+    </div>
+    <aside class="hidden lg:block" aria-label="Article tools">
+      <div class="sticky top-6 space-y-5">
+        <TableOfContents headings={headings} variant="rail" />
+        <GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="rail" />
+      </div>
+    </aside>
+    </div>
   </article>
 </BaseLayout>

@@ -14,8 +14,8 @@ interface Props {
   state: 'FL' | 'CA' | 'both';
   kind: 'blog' | 'guide';
   slug: string;
-  /** 'top' or 'end': only changes the heading id so both cards can sit on one page. */
-  place?: 'top' | 'end';
+  /** 'top', 'end' or 'rail' (sticky side rail, no outer margin): only changes the heading id so both cards can sit on one page. */
+  place?: 'top' | 'end' | 'rail';
 }
 const { state, kind, slug, place = 'top' } = Astro.props;
 const calcs = calculatorsForState(state);
@@ -23,7 +23,7 @@ const quotesHref = `/quotes?${state === 'both' ? '' : `state=${state}&`}source=$
 const utilities = (await indexableUtilityPagesOnce()).filter((p) => state === 'both' || p.state === state);
 const headingId = `calc-cta-${place}`;
 ---
-<aside class="not-prose my-8 rounded-2xl border border-sun-300 bg-sun-50 p-5 sm:p-6" aria-labelledby={headingId}>
+<aside class:list={['not-prose rounded-2xl border border-sun-300 bg-sun-50 p-5 sm:p-6', place === 'rail' ? 'my-0' : 'my-8']} aria-labelledby={headingId}>
   <p id={headingId} class="text-lg font-semibold text-stone-900">See what solar would do for your home</p>
   <p class="mt-1 text-stone-800">Four quick questions give you low, likely and high ranges for cost, savings and payback, with no federal tax credit assumed.</p>
   <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">

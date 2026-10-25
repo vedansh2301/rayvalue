@@ -14,6 +14,8 @@ const guides = defineCollection({
     updated: z.coerce.date(),
     state: z.enum(['FL', 'CA', 'both']),
     sources: z.array(z.object({ title: z.string(), url: z.string().url() })).min(1),
+    /** Optional cover-graphic topic for the index cards; derived from tags/title when omitted. */
+    topic: z.enum(['map', 'battery', 'bill', 'house', 'sun', 'scale', 'chart']).optional(),
     draft: z.boolean().optional(),
     /** Owner-facing notes (unverified items, missing sources). Never rendered. */
     todo: z.array(z.string()).optional(),
@@ -34,6 +36,7 @@ const blog = defineCollection({
     tags: z.array(z.string()).default([]),
     /** Any number or factual claim in a post must be backed by a source listed here (CLAUDE.md rule 1). */
     sources: z.array(z.object({ title: z.string(), url: z.string().url() })).default([]),
+    topic: z.enum(['map', 'battery', 'bill', 'house', 'sun', 'scale', 'chart']).optional(),
     draft: z.boolean().optional(),
     /** Default true: posts are not indexed (noindex + not in sitemap) until the owner sets false. */
     noindex: z.boolean().default(true),

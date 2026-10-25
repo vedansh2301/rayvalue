@@ -1,0 +1,18 @@
+---
+/** Generated topic cover for an article card: a tinted panel with a big two-tone glyph. Deterministic, decorative, no images. */
+import Icon, { type IconName } from '../icons/Icon';
+import type { Topic, StateKey } from '../../lib/content/cards';
+
+interface Props { topic: Topic; state: StateKey; class?: string }
+const { topic, state, class: cls = '' } = Astro.props;
+const GLYPH: Record<Topic, IconName> = { map: 'map', battery: 'battery', bill: 'bill', house: 'home', sun: 'sun', scale: 'scale', chart: 'chart' };
+const TINT: Record<StateKey, string> = { FL: 'bg-sky-100', CA: 'bg-emerald-100', both: 'bg-sun-100' };
+---
+<div class={`relative flex items-center justify-center overflow-hidden ${TINT[state]} ${cls}`} aria-hidden="true">
+  <svg viewBox="0 0 160 90" class="absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false">
+    <circle cx="136" cy="14" r="34" fill="#fbbf24" opacity="0.35"></circle>
+    <circle cx="14" cy="86" r="26" fill="#ffffff" opacity="0.55"></circle>
+    <path d="M0 74q40-14 80-4t80-8v28H0z" fill="#ffffff" opacity="0.5"></path>
+  </svg>
+  <span class="relative flex size-16 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-stone-900/10 text-stone-900"><Icon name={GLYPH[topic]} size={36} /></span>
+</div>
