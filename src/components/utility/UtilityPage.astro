@@ -5,6 +5,7 @@ import Breadcrumbs from '../Breadcrumbs.astro';
 import Faq from '../Faq.astro';
 import UtilityLinks from './UtilityLinks.astro';
 import ReadMore from './ReadMore.astro';
+import RangeCurve from '../charts/RangeCurve.astro';
 import { btnPrimary, btnSecondary } from '../ui/buttons';
 import { faqJsonLd } from '../../lib/seo/jsonld';
 import { formatUsd } from '../../lib/format';
@@ -21,6 +22,10 @@ const path = utilityPagePath(meta);
 const h1 = `Is solar worth it with ${meta.short} in 2026? (No federal tax credit)`;
 const vm = data.kind === 'ok' ? data.vm : null;
 const range = (a: number, b: number, f: (n: number) => string) => (a === b ? f(a) : `${f(a)}–${f(b)}`);
+// Typical home for the at-a-glance graphics: the solar-only worked example with the middle bill.
+const soloRows = (vm?.indexable ? vm.examples : []).filter((r) => r.battery === 0 && r.result);
+const typical = soloRows[Math.floor((soloRows.length - 1) / 2)] ?? null;
+const maxYears = vm?.analysisYears ?? 25;
 const paybackText = (r: { paybackYears: { low: number | null; likely: number | null; high: number | null } }) => {
   const max = vm?.analysisYears ?? 25;
   return `${formatYears(r.paybackYears.low, max)}–${formatYears(r.paybackYears.high, max)} (likely ${formatYears(r.paybackYears.likely, max)})`;
@@ -47,6 +52,34 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
         <a href={vm.calcHref} class={btnPrimary}>Run my {meta.short} numbers<span aria-hidden="true">&rarr;</span></a>
         <a href={vm.quotesHref} class={btnSecondary}>Get installer quotes</a>
       </div>
+
+      {typical?.result && (
+        <section aria-labelledby="glance-h">
+          <h2 id="glance-h">A typical {meta.short} home at a glance</h2>
+          <p>Solar only, a {formatUsd(typical.bill)} monthly bill, no federal tax credit. From the worked examples below.</p>
+          <div class="not-prose mt-4 grid gap-4">
+            <RangeCurve
+              id="glance-cost"
+              title={`Installed cost of a ${typical.result.size.likely} kW system`}
+              low={formatUsd(typical.result.cost.low)}
+              likely={formatUsd(typical.result.cost.likely)}
+              high={formatUsd(typical.result.cost.high)}
+              labels={['Low estimate', 'Likely', 'High estimate']}
+              caption="By our estimates, a quote below the low end is a good price; above the high end, ask the installer why. Curve shape is illustrative."
+            />
+            <RangeCurve
+              id="glance-payback"
+              title="Years to pay back"
+              low={`${formatYears(typical.result.paybackYears.low, maxYears)} yrs`}
+              likely={`${formatYears(typical.result.paybackYears.likely, maxYears)} yrs`}
+              high={`${formatYears(typical.result.paybackYears.high, maxYears)} yrs`}
+              labels={['Best case', 'Likely', 'Worst case']}
+              ends={['', '']}
+              caption="Best case: low installed price, high rate increases. Worst case: the reverse. Curve shape is illustrative."
+            />
+          </div>
+        </section>
+      )}
 
       <section aria-labelledby="rules-h">
         <h2 id="rules-h">How {meta.short} bills and credits solar</h2>
@@ -177,7 +210,7 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
       <nav aria-label="On this page" class="hidden rounded-xl border border-stone-200 bg-white p-5 lg:block">
         <p class="font-semibold text-stone-900">On this page</p>
         <ul class="mt-2 space-y-1 text-sm">
-          {[['rules-h', `How ${meta.short} credits solar`], ['examples-h', 'Worked examples'], ['changes-h', 'What changes your number'], ['utility-faq', 'Questions']].map(([id, label]) => (
+          {[...(typical?.result ? [['glance-h', 'At a glance']] : []), ['rules-h', `How ${meta.short} credits solar`], ['examples-h', 'Worked examples'], ['changes-h', 'What changes your number'], ['utility-faq', 'Questions']].map(([id, label]) => (
             <li><a href={`#${id}`} class="inline-flex min-h-9 items-center text-stone-700 hover:text-sun-ink">{label}</a></li>
           ))}
         </ul>
