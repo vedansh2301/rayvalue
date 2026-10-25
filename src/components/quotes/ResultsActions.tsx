@@ -75,7 +75,9 @@ export default function ResultsActions(p: Props) {
   }, []);
 
   function openForm(placement: 'primary' | 'sticky') {
-    trackEvent('results_cta_click', { state: p.state, placement });
+    // From lg up the primary card sits in the sticky right rail.
+    const inRail = placement === 'primary' && typeof matchMedia === 'function' && matchMedia('(min-width: 1024px)').matches;
+    trackEvent('results_cta_click', { state: p.state, placement: inRail ? 'rail' : placement });
     setOpen(true);
     requestAnimationFrame(() => primaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
@@ -89,7 +91,7 @@ export default function ResultsActions(p: Props) {
   }, [showSticky]);
 
   return (
-    <div class="mt-6 space-y-4">
+    <div class="mt-6 space-y-4 lg:mt-0">
       {/* 1. Primary */}
       <section ref={primaryRef} aria-labelledby="calc-quote-heading" class="scroll-mt-4 rounded-2xl border-2 border-sun-400 bg-sun-50 p-5 sm:p-6">
         <h3 id="calc-quote-heading" class="text-xl font-bold tracking-tight text-stone-900">
@@ -163,12 +165,12 @@ function QuoteBridge({ chip }: { chip: string | null }) {
   return (
     <div class="mt-3" role="group" aria-label="How it works: share your estimate, up to 3 local installers, compare and choose">
       {chip && <p class="mb-2 inline-block rounded-full border border-sun-500 bg-white px-3 py-1.5 text-sm font-semibold text-stone-900">{chip}</p>}
-      <ol class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+      <ol class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 lg:flex-col lg:items-start lg:gap-2">
         {steps.map((st, n) => (
           <li key={st.label} class="!mt-0 flex items-center gap-2 text-sm font-semibold text-stone-900">
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-stone-300 bg-white"><Icon name={st.icon} size={20} /></span>
             <span><span class="text-stone-700">{n + 1}.</span> {st.label}</span>
-            {n < steps.length - 1 && <Icon name="arrow" class="ml-1 hidden text-stone-700 sm:block" />}
+            {n < steps.length - 1 && <Icon name="arrow" class="ml-1 hidden text-stone-700 sm:block lg:hidden" />}
           </li>
         ))}
       </ol>

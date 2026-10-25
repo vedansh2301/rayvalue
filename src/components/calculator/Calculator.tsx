@@ -8,7 +8,7 @@
  * tables) when an estimate is run; both via dynamic import(). The other state's table is never loaded.
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
-import type { ComponentChildren, TargetedSubmitEvent } from 'preact';
+import type { TargetedSubmitEvent } from 'preact';
 import type { BatteryCount, CalcResult, CalcSuccess, Shading } from '../../lib/calc/types';
 import { displayPayback, displayRange, formatKw, formatSignedUsd, type RangeDisplay } from '../../lib/calculator/display';
 import { trackEvent } from '../../lib/track';
@@ -320,8 +320,14 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
       />
     );
 
+  const okResult = outcome?.kind === 'result' && outcome.result.ok ? outcome.result : null;
+  const pendingResult = outcome?.kind === 'result' && !outcome.result.ok && outcome.result.reason === 'missing_data';
+  /** The quote card goes in the right rail from lg up (and stays inline under the headline numbers below that). */
+  const hasLead = Boolean(ranInputs && outcome && (okResult || pendingResult));
+
   return (
-    <div>
+    <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_21.25rem] lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-8 lg:gap-y-6">
+      <div class="min-w-0 lg:col-start-1">
       {collapsed && ranInputs ? (
         <InputSummary
           parts={answerSummaryParts({ zip: ranInputs.zip, utilityName: ranInputs.utilityId === UNLISTED_UTILITY ? null : utilityName(ranInputs.utilityId) || null, bill: ranInputs.bill, battery: ranInputs.battery, shading: ranInputs.shading })}
@@ -516,7 +522,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
       </div>
 
       {outcome && (
-        <section aria-labelledby="calc-results-heading" class="mt-8 rounded-2xl motion-safe:animate-fade-in border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+        <section aria-labelledby="calc-results-heading" class={`mt-8 motion-safe:animate-fade-in border border-stone-200 bg-white px-5 pt-5 shadow-sm sm:px-8 sm:pt-8 ${hasLead ? 'rounded-t-2xl border-b-0 pb-0 lg:rounded-2xl lg:border-b lg:pb-8' : 'rounded-2xl pb-5 sm:pb-8'}`}>
           <h2 ref={resultsRef} id="calc-results-heading" tabIndex={-1} class="scroll-mt-4 text-2xl font-bold tracking-tight text-stone-900 focus:outline-none">
             Your solar estimate
           </h2>
@@ -538,25 +544,57 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
                 : 'Please check your answers and try again.'}
             </p>
           )}
-          {outcome.kind === 'result' && !outcome.result.ok && outcome.result.reason === 'missing_data' && leadCard(null, true)}
           {outcome.kind === 'result' && outcome.result.ok && (
-            <Results
-              r={outcome.result}
-              fallbackCity={outcome.fallbackCity}
-              utilityName={utilityName(outcome.result.utilityId)}
-              copied={copied}
-              busy={busy}
-              onCopy={copyLink}
-              onStartOver={startOver}
-              leadCard={leadCard(estimateSnapshot(outcome.result), false)}
-              state={state}
-              assumptions={assumptions}
-              batteries={ranInputs?.battery ?? 0}
-              stickySpacer={stickyShown}
-            />
+            <ResultsTop r={outcome.result} fallbackCity={outcome.fallbackCity} utilityName={utilityName(outcome.result.utilityId)} />
           )}
         </section>
       )}
+      </div>
+
+      {/* Right rail from lg: the quote card once there are results, else a short "what you'll get" card. Below lg the
+          quote card sits right under the headline numbers (this wrapper continues the results card around it). */}
+      {hasLead && ranInputs ? (
+        <div
+          class={`border-x border-stone-200 bg-white px-5 sm:px-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-8 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto lg:border-0 lg:bg-transparent lg:p-1 lg:sticky lg:top-6 ${okResult ? '' : 'max-lg:rounded-b-2xl max-lg:border-b max-lg:pb-5 max-lg:shadow-sm sm:max-lg:pb-8'}`}
+        >
+          {leadCard(okResult ? estimateSnapshot(okResult) : null, !okResult)}
+        </div>
+      ) : (
+        <aside aria-label="What you will get" class="hidden lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1 lg:block lg:self-start">
+          <RailInfo />
+        </aside>
+      )}
+
+      {okResult && (
+        <div class="min-w-0 rounded-b-2xl border border-t-0 border-stone-200 bg-white px-5 pb-5 shadow-sm sm:px-8 sm:pb-8 lg:col-start-1 lg:rounded-2xl lg:border-t lg:pt-2">
+          <ResultsBottom
+            r={okResult}
+            assumptions={assumptions}
+            copied={copied}
+            busy={busy}
+            onCopy={copyLink}
+            onStartOver={startOver}
+            stickySpacer={stickyShown}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Rail card before there are results: what the calculator does, in words (no numbers). */
+function RailInfo() {
+  return (
+    <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-semibold text-stone-900">What you&rsquo;ll get</h2>
+      <ul class="mt-3 space-y-3 text-sm leading-6 text-stone-700">
+        <li>A low, likely and high range for payback and savings, not a single made-up number.</li>
+        <li>Your utility&rsquo;s published rates and local sun, with every assumption listed.</li>
+        <li>No federal tax credit assumed, and an optional link to real installer prices.</li>
+      </ul>
+      <p class="mt-4 text-sm">
+        <a href="/methodology" class="font-medium text-sun-ink underline underline-offset-2 hover:text-stone-900">How we calculate this</a>
+      </p>
     </div>
   );
 }
@@ -673,23 +711,8 @@ function Metric(p: { label: string; d: RangeDisplay; note?: string; variant?: Me
   );
 }
 
-function Results(p: {
-  r: CalcSuccess;
-  fallbackCity: string | null;
-  utilityName: string;
-  copied: 'idle' | 'ok' | 'fail';
-  busy: boolean;
-  onCopy: () => void;
-  onStartOver: () => void;
-  /** The quote card, placed right under the hero metrics. */
-  leadCard: ComponentChildren;
-  state: CalculatorProps['state'];
-  assumptions: CalculatorProps['assumptions'];
-  /** Batteries in the answers these results were run with. */
-  batteries: BatteryCount;
-  /** Add room at the end so the fixed bottom bar never covers the last buttons. */
-  stickySpacer: boolean;
-}) {
+/** Headline numbers through the savings chart. (The quote card follows, then ResultsBottom.) */
+function ResultsTop(p: { r: CalcSuccess; fallbackCity: string | null; utilityName: string }) {
   const { r } = p;
   const noUsage = r.annualUsageKwh === 0;
   const chart = noUsage ? null : buildSavingsChart(r);
@@ -734,8 +757,25 @@ function Results(p: {
 
       {!noUsage && chart && <SavingsChart chart={chart} years={r.analysisYears} />}
 
-      {p.leadCard}
+    </div>
+  );
+}
 
+/** Lease/PPA comparison, assumptions and the share buttons. */
+function ResultsBottom(p: {
+  r: CalcSuccess;
+  assumptions: CalculatorProps['assumptions'];
+  copied: 'idle' | 'ok' | 'fail';
+  busy: boolean;
+  onCopy: () => void;
+  onStartOver: () => void;
+  /** Add room at the end so the fixed bottom bar never covers the last buttons. */
+  stickySpacer: boolean;
+}) {
+  const { r } = p;
+  const noUsage = r.annualUsageKwh === 0;
+  return (
+    <div>
       {!noUsage && <FinancingPanel r={r} assumptions={p.assumptions} />}
 
       <details class="mt-6 rounded-lg border border-stone-200 bg-white">

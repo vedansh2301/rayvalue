@@ -65,7 +65,7 @@ const steps = [
   </section>
 
   <div class="shell pb-24 sm:pb-16">
-  <div class="max-w-(--container-prose) space-y-10">
+  <div class="space-y-10">
     <section aria-label="Calculator">
       {data.ok ? (
         <Calculator client:visible {...data.props} alertsEnabled={ALERTS_ENABLED} />
@@ -81,6 +81,7 @@ const steps = [
       )}
     </section>
 
+    <div class="max-w-(--container-prose) space-y-10">
     {offer && (
       <section aria-label="Partner offer" class="space-y-3">
         <Disclosure />
@@ -109,6 +110,7 @@ const steps = [
     </section>
 
     {ALERTS_ENABLED && <AlertsSignup state={state} />}
+    </div>
   </div>
   </div>
 </BaseLayout>
