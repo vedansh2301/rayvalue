@@ -1,5 +1,5 @@
 import { defineConfig } from 'astro/config';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import mdx from '@astrojs/mdx';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
@@ -12,6 +12,7 @@ import { UTILITY_PAGES, utilityPagePath } from './src/lib/utility/pages.ts';
 import { createServer as createViteServer } from 'vite';
 import { isGoPath } from './src/lib/go.ts';
 import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
+import { parseSitemapEntries, renderSitemapXml } from './src/lib/seo/sitemap-xml.ts';
 import { adCspSources, parseAdIds } from './src/lib/ads/config.ts';
 import { trustedFormCsp, trustedFormEnabled } from './src/lib/leads/consent-vendor.ts';
 
@@ -137,6 +138,17 @@ export default defineConfig({
         return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/') && !path.startsWith('/admin') && !isGoPath(path) && path !== '/unsubscribe';
       },
     }),
+    // One readable /sitemap.xml (changefreq + priority) from the filtered sitemap-N.xml files above.
+    {
+      name: 'rayvalue-sitemap-xml',
+      hooks: {
+        'astro:build:done': ({ dir }) => {
+          const files = readdirSync(dir).filter((f) => /^sitemap-\d+\.xml$/.test(f));
+          const entries = files.flatMap((f) => parseSitemapEntries(readFileSync(new URL(f, dir), 'utf8')));
+          if (entries.length) writeFileSync(new URL('sitemap.xml', dir), renderSitemapXml(entries));
+        },
+      },
+    },
   ],
   vite: { plugins: [tailwindcss()] },
 });

@@ -16,7 +16,7 @@ Hosting: Vercel project `rayvalue` (team vedanshs-projects-5b6aa829). Repo: gith
 ## 2. Google Search Console
 - [ ] Add property `https://rayvalue.com` (URL-prefix) or Domain property.
 - [ ] Verify: either set `PUBLIC_GSC_VERIFICATION` (the token from the HTML-tag method) in Vercel and redeploy, or add the DNS TXT record at GoDaddy.
-- [ ] Submit sitemap: `https://rayvalue.com/sitemap-index.xml`.
+- [ ] Submit sitemap: `https://rayvalue.com/sitemap.xml` (single file; `sitemap-index.xml` still exists).
 
 ## 3. Supabase (project qefnwgdqnkzzdcpwfmkt)
 - [ ] All calculator values are edited in the Table Editor (utilities, cost_ranges, model_assumptions, cities, pvwatts_city_production, offers). Changes show on the site within about 5 minutes, no redeploy.
