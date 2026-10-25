@@ -96,6 +96,10 @@ export interface CalcSuccess {
   paybackYears: PaybackRange;
   /** Cumulative bill savings over the analysis period minus installed cost (undiscounted). */
   netSavings25: Range;
+  /** Year-1 production of the likely system (size.likely) in kWh, to the nearest 100. Basis for the lease/PPA comparison. */
+  year1ProductionKwh: number;
+  /** Bill savings per year (USD, nearest dollar) for the likely scenario, years 1…analysisYears. Basis for the lease/PPA comparison. */
+  yearlySavings: number[];
   /** Length of the projection in years (assumptions.analysis_years). */
   analysisYears: number;
   /** Human-readable statements of every value the result rests on. */

@@ -422,3 +422,14 @@ describe('injected ZIP lookup', () => {
     expect(calculate(fl(185, { zip: 'any' }), ctx(undefined, { lookupZip: () => ({ state: 'FL' }) })).ok).toBe(true);
   });
 });
+
+describe('lease/PPA basis fields', () => {
+  it('exposes the likely system year-1 production and the yearly savings series', () => {
+    // FL two-tier $185 bill: likely size 11.4 kW × 1,500 kWh/kW = 17,100 kWh; likely year-1 savings $2,010 (see above)
+    const r = ok(calculate(fl(185), ctx()));
+    expect(r.year1ProductionKwh).toBe(17100);
+    expect(r.yearlySavings).toHaveLength(r.analysisYears);
+    expect(r.yearlySavings[0]).toBe(2010);
+    expect(r.yearlySavings[1]!).toBeGreaterThan(r.yearlySavings[0]!); // 2% escalation, no degradation in the fixture
+  });
+});

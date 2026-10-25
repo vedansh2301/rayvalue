@@ -20,6 +20,7 @@ import { answerSummaryParts } from '../../lib/calculator/summary';
 import { formatUsd } from '../../lib/format';
 import { parseShareParams, serializeShareParams } from '../../lib/share';
 import { btnPrimary, btnSecondary, btnText } from '../ui/buttons';
+import { FinancingPanel, FlBatteryPanel } from './ResultsExtras';
 import ResultsActions from '../quotes/ResultsActions';
 import type { QuoteContext } from '../quotes/QuoteForm';
 import { estimateSnapshot } from '../../lib/leads/snapshot';
@@ -526,6 +527,9 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
               onCopy={copyLink}
               onStartOver={startOver}
               leadCard={leadCard(estimateSnapshot(outcome.result), false)}
+              state={state}
+              assumptions={assumptions}
+              batteries={ranInputs?.battery ?? 0}
             />
           )}
         </section>
@@ -675,6 +679,10 @@ function Results(p: {
   onStartOver: () => void;
   /** The quote card, placed right under the hero metrics. */
   leadCard: ComponentChildren;
+  state: CalculatorProps['state'];
+  assumptions: CalculatorProps['assumptions'];
+  /** Batteries in the answers these results were run with. */
+  batteries: BatteryCount;
 }) {
   const { r } = p;
   const noUsage = r.annualUsageKwh === 0;
@@ -724,6 +732,9 @@ function Results(p: {
           <Metric variant="compact" label="System size" d={displayRange(r.size, formatKw)} />
         </dl>
       )}
+
+      {!noUsage && <FinancingPanel r={r} assumptions={p.assumptions} />}
+      {p.state === 'FL' && <FlBatteryPanel batteries={p.batteries} />}
 
       <details class="mt-6 rounded-lg border border-stone-200 bg-white">
         <summary class="min-h-11 cursor-pointer px-4 py-3 font-semibold text-stone-900">How this estimate was built ({r.assumptions.length} assumptions)</summary>

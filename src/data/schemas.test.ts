@@ -176,6 +176,19 @@ describe('schemas reject bad data', () => {
     expect(AssumptionsSchema.safeParse(bad3).success).toBe(false);
   });
 
+  it('accepts lease/PPA rows that are all null, rejects partial or unordered ranges, and treats them as optional', () => {
+    const why = 'synthetic test rationale';
+    const a = clone(fixtureAssumptions) as any;
+    a.lease_monthly_per_kw = { kind: 'assumption', rationale: why, low: null, likely: null, high: null };
+    a.ppa_rate_per_kwh = { kind: 'assumption', rationale: why, low: 0.08, likely: 0.1, high: 0.12 };
+    expect(AssumptionsSchema.safeParse(a).success).toBe(true);
+    a.ppa_rate_per_kwh = { kind: 'assumption', rationale: why, low: 0.08, likely: null, high: 0.12 };
+    expect(AssumptionsSchema.safeParse(a).success).toBe(false);
+    a.ppa_rate_per_kwh = { kind: 'assumption', rationale: why, low: 0.12, likely: 0.1, high: 0.08 };
+    expect(AssumptionsSchema.safeParse(a).success).toBe(false);
+    expect(AssumptionsSchema.safeParse(fixtureAssumptions).success).toBe(true);
+  });
+
   it('treats city_example_bills as optional but validates it when present', () => {
     const why = 'synthetic test rationale';
     expect(AssumptionsSchema.safeParse(fixtureAssumptions).success).toBe(true);

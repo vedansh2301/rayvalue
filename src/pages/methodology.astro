@@ -22,6 +22,21 @@ else {
 const utilities = loaded.ok ? loaded.value : null;
 const array = assumptions.ok ? assumptions.value.pvwatts_array : null;
 
+// Lease / PPA inputs: shown when the owner has entered them, otherwise labeled as not yet verified.
+const financing = assumptions.ok ? assumptions.value : null;
+const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
+const leasePpaRows: { label: string; row: { low: number | null; likely: number | null; high: number | null; rationale: string } | undefined; fmt: (n: number) => string }[] = [
+  { label: 'Lease payment per kW of system per month, year 1', row: financing?.lease_monthly_per_kw, fmt: (n) => `$${n}` },
+  { label: 'Lease yearly payment increase', row: financing?.lease_annual_escalator, fmt: pct },
+  { label: 'PPA price per kWh, year 1', row: financing?.ppa_rate_per_kwh, fmt: (n) => `$${n}` },
+  { label: 'PPA yearly price increase', row: financing?.ppa_annual_escalator, fmt: pct },
+];
+const leasePpaText = (r: (typeof leasePpaRows)[number]) =>
+  r.row && r.row.low !== null && r.row.likely !== null && r.row.high !== null
+    ? `${r.fmt(r.row.low)} to ${r.fmt(r.row.high)}, likely ${r.fmt(r.row.likely)}`
+    : null;
+const leasePpaShown = leasePpaRows.every((r) => leasePpaText(r) !== null);
+
 const states: { code: State; label: string }[] = [
   { code: 'FL', label: 'Florida' },
   { code: 'CA', label: 'California' },
@@ -109,6 +124,39 @@ const costSources = costs.ok
     <p>
       Not included: financing costs, maintenance, inverter or battery replacement, and tax effects. An estimate is not a
       quote; installer prices and your actual usage will differ.
+    </p>
+
+    <h2>Lease and PPA comparison</h2>
+    <p>
+      Results include a plain-language comparison of buying with a lease or power purchase agreement (PPA), where a
+      company owns the system and you pay monthly (lease) or per kilowatt-hour produced (PPA). The company that owns the
+      system may be able to use federal tax benefits that homeowners who buy cannot, which can show up as lower prices.
+    </p>
+    {leasePpaShown ? (
+      <>
+        <p>
+          When lease and PPA price assumptions are set, we use the same system as the purchase estimate, assume the contract
+          runs for the whole analysis period, and subtract the payments from the likely-case bill savings. The low result uses
+          the highest payments and the high result the lowest. It is not discounted and leaves out buyout and transfer fees.
+          The assumptions in use:
+        </p>
+        <ul class="list-disc space-y-1 pl-6">
+          {leasePpaRows.map((r) => <li>{r.label}: {leasePpaText(r)}. <span class="text-stone-700">{r.row?.rationale}</span></li>)}
+        </ul>
+      </>
+    ) : (
+      <p>
+        We do not show lease or PPA prices yet. Lease and PPA pricing varies by installer, utility and contract, and we have
+        not verified a source for typical market terms, so the comparison in results is explanation only. When we add figures
+        they will be listed here as assumptions with their reasoning, and still shown as low, likely and high ranges.
+      </p>
+    )}
+
+    <h2>Batteries in Florida</h2>
+    <p>
+      Under Florida retail net metering, solar you send to the grid is credited at the retail rate, so in our estimate a
+      battery adds to the upfront cost but not to bill savings, and it lengthens payback. Its value is backup power during
+      outages, which we do not put a dollar figure on. The Florida calculator page explains what a battery can and cannot power.
     </p>
 
     <h2>Types of sources</h2>

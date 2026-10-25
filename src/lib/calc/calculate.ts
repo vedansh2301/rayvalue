@@ -129,6 +129,8 @@ export function calculate(input: CalcInput, ctx: CalcContext): CalcResult {
     year1Savings: roundRange(year1Savings, roundUsd),
     paybackYears: roundPayback(payback),
     netSavings25: roundRange(net, roundUsd),
+    year1ProductionKwh: roundKwh(kw * kwhPerKw),
+    yearlySavings: fl.map((v) => Math.round(v)),
     analysisYears: years,
     assumptions: buildAssumptions({ input, utility, model, a, sizing, annualKwh, production, ppw: ppw.value, bat: bat?.ok ? bat.value : null, costs: costs[state], spread, share }),
     warnings: buildWarnings({ input, model, a, sizing, annualKwh }),
