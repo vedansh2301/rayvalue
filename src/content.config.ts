@@ -35,4 +35,28 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { guides, blog };
+/**
+ * Real stories: publicly reported, sourced accounts only. No testimonials, no invented people.
+ * Every number in `summary` must appear in the cited source (CLAUDE.md rule 1).
+ */
+const stories = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/stories' }),
+  schema: z.object({
+    title: z.string(),
+    state: z.enum(['FL', 'CA']),
+    location: z.string(),
+    date_reported: z.coerce.date(),
+    summary: z.string(),
+    lesson: z.string(),
+    source: z.object({
+      publisher: z.string(),
+      title: z.string(),
+      url: z.string().url(),
+      published: z.coerce.date(),
+    }),
+    /** Only with a reusable license; otherwise omit. */
+    photo: z.object({ src: z.string(), alt: z.string(), credit: z.string(), license: z.string() }).optional(),
+  }),
+});
+
+export const collections = { guides, blog, stories };

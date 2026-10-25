@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import StoryCards from '../components/stories/StoryCards.astro';
+---
+<BaseLayout
+  title="Real solar and battery stories from FL and CA"
+  description="Publicly reported stories of Florida and California homeowners and communities using solar and batteries, with what each one means for your own decision."
+  path="/stories"
+>
+  <div class="shell pb-16 pt-6 sm:pt-8">
+    <div class="max-w-(--container-prose)">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Real stories' }]} />
+      <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">Real stories</h1>
+      <p class="mt-4 text-lg leading-8 text-stone-700">
+        RayValue is new and has no customer testimonials. These are publicly reported accounts from news outlets and research groups, summarized in our own words, each with a link to the original. Some are good news for solar and batteries; others show where the economics got harder.
+      </p>
+    </div>
+    <div class="mt-8">
+      <h2 class="mb-4 text-xl font-semibold text-stone-900">Florida</h2>
+      <StoryCards state="FL" />
+      <h2 class="mb-4 mt-10 text-xl font-semibold text-stone-900">California</h2>
+      <StoryCards state="CA" />
+    </div>
+    <p class="mt-8 max-w-(--container-prose) text-sm text-stone-600">
+      Stories describe what was reported at the time and may not reflect current prices or rules. For estimates for your home, use the <a href="/calculator/florida" class="text-sun-ink underline underline-offset-2">Florida</a> or <a href="/calculator/california" class="text-sun-ink underline underline-offset-2">California</a> calculator.
+    </p>
+  </div>
+</BaseLayout>

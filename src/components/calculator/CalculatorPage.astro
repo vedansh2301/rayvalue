@@ -11,6 +11,7 @@ import Disclosure from '../Disclosure.astro';
 import OfferCTA from '../OfferCTA.astro';
 import Breadcrumbs from '../Breadcrumbs.astro';
 import FlBatteryNotes from '../FlBatteryNotes.astro';
+import StoryCards from '../stories/StoryCards.astro';
 import UtilityLinks from '../utility/UtilityLinks.astro';
 import Calculator from './Calculator';
 import type { State } from '../../data/schemas';
@@ -86,6 +87,12 @@ const steps = [
     {state === 'FL' && <FlBatteryNotes />}
 
     <UtilityLinks state={state} heading={`Solar payback by ${name} utility`} />
+
+    <section aria-labelledby="stories-heading">
+      <h2 id="stories-heading" class="text-xl font-semibold text-stone-900">Real stories from {name}</h2>
+      <p class="mb-4 mt-2 text-stone-700">Publicly reported accounts, with links to the original reporting. <a href="/stories" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">See all stories</a>.</p>
+      <StoryCards state={state} limit={3} />
+    </section>
 
     <section aria-labelledby="how-heading">
       <h2 id="how-heading" class="text-xl font-semibold text-stone-900">How we calculated this</h2>
