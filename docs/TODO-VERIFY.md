@@ -10,7 +10,7 @@ Check these first: the figures were read from the page below but the page itself
 
 - [ ] **Southern California Edison (SCE)** (https://www.sce.com/save-money/rates-financing/residential-rate-plans/time-of-use-plans): Source is an undated consumer rate-plan page with prices rounded to the cent, not the dated tariff sheet (SCE's Schedule TOU-D sheets are only in a SharePoint folder that cannot be read). SCE's Rate Advisory (https://www.sce.com/save-money/rates-financing/sce-rate-advisory) announces a residential change effective October 1, 2026 (average 34.4 to 34.5 cents/kWh, about +1.5% on a 500 kWh TOU-D-4-9PM bill) but prints no per-period prices, so these prices may be out of date by about 1.5%.
 
-## Null sourced values (6)
+## Null sourced values (5)
 
 Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EIA, NREL/NLR), fill the cell in Supabase, and set `source_url`, `verified_on` and `verification` on the same row.
 
@@ -19,14 +19,13 @@ Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EI
 - [ ] `cost_ranges[FL/battery_installed_cost].high`
 - [ ] `cost_ranges[CA/installed_cost_per_watt].low`
 - [ ] `cost_ranges[CA/installed_cost_per_watt].high`
-- [ ] `cost_ranges[CA/battery_installed_cost].high`
 
 ## Missing precomputed PVWatts values (0)
 
 City x losses combinations with no row in `pvwatts_city_production` (used when the live PVWatts call is unavailable). Fill them with `npm run data:pvwatts` (needs `NREL_API_KEY`; resumable), then `npm run todo:verify`.
 
 
-## Agent-sourced — needs human confirmation (60)
+## Agent-sourced — needs human confirmation (61)
 
 Read from a primary source page by an agent during the build. Only the owner sets `verification` to `human_verified`.
 
@@ -94,6 +93,7 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `cost_ranges[CA/installed_cost_per_watt].likely` | 3.3 | https://emp.lbl.gov/sites/default/files/2026-08/Distributed%20Solar%20&%20Storage-2026%20Data%20Update_FINAL.pdf | 2026-10-25 |
 | `cost_ranges[CA/battery_installed_cost].low` | 12400 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-25 |
 | `cost_ranges[CA/battery_installed_cost].likely` | 13120 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-25 |
+| `cost_ranges[CA/battery_installed_cost].high` | 16800 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-25 |
 
 ## Model assumptions to review
 
@@ -103,6 +103,7 @@ Product choices, not facts (table `model_assumptions`). Each has a rationale ins
 | --- | --- | --- |
 | `analysis_years` | `{"value": 25}` | Length of the net-savings projection. Product choice (typical panel warranty length). |
 | `annual_rate_escalation` | `{"CA": {"low": 0.03, "high": 0.06, "likely": 0.045}, "FL": {"low": 0.02, "high": 0.04, "likely": 0.03}}` | Yearly growth in the retail electricity rate used in the 25-year projection. Product choices, not sourced facts. Florida: no primary source gives a forward forecast, so 2/3/4% is a choice around general inflation; for context EIA reports a Florida residential average of 14.14 cents/kWh in 2024 (https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf). California: the Public Advocates Office (CPUC) Q2 2026 Electric Rates Report, PDF page 8 (https://www.publicadvocates.cpuc.ca.gov/-/media/cal-advocates-website/files/press-room/reports-and-analyses/260727-public-advocates-office-q2-2026-electric-rates-report.pdf), prints residential average rate increases from January 2016 to June 2026 of +69% (PG&E), +101% (SCE) and +97% (SDG&E). Over those 10.5 years the compound rate is (1 + total change)^(1/10.5) - 1, about 5.1%, 6.9% and 6.7% a year (our arithmetic). The CPUC's 2025 SB 695 report, PDF page 6 (printed page 2) (https://www.cpuc.ca.gov/-/media/cpuc-website/divisions/office-of-governmental-affairs-division/reports/2025/2025-sb-695-report_093025.pdf), prints about 11%, 8% and 7% a year for PG&E, SCE and SDG&E over 2016-2024, and a 2025-2028 forecast of about 6% a year for PG&E and SDG&E and about 7% a year for SCE. The report's footnote 14 defines these as simple averages (total change divided by years), not compound rates. The California range is 3% (low), 4.5% (likely) and 6% (high). The likely value sits below every utility's compound history above; the high value is above PG&E's 5.1% compound history but below SCE's 6.9% and SDG&E's 6.7% and close to the CPUC's 6-7% forecast. It is deliberately not higher because assuming the recent pace persists for 25 years is not defensible. Owner to review. |
+| `ca_schedule_proxy_note[CA]` | `{"applies": true}` | The rate schedule modeled here (E-TOU-C for PG&E, TOU-D 4-9 PM for SCE, TOU-DR1 for SDG&E) is a pre-solar average-rate proxy: it is the plan a typical home is on before adding solar, used to estimate your usage and the value of the power solar replaces. New customers who go solar under net billing (NEM 3.0) must move to a specific time-of-use plan instead: E-ELEC at PG&E, TOU-D-PRIME at SCE or EV-TOU-5 at SDG&E. See the California NEM 3.0 and batteries guide. |
 | `ca_self_consumption_share` | `{"solar_only": {"low": 0.3, "high": 0.5, "likely": 0.4}, "solar_plus_1_battery": {"low": 0.55, "high": 0.8, "likely": 0.7}, "solar_plus_2_batteries": {"low": 0.7, "high": 0.95, "likely": 0.85}}` | Share of solar output used on site (valued at the retail rate) versus exported at the lower net billing credit, for California homes. Placeholder product choices pending owner review; batteries raise self-consumption. |
 | `city_example_bills` | `{"value": [100, 200, 350]}` | Illustrative example monthly electricity bills used only for the example-payback table on city pages. Product choice to show a low, middle and high bill; these are not facts or local averages, and the page labels them as illustrative. |
 | `lease_annual_escalator` | `{"low": null, "high": null, "likely": null}` | Left empty on purpose: contract escalators vary (including none) and no primary source has been verified yet. Enter a sourced range here (and name the source in this text) to show the lease comparison. |
