@@ -4,7 +4,8 @@ import { ogImagePath } from '../lib/seo/og';
 import { btnPrimary, btnSecondary } from '../components/ui/buttons';
 import UtilityLinks from '../components/utility/UtilityLinks.astro';
 import Icon, { type IconName } from '../components/icons/Icon';
-import HomeArt from '../components/illustrations/HomeArt.astro';
+import { Picture } from 'astro:assets';
+import heroPhoto from '../assets/photos/ca-rooftop-solar-home.jpg';
 import Faq from '../components/Faq.astro';
 import { HOME_FAQ_IDS, faqItems } from '../lib/content/faq';
 import { faqJsonLd } from '../lib/seo/jsonld';
@@ -64,8 +65,20 @@ const steps: { title: string; body: string; icon: IconName }[] = [
         ))}
       </ul>
      </div>
-     <div class="hidden max-w-sm justify-self-center min-[480px]:block lg:max-w-none" aria-hidden="true">
-       <HomeArt class="max-h-[180px] lg:max-h-none" />
+     <div class="mx-auto w-full max-w-md lg:max-w-none">
+       <Picture
+         src={heroPhoto}
+         formats={['avif', 'webp']}
+         widths={[480, 768, 1100]}
+         sizes="(min-width: 1024px) 440px, (min-width: 480px) 448px, calc(100vw - 2rem)"
+         alt="Dark rooftop solar panels on a single-story home in California under a clear blue sky"
+         width={1100}
+         height={825}
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         class="aspect-[4/3] w-full rounded-2xl object-cover shadow-md"
+       />
      </div>
     </div>
   </section>

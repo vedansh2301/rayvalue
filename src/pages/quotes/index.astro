@@ -4,7 +4,8 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { ogImagePath } from '../../lib/seo/og';
 import QuoteForm from '../../components/quotes/QuoteForm';
 import Icon, { type IconName } from '../../components/icons/Icon';
-import HomeArt from '../../components/illustrations/HomeArt.astro';
+import { Picture } from 'astro:assets';
+import quotesPhoto from '../../assets/photos/ca-rooftop-solar-install.jpg';
 import Faq from '../../components/Faq.astro';
 import { QUOTES_FAQ_IDS, faqItems } from '../../lib/content/faq';
 import { faqJsonLd } from '../../lib/seo/jsonld';
@@ -34,7 +35,20 @@ const steps: { icon: IconName; short: string; long: string }[] = [
     <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">Get free solar quotes</h1>
     <div class="mt-6 grid gap-6 lg:grid-cols-[2fr_3fr] lg:items-start lg:gap-10">
       <aside aria-label="How quotes work" class="lg:sticky lg:top-6">
-        <div class="hidden lg:block"><HomeArt class="max-h-56" /></div>
+        <div class="hidden lg:block">
+          <Picture
+            src={quotesPhoto}
+            formats={['avif', 'webp']}
+            widths={[400, 640]}
+            sizes="360px"
+            alt="Installers in hard hats lifting a solar panel into place on a shingle roof in California"
+            width={640}
+            height={480}
+            loading="lazy"
+            decoding="async"
+            class="aspect-[4/3] w-full rounded-xl object-cover"
+          />
+        </div>
         <ol class="grid grid-cols-3 gap-2 lg:mt-6 lg:grid-cols-1 lg:gap-4">
           {steps.map((st, i) => (
             <li class="flex flex-col items-center gap-2 rounded-xl border border-stone-200 bg-white p-3 text-center lg:flex-row lg:gap-4 lg:p-4 lg:text-left">
