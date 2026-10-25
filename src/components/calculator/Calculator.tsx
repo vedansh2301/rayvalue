@@ -721,7 +721,7 @@ function ResultsTop(p: { r: CalcSuccess; fallbackCity: string | null; utilityNam
       {p.utilityName && <p class="mt-2 text-stone-700">For a home on {p.utilityName}.</p>}
 
       {!noUsage && (
-        <dl class="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <dl class="mt-4 grid grid-cols-2 gap-3">
           <Metric variant="hero" label="Payback" d={displayPayback(r.paybackYears, r.analysisYears)} note="Range runs from shortest (best case) to longest" />
           <Metric variant="hero" label={`Net savings over ${r.analysisYears} years`} d={displayRange(r.netSavings25, formatSignedUsd)} note="Bill savings minus upfront cost" />
           <Metric label="Upfront cost" d={displayRange(r.cost, formatUsd)} note="Before any incentives" extra={`System size: ${rangeText(displayRange(r.size, formatKw))}`} />

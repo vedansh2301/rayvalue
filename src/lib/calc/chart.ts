@@ -105,7 +105,8 @@ export function buildSavingsChart(r: ChartSource): SavingsChart | null {
           const w = Math.ceil(label.length * LABEL_FONT * LABEL_CHAR_W);
           // Label sits above the cost line, left of the point (the savings line is below the cost line there); when it would run into the y-axis labels it goes below-right instead.
           const anchor: 'start' | 'end' = cx - 8 - w - 4 >= left ? 'end' : 'start';
-          const labelX = anchor === 'end' ? r1(cx - 8) : r1(cx + 8);
+          // Below-right labels are pulled left so the pill never runs past the plot's right edge (late paybacks).
+          const labelX = anchor === 'end' ? r1(cx - 8) : r1(Math.max(left + 4, Math.min(cx + 8, right - w - 4)));
           const labelY = anchor === 'end' ? r1(Math.max(y(cost) - 9, top + LABEL_FONT)) : r1(y(cost) + 8 + LABEL_FONT);
           const pill = { x: r1(anchor === 'end' ? labelX - w - 4 : labelX - 4), y: r1(labelY - LABEL_FONT), width: w + 8, height: LABEL_FONT + 7 };
           return { x: cx, y: y(cost), years: pb, label, labelX, labelY, anchor, pill };

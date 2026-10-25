@@ -78,3 +78,23 @@ describe('buildSavingsChart', () => {
     expect(buildSavingsChart(src({ yearlySavingsHigh: [0, 0, 0, 0], yearlySavings: [0, 0, 0, 0], yearlySavingsLow: [0, 0, 0, 0] }))).toBeNull();
   });
 });
+
+describe('payback label placement', () => {
+  it('keeps a below-right label pill inside the plot when payback is near the right edge', () => {
+    // 20-year analysis, payback in year 13.5: the label cannot fit to the left of the point.
+    const years = 20;
+    const c = buildSavingsChart(
+      src({
+        cost: { low: 30000, likely: 36000, high: 44000 },
+        paybackYears: { low: 11, likely: 13.5, high: 16 },
+        analysisYears: years,
+        yearlySavings: Array(years).fill(2700),
+        yearlySavingsLow: Array(years).fill(2200),
+        yearlySavingsHigh: Array(years).fill(3200),
+      }),
+    )!;
+    const pill = c.crossing!.pill;
+    expect(pill.x).toBeGreaterThanOrEqual(c.plot.left);
+    expect(pill.x + pill.width).toBeLessThanOrEqual(c.plot.right + 1);
+  });
+});
