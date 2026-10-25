@@ -10,6 +10,7 @@ import AlertsSignup from '../AlertsSignup.astro';
 import Disclosure from '../Disclosure.astro';
 import OfferCTA from '../OfferCTA.astro';
 import Breadcrumbs from '../Breadcrumbs.astro';
+import FlBatteryNotes from '../FlBatteryNotes.astro';
 import Calculator from './Calculator';
 import type { State } from '../../data/schemas';
 import type { CalculatorPageData } from '../../lib/calculator/page-data';
@@ -80,6 +81,8 @@ const steps = [
         <OfferCTA offer={offer} state={state} />
       </section>
     )}
+
+    {state === 'FL' && <FlBatteryNotes />}
 
     <section aria-labelledby="how-heading">
       <h2 id="how-heading" class="text-xl font-semibold text-stone-900">How we calculated this</h2>
