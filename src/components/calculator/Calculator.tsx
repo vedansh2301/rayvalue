@@ -559,7 +559,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
           quote card sits right under the headline numbers (this wrapper continues the results card around it). */}
       {hasLead && ranInputs ? (
         <div
-          class={`border-x border-stone-200 bg-white px-5 sm:px-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-8 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto lg:border-0 lg:bg-transparent lg:p-1 lg:sticky lg:top-6 ${okResult ? '' : 'max-lg:rounded-b-2xl max-lg:border-b max-lg:pb-5 max-lg:shadow-sm sm:max-lg:pb-8'}`}
+          class={`border-x border-stone-200 bg-white px-5 sm:px-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-8 lg:self-start lg:border-0 lg:bg-transparent lg:p-0 ${okResult ? '' : 'max-lg:rounded-b-2xl max-lg:border-b max-lg:pb-5 max-lg:shadow-sm sm:max-lg:pb-8'}`}
         >
           {leadCard(okResult ? estimateSnapshot(okResult) : null, !okResult)}
         </div>
