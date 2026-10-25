@@ -4,7 +4,7 @@
  * the step. The verified flag is written here, server-side, after Twilio approves a code for the phone number stored
  * with the lead. The client never sends the phone number again and cannot set the flag.
  *
- * Limits: at most 3 codes sent per lead, 30 s between sends, at most 6 code checks per lead.
+ * Limits: at most 3 codes sent per lead, 30 s between sends, at most 3 code checks per lead.
  */
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { adminSelect, adminUpdate, type AdminEnv } from './admin-db';

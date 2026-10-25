@@ -111,6 +111,10 @@ describe('handleVerify', () => {
     const bad = world();
     expect((await handleVerify(post({ lead_id: ID, token: token(), action: 'check', code: 'abc' }), ENV, bad.f, [], NOW)).status).toBe(400);
   });
+  it('caps code checks at 3 (matches the "at most 3 attempts" copy) and sends at 3', () => {
+    expect(MAX_CHECKS).toBe(3);
+    expect(MAX_SENDS).toBe(3);
+  });
   it('already verified -> ok without calling Twilio', async () => {
     const w = world({ ...baseRow, phone_verified: true });
     const res = await handleVerify(post({ lead_id: ID, token: token(), action: 'send' }), ENV, w.f, [], NOW);
