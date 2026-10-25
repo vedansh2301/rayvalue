@@ -1,0 +1,104 @@
+---
+title: "Sizing solar for an electric vehicle"
+description: "How much electricity an EV adds to your bill, what California time-of-use and Florida tiered rates mean for charging, and how it shifts solar payback."
+published: 2026-10-25
+updated: 2026-10-25
+state: both
+tags: [ev, sizing, rates]
+sources:
+  - title: "fueleconomy.gov: 2024 all-electric vehicles (EPA kWh per 100 miles)"
+    url: "https://www.fueleconomy.gov/feg/byfuel/EV2024.shtml"
+  - title: "U.S. DOE Alternative Fuels Data Center: Average Annual Vehicle Miles Traveled by Major Vehicle Category"
+    url: "https://afdc.energy.gov/data/10309"
+  - title: "PG&E Electric Schedule EV2 (residential time-of-use for EV customers), rates effective June 1, 2026"
+    url: "https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_EV2%20%28Sch%29.pdf"
+  - title: "FPL Residential Rates and Clauses, effective October 2026"
+    url: "https://www.fpl.com/content/dam/fplgp/us/en/rates/pdf/residential-rates-oct2026.pdf"
+  - title: "EIA Electric Power Monthly, Table 5.6.A: average price of electricity by state"
+    url: "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a"
+draft: false
+noindex: false
+---
+
+An electric vehicle can be the single biggest new use of electricity in a home. It also changes how a solar system pays back, because the value of each solar kilowatt-hour depends on the rate it replaces. This post walks through the arithmetic with published figures, then shows what changes in California and Florida.
+
+## Key takeaways
+
+- An EV adds roughly 2,600 to 3,200 kWh a year if you drive an efficient car about 11,000 miles. The least efficient listed electric truck variant (a worst case, not typical) would add well over double that.
+- In California, when you charge matters more than how much. On PG&E's EV plan, the summer peak price is about 2.4 times the off-peak price (winter peak is about 1.8 times).
+- In Florida, FPL's standard residential rate is close to flat, with a modest step up above 1,000 kWh a month. Charging time matters less; total kWh matters more.
+- Solar paired with an EV usually improves the case when the car is charged on cheap hours or at home during the day, and weakens it if you size the system for kWh you will not actually use.
+
+## Step 1: how much energy does an EV use per mile?
+
+The EPA publishes a kWh-per-100-miles figure for each electric vehicle on fueleconomy.gov. The range among 2024 models is wide. Examples from that list: 24 kWh per 100 miles for the 2024 Hyundai Ioniq 6 Long Range RWD (18-inch wheels; the 20-inch-wheel version is listed at 29), 29 for the 2024 Kia EV6 Long Range RWD, and 72 for the highest-listed GMC Hummer EV variants (the "MT Tires 2M20" trims; other Hummer trims are listed lower). These are examples from a 2024 model-year list, not the full range of every EV on sale today. Lower is better.
+
+Your own number will differ with weather, speed, wheel size and how you drive, so treat the label as a starting point rather than a promise. Look up your exact model on fueleconomy.gov, or the one you are considering.
+
+## Step 2: how many miles?
+
+The U.S. DOE Alternative Fuels Data Center, citing Federal Highway Administration Highway Statistics 2024 (Table VM-1), lists average annual travel of 11,026 miles per car and 11,360 per light truck or van. Your driving may be higher or lower; use your own odometer history if you have it.
+
+## Step 3: annual kWh added
+
+Multiply miles by kWh per mile. These are illustrative calculations using the figures above, not predictions for your car.
+
+| Vehicle (2024 EPA label) | kWh per 100 mi | Miles per year | Added kWh per year |
+|---|---|---|---|
+| Efficient sedan (Ioniq 6 Long Range RWD, 18-inch wheels) | 24 | 11,026 | about 2,650 |
+| Efficient crossover (EV6 Long Range RWD) | 29 | 11,026 | about 3,200 |
+| Worst-case large truck (highest-listed Hummer EV variants) | 72 | 11,360 | about 8,200 |
+
+That is 24 to 29 kWh per 100 miles times 11,026 miles for the first two rows, and 72 times 11,360 for the last, which is the highest listed variant rather than a typical truck. Divided by 12, the efficient cars add roughly 220 to 270 kWh to your monthly usage.
+
+## Step 4: what that costs on the grid
+
+The price of those kWh depends on your rate plan. Here are two published examples.
+
+### California: time-of-use charging
+
+PG&E's Schedule EV2 is a whole-home time-of-use plan for customers with a plug-in vehicle. Under the rates effective June 1, 2026, the total (bundled-service) energy price per kWh is listed below. If you buy electricity through a community choice aggregator (CCA) or Direct Access, your generation rates differ, so check your own bill.
+
+- Summer peak (4 p.m. to 9 p.m. every day): $0.53809. Winter peak: $0.41099.
+- Partial-peak (3 p.m. to 4 p.m. and 9 p.m. to midnight): $0.42760 in summer, $0.39428 in winter.
+- Off-peak (all other hours, including overnight): $0.22558 year-round.
+
+Using the 2,650 to 3,200 kWh range from above, charging entirely off-peak costs about $600 to $720 a year (2,650 x $0.22558 and 3,200 x $0.22558). Charging entirely at summer peak prices would cost about $1,400 to $1,700. Most households land somewhere between, which is why a charger timer is worth setting. For other California utilities, see our [PG&E page](/solar/california/pge), [SCE page](/solar/california/sce) and [SDG&E page](/solar/california/sdge) for how we model each utility.
+
+For context, the U.S. Energy Information Administration reports an average residential price of 29.75 cents per kWh in California for August 2026 (preliminary), against 30.92 cents for August 2025. Averages blend all hours and plans, so they do not predict what you pay at 2 a.m.
+
+### Florida: flat-ish rates
+
+FPL's standard residential schedule (RS-1), per its October 2026 rate sheet, has a $10.52 monthly base charge and a per-kWh price that steps up above 1,000 kWh a month. Adding the energy charge, the conservation, capacity, environmental and storm protection charges, the fuel charge, and the transition credit shown on that sheet gives about 12.3 cents per kWh for the first 1,000 kWh and about 14.3 cents above that. That sum is our own arithmetic from the sheet; your bill may include taxes and fees not shown there.
+
+At those prices, an efficient EV adds roughly $320 (2,650 kWh at about 12.3 cents) to $460 (3,200 kWh at about 14.3 cents) a year. The upper figure assumes the EV pushes you into the higher tier all year, which depends on your other usage. EIA reports a Florida average residential price of 14.99 cents per kWh for August 2026 (preliminary), against 15.33 cents for August 2025.
+
+FPL also offers EV-specific rate plans with on-peak and off-peak pricing; the rate sheet lists a monthly program charge for each. Compare them against the standard rate for your own charging pattern before switching, and check the current tariff, which controls over any summary sheet. See how we model FPL on our [FPL page](/solar/florida/fpl), and Duke Energy Florida customers can see our [Duke Energy Florida page](/solar/florida/duke-energy-florida).
+
+## How an EV shifts solar payback
+
+Solar payback is the system cost divided by the yearly bill savings. An EV changes both sides.
+
+**It can raise the value of each solar kWh.** If your home uses more electricity during the hours your panels produce, a larger share of solar is used on site instead of exported. In Florida that likely matters less, because FPL's standard rate has no time-of-day pricing, so a solar kWh replaces a similar price at any hour (our general reasoning, not a sourced figure; net-metering export credits can also offset overnight use, so check your utility's current terms). In California it matters more, because daytime solar replaces cheap hours while the expensive hours are 4 p.m. to 9 p.m.
+
+**It can push you into a bigger system.** More kWh of demand means more panels, and more panels cost more. Payback improves only if the extra solar offsets kWh at a price high enough to cover its cost. The more of your EV charging happens at the cheapest hours anyway, the less each extra solar kWh is worth in California, because it replaces a $0.22558 kWh rather than a $0.53809 one.
+
+**Daytime vs. overnight charging.** If the car is home during the day and you can charge from solar, the savings come from displacing your plan's daytime rates. If it is home only at night, solar does not charge it directly. In California a home battery can shift daytime solar into the evening; see our guide to [NEM 3.0 and batteries](/guides/california-nem-3-batteries). As general reasoning (not a sourced figure), panels alone do not directly power overnight charging, though export credits or a battery may offset some of it depending on your utility and plan.
+
+**Without the federal credit.** Nothing here relies on the federal 25D credit, which does not apply to installs from 2026. Payback has to stand on bill savings, so read [Is solar worth it without the tax credit?](/guides/is-solar-worth-it-without-tax-credit) and, for Florida, [Florida solar without the federal tax credit](/guides/florida-solar-without-federal-tax-credit).
+
+## A sizing approach that holds up
+
+1. Pull 12 months of usage from your utility account.
+2. Add your EV estimate: miles per year times kWh per mile from the label.
+3. Decide when you will charge, and whether you plan to buy the EV soon or not at all. Do not size for a car you might not buy.
+4. Compare quotes for a system sized to current usage and one sized to include the EV. Ask each installer for the production estimate and the assumptions behind it.
+5. Run both through a calculator that shows a range, not one number.
+
+## Next steps
+
+- Run the [California calculator](/calculator/california) or the [Florida calculator](/calculator/florida) with your usage; add your EV kWh to the annual number to see how a larger system changes the range.
+- See how we handle rates and assumptions on the [methodology page](/methodology).
+- When you have quotes, our [guide to comparing solar quotes](/guides/how-to-compare-solar-quotes) shows what to check, and [/quotes](/quotes) is there if you want help getting them.
+
+Related reading: [home battery costs and backup](/blog/home-battery-costs-and-backup) and [what residential solar costs per watt](/blog/residential-solar-prices-2026).

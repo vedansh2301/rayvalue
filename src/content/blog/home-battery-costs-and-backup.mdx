@@ -1,0 +1,116 @@
+---
+title: "Home batteries: costs, backup and what pays (2026)"
+description: "Home battery cost benchmarks (2025 Q1 data), how much a battery can back up, and why it pays differently in Florida (outages) and California (net billing)."
+published: 2026-10-25
+updated: 2026-10-25
+state: both
+tags: [batteries, backup-power, net-billing, costs]
+sources:
+  - title: "U.S. DOE: Solar Photovoltaic System Cost Benchmarks (2025Q1 residential PV and PV+storage)"
+    url: "https://www.energy.gov/eere/solar/solar-photovoltaic-system-cost-benchmarks"
+  - title: "NLR Annual Technology Baseline 2024: Residential Battery Storage"
+    url: "https://atb.nlr.gov/electricity/2024/residential_battery_storage"
+  - title: "Lawrence Berkeley National Laboratory: U.S. Distributed Solar and Storage, 2026 Data Update (August 2026)"
+    url: "https://eta-publications.lbl.gov/sites/default/files/2026-08/distributed_solar_storage-2026_data_update_final.pdf"
+  - title: "U.S. EIA: Electric Power Annual, Table 11.3 Reliability Metrics by State, 2025 and 2024"
+    url: "https://www.eia.gov/electricity/annual/html/epa_11_03.html"
+  - title: "U.S. EIA Today in Energy: Hurricanes in 2024 led to the most hours without power in the United States in 10 years (Dec. 1, 2025)"
+    url: "https://www.eia.gov/todayinenergy/detail.php?id=66744"
+  - title: "U.S. EIA: How much electricity does an American home use?"
+    url: "https://www.eia.gov/tools/faqs/faq.php?id=97&t=3"
+  - title: "California Public Utilities Commission: Net Energy Metering and Net Billing"
+    url: "https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/demand-side-management/customer-generation/net-energy-metering-and-net-billing"
+  - title: "FPL: Net metering FAQ"
+    url: "https://www.fpl.com/clean-energy/net-metering/faq.html"
+  - title: "Florida Statutes s. 366.91 (renewable energy, net metering)"
+    url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0300-0399/0366/Sections/0366.91.html"
+  - title: "U.S. EIA: Electric Power Monthly, Table 5.6.A Average Price of Electricity to Ultimate Customers by State"
+    url: "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a"
+draft: false
+noindex: false
+---
+
+A home battery is the part of a solar system that people most often ask about and understand least. It can keep some of your home running when the grid is down, it can shift when you use solar power, and it adds a large amount to the price. Which of those matters most depends on where you live. In Florida the main reason is usually storms. In California it is usually the billing rules. This post walks through what the public cost data says, what a battery can and cannot run, and how to think about each state.
+
+## Key takeaways
+
+- Federal benchmarks put an 8 kW solar system with a 13.5 kWh battery at roughly $4.33 to $4.59 per watt of solar (2025 Q1 benchmark, 2024 dollars; a national benchmark, not a 2026 quote). The same-size system without a battery is about $2.78 to $2.95 per watt.
+- Berkeley Lab's 2025 installs data shows a median home battery of 13.5 kWh, and a median price gap of $2.1 per watt of solar between paired and solar-only residential cash-purchase systems.
+- A battery holds hours of power for a few circuits, not days of power for a whole house. Your own load list decides what is realistic.
+- California's net billing rules can reward storing solar for the evening. Florida's net metering banks surplus as kWh credits, so a Florida battery is mostly a backup purchase (our reasoning, not a measured result).
+- Prices here are national benchmarks. Quotes vary, so get your own range before deciding.
+
+## What home batteries cost
+
+Two public sources are worth knowing. The U.S. Department of Energy publishes cost benchmarks built by the national laboratory NLR (formerly NREL), and Berkeley Lab collects what customers actually paid.
+
+### The benchmark view
+
+The 2025 Q1 benchmark models an 8 kW residential solar system. The solar-only "modeled market price" is $2.95 per watt, and with a 13.5 kWh battery it is $4.59 per watt. The lower "minimum sustainable price" figures, which show what a well-run installer could charge to stay in business, are $2.78 and $4.33. All are in 2024 dollars and national averages, before any incentives.
+
+An illustrative calculation, using only those inputs: 8,000 watts times the $1.64 difference (4.59 minus 2.95) is about $13,100 added by the battery in the market-price case. Using the minimum-sustainable figures, the difference is $1.55 per watt, or about $12,400. Divided by 13.5 kWh, that is roughly $900 to $975 per kWh of storage. This is a back-of-envelope reading of a benchmark, not a quote, and it does not include the loss of efficiency, replacement, or local labor costs.
+
+### What customers paid
+
+Berkeley Lab's August 2026 data update covers systems installed through 2025. Among cash-purchase residential systems, the median price was $2.1 per watt higher for solar paired with storage than for solar alone. About 80% of the paired pricing data came from California, so treat the number as a California-weighted figure. Applied to the same 8 kW example, $2.1 per watt would be about $16,800. Loan-financed systems showed smaller differences, though the report notes loan fees may be rolled into upfront prices.
+
+### Why the hardware is not the whole price
+
+NLR's Annual Technology Baseline models a 5 kW, 12.5 kWh home battery. In its 2024 edition (all figures in 2022 dollars, so older and lower than today's quotes), the battery pack is $283 per kWh and the bidirectional inverter is $183 per kWh. The model also includes permitting and interconnection of $1,633 per system, sales and marketing of $3,851 per installation, and overhead of $2,285 per installation. Pack cost alone for 12.5 kWh is about $3,538 (283 times 12.5), while permitting, sales and overhead add up to about $7,769. NLR does not publish a single installed total on that page, so those are inputs, not a price. The point is that non-hardware costs are large, which is why shopping for the cheapest hardware is not the same as shopping for the cheapest installed price.
+
+If you want to see how the battery changes payback for your own bill, the [Florida calculator](/calculator/florida) and [California calculator](/calculator/california) show it as a range, and the [methodology](/methodology) explains the cost inputs.
+
+## Capacity versus what you actually use
+
+Battery size is quoted in kilowatt-hours (kWh, how much energy it stores) and kilowatts (kW, how much power it can deliver at once). Berkeley Lab reports that the median residential battery installed with solar in 2025 was 13.5 kWh, about the size of one Tesla Powerwall, and that kW ratings rose significantly after the Powerwall 3 launched. The data is mostly from California, though the report says other states look similar.
+
+For scale, EIA reports that the average U.S. home bought 10,791 kWh in 2022, about 899 kWh a month, or roughly 30 kWh a day (10,791 divided by 365). A 13.5 kWh battery is therefore less than half of an average home's day. Your house may use more or less, especially if you have central air conditioning or an electric vehicle.
+
+Two cautions when reading a spec sheet:
+
+- **Usable versus nameplate.** The number on the box and the energy you can draw are not always the same. Check the usable figure in the datasheet. NLR's model assumes 85% round-trip efficiency, meaning some energy is lost each time you charge and discharge.
+- **kWh and kW both matter.** A battery with plenty of kWh but a low kW rating can run lights and a refrigerator yet trip when a large motor starts.
+
+## What a battery can and cannot back up
+
+A battery plus solar can keep a defined set of circuits running during an outage. Typically that means the refrigerator, lights, internet equipment, phone charging, and perhaps a few outlets. Whether it can also handle central air conditioning, an electric dryer, a well pump, or an electric range depends on the system's kW rating and how the installer wires the backup panel.
+
+Practical points:
+
+- **Ask for a "backed-up loads" list.** Many installs back up only some circuits, not the whole home. Request the list in writing.
+- **Solar alone does not keep you on during an outage.** Standard grid-tied solar shuts off when the grid goes down, for safety. A battery system with the right equipment can keep supplying your backed-up circuits.
+- **Duration is simple division.** Usable kWh divided by the average load in kW gives hours. A small load lasts many hours; a heavy load drains the battery quickly. Sunny days can recharge it if solar is paired.
+- **Batteries are not a generator replacement for long outages.** After several cloudy days, a battery that cannot recharge is empty.
+
+## Florida: outages are the case for a battery
+
+EIA tracks outage minutes by state. In 2024, Florida's average customer was out for 1,321.5 minutes across all events, about 22 hours, when major storms are included. Without major events that figure was 66.4 minutes. The U.S. total was 611.3 minutes with major events and 126.0 without. In 2025, which had fewer big storms, Florida's all-events figure was 70.5 minutes.
+
+The gap tells the story. In an ordinary year, a Florida home loses power for around an hour. In a hurricane year, the statewide average can reach about a day (22 hours in 2024), and EIA notes that 3.4 million Florida customers lost power after Hurricane Milton in October 2024. EIA also found that major events were behind about 80% of hours without power nationally that year.
+
+That shapes how to think about the purchase. Under Florida net metering, which is how the calculator treats Florida (see [methodology](/methodology)), FPL says surplus solar is banked as kWh credits that are subtracted from later monthly usage, with any leftover at year end paid at its average cost of generation ([FPL net metering FAQ](https://www.fpl.com/clean-energy/net-metering/faq.html); the framework is in [Fla. Stat. 366.91](http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0300-0399/0366/Sections/0366.91.html)). Because the grid already acts like storage for your credits, our reasoning is that a battery mostly does not add bill savings; utility rules and your rate plan decide. It adds cost and lengthens payback, and its value is the resilience. Only you can decide what a few hours of refrigerator and internet power is worth. Florida's average residential price was 14.99 cents per kWh in August 2026 (EIA), which is another reason bill-savings alone rarely carry a battery there.
+
+Utility specifics are on the [FPL](/solar/florida/fpl), [Duke Energy Florida](/solar/florida/duke-energy-florida) and [TECO](/solar/florida/teco) pages, and the broader picture is in [Florida solar without the federal tax credit](/guides/florida-solar-without-federal-tax-credit).
+
+## California: the case is the billing rules
+
+California's outage numbers look different. EIA shows 279.6 minutes with major events in 2024 and 158.2 without, and 344.6 and 135.0 in 2025. That is not trivial, but billing is the stronger driver. California's average residential price was 29.75 cents per kWh in August 2026 (EIA).
+
+For customers who applied to interconnect on or after April 15, 2023, the CPUC says exported solar earns a credit based on the value of that generation to the grid. The credit is usually lower than the retail rate, though it can exceed it on some late-summer evenings. The CPUC says customers can maximize bill savings under net billing by installing battery storage. It also notes that nearly 70% of net billing customers had paired batteries with solar by the end of 2024. Berkeley Lab reports that the national share of new residential solar installs with a battery rose from 25% to 37% in its latest data, with California and Hawaii having the highest rates.
+
+There is also a temporary sweetener. The CPUC says residential PG&E and SCE customers who apply before the end of 2027 get slightly higher credits for nine years. SDG&E customers are excluded.
+
+So a California battery has two jobs: shift solar into the evening and provide backup. How much shifting is worth depends on your rate plan and your usage after sundown. See [California NEM 3.0 and batteries](/guides/california-nem-3-batteries) and the [PG&E](/solar/california/pge), [SCE](/solar/california/sce) and [SDG&E](/solar/california/sdge) pages.
+
+## What to check before you buy
+
+- Get quotes both with and without a battery, and compare the difference line by line. Our [quote comparison guide](/guides/how-to-compare-solar-quotes) shows how.
+- Ask for the usable kWh, continuous kW, the list of backed-up circuits, and the warranty terms.
+- Decide in advance whether you are buying backup, bill savings, or both. Judge the price against that goal.
+- Ask whether it can be added later. Berkeley Lab's attachment rates do not include batteries added to existing solar, so that market is less visible.
+- Compare leasing and buying if cash is tight; see [lease vs buy](/guides/solar-lease-vs-buy).
+- Remember there is no federal residential tax credit for 2026 installs, so the prices above are what you carry.
+
+## Next steps
+
+Run the calculator for your state to see a low, likely and high range with and without a battery. If you want quotes, [/quotes](/quotes) can connect you with installers, and the numbers here give you a benchmark to compare against. Benchmarks are national, quotes are local, and your own load list is what matters most.

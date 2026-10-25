@@ -1,31 +1,112 @@
 ---
 title: "California NEM 3.0: why batteries matter now"
-description: "How California's net billing tariff changes the value of solar exports and the case for adding a battery."
-updated: 2026-10-22
-noindex: true
-draft: true
+description: "How California's net billing tariff (NEM 3.0) lowers the value of solar exports, why batteries help, and what to check before you sign a quote."
+updated: 2026-10-25
+noindex: false
+draft: false
 state: CA
 sources:
-  - title: "California Public Utilities Commission: Net Billing Tariff"
-    url: "https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/demand-side-management/customer-generation/net-billing-tariff"
+  - title: "CPUC: Net Billing Tariff (decision D.22-12-056, applies from April 15, 2023)"
+    url: "https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/demand-side-management/customer-generation/nem-revisit/net-billing-tariff"
+  - title: "CPUC: Net Energy Metering (NEM) and Net Billing Tariff key information"
+    url: "https://www.cpuc.ca.gov/NEM"
+  - title: "CPUC fact sheet on the proposed net billing decision (December 13, 2021)"
+    url: "https://www.cpuc.ca.gov/-/media/cpuc-website/divisions/energy-division/documents/net-energy-metering-nem/nemrevisit/net-billing-tariff-fact-sheet.pdf"
+  - title: "PG&E: Solar Billing Plan Energy Export Credit price sheets (2026 interconnection year)"
+    url: "https://www.pge.com/energyexportcredit"
+  - title: "PG&E: Electric Schedule E-ELEC (rates effective June 1, 2026)"
+    url: "https://www.pge.com/tariffs/assets/pdf/tariffbook/ELEC_SCHEDS_E-ELEC.pdf"
+  - title: "SDG&E: Solar Billing Plan export pricing"
+    url: "https://www.sdge.com/node/25561"
+  - title: "U.S. EIA Today in Energy: California residents increasingly pairing battery storage with solar (July 18, 2024)"
+    url: "https://www.eia.gov/todayinenergy/detail.php?id=62524"
+  - title: "Lawrence Berkeley National Laboratory: U.S. Distributed Solar and Storage, 2026 Data Update (August 2026)"
+    url: "https://eta-publications.lbl.gov/sites/default/files/2026-08/distributed_solar_storage-2026_data_update_final.pdf"
 ---
 
 ## The short answer
 
-TODO: Write a plain-language answer. Point readers to the calculator for a range specific to their home.
+In California, rooftop solar installed under the current rules (often called NEM 3.0, officially the Net Billing Tariff) is worth the most when you use the power yourself. Solar you send to the grid in the middle of the day earns a small credit, often a few cents per kilowatt-hour. A battery lets you hold that power for the evening, when the grid charges the most. That is why most new California systems now include one.
+
+It does not mean a battery always pays for itself. It adds cost, and results depend on your utility, your rate plan and when you use power. For a range specific to your home, run the [California calculator](/calculator/california).
+
+**Key takeaways**
+
+- The Net Billing Tariff applies to customers who submitted an interconnection application on or after April 15, 2023, according to the CPUC.
+- Exports are credited at time-specific "avoided cost" values, not the retail rate you pay to buy power.
+- In PG&E's 2026 export price sheet, a spring afternoon hour is worth well under a cent per kilowatt-hour, while some summer evening hours are worth far more.
+- About 74% of new California residential solar installs in 2025 included storage, per Berkeley Lab.
+- Batteries add upfront cost and lengthen payback unless the evening value is high. Compare quotes with and without one.
 
 ## What NEM 3.0 changed
 
-TODO: Explain the shift from retail-rate net metering to net billing with lower export credits. Cite the CPUC page above for any specifics.
+Before April 2023, new customers joined a net metering tariff. Under the earlier versions (NEM 1.0 and 2.0), power exported to the grid before the annual true-up was credited at the same retail rates as power imported, according to the CPUC. Those tariffs are now closed to new enrollments.
+
+The Net Billing Tariff (NBT) replaced them. The CPUC adopted it in decision D.22-12-056 on December 15, 2022. Utilities market it as the "Solar Billing Plan." The main differences, per the CPUC's key information page:
+
+- **Export credit.** Exports are credited at the CPUC's Avoided Cost Calculator values. These are usually below retail rates but can rise above them on late summer evenings.
+- **Rate plan.** Customers must take a specific time-of-use rate: E-ELEC at PG&E, TOU-D-PRIME at SCE, or EV-TOU-5 at SDG&E.
+- **Billing.** You pay your bill monthly, with an annual true-up, and credits roll over for 12 months.
+- **Fixed fees on imports.** Non-bypassable charges apply to all energy you import, rather than only to your net use.
+- **Lock-in.** The original customer keeps the tariff for nine years. Customers moving over from NEM are not eligible.
+- **Adder.** Residential PG&E and SCE customers who interconnect before the end of 2027 get slightly higher export credits for nine years. SDG&E is excluded, as are customers required to add solar by building code.
+- **System size.** Systems can be sized to annual load, plus up to 50% if the customer attests to need.
+- **Interconnection fee.** The CPUC's NBT comparison lists a fee in the $94 to $145 range, depending on the utility. Confirm the exact amount with your utility.
+
+EIA's summary agrees on the direction: on average the NBT reimbursement rate is lower than the older NEM 2.0 rate, and the new design encourages pairing a battery.
+
+## Export value vs. import price
+
+The gap is easiest to see with real numbers. These are PG&E examples. SCE and SDG&E publish their own tables, and your own values depend on your utility and application year.
+
+**What you pay to import (PG&E E-ELEC, bundled rates as read from the sheet effective June 1, 2026; PG&E files revisions, so check the current sheet).** Peak hours are 4 p.m. to 9 p.m. every day. In summer (June 1 through September 30) the total energy rate is $0.55214 per kWh at peak, $0.39026 at part-peak and $0.33358 off-peak. In winter the range is $0.32063 peak to $0.28468 off-peak.
+
+**What you are credited to export (PG&E 2026 price sheet, weekday values, 2026 interconnection year).** The credit is the sum of an "Energy Produced" and an "Energy Delivered" value, and it changes by month and hour:
+
+- April, 3 p.m.: $0.00012 plus $0.00006 per kWh, under a cent.
+- June, noon: $0.03246 plus $0.00061, about 3 cents.
+- January, 5 p.m.: $0.10840 plus $0.00105, about 11 cents.
+- June, 5 p.m.: $0.04874 plus $0.17958, about 23 cents.
+- August, 8 p.m.: $0.99821 plus $0.08217, about $1.08.
+
+Credits are highest in a few late-summer evening hours and in winter evenings, and lowest on spring and summer afternoons, which is when rooftop panels produce the most. Each applicant keeps the price sheet for their application year. SDG&E publishes separate export pricing files labelled by vintage (current 2026 and legacy years), and its credits are tied to the Avoided Cost Calculator vintage for your application year.
 
 ## Why exporting less and storing more changes the math
 
-TODO: Explain self-consumption and time-of-use shifting without stating unsourced figures.
+Think of every kilowatt-hour your panels make as having three possible paths.
+
+1. **Used right away.** It displaces power you would have bought at the retail price at that hour, so it is worth the most when your home is actually using power.
+2. **Exported.** It earns the export credit for that hour, which is often small in the middle of the day.
+3. **Stored, then used or exported later.** It displaces a more expensive evening import, or is exported when credits are higher.
+
+**Illustrative arithmetic, not a forecast.** Using the PG&E figures above, a summer weekday kWh exported at noon in June earns about $0.0331 ($0.03246 + $0.00061). The same kWh used from a battery during summer peak hours avoids a $0.55214 import. The difference is about $0.52 per kWh ($0.55214 minus $0.0331). This ignores the energy a battery loses when charging and discharging, the days when your battery is not full, winter values, and the battery's cost. Your own numbers will be lower, and the calculator uses ranges for that reason.
+
+The CPUC states the idea this way: "Customer-generators can maximize bill savings under the NBT by installing battery storage along with their generation, so they can use or export stored energy during these high-value hours."
+
+Adoption has followed. In a December 2021 fact sheet, the CPUC said that less than 10 percent of existing NEM customers had paired storage with solar. By the end of 2024, the CPUC reports, nearly 70 percent of NBT customers had paired batteries. Berkeley Lab's 2026 data update measures new installs: about 58% of California residential solar installs included storage in 2024, and about 74% in 2025. These come from different datasets, so compare the direction rather than the exact figures.
 
 ## Sizing a battery
 
-TODO: Backup vs. bill-savings goals and how each affects payback.
+Batteries serve two goals, and they can pull in different directions.
+
+**Bill savings.** Aim to cover the evening peak, roughly 4 p.m. to 9 p.m. on PG&E's plan. The right size depends on how much you use in those hours and how much extra solar you have to fill it. A battery much larger than your evening use may add cost without adding much savings.
+
+**Backup.** Keeping selected circuits on during an outage may call for a larger battery or more than one, and for choices about which loads to protect. Backup has real value for many households, but it is hard to put a dollar figure on, so our calculator does not. Our post on [home battery costs and backup](/blog/home-battery-costs-and-backup) goes into more detail.
+
+For a reference point, Berkeley Lab reports a median residential battery of 13.5 kWh in 2025, based mainly on California data (about 80% of its sample).
+
+Because the battery is an added cost, payback is usually longer than solar alone unless the evening value is high enough to offset it. The [methodology](/methodology) explains how the calculator handles this. To see it for your utility, start with [PG&E](/solar/california/pge), [SCE](/solar/california/sce) or [SDG&E](/solar/california/sdge).
 
 ## What to check before you sign
 
-TODO: Checklist: quotes, warranty, utility rate plan, financing terms.
+- **Quote with and without a battery.** Ask for the price and expected savings of solar alone, solar with one battery, and solar with two. See [how to compare solar quotes](/guides/how-to-compare-solar-quotes).
+- **Which export values apply.** Ask which application year your price sheet comes from, and whether the nine-year lock and any adder apply to you.
+- **Your rate plan.** NBT customers must be on the required time-of-use rate. Ask how your own usage, including any EV or heat pump, fits that schedule.
+- **How the battery will run.** Is it set to charge from solar, to preserve backup reserve, or to discharge at peak? Who can change those settings?
+- **Warranty.** Ask for the battery's years, its capacity guarantee, and what it covers when the battery is used daily.
+- **Financing terms.** Ask whether any loan fees are built into the price. Leases and PPAs add contract terms to understand. See [solar lease vs buy](/guides/solar-lease-vs-buy).
+- **Remember there is no federal credit** for 2026 installs, so any quote that assumes one should be questioned. Our guide on [whether solar is worth it without the tax credit](/guides/is-solar-worth-it-without-tax-credit) walks through the new math.
+
+## Next steps
+
+Run the [California calculator](/calculator/california) with your bill and utility to get low, likely and high estimates, with and without a battery. If you would like to compare local installers, you can [request quotes](/quotes) when you are ready, with no obligation.
