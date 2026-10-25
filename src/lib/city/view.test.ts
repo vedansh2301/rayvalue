@@ -36,6 +36,11 @@ describe('utilityRateRows', () => {
     expect(rows[0]!.label).toMatch(/^First \d+ kWh\/month$/);
     expect(rows.at(-1)!.label).toBe('Fixed monthly charge');
   });
+  it('prints the fixed charge to the cent', () => {
+    expect(utilityRateRows({ ...flTwoTier, fixed_monthly_charge: 10.52 }).at(-1)!.value).toBe('$10.52');
+    expect(utilityRateRows({ ...flTwoTier, fixed_monthly_charge: 14 }).at(-1)!.value).toBe('$14.00');
+    expect(utilityRateRows({ ...flTwoTier, fixed_monthly_charge: null }).at(-1)!.value).toBeNull();
+  });
   it('shows CA export credit', () => {
     expect(utilityRateRows(caFixture).map((r) => r.label)).toContain('Average export credit');
   });

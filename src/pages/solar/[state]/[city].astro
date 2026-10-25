@@ -83,7 +83,7 @@ const quotesHref = `/quotes?${quotesParams.toString()}`;
 
       {intro.length > 0 ? intro.map((p) => <p>{p}</p>) : (
         <>
-          <Fragment set:html={'<!-- TODO: owner intro (cities.intro_md) -->'} />
+          {/* TODO: owner intro (cities.intro_md) */}
           <p>Below: electricity rates for {city.name}, how much sun a solar array gets here, and example payback for a few illustrative bills.</p>
         </>
       )}
@@ -97,9 +97,8 @@ const quotesHref = `/quotes?${quotesParams.toString()}`;
           <h2 id="notes-h">Local notes for {city.name}</h2>
           <ul class="list-disc pl-5">{city.local_notes.map((n) => <li>{n}</li>)}</ul>
         </section>
-      ) : (
-        <Fragment set:html={'<!-- TODO: owner local notes (cities.local_notes) -->'} />
-      )}
+      ) : null}
+      {/* TODO: owner local notes (cities.local_notes) */}
 
       <section aria-labelledby="cta-h" class="mt-10 rounded-lg border border-sun-300 bg-sun-50 p-5">
         <h2 id="cta-h" class="!mt-0">Get quotes or run your numbers</h2>

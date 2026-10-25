@@ -29,13 +29,13 @@ export const FAQ: FaqItem[] = [
     id: 'contact',
     question: 'Who will contact me if I ask for quotes, and how many?',
     answer:
-      'Only RayValue and the installers named in the consent wording next to the button, which lists the installers serving your ZIP code, up to 3 of them. If fewer serve your area you will hear from fewer, and if none do yet, we save your request and email you when one does without sharing it with anyone. You can see exactly who is named before you submit.',
+      'Only RayValue and the installers named in the consent wording next to the button, which lists the installers serving your ZIP code, up to 3 of them. If fewer serve your area you will hear from fewer, and if none do yet, we save your request and do not share it with any installer until one serves your area. You can see exactly who is named before you submit.',
   },
   {
     id: 'spam',
     question: 'Will I get spam calls?',
     answer:
-      'We do not give your details to marketers. The installers named in the consent wording and RayValue may contact you about solar quotes by phone, text and email, including with automated technology, so you should expect calls from them after you submit. You can opt out at any time: reply STOP to a text, tell the installer directly, or use our privacy request form, including the Do Not Sell or Share option.',
+      'We share your request only with the installers named in the consent wording and never sell it to other marketers or data brokers. Those installers and RayValue may contact you about solar quotes by phone, text and email, including with automated technology or prerecorded messages, so you should expect calls from them after you submit. You can opt out at any time: reply STOP to a text, tell the installer directly, or use our privacy request form, including the Do Not Sell or Share option.',
   },
   {
     id: 'without-credit',

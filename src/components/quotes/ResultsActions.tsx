@@ -87,11 +87,11 @@ export default function ResultsActions(p: Props) {
                 Get real installer prices for this system
               </button>
             </div>
-            <p class="mt-2 text-stone-700">Free, no obligation. Up to 3 vetted local installers. We only share your details with installers you agree to.</p>
+            <p class="mt-2 text-stone-700">Free, no obligation. Up to 3 local installers. We only share your details with installers you agree to.</p>
           </>
         ) : (
           <div id="calc-quote-form" class="mt-3">
-            <p class="mb-4 text-stone-700">Free, no obligation. Up to 3 vetted local installers. We only share your details with installers you agree to.</p>
+            <p class="mb-4 text-stone-700">Free, no obligation. Up to 3 local installers. We only share your details with installers you agree to.</p>
             <QuoteForm id="calc-quote" source="results" pagePath={p.pagePath} state={p.state} zip={p.zip} context={p.context} autoFocus />
           </div>
         )}
@@ -129,22 +129,25 @@ export default function ResultsActions(p: Props) {
   );
 }
 
-/** Visual bridge: this estimate -> up to 3 installers (generic placeholders, no names or logos) -> compare quotes. Decorative; the text carries the meaning. */
+/** What happens next: share the estimate, up to 3 local installers, compare. Vertical list on mobile. */
 function QuoteBridge({ chip }: { chip: string | null }) {
+  const steps = [
+    { icon: 'home', label: 'Share your estimate' },
+    { icon: 'users', label: 'Up to 3 local installers' },
+    { icon: 'scale', label: 'Compare and choose' },
+  ] as const;
   return (
-    <div class="mt-3 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center" aria-label="How it works: your estimate, up to 3 installers, compare quotes" role="group">
-      {chip && <span class="rounded-full border border-sun-500 bg-white px-3 py-1.5 text-center text-sm font-semibold text-stone-900">{chip}</span>}
-      {chip && <Icon name="arrow" class="hidden text-stone-700 sm:block" />}
-      <ul class="flex items-center justify-center gap-2" aria-label="Up to 3 installers">
-        {[1, 2, 3].map((n) => (
-          <li key={n} class="flex h-14 w-16 flex-col items-center justify-center rounded-lg border border-stone-300 bg-white">
-            <Icon name="tool" />
-            <span class="text-xs font-medium text-stone-700">Installer {n}</span>
+    <div class="mt-3" role="group" aria-label="How it works: share your estimate, up to 3 local installers, compare and choose">
+      {chip && <p class="mb-2 inline-block rounded-full border border-sun-500 bg-white px-3 py-1.5 text-sm font-semibold text-stone-900">{chip}</p>}
+      <ol class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+        {steps.map((st, n) => (
+          <li key={st.label} class="!mt-0 flex items-center gap-2 text-sm font-semibold text-stone-900">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-stone-300 bg-white"><Icon name={st.icon} size={20} /></span>
+            <span><span class="text-stone-700">{n + 1}.</span> {st.label}</span>
+            {n < steps.length - 1 && <Icon name="arrow" class="ml-1 hidden text-stone-700 sm:block" />}
           </li>
         ))}
-      </ul>
-      <Icon name="arrow" class="hidden text-stone-700 sm:block" />
-      <span class="flex items-center justify-center gap-2 text-sm font-semibold text-stone-900"><Icon name="scale" />Compare up to 3 real quotes</span>
+      </ol>
     </div>
   );
 }

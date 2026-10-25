@@ -9,6 +9,9 @@ import { isHttpUrl, formatRate, pickProduction, utilityRateRows, type RateRow } 
 import type { FaqItem } from '../content/faq';
 import { STATE_SLUG, UTILITY_PAGES, type UtilityPageMeta } from './pages';
 
+/** California only: the stored note (a model_assumptions rationale) about the modeled schedule being a pre-solar proxy. */
+export const caScheduleNote = (a: Assumptions | null, state: 'FL' | 'CA'): string | null => (state === 'CA' ? a?.ca_schedule_proxy_note?.rationale ?? null : null);
+
 export const utilityExampleBills = (a: Assumptions | null): readonly number[] | null => a?.utility_example_bills?.value ?? null;
 
 const CONFIDENCE_RANK = { city: 0, county: 1, indirect: 2 } as const;
@@ -142,6 +145,7 @@ export interface UtilityPageVm {
   repCity: City | null;
   rateRows: RateRow[];
   rules: ExportRules;
+  scheduleNote: string | null;
   bills: readonly number[] | null;
   examples: UtilityExampleRow[];
   analysisYears: number | null;
@@ -177,6 +181,7 @@ export function buildUtilityPage(i: UtilityPageInput): UtilityPageVm | null {
     repCity,
     rateRows: utilityRateRows(utility),
     rules: exportRules(utility, i.meta.short),
+    scheduleNote: caScheduleNote(i.assumptions, i.meta.state),
     bills,
     examples,
     analysisYears: i.assumptions.analysis_years.value,

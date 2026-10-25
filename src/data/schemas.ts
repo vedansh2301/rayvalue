@@ -298,6 +298,11 @@ export const AssumptionsSchema = z
     /** Illustrative monthly bills (USD) for the worked-examples table on utility pages (/solar/<state>/<utility>). Model inputs, not facts. */
     utility_example_bills: assumption({ value: z.array(z.number().positive()).min(1).max(6) }).optional(),
     /**
+     * California utility pages: the visible note under the rates table (its text is this row's rationale) that the
+     * modeled schedule is a pre-solar average-rate proxy. `applies` is a marker only. Optional: no row, no note.
+     */
+    ca_schedule_proxy_note: assumption({ applies: z.literal(true) }).optional(),
+    /**
      * Lease / PPA comparison inputs (all optional, bounds null until the owner enters verified market figures;
      * while null the results show explanatory text only). Units: lease_monthly_per_kw = USD per kW of system per
      * month in year 1; ppa_rate_per_kwh = USD per kWh in year 1; escalators = share per year (0.02 = 2%).

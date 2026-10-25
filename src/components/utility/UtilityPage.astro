@@ -65,6 +65,7 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
             </table>
           </div>
         )}
+        {vm.scheduleNote && <p class="mt-3 text-sm text-stone-700">{vm.scheduleNote}</p>}
         {vm.utility.tou_note && <p class="mt-3 text-sm text-stone-700">{vm.utility.tou_note}</p>}
         {vm.utility.rate_note && (
           <details class="mt-3 text-sm text-stone-700"><summary class="cursor-pointer font-medium text-stone-900">How the energy rate is built</summary><p class="mt-2">{vm.utility.rate_note}</p></details>
@@ -81,7 +82,7 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
 
       <section aria-labelledby="examples-h">
         <h2 id="examples-h">Worked examples on {meta.short} rates</h2>
-        {vm.examples.length === 0 || !vm.repCity ? (
+        {vm.examples.length === 0 || !vm.repCity || !vm.indexable ? (
           <p class="text-stone-700">Worked examples for {meta.short} are being verified. Use the <a href={vm.calcHref}>calculator</a> for your own numbers.</p>
         ) : (
           <>

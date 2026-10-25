@@ -6,6 +6,7 @@ import UtilityLinks from '../components/utility/UtilityLinks.astro';
 import Icon, { type IconName } from '../components/icons/Icon';
 import { Picture } from 'astro:assets';
 import heroPhoto from '../assets/photos/la-home-rooftop-solar.jpg';
+import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 import StoryCards from '../components/stories/StoryCards.astro';
 import Faq from '../components/Faq.astro';
 import { HOME_FAQ_IDS, faqItems } from '../lib/content/faq';
@@ -136,7 +137,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
         </li>
       ))}
     </ul>
-    <p class="mt-6 max-w-(--container-prose) text-stone-700">See the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a> and <a href="/about" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">about RayValue</a>.</p>
+    <p class="mt-6 max-w-(--container-prose) text-stone-700">See the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a>{!UNREVIEWED_PAGES.has('/about') && <> and <a href="/about" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">about RayValue</a></>}.</p>
   </section>
 
   <section aria-labelledby="stories-heading" class="shell pb-16">

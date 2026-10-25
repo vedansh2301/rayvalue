@@ -16,7 +16,7 @@ const PH = {
   vetting: '{{VETTING_CRITERIA}}',
 };
 ---
-<BaseLayout title="About" description="Who runs RayValue, why it exists, how it makes money and how installers are vetted." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
+<BaseLayout title="About" description="Who runs RayValue, why it exists and how it makes money." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
     <h1 class="!mt-4">About RayValue</h1>
@@ -25,17 +25,21 @@ const PH = {
       It is not affiliated with any utility, installer or government agency.
     </p>
 
-    <h2>Who runs RayValue</h2>
-    <p><strong>{PH.name}</strong></p>
-    <p>{PH.bio}</p>
-    <p class="text-sm text-stone-700">Photo: {PH.photo}</p>
+    {!PH.name.startsWith('{{') && (
+      <>
+        <h2>Who runs RayValue</h2>
+        <p><strong>{PH.name}</strong></p>
+        {!PH.bio.startsWith('{{') && <p>{PH.bio}</p>}
+        {!PH.photo.startsWith('{{') && <p class="text-sm text-stone-700">Photo: {PH.photo}</p>}
+      </>
+    )}
 
     <h2>Why RayValue exists</h2>
     <p>
       The federal residential solar tax credit has ended for new installs, and many solar estimates online still
       assume it. RayValue exists to show what rooftop solar and batteries are worth today, using your own
       utility&rsquo;s published rates and the export rules in your state, as honest low, likely and high ranges
-      instead of a single hopeful number. Every rate, cost and assumption is listed with its source on the
+      instead of a single hopeful number. Every rate, cost and assumption is listed with its source on the{" "}
       <a href="/methodology">methodology</a> page.
     </p>
 
@@ -47,8 +51,12 @@ const PH = {
       numbers in your estimate. Details are on the <a href="/affiliate-disclosure">affiliate disclosure</a> page.
     </p>
 
-    <h2>How installers are vetted</h2>
-    <p>{PH.vetting}</p>
+    {!PH.vetting.startsWith('{{') && (
+      <>
+        <h2>How installers are vetted</h2>
+        <p>{PH.vetting}</p>
+      </>
+    )}
     <p>
       When you request quotes, your details are shared only with up to 3 installers serving your area, as described in the consent you agree to,
       and you can ask us to delete them at any time. See the <a href="/privacy">privacy policy</a>.

@@ -55,3 +55,15 @@
 .page h2 { @apply mt-10 text-xl font-semibold text-stone-900; }
 .page :is(p, li):not(.not-prose, .not-prose *) { @apply mt-4 leading-7 text-stone-700; }
 .page a:not(.not-prose, .not-prose *) { @apply text-sun-ink underline underline-offset-2 hover:text-stone-900; }
+
+.page h3 { @apply mt-6 text-base font-semibold text-stone-900; }
+
+/* Markdown/MDX bodies of blog posts and guides. */
+.prose-guide ul { @apply list-disc pl-5; }
+.prose-guide ol { @apply list-decimal pl-5; }
+.prose-guide li { @apply mt-2; }
+.prose-guide h2 { @apply mt-10; }
+.prose-guide h3 { @apply mt-6; }
+.prose-guide table { @apply mt-6 block w-full overflow-x-auto text-sm border-collapse; }
+.prose-guide th { @apply text-left font-semibold text-stone-900 border-b border-stone-300 px-3 py-2 whitespace-nowrap; }
+.prose-guide td { @apply border-b border-stone-200 px-3 py-2 align-top tabular-nums; }

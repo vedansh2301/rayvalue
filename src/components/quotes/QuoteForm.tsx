@@ -616,7 +616,13 @@ export default function QuoteForm(p: Props) {
             {step === 3 ? (sending ? 'Sending…' : SUBMIT_LABEL) : svcLoading ? 'Checking…' : 'Continue'}
           </button>
         </div>
-        {step === 3 && <p class="text-sm text-stone-600">Free and no obligation. We only share your details with the installers named above.</p>}
+        {step === 3 && (
+          <p class="text-sm text-stone-600">
+            {installers.length > 0
+              ? 'Free and no obligation. We only share your details with the installers named above.'
+              : "Free and no obligation. We won't share your details until an installer serves your area."}
+          </p>
+        )}
         {formError && (
           <p role="alert" class="font-medium text-red-800">
             {formError}
