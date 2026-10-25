@@ -1,77 +1,12 @@
 ---
-import { getCollection, render } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import GuideCalculatorLinks from '../../components/seo/GuideCalculatorLinks.astro';
-import ArticleByline from '../../components/seo/ArticleByline.astro';
-import TableOfContents from '../../components/seo/TableOfContents.astro';
-import Cover from '../../components/content/Cover.astro';
-import Faq from '../../components/Faq.astro';
-import { coverTopic, stateKey } from '../../lib/content/cards';
-import { articleJsonLd, faqJsonLd } from '../../lib/seo/jsonld';
-import { displayDate, showUpdated } from '../../lib/dates';
+import { getCollection } from 'astro:content';
+import GuideArticle from '../../components/content/GuideArticle.astro';
 
+// Guides with a keyword `route` render there instead (the old /guides/<id> path 301-redirects; see astro.config).
 export async function getStaticPaths() {
-  const guides = (await getCollection('guides')).filter((g) => !g.data.draft);
+  const guides = (await getCollection('guides')).filter((g) => !g.data.draft && !g.data.route);
   return guides.map((guide) => ({ params: { slug: guide.id }, props: { guide } }));
 }
 const { guide } = Astro.props;
-const { Content, headings } = await render(guide);
-const path = `/guides/${guide.id}`;
-const day = (d: Date) => d.toISOString().slice(0, 10);
-const ld = articleJsonLd({
-  headline: guide.data.title,
-  description: guide.data.description,
-  path,
-  published: guide.data.published,
-  updated: guide.data.updated,
-  image: new URL(`/og/guides/${guide.id}.png`, Astro.site).href,
-}, Astro.site?.href);
-const faq = (guide.data.faq ?? []).map((f, i) => ({ id: `faq-${i}`, ...f }));
-const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
 ---
-<BaseLayout title={guide.data.seoTitle ?? guide.data.title} ogImageAlt={`${guide.data.title} (RayValue guide)`} publishedTime={guide.data.published} modifiedTime={guide.data.updated} description={guide.data.description} path={path} ogImagePath={`/og/guides/${guide.id}.png`} ogType="article" noindex={guide.data.noindex} jsonLd={jsonLd}>
-  <article class="page">
-    <div class="max-w-none lg:grid lg:grid-cols-[minmax(0,var(--container-prose))_minmax(0,1fr)] lg:gap-12 xl:gap-16">
-    <div>
-    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.data.title }]} />
-    <h1>{guide.data.title}</h1>
-    <p class="text-sm text-stone-700">
-      {guide.data.published && <>Published <time datetime={day(guide.data.published)}>{displayDate(guide.data.published)}</time></>}
-      {showUpdated(guide.data.published, guide.data.updated) && <>{guide.data.published ? ' · ' : ''}Updated <time datetime={day(guide.data.updated)}>{displayDate(guide.data.updated)}</time></>}
-    </p>
-    <ArticleByline />
-    {guide.data.cover && (
-      <Cover
-        topic={coverTopic({ topic: guide.data.topic, title: guide.data.title, state: guide.data.state })}
-        state={stateKey(guide.data.state)}
-        cover={guide.data.cover}
-        coverAlt={guide.data.coverAlt}
-        eager
-        sizes="(min-width: 832px) 768px, calc(100vw - 2rem)"
-        class="mt-6 aspect-video rounded-2xl"
-      />
-    )}
-    <div class="lg:hidden"><GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="top" /></div>
-    <TableOfContents headings={headings} />
-    <div class="prose-guide mt-4 space-y-4">
-      <Content />
-    </div>
-    {faq.length > 0 && <div class="mt-10"><Faq items={faq} id="guide-faq" /></div>}
-    <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="end" />
-    <section class="mt-8" aria-labelledby="sources">
-      <h2 id="sources">Sources</h2>
-      <ul class="list-disc pl-5">
-        {guide.data.sources.map((s) => <li><a class="underline underline-offset-4" href={s.url} rel="noopener">{s.title}</a></li>)}
-      </ul>
-    </section>
-    </div>
-    <aside class="hidden lg:block" aria-label="Article tools">
-      <div class="sticky top-6 space-y-5">
-        <TableOfContents headings={headings} variant="rail" />
-        <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="rail" />
-      </div>
-    </aside>
-    </div>
-  </article>
-</BaseLayout>
+<GuideArticle guide={guide} />

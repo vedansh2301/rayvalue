@@ -1,0 +1,19 @@
+---
+/** Keyword routes for the solar tax benefits guides: /solar-tax-benefits (US) and /solar-tax-benefits/<state>. */
+import { getCollection } from 'astro:content';
+import GuideArticle from '../../components/content/GuideArticle.astro';
+
+export async function getStaticPaths() {
+  // getStaticPaths runs isolated from the rest of the frontmatter, so the base path is repeated here.
+  const BASE = '/solar-tax-benefits';
+  const guides = (await getCollection('guides')).filter((g) => !g.data.draft && g.data.route && (g.data.route === BASE || g.data.route.startsWith(`${BASE}/`)));
+  return guides.map((guide) => ({ params: { state: guide.data.route === BASE ? undefined : guide.data.route!.slice(BASE.length + 1) }, props: { guide } }));
+}
+const BASE = '/solar-tax-benefits';
+const { guide } = Astro.props;
+const isHub = guide.data.route === BASE;
+const crumbs = isHub
+  ? [{ label: 'Home', href: '/' }, { label: 'Solar tax benefits' }]
+  : [{ label: 'Home', href: '/' }, { label: 'Solar tax benefits', href: BASE }, { label: guide.data.state === 'FL' ? 'Florida' : 'California' }];
+---
+<GuideArticle guide={guide} crumbs={crumbs} />

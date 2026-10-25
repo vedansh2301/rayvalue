@@ -6,6 +6,7 @@ describe('sitemapRank', () => {
     expect(sitemapRank('/')).toEqual({ changefreq: 'daily', priority: '1.0' });
     expect(sitemapRank('/calculator/florida').priority).toBe('0.9');
     expect(sitemapRank('/solar/florida/fpl').priority).toBe('0.9');
+    expect(sitemapRank('/solar-tax-benefits/florida')).toEqual({ changefreq: 'weekly', priority: '0.9' });
     expect(sitemapRank('/blog')).toEqual({ changefreq: 'weekly', priority: '0.8' });
     expect(sitemapRank('/blog/x')).toEqual({ changefreq: 'monthly', priority: '0.8' });
     expect(sitemapRank('/methodology')).toEqual({ changefreq: 'monthly', priority: '0.5' });

@@ -13,6 +13,7 @@ import { createServer as createViteServer } from 'vite';
 import { isGoPath } from './src/lib/go.ts';
 import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
 import { parseSitemapEntries, renderSitemapXml } from './src/lib/seo/sitemap-xml.ts';
+import { routeRedirects } from './src/lib/content/paths.ts';
 import { adCspSources, parseAdIds } from './src/lib/ads/config.ts';
 import { trustedFormCsp, trustedFormEnabled } from './src/lib/leads/consent-vendor.ts';
 
@@ -28,14 +29,27 @@ if (process.argv.includes('dev')) {
 
 const readFlags = (dir) =>
   readdirSync(dir).filter((f) => f.endsWith('.mdx')).map((f) => ({ id: f.replace(/\.mdx$/, ''), ...guideFlags(readFileSync(`${dir}/${f}`, 'utf8')) }));
-// lastmod for blog and guide URLs comes from the `updated` frontmatter date.
+// lastmod for blog and guide URLs comes from the `updated` frontmatter date. Entries with a keyword `route`
+// live at that path and their default /guides/<id> path 301-redirects there.
 const lastmodByPath = new Map();
+const routed = [];
 for (const [dir, base] of [['./src/content/guides', '/guides'], ['./src/content/blog', '/blog']]) {
   for (const f of readdirSync(dir).filter((x) => x.endsWith('.mdx'))) {
-    const m = /^updated:\s*"?(\d{4}-\d{2}-\d{2})/m.exec(readFileSync(`${dir}/${f}`, 'utf8'));
-    if (m) lastmodByPath.set(`${base}/${f.replace(/\.mdx$/, '')}`, new Date(`${m[1]}T00:00:00Z`).toISOString());
+    const src = readFileSync(`${dir}/${f}`, 'utf8');
+    const id = f.replace(/\.mdx$/, '');
+    const route = /^route:\s*"?(\/[a-z0-9/-]+)"?\s*$/m.exec(src)?.[1];
+    if (route) routed.push({ collection: base.slice(1), id, route });
+    const m = /^updated:\s*"?(\d{4}-\d{2}-\d{2})/m.exec(src);
+    if (m) lastmodByPath.set(route ?? `${base}/${id}`, new Date(`${m[1]}T00:00:00Z`).toISOString());
   }
 }
+// The Florida and California tax pages were briefly blog posts; keep those URLs pointing at the keyword routes.
+const articleRedirects = {
+  ...routeRedirects(routed),
+  '/blog/florida-solar-tax-benefits-2026': '/solar-tax-benefits/florida',
+  '/blog/california-solar-tax-benefits-2026': '/solar-tax-benefits/california',
+};
+const redirectedPaths = new Set(Object.keys(articleRedirects));
 const excludedGuides = excludedGuideUrls(readFlags('./src/content/guides'));
 const excludedBlog = excludedCollectionUrls('/blog', readFlags('./src/content/blog'));
 
@@ -94,7 +108,10 @@ export default defineConfig({
   site: 'https://rayvalue.com',
   output: 'static',
   // The confirmation page moved (kept for old links and bookmarks).
-  redirects: { '/quotes/thanks': '/quotes/thank-you' },
+  redirects: {
+    '/quotes/thanks': '/quotes/thank-you',
+    ...Object.fromEntries(Object.entries(articleRedirects).map(([from, to]) => [from, { status: 301, destination: to }])),
+  },
   // Hashed CSP for every page. With the Vercel adapter's staticHeaders, Astro sends the policy as an HTTP
   // header for prerendered pages too (not a <meta> tag, where frame-ancestors would be ignored), and
   // on-demand pages send it from the function. These directives are added to script-src/style-src hashes.
@@ -135,7 +152,7 @@ export default defineConfig({
         const path = new URL(page).pathname.replace(/\/+$/, '') || '/';
         // On-demand utility routes are auto-discovered; keep only those whose data makes them indexable.
         if (utilityPaths.has(path) && !utilityUrls.includes(page)) return false;
-        return !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/') && !path.startsWith('/admin') && !isGoPath(path) && path !== '/unsubscribe';
+        return !redirectedPaths.has(path) && !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/') && !path.startsWith('/admin') && !isGoPath(path) && path !== '/unsubscribe';
       },
     }),
     // One readable /sitemap.xml (changefreq + priority) from the filtered sitemap-N.xml files above.

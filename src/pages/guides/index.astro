@@ -5,12 +5,13 @@ import Index from '../../components/content/Index.astro';
 import { publishedGuides } from '../../lib/guides';
 import { displayDate } from '../../lib/dates';
 import { coverTopic, readMinutes, stateKey } from '../../lib/content/cards';
+import { articlePath } from '../../lib/content/paths';
 
 const guides = (await publishedGuides()).sort((a, b) => b.data.updated.getTime() - a.data.updated.getTime());
 // No published guides: a short pointer to the calculators, noindex (and out of the sitemap, see astro.config.mjs).
 const empty = guides.length === 0;
 const items = guides.map((g) => ({
-  href: `/guides/${g.id}`,
+  href: articlePath('guides', g.id, g.data.route),
   title: g.data.title,
   description: g.data.description,
   topic: coverTopic({ topic: g.data.topic, title: g.data.title, state: g.data.state }),
