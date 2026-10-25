@@ -14,13 +14,20 @@ interface Props {
   /** Path of the OG image; defaults to the site-wide one. */
   ogImagePath?: string;
   ogType?: 'website' | 'article';
+  /** Alt text for the OG image; defaults to the page title. */
+  ogImageAlt?: string;
+  /** Set false to omit the canonical link (404 pages). It is also omitted for noindex pages. */
+  canonical?: boolean;
+  /** Article dates (ISO), emitted as article:published_time / article:modified_time when ogType is article. */
+  publishedTime?: Date;
+  modifiedTime?: Date;
   /** Extra JSON-LD objects for this page. */
   jsonLd?: object[];
   /** Paid-traffic landing pages: logo-only header and legal-links-only footer. */
   minimal?: boolean;
 }
 
-const { title, description, path, noindex = false, ogImagePath = '/og/default.png', ogType = 'website', jsonLd = [], minimal = false } = Astro.props;
+const { title, description, path, noindex = false, ogImagePath = '/og/default.png', ogType = 'website', ogImageAlt, canonical: withCanonical = true, publishedTime, modifiedTime, jsonLd = [], minimal = false } = Astro.props;
 // Policy: trailingSlash 'never' + build.format 'directory' => canonical has no trailing slash (except root).
 const canonical = new URL(path === '/' ? '/' : path.replace(/\/+$/, ''), Astro.site).href;
 const fullTitle = path === '/' ? title : `${title} | RayValue`;
@@ -33,12 +40,12 @@ const gscToken = import.meta.env.PUBLIC_GSC_VERIFICATION;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {withCanonical && !noindex && <link rel="canonical" href={canonical} />}
     <meta name="theme-color" content="#fbbf24" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {noindex && <meta name="robots" content="noindex" />}
     {gscToken && <meta name="google-site-verification" content={gscToken} />}
-    <SeoHead title={fullTitle} description={description} canonical={canonical} image={new URL(ogImagePath, Astro.site).href} type={ogType} jsonLd={jsonLd} />
+    <SeoHead title={fullTitle} description={description} canonical={canonical} image={new URL(ogImagePath, Astro.site).href} type={ogType} imageAlt={ogImageAlt ?? fullTitle} publishedTime={publishedTime} modifiedTime={modifiedTime} jsonLd={jsonLd} />
     <slot name="head" />
   </head>
   <body class="flex min-h-screen flex-col">

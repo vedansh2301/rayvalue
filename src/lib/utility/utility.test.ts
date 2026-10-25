@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { UTILITY_PAGES, RESERVED_CITY_SLUGS, utilityPagePath, utilityPageByPath } from './pages';
-import { buildUtilityPage, exportRules, isIndexable, pickRepresentativeCity, utilityExampleBills } from './view';
+import { buildUtilityPage, caScheduleNote, exportRules, isIndexable, pickRepresentativeCity, utilityExampleBills } from './view';
 import { getIndexableUtilityUrls } from './sitemap';
 import { fixtureAssumptions, fixtureCosts, fixtureUtilities, flTwoTier, caFixture, clone } from '../calc/test-fixtures';
 import { fixtureCitiesFile } from '../db/test-rows';
@@ -119,5 +119,17 @@ describe('parseUtilityParam', () => {
     expect(parseUtilityParam('?utility=')).toBeNull();
     expect(parseUtilityParam('?utility=<x>')).toBeNull();
     expect(parseUtilityParam('')).toBeNull();
+  });
+});
+
+describe('caScheduleNote', () => {
+  const withNote = { ...clone(fixtureAssumptions), ca_schedule_proxy_note: { kind: 'assumption' as const, rationale: 'synthetic proxy note', applies: true as const } };
+  it('returns the stored rationale for California only', () => {
+    expect(caScheduleNote(withNote, 'CA')).toBe('synthetic proxy note');
+    expect(caScheduleNote(withNote, 'FL')).toBeNull();
+  });
+  it('is null when the row is missing or assumptions are unavailable', () => {
+    expect(caScheduleNote(clone(fixtureAssumptions), 'CA')).toBeNull();
+    expect(caScheduleNote(null, 'CA')).toBeNull();
   });
 });

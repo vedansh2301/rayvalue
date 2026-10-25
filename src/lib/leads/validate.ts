@@ -36,7 +36,9 @@ export const DATA_REQUEST_LABELS: Record<DataRequestType, string> = {
 };
 
 const STATE_NAMES: Record<State, string> = { FL: 'Florida', CA: 'California' };
-const SOURCE_RE = /^(results|quotes_page|home|utility:(fpl|duke-energy-florida|teco|pge|sce|sdge)|city:(florida|california)\/[a-z0-9]+(-[a-z0-9]+)*)$/;
+const SOURCE_RE = /^(results|quotes_page|home|go|(blog|guide):[a-z0-9-]{1,80}|utility:(fpl|duke-energy-florida|teco|pge|sce|sdge)|city:(florida|california)\/[a-z0-9]+(-[a-z0-9]+)*)$/;
+/** Sources a page may pass to /quotes in the `source` query parameter (the form falls back to its own label otherwise). */
+export const SOURCE_PARAM_RE = /^city:(florida|california)\/[a-z0-9-]+$|^utility:(fpl|duke-energy-florida|teco|pge|sce|sdge)$|^home$|^go$|^(blog|guide):[a-z0-9-]{1,80}$/;
 const UTILITY_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SNAPSHOT_KEYS = ['system_size', 'upfront_cost', 'payback', 'net_savings'] as const;
 
@@ -94,9 +96,9 @@ export type LeadField =
 export type FieldErrors = Partial<Record<LeadField, string>>;
 
 export const STEP_FIELDS = {
-  1: ['zip', 'state', 'street_address', 'homeowner', 'bill_bucket', 'utility_id'],
+  1: ['zip', 'state', 'homeowner', 'bill_bucket', 'utility_id'],
   2: ['shading', 'roof_age', 'battery_interest', 'pay_method', 'timeline'],
-  3: ['first_name', 'last_name', 'email', 'phone', 'consent'],
+  3: ['street_address', 'first_name', 'last_name', 'email', 'phone', 'consent'],
 } as const satisfies Record<number, readonly LeadField[]>;
 export type LeadStep = keyof typeof STEP_FIELDS;
 
@@ -194,7 +196,6 @@ export const homeownerOf = (v: unknown): boolean | null => {
 export interface HomeStep {
   zip: string;
   state: State;
-  street_address: string;
   homeowner: boolean;
   bill_bucket: BillBucket;
   utility_id: string | null;
@@ -204,11 +205,6 @@ export interface HomeStep {
 export function validateHome(f: LeadFields): { errors: FieldErrors; value: HomeStep | null } {
   const errors: FieldErrors = {};
   const { zip, state } = zipAndState(f, errors);
-
-  const street = str(f.street_address).replace(/\s+/g, ' ');
-  if (!street) errors.street_address = 'Enter your street address.';
-  else if (street.length < 5) errors.street_address = 'Enter your full street address, like 123 Palm Ave.';
-  else if (street.length > 200) errors.street_address = 'Use 200 characters or fewer.';
 
   const homeowner = homeownerOf(f.homeowner);
   if (homeowner === null) errors.homeowner = 'Tell us whether you own this home.';
@@ -221,7 +217,7 @@ export function validateHome(f: LeadFields): { errors: FieldErrors; value: HomeS
   else if (util !== OTHER_UTILITY && !(util.length <= 64 && UTILITY_RE.test(util))) errors.utility_id = 'Choose your electric utility, or “Other”.';
 
   if (Object.keys(errors).length || !state || homeowner === null || !bucket) return { errors, value: null };
-  return { errors, value: { zip, state, street_address: street, homeowner, bill_bucket: bucket, utility_id: util === OTHER_UTILITY ? null : util } };
+  return { errors, value: { zip, state, homeowner, bill_bucket: bucket, utility_id: util === OTHER_UTILITY ? null : util } };
 }
 
 export interface ProjectStep {
@@ -250,6 +246,7 @@ export function validateProject(f: LeadFields): { errors: FieldErrors; value: Pr
 }
 
 export interface ContactStep {
+  street_address: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -259,6 +256,10 @@ export interface ContactStep {
 /** Step 3 "Contact". */
 export function validateContact(f: LeadFields): { errors: FieldErrors; value: ContactStep | null } {
   const errors: FieldErrors = {};
+  const street = str(f.street_address).replace(/\s+/g, ' ');
+  if (!street) errors.street_address = 'Enter your street address.';
+  else if (street.length < 5) errors.street_address = 'Enter your full street address, like 123 Palm Ave.';
+  else if (street.length > 200) errors.street_address = 'Use 200 characters or fewer.';
   const name = (raw: unknown, label: string, key: 'first_name' | 'last_name') => {
     const n = str(raw).replace(/\s+/g, ' ');
     if (!n) errors[key] = `Enter your ${label}.`;
@@ -273,7 +274,7 @@ export function validateContact(f: LeadFields): { errors: FieldErrors; value: Co
   if (!phone) errors.phone = PHONE_ERROR;
   if (!truthy(f.consent)) errors.consent = 'Check the box to agree to be contacted about quotes.';
   if (Object.keys(errors).length) return { errors, value: null };
-  return { errors, value: { first_name: first, last_name: last, email: email!, phone: phone! } };
+  return { errors, value: { street_address: street, first_name: first, last_name: last, email: email!, phone: phone! } };
 }
 
 export function validateLead(f: LeadFields): LeadValidation {

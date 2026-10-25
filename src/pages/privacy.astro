@@ -8,7 +8,7 @@ const path = '/privacy';
 ---
 <BaseLayout title="Privacy" description="RayValue privacy policy: no cookies, privacy-friendly analytics, and what happens when you request installer quotes." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
-    <!-- TODO: owner legal review -->
+    {/* TODO: owner legal review */}
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Privacy' }]} />
     <h1 class="!mt-4">Privacy</h1>
     <p>This is a plain description of what RayValue does with data today.</p>
@@ -38,7 +38,7 @@ const path = '/privacy';
       to serve pages and protect the site from abuse), and Supabase hosts our database, where quote requests, privacy
       requests, estimate-email requests and alert signups are stored. If you choose to confirm your phone number with a
       text-message code, Twilio sends and checks that code. If you ask us to email you an estimate, an email delivery
-      service sends it. <!-- OWNER: name the email provider here once chosen (RESEND_API_KEY / EMAIL_FROM). -->
+      service sends it. {/* OWNER: name the email provider here once chosen (RESEND_API_KEY / EMAIL_FROM). */}
     </p>
 
     <h2>Quote requests</h2>
@@ -60,7 +60,7 @@ const path = '/privacy';
       We use this to connect you with solar installers. We may sell or share your quote request with the solar
       installers named in the consent wording you agreed to (up to 3 serving your ZIP code), and with no one else
       for marketing. Those installers and RayValue may contact you about solar quotes, including by calls and texts
-      made with automated technology. Consent is not a condition of purchase. Apart from that, it is processed only by
+      made with automated technology or prerecorded messages. Consent is not a condition of purchase. Apart from that, it is processed only by
       our service providers listed above. We keep it until you ask us to delete it.
     </p>
     <p>

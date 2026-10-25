@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { selectStories } from './stories';
+import { homeStories, olderStoryYear, selectStories } from './stories';
 
 const dir = new URL('../content/stories/', import.meta.url);
 const files = readdirSync(dir).filter((f) => f.endsWith('.md'));
@@ -43,5 +43,22 @@ describe('selectStories', () => {
   it('applies limit', () => {
     expect(selectStories(all, 'both', 2)).toHaveLength(2);
     expect(selectStories(all, 'both', 0)).toHaveLength(0);
+  });
+});
+
+describe('home picks and year labels', () => {
+  const mk = (state: 'FL' | 'CA', d: string) => ({ data: { state, date_reported: new Date(d) } });
+  const all = [mk('CA', '2025-05-01'), mk('FL', '2019-01-01'), mk('FL', '2025-01-01'), mk('FL', '2023-06-01'), mk('CA', '2024-02-01')];
+  it('puts Florida first, newest first, then one California story', () => {
+    const out = homeStories(all);
+    expect(out.map((s) => s.data.state)).toEqual(['FL', 'FL', 'CA']);
+    expect(out[0]!.data.date_reported.getUTCFullYear()).toBe(2025);
+    expect(out[1]!.data.date_reported.getUTCFullYear()).toBe(2023);
+    expect(out[2]!.data.date_reported.getUTCFullYear()).toBe(2025);
+  });
+  it('labels only pre-2024 stories with their year', () => {
+    expect(olderStoryYear(new Date('2019-10-09'))).toBe(2019);
+    expect(olderStoryYear(new Date('2023-12-31'))).toBe(2023);
+    expect(olderStoryYear(new Date('2024-01-01'))).toBeNull();
   });
 });

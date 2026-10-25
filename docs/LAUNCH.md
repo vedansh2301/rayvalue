@@ -130,6 +130,7 @@ Preview SEO scores are not meaningful (Vercel adds `X-Robots-Tag: noindex` and a
 ## Phase 5: utility pages and draft guides
 
 - Apply `supabase/migrations/0009_utility_example_bills.sql` (adds the illustrative bills 150/250/350 used by `/solar/<state>/<utility>`). Until it is applied the worked-examples table is empty and the pages are noindex and out of the sitemap.
+- Apply `supabase/migrations/0011_plain_language_notes.sql` (plain-language Duke/SDG&E notes and the California schedule-proxy note shown under the utility-page rates table). Until it is applied the CA note is simply not shown.
 - A utility page is indexable (and listed in the sitemap at build time) only when its worked examples have real results. TECO stays noindex until its minimum bill is verified (`npm run todo:verify`).
 - Representative ZIP = the utility's best-confirmed city in `cities` (coords_zcta). Confirm the city-to-utility mappings listed in docs/TODO-VERIFY.md.
 - Three draft guides (`is-solar-worth-it-without-tax-credit`, `solar-lease-vs-buy`, `how-to-compare-solar-quotes`) have `draft: true`; unverified items are in each file's frontmatter `todo`. Publishing the compare guide makes /quotes/thank-you link to it.

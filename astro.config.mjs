@@ -27,6 +27,14 @@ if (process.argv.includes('dev')) {
 
 const readFlags = (dir) =>
   readdirSync(dir).filter((f) => f.endsWith('.mdx')).map((f) => ({ id: f.replace(/\.mdx$/, ''), ...guideFlags(readFileSync(`${dir}/${f}`, 'utf8')) }));
+// lastmod for blog and guide URLs comes from the `updated` frontmatter date.
+const lastmodByPath = new Map();
+for (const [dir, base] of [['./src/content/guides', '/guides'], ['./src/content/blog', '/blog']]) {
+  for (const f of readdirSync(dir).filter((x) => x.endsWith('.mdx'))) {
+    const m = /^updated:\s*"?(\d{4}-\d{2}-\d{2})/m.exec(readFileSync(`${dir}/${f}`, 'utf8'));
+    if (m) lastmodByPath.set(`${base}/${f.replace(/\.mdx$/, '')}`, new Date(`${m[1]}T00:00:00Z`).toISOString());
+  }
+}
 const excludedGuides = excludedGuideUrls(readFlags('./src/content/guides'));
 const excludedBlog = excludedCollectionUrls('/blog', readFlags('./src/content/blog'));
 
@@ -118,6 +126,10 @@ export default defineConfig({
     // unreviewed static pages, confirmation pages and the privacy request form, API), plus published cities.
     sitemap({
       customPages: [...cityUrls, ...utilityUrls],
+      serialize: (item) => {
+        const lastmod = lastmodByPath.get(new URL(item.url).pathname.replace(/\/+$/, ''));
+        return lastmod ? { ...item, lastmod } : item;
+      },
       filter: (page) => {
         const path = new URL(page).pathname.replace(/\/+$/, '') || '/';
         // On-demand utility routes are auto-discovered; keep only those whose data makes them indexable.

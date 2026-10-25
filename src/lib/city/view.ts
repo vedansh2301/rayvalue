@@ -68,7 +68,7 @@ export function utilityRateRows(u: Utility): RateRow[] {
     rows.push({ label: 'Average residential rate', value: formatRate(u.avg_rate_per_kwh.likely) });
   }
   if (u.state === 'CA') rows.push({ label: 'Average export credit', value: formatRate(u.avg_export_credit_per_kwh) });
-  rows.push({ label: 'Fixed monthly charge', value: u.fixed_monthly_charge === null ? null : formatUsd(u.fixed_monthly_charge) });
+  rows.push({ label: 'Fixed monthly charge', value: u.fixed_monthly_charge === null ? null : `$${u.fixed_monthly_charge.toFixed(2)}` });
   return rows;
 }
 

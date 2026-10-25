@@ -1,0 +1,8 @@
+---
+/** Visible attribution under an article H1. The Organization is the author; no personal byline. */
+interface Props { hasSources?: boolean }
+const { hasSources = true } = Astro.props;
+---
+<p class="text-sm text-stone-700">
+  Written and fact-checked by the RayValue team · <a class="underline underline-offset-4" href="/methodology">How we research</a>{hasSources && <> · <a class="underline underline-offset-4" href="#sources">Sources</a></>}
+</p>

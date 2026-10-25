@@ -3,32 +3,43 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import GuideCalculatorLinks from '../../components/seo/GuideCalculatorLinks.astro';
+import ArticleByline from '../../components/seo/ArticleByline.astro';
+import TableOfContents from '../../components/seo/TableOfContents.astro';
 import { articleJsonLd } from '../../lib/seo/jsonld';
+import { displayDate, showUpdated } from '../../lib/dates';
 
 export async function getStaticPaths() {
   const guides = (await getCollection('guides')).filter((g) => !g.data.draft);
   return guides.map((guide) => ({ params: { slug: guide.id }, props: { guide } }));
 }
 const { guide } = Astro.props;
-const { Content } = await render(guide);
+const { Content, headings } = await render(guide);
 const path = `/guides/${guide.id}`;
+const day = (d: Date) => d.toISOString().slice(0, 10);
 const ld = articleJsonLd({
   headline: guide.data.title,
   description: guide.data.description,
   path,
+  published: guide.data.published,
   updated: guide.data.updated,
   image: new URL(`/og/guides/${guide.id}.png`, Astro.site).href,
 }, Astro.site?.href);
 ---
-<BaseLayout title={guide.data.title} description={guide.data.description} path={path} ogImagePath={`/og/guides/${guide.id}.png`} ogType="article" noindex={guide.data.noindex} jsonLd={[ld]}>
+<BaseLayout title={guide.data.seoTitle ?? guide.data.title} ogImageAlt={`${guide.data.title} (RayValue guide)`} publishedTime={guide.data.published} modifiedTime={guide.data.updated} description={guide.data.description} path={path} ogImagePath={`/og/guides/${guide.id}.png`} ogType="article" noindex={guide.data.noindex} jsonLd={[ld]}>
   <article class="page">
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.data.title }]} />
     <h1>{guide.data.title}</h1>
-    <p class="text-sm text-stone-700">Updated {guide.data.updated.toISOString().slice(0, 10)}</p>
+    <p class="text-sm text-stone-700">
+      {guide.data.published && <>Published <time datetime={day(guide.data.published)}>{displayDate(guide.data.published)}</time></>}
+      {showUpdated(guide.data.published, guide.data.updated) && <>{guide.data.published ? ' · ' : ''}Updated <time datetime={day(guide.data.updated)}>{displayDate(guide.data.updated)}</time></>}
+    </p>
+    <ArticleByline />
+    <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="top" />
+    <TableOfContents headings={headings} />
     <div class="prose-guide mt-4 space-y-4">
       <Content />
     </div>
-    <GuideCalculatorLinks state={guide.data.state} />
+    <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="end" />
     <section class="mt-8" aria-labelledby="sources">
       <h2 id="sources">Sources</h2>
       <ul class="list-disc pl-5">

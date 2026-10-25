@@ -19,7 +19,7 @@ import { stateByPrefix } from '../../lib/calculator/zip';
 import { SUBMIT_LABEL, consentFor, splitAtPrivacyPolicy } from '../../lib/leads/consent';
 import { loadTrustedForm, trustedFormEnabled, TRUSTEDFORM_FIELD } from '../../lib/leads/consent-vendor';
 import { readAttribution } from '../../lib/attribution';
-import { fetchQuoteConfig, fetchServiced, lastFour, type ClientQuoteConfig, type Serviced } from '../../lib/leads/client';
+import { fetchQuoteConfig, fetchServiced, lastFour, submitErrorText, type ClientQuoteConfig, type Serviced } from '../../lib/leads/client';
 import {
   BATTERY_INTERESTS,
   BATTERY_INTEREST_LABELS,
@@ -38,8 +38,9 @@ import {
   billToBucket,
 } from '../../lib/leads/options';
 import { eventSource, saveSummary } from '../../lib/leads/summary';
+import { CONTACT_EMAIL } from '../../lib/contact';
 import type { EstimateSnapshot, FieldErrors, LeadField, LeadStep } from '../../lib/leads/validate';
-import { PHONE_ERROR, STEP_FIELDS, normalizePhone, stepOfField, validateContact, validateHome, validateLead, validateProject } from '../../lib/leads/validate';
+import { SOURCE_PARAM_RE, PHONE_ERROR, STEP_FIELDS, normalizePhone, stepOfField, validateContact, validateHome, validateLead, validateProject } from '../../lib/leads/validate';
 import { trackEvent } from '../../lib/track';
 import { btnPrimary, btnSecondary, btnText } from '../ui/buttons';
 import EstimateEmailForm from './EstimateEmailForm';
@@ -102,7 +103,6 @@ const EMPTY: Values = {
   phone: '',
 };
 
-const SOURCE_PARAM_RE = /^city:(florida|california)\/[a-z0-9-]+$|^utility:(fpl|duke-energy-florida|teco|pge|sce|sdge)$|^home$/;
 const STEPS = ['Your home', 'Your project', 'Contact'] as const;
 const FIRST_OPTION: Partial<Record<LeadField, string>> = {
   homeowner: 'yes',
@@ -155,6 +155,12 @@ export default function QuoteForm(p: Props) {
   const [sending, setSending] = useState(false);
   const [formError, setFormError] = useState('');
   const [notice, setNotice] = useState('');
+  const [editHome, setEditHome] = useState(false);
+  /** ZIP, utility and bill all arrived prefilled (from the calculator results): show them as a one-line summary. */
+  const [prefilledHome] = useState(() => {
+    const x = prefill(p);
+    return Boolean(x.zip && x.utility_id && x.bill_bucket);
+  });
   const [svc, setSvc] = useState<(Serviced & { zip: string }) | null>(null);
   const [svcLoading, setSvcLoading] = useState(false);
   const [config, setConfig] = useState<ClientQuoteConfig | null>(null);
@@ -162,6 +168,7 @@ export default function QuoteForm(p: Props) {
 
   const formRef = useRef<HTMLFormElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const alertRef = useRef<HTMLParagraphElement>(null);
   const touched = useRef(new Set<keyof Values>());
   const started = useRef(false);
   const focusNext = useRef<'heading' | LeadField | null>(p.autoFocus ? 'heading' : null);
@@ -222,9 +229,14 @@ export default function QuoteForm(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, phase]);
 
-  // On step 3, look up the installers again so the consent text is current.
+  // Look up the installers as soon as a valid ZIP is entered (so the unserviced notice shows on step 1), and again on
+  // step 3 so the consent text is current.
   useEffect(() => {
-    if (step !== 3 || phase !== 'form' || !zipOk) return;
+    if (phase !== 'form' || !zipOk) {
+      setSvcLoading(false);
+      return;
+    }
+    if (step === 2) return;
     let live = true;
     setSvcLoading(true);
     void fetchServiced(values.zip).then((r) => {
@@ -236,7 +248,7 @@ export default function QuoteForm(p: Props) {
       live = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, phase]);
+  }, [values.zip, step, phase]);
 
   const installers = svc && svc.zip === values.zip ? svc.installers : [];
   const unserviced = svc !== null && svc.zip === values.zip && !svc.serviced;
@@ -271,7 +283,7 @@ export default function QuoteForm(p: Props) {
     if (bad) requestAnimationFrame(() => document.getElementById(fid(FIRST_OPTION[bad] ? `${bad}-${FIRST_OPTION[bad]}` : bad))?.focus());
   }
 
-  async function next1() {
+  function next1() {
     if (values.homeowner === 'no') {
       focusNext.current = 'heading';
       setPhase('renter');
@@ -281,10 +293,6 @@ export default function QuoteForm(p: Props) {
     if (!v.value) return showErrors(v.errors, 1);
     setErrors({});
     setNotice('');
-    setSvcLoading(true);
-    const r = await fetchServiced(values.zip);
-    setSvcLoading(false);
-    if (r) setSvc({ ...r, zip: values.zip });
     focusNext.current = 'heading';
     setStep(2);
   }
@@ -344,6 +352,8 @@ export default function QuoteForm(p: Props) {
           serviced: body.serviced === true,
           status: body.status ?? 'new',
           phoneVerified: false,
+          otpOffered: Boolean(body.verify?.token && body.lead_id),
+          zip: values.zip,
           state: state ?? 'FL',
           source: eventSource(source),
           tracked: false,
@@ -368,11 +378,17 @@ export default function QuoteForm(p: Props) {
         setStep(first);
         return showErrors(body.fieldErrors, first);
       }
-      setFormError('Something went wrong — please try again.');
+      failSubmit();
     } catch {
       setSending(false);
-      setFormError('Something went wrong — please try again.');
+      failSubmit();
     }
+  }
+
+  /** Show the retry message and move focus to it; the button stays enabled and every answer is kept. */
+  function failSubmit() {
+    setFormError(submitErrorText(CONTACT_EMAIL));
+    requestAnimationFrame(() => alertRef.current?.focus());
   }
 
   function finish(summary: Summary, verified = false) {
@@ -382,7 +398,7 @@ export default function QuoteForm(p: Props) {
 
   function onSubmit(e: TargetedSubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (step === 1) void next1();
+    if (step === 1) next1();
     else if (step === 2) next2();
     else void submit();
   }
@@ -391,9 +407,9 @@ export default function QuoteForm(p: Props) {
   if (phase === 'renter') {
     return (
       <div class="space-y-4">
-        <h3 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
+        <h2 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
           Thanks for being upfront
-        </h3>
+        </h2>
         <p class="leading-7 text-stone-700">
           Installers need the property owner&rsquo;s okay to put solar on a roof, so we don&rsquo;t send renters&rsquo; details to installers.
           Nothing you entered here was sent to us or saved.
@@ -439,6 +455,12 @@ export default function QuoteForm(p: Props) {
   const consentText = consentFor(installers);
   const consentParts = splitAtPrivacyPolicy(consentText.text);
   const utilities = config?.utilities ?? [];
+  const utilityLabel = values.utility_id === OTHER_UTILITY ? 'Other utility' : (utilities.find((u) => u.id === values.utility_id)?.name ?? values.utility_id);
+  const collapsedHome = prefilledHome && !editHome && !errors.zip && !errors.utility_id && !errors.bill_bucket && zipOk && Boolean(values.utility_id) && Boolean(values.bill_bucket);
+  function openHomeEdit() {
+    setEditHome(true);
+    requestAnimationFrame(() => document.getElementById(fid('zip'))?.focus());
+  }
 
   return (
     <form ref={formRef} method="post" action="/api/leads" noValidate onSubmit={onSubmit} onFocusIn={onFirstFocus} class="space-y-5">
@@ -456,15 +478,9 @@ export default function QuoteForm(p: Props) {
         ))}
       </ol>
 
-      <h3 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
+      <h2 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
         {step === 1 ? 'Tell us about your home' : step === 2 ? 'Tell us about your project' : 'Where should installers reach you?'}
-      </h3>
-
-      {step > 1 && unserviced && (
-        <p role="status" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-stone-900">
-          We don&rsquo;t have installers near you yet &mdash; we&rsquo;ll email you when we do. You can still send your details below.
-        </p>
-      )}
+      </h2>
 
       <fieldset disabled={sending} class="min-w-0 space-y-5">
         {/* Honeypot: hidden from people and assistive tech; bots fill it in. */}
@@ -475,7 +491,17 @@ export default function QuoteForm(p: Props) {
 
         {step === 1 && (
           <>
-            <div class="grid gap-4 sm:grid-cols-2">
+            {collapsedHome ? (
+              <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border border-stone-200 bg-stone-50 px-4 py-3">
+                <p class="min-w-0 text-stone-900">
+                  <span class="sr-only">Your answers: </span>
+                  {[values.zip, utilityLabel, BILL_BUCKET_LABELS[values.bill_bucket as keyof typeof BILL_BUCKET_LABELS]].filter(Boolean).join(' · ')}
+                </p>
+                <button type="button" class={`-ml-2 sm:ml-0 ${btnText}`} onClick={openHomeEdit}>
+                  Edit<span class="sr-only"> ZIP code, utility and bill</span>
+                </button>
+              </div>
+            ) : (
               <div>
                 <label for={fid('zip')} class="block font-medium text-stone-900">
                   ZIP code
@@ -494,27 +520,18 @@ export default function QuoteForm(p: Props) {
                 />
                 {err('zip')}
               </div>
-              <div>
-                <label for={fid('street_address')} class="block font-medium text-stone-900">
-                  Street address
-                </label>
-                <input
-                  id={fid('street_address')}
-                  name="street_address"
-                  type="text"
-                  autoComplete="street-address"
-                  maxLength={200}
-                  value={values.street_address}
-                  onInput={(e) => set('street_address', e.currentTarget.value)}
-                  class={inputCls}
-                  {...aria('street_address')}
-                />
-                {err('street_address')}
+            )}
+            {unserviced && (
+              <div role="status" class="rounded-lg border border-stone-300 bg-stone-100 px-4 py-3 text-stone-900">
+                <p>We don&rsquo;t have installers near you yet &mdash; we&rsquo;ll email you when we do.</p>
+                <p class="mt-1 text-stone-800">Leave your details and we&rsquo;ll match you as soon as an installer covers {values.zip}.</p>
               </div>
-            </div>
+            )}
 
             <ChoiceGroup id={fid('')} name="homeowner" legend="Do you own this home?" options={['yes', 'no'] as const} labels={{ yes: 'Yes', no: 'No' }} icons={HOMEOWNER_ICONS} value={values.homeowner} onChange={(v) => set('homeowner', v)} error={err('homeowner')} errorId={errors.homeowner ? fid('homeowner-error') : undefined} cols="grid-cols-2 sm:max-w-sm" />
 
+            {!collapsedHome && (
+              <>
             <ChoiceGroup id={fid('')} name="bill_bucket" legend="Average monthly electric bill" options={BILL_BUCKETS} labels={BILL_BUCKET_LABELS} value={values.bill_bucket} onChange={(v) => set('bill_bucket', v)} error={err('bill_bucket')} errorId={errors.bill_bucket ? fid('bill_bucket-error') : undefined} cols="grid-cols-2 sm:grid-cols-3" />
 
             <div>
@@ -532,6 +549,8 @@ export default function QuoteForm(p: Props) {
               </select>
               {err('utility_id')}
             </div>
+              </>
+            )}
           </>
         )}
 
@@ -548,10 +567,13 @@ export default function QuoteForm(p: Props) {
         {step === 3 && (
           <>
             <div class="grid gap-4 sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                <TextField id={fid('street_address')} name="street_address" label="Street address" auto="street-address" max={200} value={values.street_address} onInput={(v) => set('street_address', v)} error={err('street_address')} aria={aria('street_address')} hint="So installers can check your roof from satellite imagery before calling." />
+              </div>
               <TextField id={fid('first_name')} name="first_name" label="First name" auto="given-name" max={60} value={values.first_name} onInput={(v) => set('first_name', v)} error={err('first_name')} aria={aria('first_name')} />
               <TextField id={fid('last_name')} name="last_name" label="Last name" auto="family-name" max={60} value={values.last_name} onInput={(v) => set('last_name', v)} error={err('last_name')} aria={aria('last_name')} />
               <TextField id={fid('email')} name="email" label="Email" type="email" auto="email" max={254} value={values.email} onInput={(v) => set('email', v)} error={err('email')} aria={aria('email')} />
-              <TextField id={fid('phone')} name="phone" label="Mobile phone" type="tel" auto="tel" inputMode="tel" max={40} value={values.phone} onInput={(v) => set('phone', v)} onBlur={onPhoneBlur} error={err('phone')} aria={aria('phone')} />
+              <TextField id={fid('phone')} name="phone" label="Mobile phone" type="tel" auto="tel" inputMode="tel" max={40} value={values.phone} onInput={(v) => set('phone', v)} onBlur={onPhoneBlur} error={err('phone')} aria={aria('phone')} hint={installers.length > 0 ? 'Only RayValue and the installers listed here can use it. Reply STOP at any time.' : 'Only RayValue and solar installers serving your area can use it. Reply STOP at any time.'} />
             </div>
 
             {installers.length > 0 && (
@@ -605,20 +627,29 @@ export default function QuoteForm(p: Props) {
         )}
       </fieldset>
 
-      <div class="space-y-2">
+      <div class="space-y-3">
+        {step === 3 && (
+          <p class="flex items-start gap-2 text-sm text-stone-700">
+            <Icon name="lock" size={20} class="mt-0.5 shrink-0 text-stone-900" />
+            <span>
+              {installers.length > 0
+                ? 'Free and no obligation. We only share your details with the installers named above.'
+                : "Free and no obligation. We won't share your details until an installer serves your area."}
+            </span>
+          </p>
+        )}
         <div class="flex flex-wrap items-center gap-3">
           {step > 1 && (
             <button type="button" class={btnSecondary} onClick={back} disabled={sending}>
               Back
             </button>
           )}
-          <button type="submit" class={btnPrimary} disabled={sending || svcLoading}>
-            {step === 3 ? (sending ? 'Sending…' : SUBMIT_LABEL) : svcLoading ? 'Checking…' : 'Continue'}
+          <button type="submit" class={btnPrimary} disabled={sending || (step === 3 && svcLoading)}>
+            {step === 3 ? (sending ? 'Sending…' : SUBMIT_LABEL) : 'Continue'}
           </button>
         </div>
-        {step === 3 && <p class="text-sm text-stone-600">Free and no obligation. We only share your details with the installers named above.</p>}
         {formError && (
-          <p role="alert" class="font-medium text-red-800">
+          <p ref={alertRef} tabIndex={-1} role="alert" class="font-medium text-red-800 focus:outline-none">
             {formError}
           </p>
         )}
@@ -633,6 +664,8 @@ interface Summary {
   serviced: boolean;
   status: 'new' | 'unserviced' | 'nurture';
   phoneVerified: boolean;
+  otpOffered: boolean;
+  zip: string;
   state: 'FL' | 'CA';
   source: string;
   tracked: boolean;
@@ -663,13 +696,22 @@ function TextField(p: {
   max: number;
   error: ComponentChildren;
   aria: { 'aria-invalid': 'true' | 'false'; 'aria-describedby': string | undefined };
+  /** Help text under the field, linked with aria-describedby (the error id comes first when there is one). */
+  hint?: string;
 }) {
+  const hintId = `${p.id}-hint`;
+  const describedBy = [p.aria['aria-describedby'], p.hint ? hintId : undefined].filter(Boolean).join(' ') || undefined;
   return (
     <div>
       <label for={p.id} class="block font-medium text-stone-900">
         {p.label}
       </label>
-      <input id={p.id} name={p.name} type={(p.type ?? 'text') as 'text'} autoComplete={p.auto} inputMode={p.inputMode} maxLength={p.max} value={p.value} onInput={(e) => p.onInput(e.currentTarget.value)} onBlur={p.onBlur} class={inputCls} {...p.aria} />
+      <input id={p.id} name={p.name} type={(p.type ?? 'text') as 'text'} autoComplete={p.auto} inputMode={p.inputMode} maxLength={p.max} value={p.value} onInput={(e) => p.onInput(e.currentTarget.value)} onBlur={p.onBlur} class={inputCls} {...p.aria} aria-describedby={describedBy} />
+      {p.hint && (
+        <p id={hintId} class="mt-1 text-sm text-stone-600">
+          {p.hint}
+        </p>
+      )}
       {p.error}
     </div>
   );
@@ -705,3 +747,4 @@ function ChoiceGroup<V extends string>(p: {
     </fieldset>
   );
 }
+

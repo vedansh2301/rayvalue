@@ -1,0 +1,13 @@
+---
+import { getEntry } from 'astro:content';
+import RelatedReading from '../seo/RelatedReading.astro';
+import { UTILITY_READ_MORE } from '../../lib/utility/read-more';
+interface Props { state: 'FL' | 'CA' }
+const { state } = Astro.props;
+const entries = await Promise.all(UTILITY_READ_MORE[state].map(async (r) => ({ r, e: await getEntry(r.collection, r.id) })));
+// Unpublished (draft) entries are skipped.
+const items = entries
+  .filter(({ e }) => e && !e.data.draft)
+  .map(({ r, e }) => ({ href: `/${r.collection}/${r.id}`, title: e!.data.title, kind: r.collection === 'guides' ? 'guide' : undefined }));
+---
+<RelatedReading heading="Read more" id="read-more-h" items={items} />

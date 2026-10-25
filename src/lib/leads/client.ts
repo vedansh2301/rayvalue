@@ -42,3 +42,8 @@ export async function fetchServiced(zip: string): Promise<Serviced | null> {
 
 /** Last four digits of a phone number as typed, for "we texted ••• 0123". */
 export const lastFour = (phone: string): string => phone.replace(/\D/g, '').slice(-4);
+
+/** Shown when a submit fails for a network or server reason. Every answer is still in the form. */
+export function submitErrorText(email: string | null): string {
+  return `We couldn’t send your request. Your answers are still here, so please try again in a moment${email ? ` or email us at ${email}` : ''}.`;
+}

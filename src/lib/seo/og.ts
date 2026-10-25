@@ -10,6 +10,9 @@ export const OG_PAGES = {
   'calculator-florida': { kicker: 'Florida calculator', title: 'Florida solar + battery payback calculator', subtitle: 'Low, likely and high ranges from your utility’s own rates' },
   'calculator-california': { kicker: 'California calculator', title: 'California solar + battery payback calculator', subtitle: 'Low, likely and high ranges from your utility’s own rates' },
   quotes: { kicker: 'Free quotes', title: 'Compare solar quotes from up to 3 local installers', subtitle: 'No obligation. Florida and California.' },
+  blog: { kicker: 'RayValue blog', title: 'Solar and battery costs, rates and payback', subtitle: 'Sourced analysis for Florida and California' },
+  guides: { kicker: 'RayValue guides', title: 'Solar and battery payback guides', subtitle: 'Plain-language, sourced, no federal tax credit' },
+  stories: { kicker: 'Real stories', title: 'Real solar and battery stories from FL and CA', subtitle: 'Publicly reported, with the lesson for your decision' },
   methodology: { kicker: 'Methodology', title: 'How RayValue estimates solar payback', subtitle: 'Every rate and assumption, with its source' },
 } as const satisfies Record<string, OgCard>;
 

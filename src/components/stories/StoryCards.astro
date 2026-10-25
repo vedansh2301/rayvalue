@@ -4,37 +4,55 @@
  * No avatars, ratings or quotes attributed to people. Sorting/filtering is in src/lib/stories.ts.
  */
 import { getCollection } from 'astro:content';
-import { selectStories, type StoryFilter } from '../../lib/stories';
+import { homeStories, olderStoryYear, selectStories, type StoryFilter } from '../../lib/stories';
 
 interface Props {
   state?: StoryFilter;
   limit?: number;
   /** Heading level for card titles (default h3). */
   headingLevel?: 'h2' | 'h3';
+  /** compact: home page cards (headline, callout, 3-line summary, source). Florida first. */
+  compact?: boolean;
 }
-const { state = 'both', limit, headingLevel = 'h3' } = Astro.props;
-const stories = selectStories(await getCollection('stories'), state, limit);
+const { state = 'both', limit, headingLevel = 'h3', compact = false } = Astro.props;
+const all = await getCollection('stories');
+const stories = compact ? homeStories(all) : selectStories(all, state, limit);
 const Heading = headingLevel;
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 ---
 {stories.length > 0 && (
-  <ul class="not-prose grid gap-4 sm:grid-cols-2">
-    {stories.map((s) => (
+  <ul class:list={['not-prose grid gap-4', compact ? 'md:grid-cols-3' : 'sm:grid-cols-2']}>
+    {stories.map((s) => {
+      const year = olderStoryYear(s.data.date_reported);
+      return (
       <li class="flex flex-col rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <p class="text-xs font-medium uppercase tracking-wide text-stone-600">
           {s.data.location} <span aria-hidden="true">·</span> <time datetime={s.data.date_reported.toISOString().slice(0, 10)}>{fmt(s.data.date_reported)}</time>
+          {year !== null && !compact && <span class="ml-1 rounded-full border border-stone-300 px-2 py-0.5 normal-case tracking-normal">{year} report</span>}
         </p>
         <Heading class="mt-2 text-lg font-semibold leading-snug text-stone-900">{s.data.title}</Heading>
-        <p class="mt-2 leading-7 text-stone-700">{s.data.summary}</p>
-        <div class="mt-4 rounded-lg border-l-4 border-sun-300 bg-sun-50 px-3 py-2 text-sm text-stone-800">
-          <strong class="font-semibold">What it means for you:</strong> {s.data.lesson}
-        </div>
+        {compact ? (
+          <>
+            <div class="mt-3 rounded-lg border-l-4 border-sun-300 bg-sun-50 px-3 py-2 text-sm text-stone-800">
+              <strong class="font-semibold">What it means for you:</strong> {s.data.lesson}
+            </div>
+            <p class="mt-3 line-clamp-3 leading-7 text-stone-700">{s.data.summary}</p>
+          </>
+        ) : (
+          <>
+            <p class="mt-2 leading-7 text-stone-700">{s.data.summary}</p>
+            <div class="mt-4 rounded-lg border-l-4 border-sun-300 bg-sun-50 px-3 py-2 text-sm text-stone-800">
+              <strong class="font-semibold">What it means for you:</strong> {s.data.lesson}
+            </div>
+          </>
+        )}
         <p class="mt-auto pt-4 text-sm">
           <a href={s.data.source.url} rel="noopener" class="font-medium text-sun-ink underline underline-offset-2 hover:text-stone-900">
             Read the source: {s.data.source.publisher} <span aria-hidden="true">→</span>
           </a>
         </p>
       </li>
-    ))}
+      );
+    })}
   </ul>
 )}

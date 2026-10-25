@@ -1,11 +1,39 @@
 ---
+/**
+ * CTA card at the top and bottom of a blog post or guide: run the calculator (primary), or go straight to installer
+ * quotes (secondary, tagged with where the reader came from). Utility pages are listed only while they are
+ * indexable (the same predicate as the sitemap), so a noindex page such as TECO never gets an internal link.
+ */
 import { calculatorsForState } from '../../lib/seo/jsonld';
-interface Props { state: 'FL' | 'CA' | 'both' }
-const links = calculatorsForState(Astro.props.state);
+import { STATE_NAMES } from '../../lib/calculator/form';
+import { indexableUtilityPagesOnce } from '../../lib/utility/sitemap';
+import { utilityPagePath } from '../../lib/utility/pages';
+import { btnPrimary } from '../ui/buttons';
+
+interface Props {
+  state: 'FL' | 'CA' | 'both';
+  kind: 'blog' | 'guide';
+  slug: string;
+  /** 'top' or 'end': only changes the heading id so both cards can sit on one page. */
+  place?: 'top' | 'end';
+}
+const { state, kind, slug, place = 'top' } = Astro.props;
+const calcs = calculatorsForState(state);
+const quotesHref = `/quotes?${state === 'both' ? '' : `state=${state}&`}source=${kind}:${slug}`;
+const utilities = (await indexableUtilityPagesOnce()).filter((p) => state === 'both' || p.state === state);
+const headingId = `calc-cta-${place}`;
 ---
-<aside class="mt-8 rounded-lg border border-amber-300 bg-amber-50 p-4" aria-label="Calculators">
-  <p class="font-semibold text-stone-900">Run your own numbers</p>
-  <ul class="mt-2 list-disc pl-5">
-    {links.map((l) => <li><a class="underline underline-offset-4 text-stone-900" href={l.href}>{l.label}</a></li>)}
-  </ul>
+<aside class="not-prose my-8 rounded-2xl border border-sun-300 bg-sun-50 p-5 sm:p-6" aria-labelledby={headingId}>
+  <p id={headingId} class="text-lg font-semibold text-stone-900">See what solar would do for your home</p>
+  <p class="mt-1 text-stone-800">Four quick questions give you low, likely and high ranges for cost, savings and payback, with no federal tax credit assumed.</p>
+  <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+    {calcs.map((c) => <a href={c.href} class={btnPrimary}>Run my {STATE_NAMES[c.state]} numbers</a>)}
+    <a href={quotesHref} class="inline-flex min-h-11 items-center font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">Or get free installer quotes</a>
+  </div>
+  {utilities.length > 0 && (
+    <p class="mt-3 text-sm text-stone-700">
+      By utility:
+      {utilities.map((u, i) => <>{i > 0 ? ', ' : ' '}<a class="text-sun-ink underline underline-offset-2 hover:text-stone-900" href={utilityPagePath(u)}>{u.short}</a></>)}
+    </p>
+  )}
 </aside>

@@ -1,0 +1,26 @@
+---
+/**
+ * "On this page" jump links built from an article's h2 headings (Astro's render() headings). Shown only for
+ * articles with 4 or more h2s: a collapsed <details> on mobile, an open list above the content from md up.
+ */
+import { tocItems, TOC_MIN_HEADINGS } from '../../lib/toc';
+
+interface Props { headings: { depth: number; slug: string; text: string }[] }
+const items = tocItems(Astro.props.headings);
+---
+{items.length >= TOC_MIN_HEADINGS && (
+  <>
+    <details class="not-prose mt-4 rounded-lg border border-stone-200 bg-white md:hidden">
+      <summary class="min-h-11 cursor-pointer px-4 py-3 font-semibold text-stone-900">On this page</summary>
+      <ol class="list-decimal space-y-1 px-4 pb-4 pl-9 text-sm text-stone-800">
+        {items.map((h) => <li><a href={`#${h.slug}`} class="inline-block py-1 text-sun-ink underline underline-offset-2 hover:text-stone-900">{h.text}</a></li>)}
+      </ol>
+    </details>
+    <nav aria-labelledby="toc-h" class="not-prose mt-4 hidden rounded-lg border border-stone-200 bg-white px-5 py-4 md:block">
+      <p id="toc-h" class="font-semibold text-stone-900">On this page</p>
+      <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm text-stone-800">
+        {items.map((h) => <li><a href={`#${h.slug}`} class="inline-block py-0.5 text-sun-ink underline underline-offset-2 hover:text-stone-900">{h.text}</a></li>)}
+      </ol>
+    </nav>
+  </>
+)}

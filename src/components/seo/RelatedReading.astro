@@ -1,0 +1,15 @@
+---
+/** Related links list. Items are resolved by the caller (blog picks by state/tags; utility pages use a fixed list). */
+interface Props { heading: string; id: string; items: { href: string; title: string; kind?: string }[] }
+const { heading, id, items } = Astro.props;
+---
+{items.length > 0 && (
+  <nav aria-labelledby={id} class="mt-10">
+    <h2 id={id} class="text-xl font-semibold text-stone-900">{heading}</h2>
+    <ul class="mt-3 list-disc space-y-1 pl-5">
+      {items.map((i) => (
+        <li><a class="inline-flex min-h-11 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900" href={i.href}>{i.title}</a>{i.kind && <span class="text-sm text-stone-600"> ({i.kind})</span>}</li>
+      ))}
+    </ul>
+  </nav>
+)}

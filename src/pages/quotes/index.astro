@@ -1,4 +1,5 @@
 ---
+import { PAGE_META } from '../../lib/seo/page-meta';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { ogImagePath } from '../../lib/seo/og';
@@ -24,8 +25,8 @@ const steps: { icon: IconName; short: string; long: string }[] = [
 ];
 ---
 <BaseLayout
-  title="Get free solar quotes"
-  description="Request free, no-obligation solar quotes from up to 3 local installers in Florida or California."
+  title={PAGE_META.quotes.title}
+  description={PAGE_META.quotes.description}
   path="/quotes"
   ogImagePath={ogImagePath('quotes')}
   jsonLd={[faqJsonLd(faq)]}
@@ -33,8 +34,9 @@ const steps: { icon: IconName; short: string; long: string }[] = [
   <div class="shell pb-16 pt-8 sm:pt-10">
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Get quotes' }]} />
     <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">Get free solar quotes</h1>
+    <p class="mt-2 text-lg text-stone-700 sm:hidden">Takes about a minute. Free, no obligation.</p>
     <div class="mt-6 grid gap-6 lg:grid-cols-[2fr_3fr] lg:items-start lg:gap-10">
-      <aside aria-label="How quotes work" class="lg:sticky lg:top-6">
+      <aside aria-label="How quotes work" class="order-last lg:order-none lg:sticky lg:top-6">
         <div class="hidden lg:block">
           <Picture
             src={quotesPhoto}
@@ -49,7 +51,7 @@ const steps: { icon: IconName; short: string; long: string }[] = [
             class="aspect-[4/3] w-full rounded-xl object-cover"
           />
         </div>
-        <ol class="grid grid-cols-3 gap-2 lg:mt-6 lg:grid-cols-1 lg:gap-4">
+        <ol class="hidden grid-cols-3 gap-2 sm:grid lg:mt-6 lg:grid-cols-1 lg:gap-4">
           {steps.map((st, i) => (
             <li class="flex flex-col items-center gap-2 rounded-xl border border-stone-200 bg-white p-3 text-center lg:flex-row lg:gap-4 lg:p-4 lg:text-left">
               <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sun-100 text-stone-900"><Icon name={st.icon} /></span>
@@ -70,7 +72,7 @@ const steps: { icon: IconName; short: string; long: string }[] = [
     </div>
     <div class="max-w-(--container-prose)">
       <p class="mt-6 text-stone-700">
-        Want a number first? Try the <a href="/calculator/florida" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">Florida</a> or
+        Want a number first? Try the <a href="/calculator/florida" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">Florida</a> or{" "}
         <a href="/calculator/california" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">California</a> payback calculator.
       </p>
       <div class="mt-12">

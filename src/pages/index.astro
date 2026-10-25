@@ -1,11 +1,13 @@
 ---
+import { PAGE_META } from '../lib/seo/page-meta';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ogImagePath } from '../lib/seo/og';
-import { btnPrimary, btnSecondary } from '../components/ui/buttons';
+import { btnPrimary, btnText } from '../components/ui/buttons';
 import UtilityLinks from '../components/utility/UtilityLinks.astro';
 import Icon, { type IconName } from '../components/icons/Icon';
 import { Picture } from 'astro:assets';
 import heroPhoto from '../assets/photos/la-home-rooftop-solar.jpg';
+import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 import StoryCards from '../components/stories/StoryCards.astro';
 import Faq from '../components/Faq.astro';
 import { HOME_FAQ_IDS, faqItems } from '../lib/content/faq';
@@ -30,8 +32,8 @@ const steps: { title: string; body: string; icon: IconName }[] = [
 ];
 ---
 <BaseLayout
-  title="RayValue | Solar payback calculator for Florida and California homeowners"
-  description="Honest solar and battery payback estimates for Florida and California homeowners, calculated without the federal tax credit."
+  title={PAGE_META.home.title}
+  description={PAGE_META.home.description}
   path="/"
   ogImagePath={ogImagePath('home')}
   jsonLd={[faqJsonLd(faq)]}
@@ -45,7 +47,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
       <p class="mt-5 max-w-(--container-prose) text-lg leading-8 text-stone-700">
         The federal tax credit is gone, so we show Florida and California homeowners honest cost, savings and payback ranges from their own utility&rsquo;s rates.
       </p>
-      <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+      <div class="mt-6">
         <div role="group" aria-labelledby="hero-state-label" class="flex flex-col gap-2">
           <p id="hero-state-label" class="text-sm font-medium text-stone-700">Pick your state to start</p>
           <div class="flex flex-col gap-2 sm:flex-row">
@@ -53,7 +55,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
             <a href="/calculator/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
           </div>
         </div>
-        <a href="/quotes?source=home" class={`${btnSecondary} sm:self-end`}>Get installer quotes</a>
+        <p class="mt-2"><a href="/quotes?source=home" class={btnText}>Get installer quotes <span aria-hidden="true">&rarr;</span></a></p>
       </div>
       <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-stone-800" aria-label="Why use RayValue">
         {trust.map((t) => (
@@ -78,7 +80,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
          loading="eager"
          fetchpriority="high"
          decoding="async"
-         class="aspect-[4/3] w-full rounded-2xl object-cover shadow-md"
+         class="aspect-[4/3] w-full rounded-2xl object-cover object-[center_35%] shadow-md"
        />
      </div>
     </div>
@@ -97,7 +99,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
             </div>
           </div>
           <p class="mt-2 flex-1 leading-7 text-stone-700">{s.blurb}</p>
-          <div class="mt-4"><UtilityLinks state={s.code as 'FL' | 'CA'} /></div>
+          <div class="mt-4"><UtilityLinks state={s.code as 'FL' | 'CA'} chips /></div>
           <a href={s.href} class={`mt-3 w-fit ${btnPrimary}`}>
             {s.name} calculator<span aria-hidden="true">&rarr;</span>
           </a>
@@ -136,18 +138,32 @@ const steps: { title: string; body: string; icon: IconName }[] = [
         </li>
       ))}
     </ul>
-    <p class="mt-6 max-w-(--container-prose) text-stone-700">See the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a> and <a href="/about" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">about RayValue</a>.</p>
+    <p class="mt-6 max-w-(--container-prose) text-stone-700">See the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a>{!UNREVIEWED_PAGES.has('/about') && <> and <a href="/about" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">about RayValue</a></>}.</p>
   </section>
 
   <section aria-labelledby="stories-heading" class="shell pb-16">
-    <h2 id="stories-heading" class="text-2xl font-bold tracking-tight text-stone-900">Real stories from Florida and California</h2>
-    <p class="mt-2 mb-6 max-w-(--container-prose) text-stone-700">Publicly reported accounts of homeowners and communities with solar and batteries, each linked to the original reporting. <a href="/stories" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">See all stories</a>.</p>
-    <StoryCards state="both" limit={4} />
+    <h2 id="stories-heading" class="text-2xl font-bold tracking-tight text-stone-900">What&rsquo;s happened with solar in Florida and California</h2>
+    <p class="mt-2 mb-6 max-w-(--container-prose) text-stone-700">Publicly reported events, each linked to the original reporting.</p>
+    <StoryCards compact />
+    <p class="mt-5"><a href="/stories" class="font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">See all stories <span aria-hidden="true">&rarr;</span></a></p>
   </section>
 
   <div class="shell pb-16">
     <div class="max-w-(--container-prose)">
       <Faq items={faq} id="home-faq" />
+      <p class="mt-4 text-stone-700">More questions? See the <a href="/quotes#quotes-faq" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">questions about quotes and your contact details</a>, or read <a href="/guides/solar-lease-vs-buy" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">solar lease vs buy</a>.</p>
     </div>
   </div>
+
+  <section aria-labelledby="closing-cta" class="shell pb-16">
+    <div class="rounded-2xl border border-sun-300 bg-sun-50 p-6 sm:p-8">
+      <h2 id="closing-cta" class="text-2xl font-bold tracking-tight text-stone-900">Ready to see your numbers?</h2>
+      <p class="mt-2 max-w-(--container-prose) text-stone-800">It takes about a minute, it&rsquo;s free, and no federal tax credit is assumed.</p>
+      <div class="mt-5 flex flex-col gap-2 sm:flex-row">
+        <a href="/calculator/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
+        <a href="/calculator/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
+      </div>
+      <p class="mt-3"><a href="/quotes?source=home" class={btnText}>or get installer quotes</a></p>
+    </div>
+  </section>
 </BaseLayout>

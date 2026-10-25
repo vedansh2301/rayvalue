@@ -1,4 +1,5 @@
 ---
+import { PAGE_META } from '../lib/seo/page-meta';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ogImagePath } from '../lib/seo/og';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
@@ -69,9 +70,9 @@ const costSources = costs.ok
     )
   : null;
 ---
-<BaseLayout title="Methodology" description="How RayValue estimates solar system size, cost, savings and payback." path="/methodology" ogImagePath={ogImagePath('methodology')}>
+<BaseLayout title={PAGE_META.methodology.title} description={PAGE_META.methodology.description} path="/methodology" ogImagePath={ogImagePath('methodology')}>
   <div class="page">
-    <!-- TODO: owner review -->
+    {/* TODO: owner review */}
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Methodology' }]} />
     <h1 class="!mt-4">Methodology</h1>
     <p>
@@ -92,7 +93,7 @@ const costSources = costs.ok
         <strong>Solar production.</strong> We place your ZIP code on the map and ask the PVWatts model from the National
         Laboratory of the Rockies (formerly NREL) how much one kilowatt of panels produces there each month, with system
         losses set by the amount of shade you pick.
-        {array ? <> The array we model is {arrayText(array)}.</> : <> The modeled array settings are being verified.</>}
+        {array ? <> The array we model is {arrayText(array)}.</> : <> The modeled array settings are being verified.</>}{" "}
         If the live PVWatts service is unavailable, we use results precomputed with the same settings for the nearest listed city.
       </li>
       <li>

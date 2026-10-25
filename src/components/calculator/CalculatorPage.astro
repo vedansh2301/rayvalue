@@ -17,9 +17,11 @@ import Calculator from './Calculator';
 import type { State } from '../../data/schemas';
 import type { CalculatorPageData } from '../../lib/calculator/page-data';
 import { CALCULATOR_PATHS, STATE_NAMES } from '../../lib/calculator/form';
+import { PAGE_META } from '../../lib/seo/page-meta';
 import { ogImagePath } from '../../lib/seo/og';
 import { webApplicationJsonLd } from '../../lib/seo/jsonld';
 import { ALERTS_ENABLED } from '../../lib/contact';
+import { btnPrimary } from '../ui/buttons';
 
 interface Props {
   state: State;
@@ -30,6 +32,7 @@ const { state, data } = Astro.props;
 const name = STATE_NAMES[state];
 const otherState: State = state === 'FL' ? 'CA' : 'FL';
 
+const meta = PAGE_META[state === 'FL' ? 'calculator-florida' : 'calculator-california'];
 const offer = data.ok ? data.offer : null;
 const steps = [
   'We place your ZIP code on the map and look up how much sun a rooftop solar array gets there using the PVWatts solar model, adjusted for the shade you picked.',
@@ -40,21 +43,23 @@ const steps = [
 ];
 ---
 <BaseLayout
-  title={`${name} solar payback calculator`}
-  description={`Estimate solar and battery cost, savings and payback for your ${name} home, using your utility’s rates and no federal tax credit.`}
+  title={meta.title}
+  description={meta.description}
   path={CALCULATOR_PATHS[state]}
   ogImagePath={ogImagePath(state === 'FL' ? 'calculator-florida' : 'calculator-california')}
   jsonLd={[webApplicationJsonLd(state)]}
 >
   <section class="bg-gradient-to-b from-sun-100 to-stone-50">
-    <div class="shell pb-6 pt-6 sm:pt-8">
+    <div class="shell pb-6 pt-4 sm:pt-8">
     <div class="max-w-(--container-prose)">
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${name} calculator` }]} />
       <h1 class="mt-4 text-3xl sm:mt-6 font-bold tracking-tight text-stone-900 sm:text-4xl">{name} solar payback calculator</h1>
       <p class="mt-4 text-lg leading-8 text-stone-700">
-        See what rooftop solar, with or without a battery, could cost and save on your home, as honest ranges built from your utility&rsquo;s rates.
+        Four quick questions. Low, likely and high ranges from your utility&rsquo;s published rates. No federal tax credit assumed.
       </p>
-      <p class="mt-3 text-stone-700">Answer four quick questions. Results are shown as low, likely and high ranges, built from your utility&rsquo;s published rates.</p>
+      <p class="mt-2 text-sm text-stone-700">
+        In {STATE_NAMES[otherState]}? Use the <a href={CALCULATOR_PATHS[otherState]} class="text-sun-ink underline underline-offset-2 hover:text-stone-900">{STATE_NAMES[otherState]} calculator</a>.
+      </p>
     </div>
     </div>
   </section>
@@ -70,11 +75,10 @@ const steps = [
           <p class="mt-2 leading-7 text-stone-700">
             The {name} calculator is temporarily unavailable while we check our rate data.{ALERTS_ENABLED && <> Sign up below and we&rsquo;ll let you know when rates change.</>}
           </p>
+          <p class="mt-4"><a href={`/quotes?state=${state}`} class={btnPrimary}>Get free installer quotes</a></p>
+          <p class="mt-2 text-sm text-stone-700">Installers can still quote your home while we finish checking rates. Free, no obligation.</p>
         </div>
       )}
-      <p class="mt-4 text-sm text-stone-600">
-        In {STATE_NAMES[otherState]}? Use the <a href={CALCULATOR_PATHS[otherState]} class="text-sun-ink underline underline-offset-2 hover:text-stone-900">{STATE_NAMES[otherState]} calculator</a>.
-      </p>
     </section>
 
     {offer && (
