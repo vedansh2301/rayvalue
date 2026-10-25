@@ -9,7 +9,7 @@ import { loadEnv } from 'vite';
 import { guideFlags, excludedGuideUrls, excludedCollectionUrls } from './src/lib/seo/guide-flags.ts';
 import { getPublishedCityUrls } from './src/lib/seo/sitemap-cities.ts';
 import { UTILITY_PAGES, utilityPagePath } from './src/lib/utility/pages.ts';
-import { getIndexableUtilityUrls } from './src/lib/utility/sitemap.ts';
+import { createServer as createViteServer } from 'vite';
 import { isGoPath } from './src/lib/go.ts';
 import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
 import { adCspSources, parseAdIds } from './src/lib/ads/config.ts';
@@ -41,7 +41,23 @@ const cityUrls = await getPublishedCityUrls({
 // Utility pages (on demand, from DB data) are listed only when their worked examples have real results.
 process.env.SUPABASE_URL ||= dbEnv.SUPABASE_URL;
 process.env.SUPABASE_PUBLISHABLE_KEY ||= dbEnv.SUPABASE_PUBLISHABLE_KEY;
-const utilityUrls = process.env.SUPABASE_URL ? await getIndexableUtilityUrls() : [];
+// Loaded through a short-lived Vite server: the loader chain uses extensionless TS imports (and dynamic imports)
+// that Node alone cannot resolve.
+async function loadUtilityUrls() {
+  const vite = await createViteServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom', optimizeDeps: { noDiscovery: true } });
+  try {
+    const mod = await vite.ssrLoadModule('/src/lib/utility/sitemap.ts');
+    return await mod.getIndexableUtilityUrls();
+  } finally {
+    await vite.close();
+  }
+}
+const utilityUrls = process.env.SUPABASE_URL
+  ? await loadUtilityUrls().catch((e) => {
+      console.warn('[sitemap] utility pages skipped:', e?.message ?? e);
+      return [];
+    })
+  : [];
 
 const utilityPaths = new Set(UTILITY_PAGES.map(utilityPagePath));
 
