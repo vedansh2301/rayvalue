@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { OG_PAGES, type OgPageKey } from '../../lib/seo/og';
+import { UTILITY_PAGES, utilityPagePath } from '../../lib/utility/pages';
 
 const require = createRequire(import.meta.url);
 const readFont = (w: 400 | 700) =>
@@ -21,6 +22,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
   return [
     { params: { slug: 'default' }, props: { title: 'Solar + battery payback, without the guesswork', kicker: 'RayValue' } },
     ...(Object.keys(OG_PAGES) as OgPageKey[]).map((k) => ({ params: { slug: k }, props: OG_PAGES[k] as { title: string; kicker: string; subtitle: string } })),
+    ...UTILITY_PAGES.map((u) => ({
+      params: { slug: utilityPagePath(u).replace(/^\//, '') },
+      props: { title: `Solar payback with ${u.short}`, kicker: u.state === 'FL' ? 'Florida utility' : 'California utility', subtitle: 'No federal tax credit' },
+    })),
     ...guides.map((g) => ({ params: { slug: `guides/${g.id}` }, props: { title: g.data.title, kicker: 'RayValue guide' } })),
     ...posts.map((p) => ({ params: { slug: `blog/${p.id}` }, props: { title: p.data.title, kicker: 'RayValue blog' } })),
   ];

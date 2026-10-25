@@ -63,7 +63,7 @@ if (city && /^\d{5}$/.test(city.coords_zcta ?? '')) quotesParams.set('zip', city
 const quotesHref = `/quotes?${quotesParams.toString()}`;
 ---
 {status !== 'ok' || !city ? (
-  <BaseLayout title={status === 'not_found' ? 'City not found' : 'Page temporarily unavailable'} description="RayValue city page" path={path} noindex>
+  <BaseLayout title={status === 'not_found' ? 'Page not found' : 'Page temporarily unavailable'} description={status === 'not_found' ? 'That page does not exist. Try the solar payback calculators.' : 'RayValue city page'} path={path} noindex canonical={false}>
     <div class="page">
       <h1>{status === 'not_found' ? 'We could not find that city' : 'This page is being verified'}</h1>
       <p>{status === 'not_found' ? 'We do not have a page for that city yet.' : 'Our data is temporarily unavailable. Please try again in a few minutes.'}</p>

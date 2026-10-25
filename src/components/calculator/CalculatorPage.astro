@@ -17,6 +17,7 @@ import Calculator from './Calculator';
 import type { State } from '../../data/schemas';
 import type { CalculatorPageData } from '../../lib/calculator/page-data';
 import { CALCULATOR_PATHS, STATE_NAMES } from '../../lib/calculator/form';
+import { PAGE_META } from '../../lib/seo/page-meta';
 import { ogImagePath } from '../../lib/seo/og';
 import { webApplicationJsonLd } from '../../lib/seo/jsonld';
 import { ALERTS_ENABLED } from '../../lib/contact';
@@ -31,6 +32,7 @@ const { state, data } = Astro.props;
 const name = STATE_NAMES[state];
 const otherState: State = state === 'FL' ? 'CA' : 'FL';
 
+const meta = PAGE_META[state === 'FL' ? 'calculator-florida' : 'calculator-california'];
 const offer = data.ok ? data.offer : null;
 const steps = [
   'We place your ZIP code on the map and look up how much sun a rooftop solar array gets there using the PVWatts solar model, adjusted for the shade you picked.',
@@ -41,8 +43,8 @@ const steps = [
 ];
 ---
 <BaseLayout
-  title={`${name} solar payback calculator`}
-  description={`Estimate solar and battery cost, savings and payback for your ${name} home, using your utility’s rates and no federal tax credit.`}
+  title={meta.title}
+  description={meta.description}
   path={CALCULATOR_PATHS[state]}
   ogImagePath={ogImagePath(state === 'FL' ? 'calculator-florida' : 'calculator-california')}
   jsonLd={[webApplicationJsonLd(state)]}

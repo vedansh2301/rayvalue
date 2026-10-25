@@ -1,12 +1,16 @@
 ---
+import { PAGE_META } from '../lib/seo/page-meta';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import UtilityLinks from '../components/utility/UtilityLinks.astro';
+import { btnPrimary } from '../components/ui/buttons';
 import StoryCards from '../components/stories/StoryCards.astro';
 ---
 <BaseLayout
-  title="Real solar and battery stories from FL and CA"
-  description="Publicly reported stories of Florida and California homeowners and communities using solar and batteries, with what each one means for your own decision."
+  title={PAGE_META.stories.title}
+  description={PAGE_META.stories.description}
   path="/stories"
+  ogImagePath="/og/stories.png"
 >
   <div class="shell pb-16 pt-6 sm:pt-8">
     <div class="max-w-(--container-prose)">
@@ -19,9 +23,24 @@ import StoryCards from '../components/stories/StoryCards.astro';
     <div class="mt-8">
       <h2 class="mb-4 text-xl font-semibold text-stone-900">Florida</h2>
       <StoryCards state="FL" />
+      <div class="mt-4 max-w-(--container-prose)">
+        <p class="text-stone-700">What this means for your own numbers in Florida:</p>
+        <UtilityLinks state="FL" />
+        <p class="text-stone-700"><a href="/guides/florida-solar-without-federal-tax-credit" class="text-sun-ink underline underline-offset-4">Is solar worth it in Florida without the tax credit?</a></p>
+      </div>
       <h2 class="mb-4 mt-10 text-xl font-semibold text-stone-900">California</h2>
       <StoryCards state="CA" />
+      <div class="mt-4 max-w-(--container-prose)">
+        <p class="text-stone-700">What this means for your own numbers in California:</p>
+        <UtilityLinks state="CA" />
+        <p class="text-stone-700"><a href="/guides/california-nem-3-batteries" class="text-sun-ink underline underline-offset-4">California NEM 3.0: why batteries matter now</a></p>
+      </div>
     </div>
+    <section aria-labelledby="stories-cta-h" class="mt-10 max-w-(--container-prose) rounded-lg border border-sun-300 bg-sun-50 p-5">
+      <h2 id="stories-cta-h" class="text-xl font-semibold text-stone-900">Want numbers for your own home?</h2>
+      <p class="mt-2 text-stone-700">Compare free, no-obligation quotes from up to 3 local installers in Florida or California.</p>
+      <a href="/quotes" class={`${btnPrimary} mt-4`}>Get free solar quotes<span aria-hidden="true">&rarr;</span></a>
+    </section>
     <p class="mt-8 max-w-(--container-prose) text-sm text-stone-600">
       Stories describe what was reported at the time and may not reflect current prices or rules. For estimates for your home, use the <a href="/calculator/florida" class="text-sun-ink underline underline-offset-2">Florida</a> or <a href="/calculator/california" class="text-sun-ink underline underline-offset-2">California</a> calculator.
     </p>

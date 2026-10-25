@@ -1,4 +1,5 @@
 ---
+import { PAGE_META } from '../../lib/seo/page-meta';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { ogImagePath } from '../../lib/seo/og';
@@ -24,8 +25,8 @@ const steps: { icon: IconName; short: string; long: string }[] = [
 ];
 ---
 <BaseLayout
-  title="Get free solar quotes"
-  description="Request free, no-obligation solar quotes from up to 3 local installers in Florida or California."
+  title={PAGE_META.quotes.title}
+  description={PAGE_META.quotes.description}
   path="/quotes"
   ogImagePath={ogImagePath('quotes')}
   jsonLd={[faqJsonLd(faq)]}

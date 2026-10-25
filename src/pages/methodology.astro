@@ -1,4 +1,5 @@
 ---
+import { PAGE_META } from '../lib/seo/page-meta';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ogImagePath } from '../lib/seo/og';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
@@ -69,7 +70,7 @@ const costSources = costs.ok
     )
   : null;
 ---
-<BaseLayout title="Methodology" description="How RayValue estimates solar system size, cost, savings and payback." path="/methodology" ogImagePath={ogImagePath('methodology')}>
+<BaseLayout title={PAGE_META.methodology.title} description={PAGE_META.methodology.description} path="/methodology" ogImagePath={ogImagePath('methodology')}>
   <div class="page">
     {/* TODO: owner review */}
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Methodology' }]} />

@@ -7,6 +7,10 @@ const guides = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
+    /** Optional <title> (without the " | RayValue" suffix); keeps the full title at 50-60 characters. */
+    seoTitle: z.string().optional(),
+    /** First-publish date (from git history). Never backdated. */
+    published: z.coerce.date().optional(),
     updated: z.coerce.date(),
     state: z.enum(['FL', 'CA', 'both']),
     sources: z.array(z.object({ title: z.string(), url: z.string().url() })).min(1),
@@ -23,6 +27,7 @@ const blog = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
+    seoTitle: z.string().optional(),
     published: z.coerce.date(),
     updated: z.coerce.date().optional(),
     state: z.enum(['FL', 'CA', 'both']).optional(),

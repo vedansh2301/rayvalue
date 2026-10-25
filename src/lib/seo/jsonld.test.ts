@@ -16,6 +16,15 @@ describe('jsonld', () => {
     expect('contactPoint' in organizationJsonLd()).toBe(false);
     expect(organizationJsonLd('https://rayvalue.com', 'hi@example.com').contactPoint).toMatchObject({ email: 'hi@example.com' });
   });
+  it('organization has a stable @id and a square PNG logo', () => {
+    const o = organizationJsonLd();
+    expect(o['@id']).toBe('https://rayvalue.com/#org');
+    expect(o.logo).toMatchObject({ '@type': 'ImageObject', url: 'https://rayvalue.com/logo-512.png', width: 512, height: 512 });
+  });
+  it('publisher references the organization by @id', () => {
+    expect(articleJsonLd({ headline: 'H', description: 'D', path: '/x', updated: new Date('2026-10-01') }).publisher).toEqual({ '@id': 'https://rayvalue.com/#org' });
+    expect(webApplicationJsonLd('CA').publisher).toEqual({ '@id': 'https://rayvalue.com/#org' });
+  });
   it('website', () => {
     expect(websiteJsonLd()).toMatchObject({ '@type': 'WebSite', name: 'RayValue', url: 'https://rayvalue.com/' });
   });

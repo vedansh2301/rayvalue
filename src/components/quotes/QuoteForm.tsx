@@ -407,9 +407,9 @@ export default function QuoteForm(p: Props) {
   if (phase === 'renter') {
     return (
       <div class="space-y-4">
-        <h3 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
+        <h2 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
           Thanks for being upfront
-        </h3>
+        </h2>
         <p class="leading-7 text-stone-700">
           Installers need the property owner&rsquo;s okay to put solar on a roof, so we don&rsquo;t send renters&rsquo; details to installers.
           Nothing you entered here was sent to us or saved.
@@ -478,9 +478,9 @@ export default function QuoteForm(p: Props) {
         ))}
       </ol>
 
-      <h3 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
+      <h2 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
         {step === 1 ? 'Tell us about your home' : step === 2 ? 'Tell us about your project' : 'Where should installers reach you?'}
-      </h3>
+      </h2>
 
       <fieldset disabled={sending} class="min-w-0 space-y-5">
         {/* Honeypot: hidden from people and assistive tech; bots fill it in. */}

@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../Breadcrumbs.astro';
 import Faq from '../Faq.astro';
 import UtilityLinks from './UtilityLinks.astro';
+import ReadMore from './ReadMore.astro';
 import { btnPrimary, btnSecondary } from '../ui/buttons';
 import { faqJsonLd } from '../../lib/seo/jsonld';
 import { formatUsd } from '../../lib/format';
@@ -33,7 +34,7 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
     </div>
   </BaseLayout>
 ) : (
-  <BaseLayout title={meta.title} description={meta.description} path={path} noindex={!vm.indexable} jsonLd={[faqJsonLd(vm.faq)]}>
+  <BaseLayout title={meta.title} description={meta.description} path={path} ogImagePath={`/og/${path.slice(1)}.png`} noindex={!vm.indexable} jsonLd={[faqJsonLd(vm.faq)]}>
     <div class="page">
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${stateName} calculator`, href: `/calculator/${stateSlug}` }, { label: meta.short }]} />
       <h1 class="!mt-4">{h1}</h1>
@@ -151,6 +152,8 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
       </section>
 
       <div class="mt-10"><Faq items={vm.faq} id="utility-faq" /></div>
+
+      <ReadMore state={meta.state} />
 
       <div class="mt-10 space-y-6">
         <UtilityLinks state={meta.state} heading={`Other ${stateName} utilities`} exclude={meta.slug} />

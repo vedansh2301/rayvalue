@@ -1,4 +1,5 @@
 ---
+import { PAGE_META } from '../../lib/seo/page-meta';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { publishedPosts } from '../../lib/blog';
@@ -8,7 +9,7 @@ const posts = await publishedPosts();
 const empty = posts.length === 0;
 const day = (d: Date) => d.toISOString().slice(0, 10);
 ---
-<BaseLayout title="RayValue blog" description="News and analysis on solar and battery costs, rates and payback for Florida and California homeowners." path="/blog" noindex={empty}>
+<BaseLayout title={PAGE_META.blog.title} description={PAGE_META.blog.description} ogImagePath="/og/blog.png" path="/blog" noindex={empty}>
   <div class="page">
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Blog' }]} />
     <h1>Blog</h1>

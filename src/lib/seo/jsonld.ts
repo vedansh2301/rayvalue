@@ -22,13 +22,25 @@ export function absoluteUrl(path: string, site: string = SITE_URL): string {
 }
 
 /** Site-wide Organization. contactEmail is the owner-configured public address; omitted when unset. */
+export const orgId = (site: string = SITE_URL): string => `${absoluteUrl('/', site)}#org`;
+/** Square PNG logo made from favicon.svg (Google needs a raster logo of at least 112x112). */
+export const LOGO_PATH = '/logo-512.png';
+export const LOGO_SIZE = 512;
+export const logoImageObject = (site: string = SITE_URL) => ({
+  '@type': 'ImageObject',
+  url: absoluteUrl(LOGO_PATH, site),
+  width: LOGO_SIZE,
+  height: LOGO_SIZE,
+});
+
 export function organizationJsonLd(site: string = SITE_URL, contactEmail: string | null = null) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': orgId(site),
     name: SITE_NAME,
     url: absoluteUrl('/', site),
-    logo: absoluteUrl('/favicon.svg', site),
+    logo: logoImageObject(site),
     ...(contactEmail ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: contactEmail } } : {}),
   };
 }
@@ -70,7 +82,7 @@ export function articleJsonLd(
     mainEntityOfPage: absoluteUrl(a.path, site),
     ...(a.image ? { image: a.image } : {}),
     author: { '@type': 'Organization', name: SITE_NAME, url: absoluteUrl('/', site) },
-    publisher: { '@type': 'Organization', name: SITE_NAME, url: absoluteUrl('/', site) },
+    publisher: { '@id': orgId(site) },
   };
 }
 
@@ -91,7 +103,7 @@ export function webApplicationJsonLd(state: State, site: string = SITE_URL) {
     areaServed: { '@type': 'State', name: STATE_NAME[state], containedInPlace: { '@type': 'Country', name: 'United States' } },
     isAccessibleForFree: true,
     offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
-    publisher: { '@type': 'Organization', name: SITE_NAME, url: absoluteUrl('/', site) },
+    publisher: { '@id': orgId(site) },
   };
 }
 

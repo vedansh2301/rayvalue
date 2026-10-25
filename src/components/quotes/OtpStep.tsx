@@ -92,9 +92,9 @@ export default function OtpStep(p: Props) {
   const canResend = wait <= 0 && sends < MAX_SENDS && !busy;
   return (
     <div class="space-y-4">
-      <h3 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
+      <h2 ref={headingRef} tabIndex={-1} class="text-xl font-bold tracking-tight text-stone-900 focus:outline-none">
         Confirm your mobile number
-      </h3>
+      </h2>
       <p class="text-stone-700">A confirmed number helps installers reach you. Your request is already saved &mdash; this step is optional.</p>
       <p role="status" class="text-stone-800">
         {message}

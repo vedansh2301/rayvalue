@@ -1,4 +1,5 @@
 ---
+import { PAGE_META } from '../lib/seo/page-meta';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ogImagePath } from '../lib/seo/og';
 import { btnPrimary, btnText } from '../components/ui/buttons';
@@ -31,8 +32,8 @@ const steps: { title: string; body: string; icon: IconName }[] = [
 ];
 ---
 <BaseLayout
-  title="RayValue | Solar payback calculator for Florida and California homeowners"
-  description="Honest solar and battery payback estimates for Florida and California homeowners, calculated without the federal tax credit."
+  title={PAGE_META.home.title}
+  description={PAGE_META.home.description}
   path="/"
   ogImagePath={ogImagePath('home')}
   jsonLd={[faqJsonLd(faq)]}

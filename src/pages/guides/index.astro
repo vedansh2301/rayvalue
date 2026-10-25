@@ -1,4 +1,5 @@
 ---
+import { PAGE_META } from '../../lib/seo/page-meta';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { publishedGuides } from '../../lib/guides';
@@ -7,7 +8,7 @@ const guides = (await publishedGuides()).sort((a, b) => b.data.updated.getTime()
 // No published guides: a short pointer to the calculators, noindex (and out of the sitemap, see astro.config.mjs).
 const empty = guides.length === 0;
 ---
-<BaseLayout title="Solar and battery guides" description="Plain-language guides on solar and battery payback for Florida and California homeowners." path="/guides" noindex={empty}>
+<BaseLayout title={PAGE_META.guides.title} description={PAGE_META.guides.description} ogImagePath="/og/guides.png" path="/guides" noindex={empty}>
   <div class="page">
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Guides' }]} />
     <h1>Guides</h1>
