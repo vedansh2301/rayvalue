@@ -1,10 +1,18 @@
-import { defineCollection } from 'astro:content';
+import { defineCollection, type SchemaContext } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
+/** Optional real cover photo for cards and the article header; alt text is required whenever a cover is set. */
+const coverFields = (image: SchemaContext['image']) => ({
+  cover: image().optional(),
+  coverAlt: z.string().min(1).optional(),
+});
+const needsAlt = (d: { cover?: unknown; coverAlt?: string }) => !d.cover || !!d.coverAlt;
+const altMessage = { message: 'coverAlt is required when cover is set', path: ['coverAlt'] };
+
 const guides = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/guides' }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     title: z.string(),
     description: z.string(),
     /** Optional <title> (without the " | RayValue" suffix); keeps the full title at 50-60 characters. */
@@ -21,12 +29,13 @@ const guides = defineCollection({
     todo: z.array(z.string()).optional(),
     /** Default true: guides are not indexed (noindex + not in sitemap) until the owner sets false. */
     noindex: z.boolean().default(true),
-  }),
+    ...coverFields(image),
+  }).refine(needsAlt, altMessage),
 });
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/blog' }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     title: z.string(),
     description: z.string(),
     seoTitle: z.string().optional(),
@@ -40,7 +49,8 @@ const blog = defineCollection({
     draft: z.boolean().optional(),
     /** Default true: posts are not indexed (noindex + not in sitemap) until the owner sets false. */
     noindex: z.boolean().default(true),
-  }),
+    ...coverFields(image),
+  }).refine(needsAlt, altMessage),
 });
 
 /**

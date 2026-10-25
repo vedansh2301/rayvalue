@@ -5,11 +5,13 @@ import HeroArt from './HeroArt.astro';
 import Card from './Card.astro';
 import Icon from '../icons/Icon';
 import { btnPrimary } from '../ui/buttons';
+import type { ImageMetadata } from 'astro';
 import type { Topic, StateKey } from '../../lib/content/cards';
 
 export interface IndexItem {
   href: string; title: string; description: string; topic: Topic; state: StateKey;
   dateLabel: string; datetime: string; readMin: number;
+  cover?: ImageMetadata; coverAlt?: string;
 }
 interface Props { kind: 'blog' | 'guides'; heading: string; intro: string; items: IndexItem[] }
 const { kind, heading, intro, items } = Astro.props;

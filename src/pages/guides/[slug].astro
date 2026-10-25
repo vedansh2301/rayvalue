@@ -5,6 +5,8 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import GuideCalculatorLinks from '../../components/seo/GuideCalculatorLinks.astro';
 import ArticleByline from '../../components/seo/ArticleByline.astro';
 import TableOfContents from '../../components/seo/TableOfContents.astro';
+import Cover from '../../components/content/Cover.astro';
+import { coverTopic, stateKey } from '../../lib/content/cards';
 import { articleJsonLd } from '../../lib/seo/jsonld';
 import { displayDate, showUpdated } from '../../lib/dates';
 
@@ -36,6 +38,17 @@ const ld = articleJsonLd({
       {showUpdated(guide.data.published, guide.data.updated) && <>{guide.data.published ? ' · ' : ''}Updated <time datetime={day(guide.data.updated)}>{displayDate(guide.data.updated)}</time></>}
     </p>
     <ArticleByline />
+    {guide.data.cover && (
+      <Cover
+        topic={coverTopic({ topic: guide.data.topic, title: guide.data.title, state: guide.data.state })}
+        state={stateKey(guide.data.state)}
+        cover={guide.data.cover}
+        coverAlt={guide.data.coverAlt}
+        eager
+        sizes="(min-width: 832px) 768px, calc(100vw - 2rem)"
+        class="mt-6 aspect-video rounded-2xl"
+      />
+    )}
     <div class="lg:hidden"><GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="top" /></div>
     <TableOfContents headings={headings} />
     <div class="prose-guide mt-4 space-y-4">

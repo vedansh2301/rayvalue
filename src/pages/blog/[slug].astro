@@ -7,6 +7,8 @@ import { articleJsonLd } from '../../lib/seo/jsonld';
 import RelatedReading from '../../components/seo/RelatedReading.astro';
 import ArticleByline from '../../components/seo/ArticleByline.astro';
 import TableOfContents from '../../components/seo/TableOfContents.astro';
+import Cover from '../../components/content/Cover.astro';
+import { coverTopic, stateKey } from '../../lib/content/cards';
 import { publishedPosts } from '../../lib/blog';
 import { pickRelated } from '../../lib/related';
 import { displayDate, showUpdated } from '../../lib/dates';
@@ -43,6 +45,17 @@ const ld = articleJsonLd({
       {showUpdated(post.data.published, post.data.updated) && <> · Updated <time datetime={day(post.data.updated!)}>{displayDate(post.data.updated!)}</time></>}
     </p>
     <ArticleByline hasSources={post.data.sources.length > 0} />
+    {post.data.cover && (
+      <Cover
+        topic={coverTopic({ topic: post.data.topic, tags: post.data.tags, title: post.data.title, state: post.data.state })}
+        state={stateKey(post.data.state)}
+        cover={post.data.cover}
+        coverAlt={post.data.coverAlt}
+        eager
+        sizes="(min-width: 832px) 768px, calc(100vw - 2rem)"
+        class="mt-6 aspect-video rounded-2xl"
+      />
+    )}
     <div class="lg:hidden"><GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="top" /></div>
     <TableOfContents headings={headings} />
     <div class="prose-guide mt-4 space-y-4">

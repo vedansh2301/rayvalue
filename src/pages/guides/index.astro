@@ -18,6 +18,8 @@ const items = guides.map((g) => ({
   dateLabel: `Updated ${displayDate(g.data.updated)}`,
   datetime: g.data.updated.toISOString().slice(0, 10),
   readMin: readMinutes(g.body),
+  cover: g.data.cover,
+  coverAlt: g.data.coverAlt,
 }));
 ---
 <BaseLayout title={PAGE_META.guides.title} description={PAGE_META.guides.description} ogImagePath="/og/guides.png" path="/guides" noindex={empty}>

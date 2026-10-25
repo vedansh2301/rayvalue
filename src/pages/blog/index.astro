@@ -18,6 +18,8 @@ const items = posts.map((p) => ({
   dateLabel: displayDate(p.data.published),
   datetime: p.data.published.toISOString().slice(0, 10),
   readMin: readMinutes(p.body),
+  cover: p.data.cover,
+  coverAlt: p.data.coverAlt,
 }));
 ---
 <BaseLayout title={PAGE_META.blog.title} description={PAGE_META.blog.description} ogImagePath="/og/blog.png" path="/blog" noindex={empty}>
