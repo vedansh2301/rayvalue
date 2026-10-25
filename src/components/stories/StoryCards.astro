@@ -21,7 +21,7 @@ const Heading = headingLevel;
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 ---
 {stories.length > 0 && (
-  <ul class:list={['not-prose grid gap-4', compact ? 'md:grid-cols-3' : 'sm:grid-cols-2']}>
+  <ul class:list={['not-prose grid gap-4', compact ? 'md:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-3']}>
     {stories.map((s) => {
       const year = olderStoryYear(s.data.date_reported);
       return (

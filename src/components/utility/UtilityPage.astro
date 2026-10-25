@@ -35,7 +35,8 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
   </BaseLayout>
 ) : (
   <BaseLayout title={meta.title} description={meta.description} path={path} ogImagePath={`/og/${path.slice(1)}.png`} noindex={!vm.indexable} jsonLd={[faqJsonLd(vm.faq)]}>
-    <div class="page">
+    <div class="page lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-x-12">
+    <div>
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${stateName} calculator`, href: `/calculator/${stateSlug}` }, { label: meta.short }]} />
       <h1 class="!mt-4">{h1}</h1>
       <p>
@@ -170,11 +171,42 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
       <div class="mt-10"><Faq items={vm.faq} id="utility-faq" /></div>
 
       <ReadMore state={meta.state} />
+    </div>
 
-      <div class="mt-10 space-y-6">
-        <UtilityLinks state={meta.state} heading={`Other ${stateName} utilities`} exclude={meta.slug} />
-        <p class="text-stone-700">How the estimates are made: <a href="/methodology">methodology</a>. Back to the <a href={`/calculator/${stateSlug}`}>{stateName} calculator</a>.</p>
+    <aside aria-label={`More on ${meta.short}`} class="not-prose mt-10 flex flex-col gap-5 lg:sticky lg:top-6 lg:mt-24 lg:self-start">
+      <nav aria-label="On this page" class="hidden rounded-xl border border-stone-200 bg-white p-5 lg:block">
+        <p class="font-semibold text-stone-900">On this page</p>
+        <ul class="mt-2 space-y-1 text-sm">
+          {[['rules-h', `How ${meta.short} credits solar`], ['examples-h', 'Worked examples'], ['changes-h', 'What changes your number'], ['utility-faq', 'Questions']].map(([id, label]) => (
+            <li><a href={`#${id}`} class="inline-flex min-h-9 items-center text-stone-700 hover:text-sun-ink">{label}</a></li>
+          ))}
+        </ul>
+      </nav>
+      {vm.rateRows.some((r) => r.value) && (
+        <div class="hidden rounded-xl border border-stone-200 bg-white p-5 lg:block">
+          <p class="font-semibold text-stone-900">{meta.short} at a glance</p>
+          <dl class="mt-3 space-y-2 text-sm">
+            <div class="flex justify-between gap-3"><dt class="text-stone-600">Rate schedule</dt><dd class="font-medium text-stone-900">{vm.utility.rate_schedule}</dd></div>
+            {vm.rateRows.filter((r) => r.value).map((r) => (
+              <div class="flex justify-between gap-3"><dt class="text-stone-600">{r.label}</dt><dd class="font-medium text-stone-900">{r.value}</dd></div>
+            ))}
+          </dl>
+          <p class="mt-3 text-xs text-stone-600">Read on {vm.utility.verified_on}.</p>
+        </div>
+      )}
+      <div class="hidden rounded-xl border border-sun-300 bg-sun-50 p-5 lg:block">
+        <p class="font-semibold text-stone-900">Your home on {meta.short}</p>
+        <p class="mt-2 text-sm leading-6 text-stone-700">Enter your ZIP and bill for a payback range, or compare free installer quotes.</p>
+        <div class="mt-4 flex flex-col gap-2">
+          <a href={vm.calcHref} class={`justify-center ${btnPrimary}`}>Run my {meta.short} numbers<span aria-hidden="true">&rarr;</span></a>
+          <a href={vm.quotesHref} class={`justify-center ${btnSecondary}`}>Get installer quotes</a>
+        </div>
       </div>
+      <div class="rounded-xl border border-stone-200 bg-white p-5 [&_h2]:!mt-0">
+        <UtilityLinks state={meta.state} heading={`Other ${stateName} utilities`} exclude={meta.slug} />
+        <p class="mt-3 text-sm text-stone-700">How the estimates are made: <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>. Back to the <a href={`/calculator/${stateSlug}`} class="text-sun-ink underline underline-offset-2 hover:text-stone-900">{stateName} calculator</a>.</p>
+      </div>
+    </aside>
     </div>
   </BaseLayout>
 )}

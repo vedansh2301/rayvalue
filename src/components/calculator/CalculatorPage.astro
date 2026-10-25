@@ -81,6 +81,7 @@ const steps = [
       )}
     </section>
 
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
     <div class="max-w-(--container-prose) space-y-10">
     {offer && (
       <section aria-label="Partner offer" class="space-y-3">
@@ -90,14 +91,6 @@ const steps = [
     )}
 
     {state === 'FL' && <FlBatteryNotes />}
-
-    <UtilityLinks state={state} heading={`Solar payback by ${name} utility`} />
-
-    <section aria-labelledby="stories-heading">
-      <h2 id="stories-heading" class="text-xl font-semibold text-stone-900">Real stories from {name}</h2>
-      <p class="mb-4 mt-2 text-stone-700">Publicly reported accounts, with links to the original reporting. <a href="/stories" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">See all stories</a>.</p>
-      <StoryCards state={state} limit={3} />
-    </section>
 
     <section aria-labelledby="how-heading">
       <h2 id="how-heading" class="text-xl font-semibold text-stone-900">How we calculated this</h2>
@@ -111,6 +104,24 @@ const steps = [
 
     {ALERTS_ENABLED && <AlertsSignup state={state} />}
     </div>
+
+    <aside aria-label={`More for ${name} homeowners`} class="flex flex-col gap-5 lg:sticky lg:top-6 lg:self-start">
+      <div class="rounded-xl border border-stone-200 bg-white p-5">
+        <UtilityLinks state={state} heading={`Solar payback by ${name} utility`} />
+      </div>
+      <div class="rounded-xl border border-sun-300 bg-sun-50 p-5">
+        <h2 class="text-lg font-semibold text-stone-900">Compare real installer prices</h2>
+        <p class="mt-2 leading-7 text-stone-700">Estimates show a range. Quotes from {name} installers show what your roof would actually cost. Free, no obligation.</p>
+        <a href={`/quotes?state=${state}`} class={`mt-4 w-full justify-center ${btnPrimary}`}>Get installer quotes<span aria-hidden="true">&rarr;</span></a>
+      </div>
+    </aside>
+    </div>
+
+    <section aria-labelledby="stories-heading">
+      <h2 id="stories-heading" class="text-xl font-semibold text-stone-900">Real stories from {name}</h2>
+      <p class="mb-4 mt-2 text-stone-700">Publicly reported accounts, with links to the original reporting. <a href="/stories" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">See all stories</a>.</p>
+      <StoryCards state={state} limit={3} />
+    </section>
   </div>
   </div>
 </BaseLayout>
