@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { absoluteUrl, organizationJsonLd, breadcrumbJsonLd, articleJsonLd, webApplicationJsonLd, calculatorsForState, safeJsonLd } from './jsonld';
+import { absoluteUrl, websiteJsonLd, organizationJsonLd, breadcrumbJsonLd, articleJsonLd, webApplicationJsonLd, calculatorsForState, safeJsonLd } from './jsonld';
 
 describe('jsonld', () => {
   it('absoluteUrl has no trailing slash except root', () => {
@@ -11,6 +11,13 @@ describe('jsonld', () => {
     const o = organizationJsonLd();
     expect(o['@type']).toBe('Organization');
     expect(o.name).toBe('RayValue');
+  });
+  it('organization carries a contact point only when an email is configured', () => {
+    expect('contactPoint' in organizationJsonLd()).toBe(false);
+    expect(organizationJsonLd('https://rayvalue.com', 'hi@example.com').contactPoint).toMatchObject({ email: 'hi@example.com' });
+  });
+  it('website', () => {
+    expect(websiteJsonLd()).toMatchObject({ '@type': 'WebSite', name: 'RayValue', url: 'https://rayvalue.com/' });
   });
   it('breadcrumb positions and optional last href', () => {
     const b = breadcrumbJsonLd([{ label: 'Home', href: '/' }, { label: 'Guides', href: '/guides' }, { label: 'X' }]);
@@ -33,7 +40,9 @@ describe('jsonld', () => {
   it('web application is free finance app', () => {
     const w = webApplicationJsonLd('FL');
     expect(w.applicationCategory).toBe('FinanceApplication');
-    expect(w.operatingSystem).toBe('Any');
+    expect(w.operatingSystem).toBe('Web');
+    expect(w.areaServed.name).toBe('Florida');
+    expect(w.offers.price).toBe(0);
     expect(w.isAccessibleForFree).toBe(true);
     expect(w.offers.price).toBe(0);
     expect(w.url).toBe('https://rayvalue.com/calculator/florida');

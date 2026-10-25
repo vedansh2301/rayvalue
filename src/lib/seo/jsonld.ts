@@ -21,13 +21,25 @@ export function absoluteUrl(path: string, site: string = SITE_URL): string {
   return `${base}/${path.replace(/^\/+/, '').replace(/\/+$/, '')}`;
 }
 
-export function organizationJsonLd(site: string = SITE_URL) {
+/** Site-wide Organization. contactEmail is the owner-configured public address; omitted when unset. */
+export function organizationJsonLd(site: string = SITE_URL, contactEmail: string | null = null) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: SITE_NAME,
     url: absoluteUrl('/', site),
     logo: absoluteUrl('/favicon.svg', site),
+    ...(contactEmail ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: contactEmail } } : {}),
+  };
+}
+
+/** Site-wide WebSite (no SearchAction: the site has no search). */
+export function websiteJsonLd(site: string = SITE_URL) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: absoluteUrl('/', site),
   };
 }
 
@@ -75,7 +87,8 @@ export function webApplicationJsonLd(state: State, site: string = SITE_URL) {
     name: `${STATE_NAME[state]} Solar + Battery Payback Calculator`,
     url: absoluteUrl(CALCULATOR_PATH[state], site),
     applicationCategory: 'FinanceApplication',
-    operatingSystem: 'Any',
+    operatingSystem: 'Web',
+    areaServed: { '@type': 'State', name: STATE_NAME[state], containedInPlace: { '@type': 'Country', name: 'United States' } },
     isAccessibleForFree: true,
     offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
     publisher: { '@type': 'Organization', name: SITE_NAME, url: absoluteUrl('/', site) },
