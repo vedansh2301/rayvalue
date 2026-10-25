@@ -10,4 +10,6 @@ source:
   title: "This 100% solar community endured Hurricane Ian with no loss of power and minimal damage"
   url: "https://wtop.com/national/2022/10/this-100-solar-community-endured-hurricane-ian-with-no-loss-of-power-and-minimal-damage/"
   published: 2022-10-02
+image: "../../assets/photos/stories/babcock-ranch-hurricane-ian.jpg"
+imageAlt: "Satellite view of Hurricane Ian nearing landfall near Fort Myers, Florida, on September 28, 2022"
 ---

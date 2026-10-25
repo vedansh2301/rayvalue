@@ -10,4 +10,6 @@ source:
   title: "Florida Gov. DeSantis surprises with veto of solar net-metering bill"
   url: "https://www.canarymedia.com/articles/solar/florida-gov-desantis-surprises-with-veto-of-solar-net-metering-bill"
   published: 2022-04-28
+image: "../../assets/photos/stories/desantis-vetoes-net-metering-bill.jpg"
+imageAlt: "A rainbow over a rooftop solar array in Broward County, Florida"
 ---

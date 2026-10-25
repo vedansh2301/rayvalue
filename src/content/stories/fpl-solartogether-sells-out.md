@@ -10,4 +10,6 @@ source:
   title: "FPL's 'community solar' program reaches its subscription limit"
   url: "https://pv-magazine-usa.com/2021/07/26/fpls-community-solar-program-reaches-its-subscription-limit/"
   published: 2021-07-26
+image: "../../assets/photos/stories/fpl-solartogether-sells-out.jpg"
+imageAlt: "Rows of panels at FPL's Discovery Solar Energy Center at Kennedy Space Center, Florida"
 ---

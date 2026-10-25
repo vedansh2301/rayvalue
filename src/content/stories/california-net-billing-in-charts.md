@@ -10,4 +10,6 @@ source:
   title: "More batteries, less solar: California's solar turmoil in charts"
   url: "https://canarymedia.com/articles/solar/more-batteries-less-solar-californias-solar-turmoil-in-charts"
   published: 2024-05-23
+image: "../../assets/photos/stories/california-net-billing-in-charts.jpg"
+imageAlt: "A solar installer laying a panel on a California rooftop"
 ---

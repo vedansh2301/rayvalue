@@ -4,6 +4,7 @@
  * No avatars, ratings or quotes attributed to people. Sorting/filtering is in src/lib/stories.ts.
  */
 import { getCollection } from 'astro:content';
+import { Picture } from 'astro:assets';
 import { homeStories, olderStoryYear, selectStories, type StoryFilter } from '../../lib/stories';
 
 interface Props {
@@ -17,6 +18,11 @@ interface Props {
 const { state = 'both', limit, headingLevel = 'h3', compact = false } = Astro.props;
 const all = await getCollection('stories');
 const stories = compact ? homeStories(all) : selectStories(all, state, limit);
+/** Card photo: 16:9 crop, rendered at up to ~400px (3-up desktop) or full width on phones. */
+const WIDTHS = [400, 640, 800];
+const SIZES = compact
+  ? '(min-width: 1280px) 400px, (min-width: 768px) calc(33vw - 2rem), calc(100vw - 2rem)'
+  : '(min-width: 1280px) 400px, (min-width: 1024px) calc(33vw - 2rem), (min-width: 640px) calc(50vw - 2.5rem), calc(100vw - 2rem)';
 const Heading = headingLevel;
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 ---
@@ -25,7 +31,24 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month:
     {stories.map((s) => {
       const year = olderStoryYear(s.data.date_reported);
       return (
-      <li class="flex flex-col rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+      <li class="flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+        {s.data.image && (
+          <Picture
+            src={s.data.image}
+            alt={s.data.imageAlt ?? ''}
+            formats={['avif', 'webp']}
+            widths={WIDTHS.filter((w) => w <= s.data.image!.width)}
+            sizes={SIZES}
+            width={800}
+            height={450}
+            fit="cover"
+            loading="lazy"
+            decoding="async"
+            pictureAttributes={{ class: 'block' }}
+            class="aspect-video w-full rounded-t-2xl bg-stone-200 object-cover"
+          />
+        )}
+        <div class="flex flex-1 flex-col p-5">
         <p class="text-xs font-medium uppercase tracking-wide text-stone-600">
           {s.data.location} <span aria-hidden="true">·</span> <time datetime={s.data.date_reported.toISOString().slice(0, 10)}>{fmt(s.data.date_reported)}</time>
           {year !== null && !compact && <span class="ml-1 rounded-full border border-stone-300 px-2 py-0.5 normal-case tracking-normal">{year} report</span>}
@@ -51,6 +74,7 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month:
             Read the source: {s.data.source.publisher} <span aria-hidden="true">→</span>
           </a>
         </p>
+        </div>
       </li>
       );
     })}

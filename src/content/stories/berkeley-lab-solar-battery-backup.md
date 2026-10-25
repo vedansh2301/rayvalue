@@ -10,4 +10,6 @@ source:
   title: "Hurricane Ian: When the power grid goes out, could solar and batteries power your home?"
   url: "https://www.universityofcalifornia.edu/news/hurricane-ian-when-power-grid-goes-out-could-solar-and-batteries-power-your-home"
   published: 2022-09-29
+image: "../../assets/photos/stories/berkeley-lab-solar-battery-backup.jpg"
+imageAlt: "Satellite night view of central and southern Florida after Hurricane Ian, with large dark areas where the lights were out"
 ---

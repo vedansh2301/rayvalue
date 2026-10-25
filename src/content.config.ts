@@ -59,7 +59,7 @@ const blog = defineCollection({
  */
 const stories = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/stories' }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     title: z.string(),
     state: z.enum(['FL', 'CA']),
     location: z.string(),
@@ -72,9 +72,10 @@ const stories = defineCollection({
       url: z.string().url(),
       published: z.coerce.date(),
     }),
-    /** Only with a reusable license; otherwise omit. */
-    photo: z.object({ src: z.string(), alt: z.string(), credit: z.string(), license: z.string() }).optional(),
-  }),
+    /** Optional card photo: public domain, CC0 or CC BY/BY-SA only, credited on /credits. Alt text is required with it. */
+    image: image().optional(),
+    imageAlt: z.string().min(1).optional(),
+  }).refine((d) => !d.image || !!d.imageAlt, { message: 'imageAlt is required when image is set', path: ['imageAlt'] }),
 });
 
 export const collections = { guides, blog, stories };

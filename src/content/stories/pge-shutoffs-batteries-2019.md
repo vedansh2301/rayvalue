@@ -10,4 +10,6 @@ source:
   title: "Solar companies see surge in demand for battery storage with PG&E power shutoffs"
   url: "https://abc7news.com/solar-companies-bay-area-power-pge-shut-off-energy-psps-sunrun/5661030/"
   published: 2019-10-31
+image: "../../assets/photos/stories/pge-shutoffs-batteries-2019.jpg"
+imageAlt: "PG&E high-voltage power lines running beside Interstate 505 in California"
 ---

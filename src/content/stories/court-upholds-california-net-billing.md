@@ -10,4 +10,6 @@ source:
   title: "U.S. court upholds California's current net billing mechanism, dealing blow to rooftop solar"
   url: "https://www.pv-magazine.com/2026/03/11/u-s-court-upholds-current-net-billing-mechanism-dealing-blow-to-rooftop-solar-in-california/"
   published: 2026-03-11
+image: "../../assets/photos/stories/court-upholds-california-net-billing.jpg"
+imageAlt: "The Earl Warren Building in San Francisco, home of the California Supreme Court and the First District Court of Appeal"
 ---

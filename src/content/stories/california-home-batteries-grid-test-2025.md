@@ -10,4 +10,6 @@ source:
   title: "100,000 residential batteries in California tested as one distributed power plant"
   url: "https://pv-magazine-usa.com/2025/08/06/100000-residential-batteries-in-california-tested-as-one-distributed-power-plant-2/"
   published: 2025-08-06
+image: "../../assets/photos/stories/california-home-batteries-grid-test-2025.jpg"
+imageAlt: "Power lines and transmission towers against an orange sunset near Stockton, California"
 ---
