@@ -1,0 +1,119 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import KpiTable from '../../components/admin/KpiTable.astro';
+import { TARGETS, completionState, pct, rate, returnState, usd } from '../../lib/kpi/report';
+import { NOINDEX_HEADERS, guardAdmin } from '../../lib/server/admin';
+import { clampWeeks, loadKpi } from '../../lib/server/kpi';
+
+// Owner-only KPI report, server-rendered, same Basic auth as /admin/leads. Contains no personal data. Read-only.
+export const prerender = false;
+const env = { SUPABASE_URL: process.env.SUPABASE_URL, SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY, ADMIN_PASSWORD: process.env.ADMIN_PASSWORD };
+
+const denied = await guardAdmin(Astro.request, env);
+if (denied) return denied;
+for (const [k, v] of Object.entries(NOINDEX_HEADERS)) Astro.response.headers.set(k, v);
+
+const weeks = clampWeeks(new URL(Astro.request.url).searchParams.get('weeks'));
+const data = await loadKpi(env, weeks);
+const r = data?.report;
+const buyerRows = r?.buyers ?? [];
+const pctTarget = (n: number) => `${Math.round(n * 100)}%`;
+---
+<BaseLayout title="KPI report" description="Owner-only KPI report." path="/admin/kpi" noindex>
+  <div class="shell py-8">
+    <h1 class="text-2xl font-bold text-stone-900">KPI report</h1>
+    <p class="mt-1 text-sm text-stone-700">
+      Last {weeks} weeks (weeks start Monday, UTC){data && <> from {data.from}</>}. No personal data on this page.
+      <a href="/admin/leads" class="underline underline-offset-2">Leads</a>
+    </p>
+    <nav aria-label="Weeks shown" class="mt-3 flex flex-wrap gap-2">
+      {[4, 8, 13, 26].map((n) => <a class="rounded border border-stone-300 px-3 py-2 text-sm" aria-current={weeks === n ? 'page' : undefined} href={`/admin/kpi?weeks=${n}`}>{n} weeks</a>)}
+    </nav>
+
+    <section aria-labelledby="targets" class="mt-6">
+      <h2 id="targets" class="text-lg font-semibold text-stone-900">Targets</h2>
+      <ul class="mt-2 list-disc space-y-1 pl-6 text-stone-800">
+        <li>Calculator completions: more than {pctTarget(TARGETS.completionRate)} of starts.</li>
+        <li>Results to quote click: at least {pctTarget(TARGETS.resultsToQuoteRate)} of completions.</li>
+        <li>Return rate: under {pctTarget(TARGETS.returnRate)} of delivered leads.</li>
+      </ul>
+    </section>
+
+    {data === null && <p class="mt-6 text-stone-900">Could not read the report data from the database.</p>}
+    {r && data && (
+      <>
+        {!data.inputsAvailable && (
+          <p role="status" class="mt-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-stone-900">
+            The <code>kpi_weekly_inputs</code> table could not be read. Apply migration 0010 to enter ad spend and web-funnel counts. Database metrics below are unaffected.
+          </p>
+        )}
+
+        <section aria-labelledby="summary" class="mt-8">
+          <h2 id="summary" class="text-lg font-semibold text-stone-900">This period</h2>
+          <dl class="mt-3 grid grid-cols-2 gap-3 text-stone-900 sm:grid-cols-4">
+            <div class="rounded-lg border border-stone-200 bg-white p-3"><dt class="text-sm text-stone-700">Quote requests</dt><dd class="text-2xl font-bold">{r.total.submissions}</dd></div>
+            <div class="rounded-lg border border-stone-200 bg-white p-3"><dt class="text-sm text-stone-700">Delivered to a buyer</dt><dd class="text-2xl font-bold">{r.total.delivered}</dd></div>
+            <div class="rounded-lg border border-stone-200 bg-white p-3"><dt class="text-sm text-stone-700">Return rate</dt><dd class="text-2xl font-bold">{pct(rate(r.total.returned, r.total.delivered))}</dd><dd class="text-sm text-stone-700">{{ met: 'meets target', missed: 'misses target', no_data: 'no deliveries yet' }[returnState(rate(r.total.returned, r.total.delivered))]}</dd></div>
+            <div class="rounded-lg border border-stone-200 bg-white p-3"><dt class="text-sm text-stone-700">Completion rate</dt><dd class="text-2xl font-bold">{pct(rate(r.total.calcCompletes, r.total.calcStarts))}</dd><dd class="text-sm text-stone-700">{{ met: 'meets target', missed: 'misses target', no_data: 'enter starts and completes' }[completionState(rate(r.total.calcCompletes, r.total.calcStarts))]}</dd></div>
+          </dl>
+        </section>
+
+        <section aria-labelledby="by-week" class="mt-8">
+          <h2 id="by-week" class="text-lg font-semibold text-stone-900">By week</h2>
+          <KpiTable caption="KPIs by week" firstColumn="Week of" rows={r.weeks} total={r.total} />
+        </section>
+
+        <section aria-labelledby="by-source" class="mt-8">
+          <h2 id="by-source" class="text-lg font-semibold text-stone-900">By source</h2>
+          <p class="mt-1 text-sm text-stone-700">Source is the lead&rsquo;s <code>utm_source</code>, else where on the site the form was used (results, quotes_page, home, utility:..., city:...).</p>
+          <KpiTable caption="KPIs by source" firstColumn="Source" rows={r.sources} />
+        </section>
+
+        <section aria-labelledby="by-buyer" class="mt-8">
+          <h2 id="by-buyer" class="text-lg font-semibold text-stone-900">Return rate by buyer</h2>
+          {buyerRows.length === 0 ? (
+            <p class="mt-2 text-stone-700">No deliveries in this period.</p>
+          ) : (
+            <div class="mt-3 overflow-x-auto" tabindex="0" role="region" aria-label="Return rate by buyer">
+              <table class="min-w-full text-left text-sm text-stone-900">
+                <caption class="sr-only">Return rate by buyer</caption>
+                <thead>
+                  <tr class="border-b border-stone-300">
+                    <th scope="col" class="px-2 py-2">Buyer</th>
+                    <th scope="col" class="px-2 py-2">Delivered</th>
+                    <th scope="col" class="px-2 py-2">Returned</th>
+                    <th scope="col" class="px-2 py-2">Return rate</th>
+                    <th scope="col" class="px-2 py-2">Lead revenue<sup>2</sup></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {buyerRows.map((b) => {
+                    const rr = rate(b.returned, b.delivered);
+                    const s = returnState(rr);
+                    return (
+                      <tr class="border-b border-stone-200">
+                        <th scope="row" class="px-2 py-2 text-left font-medium">{b.name}</th>
+                        <td class="px-2 py-2">{b.delivered}</td>
+                        <td class="px-2 py-2">{b.returned}</td>
+                        <td class="px-2 py-2">{pct(rr)}<div class:list={[s === 'missed' ? 'text-red-800' : 'text-stone-700']}>{s === 'missed' ? 'misses target' : s === 'met' ? 'meets target' : ''}</div></td>
+                        <td class="whitespace-nowrap px-2 py-2">{usd(b.revenue.known)}{b.revenue.unpriced ? ` + ${b.revenue.unpriced} unpriced` : ''}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <section aria-labelledby="notes" class="mt-8 max-w-(--container-prose) space-y-2 text-sm text-stone-800">
+          <h2 id="notes" class="text-lg font-semibold text-stone-900">Where the numbers come from</h2>
+          <p><sup>1</sup> Not stored in the database. Calculator starts and completions, results quote clicks and quote form starts are Vercel Analytics custom events (<code>calc_start</code>, <code>calc_complete</code>, <code>results_cta_click</code>, <code>quote_form_start</code>): read them in the Vercel Analytics dashboard and type them into the <code>kpi_weekly_inputs</code> table in Supabase, together with ad spend. A dash means nothing was entered. Nothing is estimated.</p>
+          <p><sup>2</sup> Delivered leads times the price recorded on the delivery (else the buyer&rsquo;s current price). Leads marked returned are not counted. &ldquo;Unpriced&rdquo; deliveries have no price on file, so revenue there is a minimum.</p>
+          <p>Submitted counts every saved quote request, including unserviced, nurture, duplicate and disqualified ones. Verified means the phone number was confirmed by SMS code. Delivered means at least one buyer received the lead.</p>
+          <p>For a week, enter either one row with an empty source (all sources) or one row per source, not both.</p>
+        </section>
+      </>
+    )}
+  </div>
+</BaseLayout>

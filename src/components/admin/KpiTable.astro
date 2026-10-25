@@ -1,0 +1,68 @@
+---
+import { completionState, netOfSpend, pct, rate, resultsToQuoteState, returnState, usd, type Row, type TargetState } from '../../lib/kpi/report';
+
+interface Props {
+  caption: string;
+  firstColumn: string;
+  rows: Row[];
+  /** Total row shown last. */
+  total?: Row;
+}
+const { caption, firstColumn, rows, total } = Astro.props;
+const all = total ? [...rows, total] : rows;
+const num = (n: number | null) => (n === null ? '–' : n.toLocaleString('en-US'));
+const label: Record<TargetState, string> = { met: 'meets target', missed: 'misses target', no_data: '' };
+const cell = (r: number | null, s: TargetState) => ({ text: pct(r), note: label[s], bad: s === 'missed' });
+const money = (r: Row) => (r.delivered === 0 && r.revenue.known === 0 && r.revenue.unpriced === 0 ? '$0' : usd(r.revenue.known) + (r.revenue.unpriced ? ` + ${r.revenue.unpriced} unpriced` : ''));
+---
+<div class="mt-3 overflow-x-auto" tabindex="0" role="region" aria-label={caption}>
+  <table class="min-w-full text-left text-sm text-stone-900">
+    <caption class="sr-only">{caption}</caption>
+    <thead>
+      <tr class="border-b border-stone-300 align-bottom">
+        <th scope="col" class="px-2 py-2">{firstColumn}</th>
+        <th scope="col" class="px-2 py-2">Calc starts<sup>1</sup></th>
+        <th scope="col" class="px-2 py-2">Calc completes<sup>1</sup></th>
+        <th scope="col" class="px-2 py-2">Completion rate</th>
+        <th scope="col" class="px-2 py-2">Results quote clicks<sup>1</sup></th>
+        <th scope="col" class="px-2 py-2">Results to quote</th>
+        <th scope="col" class="px-2 py-2">Quote form starts<sup>1</sup></th>
+        <th scope="col" class="px-2 py-2">Submitted</th>
+        <th scope="col" class="px-2 py-2">Verified</th>
+        <th scope="col" class="px-2 py-2">Delivered</th>
+        <th scope="col" class="px-2 py-2">Returned</th>
+        <th scope="col" class="px-2 py-2">Return rate</th>
+        <th scope="col" class="px-2 py-2">Lead revenue<sup>2</sup></th>
+        <th scope="col" class="px-2 py-2">Ad spend<sup>1</sup></th>
+        <th scope="col" class="px-2 py-2">Revenue minus spend</th>
+      </tr>
+    </thead>
+    <tbody>
+      {all.map((r) => {
+        const comp = cell(rate(r.calcCompletes, r.calcStarts), completionState(rate(r.calcCompletes, r.calcStarts)));
+        const cta = cell(rate(r.resultsCtaClicks, r.calcCompletes), resultsToQuoteState(rate(r.resultsCtaClicks, r.calcCompletes)));
+        const ret = cell(rate(r.returned, r.delivered), returnState(rate(r.returned, r.delivered)));
+        const net = netOfSpend(r.revenue, r.adSpend);
+        return (
+          <tr class:list={['border-b border-stone-200 align-top', r === total && 'font-semibold']}>
+            <th scope="row" class="whitespace-nowrap px-2 py-2 text-left font-medium">{r === total ? 'Total' : r.key}</th>
+            <td class="px-2 py-2">{num(r.calcStarts)}</td>
+            <td class="px-2 py-2">{num(r.calcCompletes)}</td>
+            <td class="px-2 py-2">{comp.text}{comp.note && <div class:list={['font-normal', comp.bad ? 'text-red-800' : 'text-stone-700']}>{comp.note}</div>}</td>
+            <td class="px-2 py-2">{num(r.resultsCtaClicks)}</td>
+            <td class="px-2 py-2">{cta.text}{cta.note && <div class:list={['font-normal', cta.bad ? 'text-red-800' : 'text-stone-700']}>{cta.note}</div>}</td>
+            <td class="px-2 py-2">{num(r.quoteFormStarts)}</td>
+            <td class="px-2 py-2">{r.submissions}</td>
+            <td class="px-2 py-2">{r.verified}</td>
+            <td class="px-2 py-2">{r.delivered}</td>
+            <td class="px-2 py-2">{r.returned}</td>
+            <td class="px-2 py-2">{ret.text}{ret.note && <div class:list={['font-normal', ret.bad ? 'text-red-800' : 'text-stone-700']}>{ret.note}</div>}</td>
+            <td class="whitespace-nowrap px-2 py-2">{money(r)}</td>
+            <td class="px-2 py-2">{r.adSpend === null ? '–' : usd(r.adSpend)}</td>
+            <td class="px-2 py-2">{net === null ? '–' : usd(net)}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>

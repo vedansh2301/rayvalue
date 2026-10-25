@@ -34,7 +34,7 @@ const fmt = (iso: string) => iso.slice(0, 16).replace('T', ' ') + ' UTC';
 <BaseLayout title="Leads admin" description="Owner-only lead list." path="/admin/leads" noindex>
   <div class="shell py-8">
     <h1 class="text-2xl font-bold text-stone-900">Leads</h1>
-    <p class="mt-1 text-sm text-stone-700">Newest first, up to 200. Contains personal data.</p>
+    <p class="mt-1 text-sm text-stone-700">Newest first, up to 200. Contains personal data. <a href="/admin/kpi" class="underline underline-offset-2">KPI report</a></p>
 
     {flash && <p role="status" class={`mt-4 rounded-lg border px-4 py-3 text-stone-900 ${flash.ok ? 'border-green-300 bg-green-50' : 'border-amber-300 bg-amber-50'}`}>{flash.text}</p>}
 

@@ -134,3 +134,11 @@ Preview SEO scores are not meaningful (Vercel adds `X-Robots-Tag: noindex` and a
 - Representative ZIP = the utility's best-confirmed city in `cities` (coords_zcta). Confirm the city-to-utility mappings listed in docs/TODO-VERIFY.md.
 - Three draft guides (`is-solar-worth-it-without-tax-credit`, `solar-lease-vs-buy`, `how-to-compare-solar-quotes`) have `draft: true`; unverified items are in each file's frontmatter `todo`. Publishing the compare guide makes /quotes/thank-you link to it.
 - Run `npm run todo:verify` after applying the migration to refresh docs/TODO-VERIFY.md.
+
+## Phase 6: traffic readiness
+
+- [ ] **Apply `supabase/migrations/0010_nurture_and_kpi.sql`** (nurture counters, `email_suppressions`, `kpi_weekly_inputs`). Not applied by the build agent.
+- [ ] **/go/fl and /go/ca** are the landing pages for ads: noindex, out of the sitemap, logo-only header, calculator first. Send ad traffic to them (`?utility=fpl` etc. preselects the utility). Conversion tags stay OFF unless you set `PUBLIC_GOOGLE_ADS_ID` and/or `PUBLIC_META_PIXEL_ID` (and the optional `PUBLIC_GOOGLE_ADS_CALC_LABEL` / `PUBLIC_GOOGLE_ADS_QUOTE_LABEL`, each `AW-123456789/AbCdEf`). Enabling them needs the CLAUDE.md rule 7 amendment, a privacy policy update, a consent banner and the CSP change described in the Phase 1 notes. The Vercel Analytics events (`calc_complete`, `quote_submit`...) always fire.
+- [ ] **Nurture email**: see `docs/nurture/README.md` for the setup (`NURTURE_ENABLED`, `NURTURE_MAILING_ADDRESS`, `UNSUBSCRIBE_SECRET`, email provider). Copy is a draft: review it, and have the consent for nurture leads checked by an attorney before `NURTURE_INCLUDE_LEADS=true`.
+- [ ] **/admin/kpi** uses the same `ADMIN_PASSWORD` as /admin/leads. Calculator starts / completions, results quote clicks, quote form starts and ad spend are not in the database: read them in the Vercel Analytics dashboard and type them into `kpi_weekly_inputs` (Supabase table editor) each week. Until then those columns show a dash.
+- [ ] Hobby plan cron runs once a day, so the nurture job does too.
