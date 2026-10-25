@@ -1,14 +1,37 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PagePending from '../components/PagePending.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 
 const path = '/terms';
+// OWNER: attorney review of these terms before this page is indexed; then remove it from UNREVIEWED_PAGES.
 ---
 <BaseLayout title="Terms" description="Terms of use for RayValue." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
-    <!-- TODO: owner legal copy (terms of use; estimates are not quotes or financial advice) -->
-    <h1>Terms of use</h1>
-    <PagePending />
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Terms' }]} />
+    <h1 class="!mt-4">Terms of use</h1>
+    <p>By using RayValue you agree to these terms.</p>
+
+    <h2>Estimates are not quotes or advice</h2>
+    <p>
+      The calculator gives estimates as low, likely and high ranges. They are not quotes, offers, guarantees of
+      savings or financial, tax or legal advice. Actual prices, production and savings depend on your home, your
+      utility and the installer, and will differ.
+    </p>
+
+    <h2>Accuracy</h2>
+    <p>
+      We work to keep rates and assumptions accurate and list our sources on the <a href="/methodology">methodology</a>
+      page, but they change. RayValue is provided as is, without warranties of any kind, to the extent the law allows.
+    </p>
+
+    <h2>Installers and partners</h2>
+    <p>
+      RayValue is not an installer and does not perform or guarantee installer work. Installers and partners are
+      independent businesses. See the <a href="/affiliate-disclosure">affiliate disclosure</a> for how RayValue earns money.
+    </p>
+
+    <h2>Your information</h2>
+    <p>How we handle your information is described in the <a href="/privacy">privacy policy</a>.</p>
   </div>
 </BaseLayout>

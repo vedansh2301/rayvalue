@@ -1,14 +1,34 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PagePending from '../components/PagePending.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 
 const path = '/affiliate-disclosure';
+// OWNER: legal review before this page is indexed; then remove it from UNREVIEWED_PAGES.
 ---
-<BaseLayout title="Affiliate Disclosure" description="How RayValue earns money from affiliate links and how that affects what we show." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
+<BaseLayout title="Affiliate Disclosure" description="How RayValue earns money from affiliate links and installer introductions, and how that affects what we show." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
-    <!-- TODO: owner copy (commission from partner links, no extra cost, does not change calculator results) -->
-    <h1>Affiliate Disclosure</h1>
-    <PagePending />
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Affiliate Disclosure' }]} />
+    <h1 class="!mt-4">Affiliate Disclosure</h1>
+    <p>RayValue is free to use. This page explains how the site earns money.</p>
+
+    <h2>Affiliate links</h2>
+    <p>
+      Some links on RayValue are affiliate links, marked as sponsored. If you click one and sign up with the partner,
+      RayValue may earn a commission. It costs you nothing extra. Pages with affiliate links show a disclosure
+      before the first link.
+    </p>
+
+    <h2>Installer introductions</h2>
+    <p>
+      If you ask for quotes, RayValue may be paid by installers for introducing you to them. Homeowners pay nothing.
+      What happens to your details is described in the <a href="/privacy">privacy policy</a>.
+    </p>
+
+    <h2>What this does not change</h2>
+    <p>
+      Commissions and introduction fees do not change the numbers in your estimate. Results come from published
+      utility rates, cost ranges and modeling assumptions, all listed on the <a href="/methodology">methodology</a> page.
+    </p>
   </div>
 </BaseLayout>

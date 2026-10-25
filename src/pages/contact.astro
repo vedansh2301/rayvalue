@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { CONTACT_EMAIL } from '../lib/contact';
 import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 
@@ -7,12 +8,13 @@ const path = '/contact';
 ---
 <BaseLayout title="Contact" description="Contact RayValue." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
-    <!-- TODO: owner copy -->
-    <h1>Contact</h1>
+    <!-- OWNER: set PUBLIC_CONTACT_EMAIL (see docs/LAUNCH.md), then remove /contact from UNREVIEWED_PAGES. -->
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Contact' }]} />
+    <h1 class="!mt-4">Contact</h1>
     {CONTACT_EMAIL ? (
       <p>Email us at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
     ) : (
-      <p>A contact email address is coming soon.</p>
+      <p>To access, correct or delete your information, or to opt out, use the <a href="/privacy/request">privacy request form</a>.</p>
     )}
   </div>
 </BaseLayout>

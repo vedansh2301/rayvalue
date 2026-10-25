@@ -504,7 +504,7 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
           {outcome.kind === 'result' && !outcome.result.ok && (
             <p class="mt-4 text-stone-700">
               {outcome.result.reason === 'missing_data'
-                ? `We’re still verifying rates for this utility, so we can’t show an estimate yet. Check back soon${alertsEnabled ? ', or sign up below to hear when it’s ready' : ''}.`
+                ? `We’re still verifying rates for this utility, so we can’t show an estimate yet.${alertsEnabled ? ' Sign up below to hear when it’s ready.' : ''}`
                 : 'Please check your answers and try again.'}
             </p>
           )}

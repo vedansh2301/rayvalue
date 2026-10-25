@@ -4,7 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { publishedPosts } from '../../lib/blog';
 
 const posts = await publishedPosts();
-// No published posts yet: a short "on the way" page, noindex (and out of the sitemap, see astro.config.mjs).
+// No published posts: a short pointer to the calculators, noindex (and out of the sitemap, see astro.config.mjs).
 const empty = posts.length === 0;
 const day = (d: Date) => d.toISOString().slice(0, 10);
 ---
@@ -13,7 +13,7 @@ const day = (d: Date) => d.toISOString().slice(0, 10);
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Blog' }]} />
     <h1>Blog</h1>
     {empty ? (
-      <p>Posts are on the way. Until then, the <a href="/calculator/florida">Florida calculator</a> and the <a href="/calculator/california">California calculator</a> show what solar and a battery could cost and save on your home.</p>
+      <p>To see what solar and a battery could cost and save on your home, use the <a href="/calculator/florida">Florida calculator</a> or the <a href="/calculator/california">California calculator</a>. The <a href="/methodology">methodology</a> page explains how the estimates are made.</p>
     ) : (
       <ul class="mt-4 space-y-6">
         {posts.map((p) => (

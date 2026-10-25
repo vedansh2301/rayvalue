@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { CONTACT_EMAIL } from '../lib/contact';
 import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 
@@ -8,7 +9,8 @@ const path = '/privacy';
 <BaseLayout title="Privacy" description="RayValue privacy policy: no cookies, privacy-friendly analytics, and what happens when you request installer quotes." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
     <!-- TODO: owner legal review -->
-    <h1>Privacy</h1>
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Privacy' }]} />
+    <h1 class="!mt-4">Privacy</h1>
     <p>This is a plain description of what RayValue does with data today.</p>
 
     <h2>No cookies</h2>

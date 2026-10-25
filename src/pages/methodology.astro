@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import type { State } from '../data/schemas';
 import { DB_PAGE_CACHE_HEADERS, createRepo } from '../lib/db/repo';
 import { isHttpUrl } from '../lib/city/view';
@@ -55,7 +56,8 @@ const costSources = costs.ok
 <BaseLayout title="Methodology" description="How RayValue estimates solar system size, cost, savings and payback." path="/methodology">
   <div class="page">
     <!-- TODO: owner review -->
-    <h1>Methodology</h1>
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Methodology' }]} />
+    <h1 class="!mt-4">Methodology</h1>
     <p>
       RayValue estimates what rooftop solar, with or without a battery, could cost and save on a home in Florida or
       California. Every rate, cost and assumption it uses is stored with its source (for facts) or its reasoning (for
@@ -124,7 +126,7 @@ const costSources = costs.ok
 
     <h2>Utility rate sources</h2>
     <p>Rates come from each utility&rsquo;s own published tariff or rate pages. The page we read for each one:</p>
-    {!utilities && <p>The list of rate sources is being verified. Please check back shortly.</p>}
+    {!utilities && <p>The list of rate sources is being verified.</p>}
     {utilities && states.map(({ code, label }) => (
       <>
         <h3>{label}</h3>
@@ -141,7 +143,7 @@ const costSources = costs.ok
 
     <h2>California average rate and export credit sources</h2>
     {!avgRateSources || !exportSources ? (
-      <p>These sources are being verified. Please check back shortly.</p>
+      <p>These sources are being verified.</p>
     ) : (
       <>
         <ul>
@@ -158,7 +160,7 @@ const costSources = costs.ok
 
     <h2>Cost sources</h2>
     {!costSources ? (
-      <p>The list of cost sources is being verified. Please check back shortly.</p>
+      <p>The list of cost sources is being verified.</p>
     ) : (
       <ul>
         {costSources.map((s) => (

@@ -4,7 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { publishedGuides } from '../../lib/guides';
 
 const guides = (await publishedGuides()).sort((a, b) => b.data.updated.getTime() - a.data.updated.getTime());
-// No published guides yet: a short "on the way" page, noindex (and out of the sitemap, see astro.config.mjs).
+// No published guides: a short pointer to the calculators, noindex (and out of the sitemap, see astro.config.mjs).
 const empty = guides.length === 0;
 ---
 <BaseLayout title="Solar and battery guides" description="Plain-language guides on solar and battery payback for Florida and California homeowners." path="/guides" noindex={empty}>
@@ -12,7 +12,7 @@ const empty = guides.length === 0;
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Guides' }]} />
     <h1>Guides</h1>
     {empty ? (
-      <p>Guides are on the way. Until then, the <a href="/calculator/florida">Florida calculator</a> and the <a href="/calculator/california">California calculator</a> show what solar and a battery could cost and save on your home.</p>
+      <p>To see what solar and a battery could cost and save on your home, use the <a href="/calculator/florida">Florida calculator</a> or the <a href="/calculator/california">California calculator</a>. The <a href="/methodology">methodology</a> page explains how the estimates are made.</p>
     ) : (
       <ul class="mt-4 space-y-4">
         {guides.map((g) => (

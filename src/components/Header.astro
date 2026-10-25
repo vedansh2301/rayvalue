@@ -1,12 +1,11 @@
 ---
+import { headerLinks } from '../lib/nav';
+import { publishedGuides } from '../lib/guides';
+import { publishedPosts } from '../lib/blog';
+// Guides/Blog show only once each has >= NAV_MIN_PUBLISHED published items (src/lib/nav.ts).
 // Full-bleed header (owner decision): logo pinned to the left gutter, nav to the right gutter at any width.
 // Mobile (<640px): nav gets its own single row with short labels; the full name is in `title`.
-const links = [
-  { href: '/calculator/florida', label: 'Florida calculator', short: 'Florida' },
-  { href: '/calculator/california', label: 'California calculator', short: 'California' },
-  { href: '/guides', label: 'Guides', short: 'Guides' },
-  { href: '/blog', label: 'Blog', short: 'Blog' },
-];
+const links = headerLinks({ guides: (await publishedGuides()).length, blog: (await publishedPosts()).length });
 const path = Astro.url.pathname.replace(/\/+$/, '');
 const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
 ---

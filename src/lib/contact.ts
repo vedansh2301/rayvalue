@@ -1,7 +1,7 @@
 /**
  * Public contact address (PUBLIC_CONTACT_EMAIL, build time; public by nature). The owner sets it
  * in the Vercel project env; it is never invented in code. While it is unset:
- *  - /contact and /privacy say a contact address is coming soon, and
+ *  - /contact points to the privacy request form instead of an email address, and
  *  - the rate-alerts signup is not rendered and /api/subscribe refuses signups,
  * because collecting emails without a way to ask for deletion is not acceptable.
  */

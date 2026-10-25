@@ -1,14 +1,64 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PagePending from '../components/PagePending.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { CONTACT_EMAIL } from '../lib/contact';
 import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 
 const path = '/about';
+// OWNER: fill the {{PLACEHOLDERS}} below, then remove '/about' from UNREVIEWED_PAGES
+// (src/lib/seo/unreviewed-pages.ts) to index this page. While it is in that set the page is noindex and
+// out of the sitemap; src/lib/seo/unreviewed-pages.test.ts fails if a page with placeholders is not in it.
+// Confirm every claim here is true of how you actually operate before publishing.
+const PH = {
+  name: '{{FOUNDER_NAME}}',
+  bio: '{{FOUNDER_BIO}}',
+  photo: '{{FOUNDER_PHOTO}}',
+  vetting: '{{VETTING_CRITERIA}}',
+};
 ---
-<BaseLayout title="About" description="About RayValue, an independent solar payback calculator for Florida and California homeowners." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
+<BaseLayout title="About" description="Who runs RayValue, why it exists, how it makes money and how installers are vetted." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
-    <!-- TODO: owner copy (who runs RayValue, why it exists, how it stays independent) -->
-    <h1>About RayValue</h1>
-    <PagePending />
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
+    <h1 class="!mt-4">About RayValue</h1>
+    <p>
+      RayValue is an independent solar and battery payback calculator for homeowners in Florida and California.
+      It is not affiliated with any utility, installer or government agency.
+    </p>
+
+    <h2>Who runs RayValue</h2>
+    <p><strong>{PH.name}</strong></p>
+    <p>{PH.bio}</p>
+    <p class="text-sm text-stone-700">Photo: {PH.photo}</p>
+
+    <h2>Why RayValue exists</h2>
+    <p>
+      The federal residential solar tax credit has ended for new installs, and many solar estimates online still
+      assume it. RayValue exists to show what rooftop solar and batteries are worth today, using your own
+      utility&rsquo;s published rates and the export rules in your state, as honest low, likely and high ranges
+      instead of a single hopeful number. Every rate, cost and assumption is listed with its source on the
+      <a href="/methodology">methodology</a> page.
+    </p>
+
+    <h2>How RayValue makes money</h2>
+    <p>
+      The calculator is free to use and you do not need to sign up to see your results. If you ask for quotes,
+      installers pay RayValue for the introduction. Homeowners pay nothing. Some links on the site are affiliate
+      links, which can earn a commission at no extra cost to you; they are always marked. Neither changes the
+      numbers in your estimate. Details are on the <a href="/affiliate-disclosure">affiliate disclosure</a> page.
+    </p>
+
+    <h2>How installers are vetted</h2>
+    <p>{PH.vetting}</p>
+    <p>
+      When you request quotes, your details are shared only with up to 3 installers serving your area, as described in the consent you agree to,
+      and you can ask us to delete them at any time. See the <a href="/privacy">privacy policy</a>.
+    </p>
+
+    <h2>Contact</h2>
+    {CONTACT_EMAIL ? (
+      <p>Email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>, or use the <a href="/contact">contact page</a>.</p>
+    ) : (
+      <p>See the <a href="/contact">contact page</a>. For privacy requests, use the <a href="/privacy/request">privacy request form</a>.</p>
+    )}
   </div>
 </BaseLayout>
