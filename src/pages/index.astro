@@ -2,6 +2,17 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ogImagePath } from '../lib/seo/og';
 import { btnPrimary, btnSecondary } from '../components/ui/buttons';
+import Faq from '../components/Faq.astro';
+import { HOME_FAQ_IDS, faqItems } from '../lib/content/faq';
+import { faqJsonLd } from '../lib/seo/jsonld';
+
+const faq = faqItems(HOME_FAQ_IDS);
+const trust = ['Free', 'No sign-up for the calculator', 'Every assumption shown', 'Independent, not a utility'];
+const forYou = [
+  { title: 'Free for homeowners', body: 'The calculator and quote requests cost you nothing, and you are never obligated to buy.' },
+  { title: 'Installers pay to be introduced', body: 'Installers pay RayValue for introductions to homeowners who ask to hear from them. That is how the site is funded.' },
+  { title: 'You choose who contacts you', body: 'You decide whether to request quotes at all. If you do, the consent wording names the installers who may contact you, and you can opt out at any time.' },
+];
 
 const states = [
   { name: 'Florida', code: 'FL', href: '/calculator/florida', blurb: 'Florida utilities credit the solar you send to the grid through net metering, and we price it through your utility\u2019s own tiered rates. See what rooftop solar and a battery are worth on FPL, Duke Energy Florida or TECO.' },
@@ -18,22 +29,36 @@ const steps = [
   description="Honest solar and battery payback estimates for Florida and California homeowners, calculated without the federal tax credit."
   path="/"
   ogImagePath={ogImagePath('home')}
+  jsonLd={[faqJsonLd(faq)]}
 >
   <section class="bg-gradient-to-b from-sun-100 to-stone-50">
     <div class="shell pb-7 pt-14 sm:pb-10 sm:pt-20">
       <h1 class="max-w-(--container-prose) text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
-        Does solar still pay off without the federal tax credit?
+        See if solar pays off on your home &mdash; using your actual utility rates
       </h1>
       <p class="mt-5 max-w-(--container-prose) text-lg leading-8 text-stone-700">
-        The federal residential solar tax credit has ended for new installs. RayValue shows Florida and California homeowners what rooftop solar and batteries are worth today, as honest ranges, using your own utility&rsquo;s rates.
+        The federal tax credit is gone. We show Florida and California homeowners honest cost, savings and payback ranges for FPL, Duke, TECO, PG&amp;E, SCE and SDG&amp;E in about a minute.
       </p>
-      <div class="mt-6 flex flex-wrap items-center gap-3">
-        <a href="/quotes?source=home" class={btnPrimary}>Get free installer quotes<span aria-hidden="true">&rarr;</span></a>
-        <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <a href="/calculator/florida" class={btnSecondary}>Check my payback</a>
-          <span class="text-sm text-stone-600">The calculator is free &mdash; no sign-up needed.</span>
-        </span>
+      <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start">
+        <div role="group" aria-labelledby="hero-state-label" class="flex flex-col gap-2">
+          <p id="hero-state-label" class="text-sm font-medium text-stone-700">Pick your state to start</p>
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <a href="/calculator/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
+            <a href="/calculator/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
+          </div>
+        </div>
+        <a href="/quotes?source=home" class={`${btnSecondary} sm:self-end`}>Get installer quotes</a>
       </div>
+      <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-stone-800" aria-label="Why use RayValue">
+        {trust.map((t) => (
+          <li class="flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class="shrink-0 text-sun-ink">
+              <path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            {t}
+          </li>
+        ))}
+      </ul>
     </div>
   </section>
 
@@ -68,4 +93,23 @@ const steps = [
     </ol>
     <p class="mt-6 max-w-(--container-prose) text-stone-700">Curious about the details? Read our <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>.</p>
   </section>
+
+  <section class="shell pb-16" aria-labelledby="for-you">
+    <h2 id="for-you" class="text-2xl font-bold tracking-tight text-stone-900">How RayValue works for you</h2>
+    <ul class="mt-6 grid gap-5 sm:grid-cols-3">
+      {forYou.map((c) => (
+        <li class="rounded-xl border border-stone-200 bg-white p-6">
+          <h3 class="font-semibold text-stone-900">{c.title}</h3>
+          <p class="mt-2 leading-7 text-stone-700">{c.body}</p>
+        </li>
+      ))}
+    </ul>
+    <p class="mt-6 max-w-(--container-prose) text-stone-700">See the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a> and <a href="/about" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">about RayValue</a>.</p>
+  </section>
+
+  <div class="shell pb-16">
+    <div class="max-w-(--container-prose)">
+      <Faq items={faq} id="home-faq" />
+    </div>
+  </div>
 </BaseLayout>

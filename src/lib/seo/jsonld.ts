@@ -100,3 +100,16 @@ export function calculatorsForState(state: State | 'both'): { state: State; labe
   const states: State[] = state === 'both' ? ['FL', 'CA'] : [state];
   return states.map((s) => ({ state: s, label: `${STATE_NAME[s]} calculator`, href: CALCULATOR_PATH[s] }));
 }
+
+/** FAQPage structured data. Pass the SAME items the page renders visibly; emit nothing for an empty list. */
+export function faqJsonLd(items: readonly { question: string; answer: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((i) => ({
+      '@type': 'Question',
+      name: i.question,
+      acceptedAnswer: { '@type': 'Answer', text: i.answer },
+    })),
+  };
+}

@@ -1,0 +1,28 @@
+---
+/**
+ * Reusable visible FAQ. Renders every answer as text (no collapsed content) so the matching FAQPage JSON-LD
+ * (faqJsonLd(items) in lib/seo/jsonld.ts, passed to BaseLayout's jsonLd by the page) describes only what is shown.
+ */
+import type { FaqItem } from '../lib/content/faq';
+
+interface Props {
+  items: FaqItem[];
+  /** Unique heading id per page. */
+  id?: string;
+  heading?: string;
+}
+const { items, id = 'faq', heading = 'Frequently asked questions' } = Astro.props;
+---
+{items.length > 0 && (
+  <section aria-labelledby={id}>
+    <h2 id={id} class="text-2xl font-bold tracking-tight text-stone-900">{heading}</h2>
+    <dl class="mt-6 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+      {items.map((item) => (
+        <div class="p-5">
+          <dt class="font-semibold text-stone-900">{item.question}</dt>
+          <dd class="mt-2 max-w-(--container-prose) leading-7 text-stone-700">{item.answer}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+)}

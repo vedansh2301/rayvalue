@@ -3,6 +3,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { ogImagePath } from '../../lib/seo/og';
 import QuoteForm from '../../components/quotes/QuoteForm';
+import Faq from '../../components/Faq.astro';
+import { QUOTES_FAQ_IDS, faqItems } from '../../lib/content/faq';
+import { faqJsonLd } from '../../lib/seo/jsonld';
+
+const faq = faqItems(QUOTES_FAQ_IDS);
 // Static shell; the form is a small island. ?state=FL|CA, ?zip= and ?source= prefill it (read in the browser).
 const points = ['No obligation', 'Up to 3 local installers', 'Shared only with the installers you agree to hear from'];
 ---
@@ -11,6 +16,7 @@ const points = ['No obligation', 'Up to 3 local installers', 'Shared only with t
   description="Request free, no-obligation solar quotes from up to 3 local installers in Florida or California."
   path="/quotes"
   ogImagePath={ogImagePath('quotes')}
+  jsonLd={[faqJsonLd(faq)]}
 >
   <div class="shell pb-16 pt-8 sm:pt-10">
     <div class="max-w-(--container-prose)">
@@ -34,6 +40,9 @@ const points = ['No obligation', 'Up to 3 local installers', 'Shared only with t
         Want a number first? Try the <a href="/calculator/florida" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">Florida</a> or
         <a href="/calculator/california" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">California</a> payback calculator.
       </p>
+      <div class="mt-12">
+        <Faq items={faq} id="quotes-faq" />
+      </div>
     </div>
   </div>
 </BaseLayout>
