@@ -6,6 +6,7 @@ import GuideCalculatorLinks from '../../components/seo/GuideCalculatorLinks.astr
 import { articleJsonLd } from '../../lib/seo/jsonld';
 import RelatedReading from '../../components/seo/RelatedReading.astro';
 import ArticleByline from '../../components/seo/ArticleByline.astro';
+import TableOfContents from '../../components/seo/TableOfContents.astro';
 import { publishedPosts } from '../../lib/blog';
 import { pickRelated } from '../../lib/related';
 import { displayDate, showUpdated } from '../../lib/dates';
@@ -14,7 +15,7 @@ export async function getStaticPaths() {
   return (await publishedPosts()).map((post) => ({ params: { slug: post.id }, props: { post } }));
 }
 const { post } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 const path = `/blog/${post.id}`;
 const day = (d: Date) => d.toISOString().slice(0, 10);
 const related = pickRelated(
@@ -41,6 +42,7 @@ const ld = articleJsonLd({
     </p>
     <ArticleByline hasSources={post.data.sources.length > 0} />
     <GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="top" />
+    <TableOfContents headings={headings} />
     <div class="prose-guide mt-4 space-y-4">
       <Content />
     </div>

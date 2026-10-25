@@ -24,8 +24,8 @@ describe('buildSavingsChart', () => {
   it('maps cumulative series into the plot box (year 0 = $0 at bottom-left, last year at the right)', () => {
     // cumulative likely 0,2000,4000,6000,8000; high 12000 at year 4; cost 10000 -> axis max 12000? step from 3000 -> 12000
     const c = buildSavingsChart(src())!;
-    expect(c.plot).toEqual({ left: 46, right: CHART_W - 12, top: 14, bottom: CHART_H - 30 });
-    expect(c.likelyPath.startsWith(`M46 ${c.plot.bottom} L`)).toBe(true);
+    expect(c.plot).toEqual({ left: 50, right: CHART_W - 14, top: 16, bottom: CHART_H - 40 });
+    expect(c.likelyPath.startsWith(`M50 ${c.plot.bottom} L`)).toBe(true);
     expect(c.rows.at(-1)).toEqual({ year: 4, low: 4000, likely: 8000, high: 12000 });
     expect(c.rows[0]).toEqual({ year: 1, low: 1000, likely: 2000, high: 3000 });
     // y of $10,000 on a $15,000 axis (step 5,000): bottom - 10/12 * height
@@ -39,7 +39,7 @@ describe('buildSavingsChart', () => {
     const c = buildSavingsChart(src({ analysisYears: 10, yearlySavings: Array(10).fill(2000), yearlySavingsLow: Array(10).fill(1000), yearlySavingsHigh: Array(10).fill(3000) }))!;
     expect(c.crossing).toMatchObject({ years: 5, label: 'Pays back ~year 5' });
     expect(c.crossing!.y).toBe(c.costY);
-    expect(c.crossing!.x).toBeCloseTo(46 + 0.5 * (CHART_W - 12 - 46), 0);
+    expect(c.crossing!.x).toBeCloseTo(50 + 0.5 * (CHART_W - 14 - 50), 0);
   });
 
   it('half-year payback keeps its decimal; no crossing when never paid back', () => {
@@ -48,6 +48,23 @@ describe('buildSavingsChart', () => {
     const never = buildSavingsChart(src({ paybackYears: { low: null, likely: null, high: null } }))!;
     expect(never.crossing).toBeNull();
     expect(never.desc).toContain('do not pass the cost');
+  });
+
+  it('puts a pill behind the label that contains it and stays inside the chart', () => {
+    const c = buildSavingsChart(src({ analysisYears: 10, yearlySavings: Array(10).fill(2000), yearlySavingsLow: Array(10).fill(1000), yearlySavingsHigh: Array(10).fill(3000) }))!;
+    const { pill, labelX, labelY, anchor } = c.crossing!;
+    expect(pill.y).toBeLessThan(labelY);
+    expect(pill.y + pill.height).toBeGreaterThan(labelY);
+    expect(pill.x).toBeGreaterThanOrEqual(c.plot.left);
+    expect(pill.x + pill.width).toBeLessThanOrEqual(CHART_W);
+    if (anchor === 'end') expect(pill.x + pill.width).toBeGreaterThan(labelX);
+    else expect(pill.x).toBeLessThan(labelX);
+  });
+
+  it('flips the label to the right of the point near the left edge', () => {
+    const c = buildSavingsChart(src({ analysisYears: 10, paybackYears: { low: 1, likely: 1, high: 2 }, yearlySavings: Array(10).fill(10000), yearlySavingsLow: Array(10).fill(9000), yearlySavingsHigh: Array(10).fill(11000) }))!;
+    expect(c.crossing!.anchor).toBe('start');
+    expect(c.crossing!.pill.x + c.crossing!.pill.width).toBeLessThanOrEqual(CHART_W);
   });
 
   it('band polygon is closed and runs high forward then low backward', () => {

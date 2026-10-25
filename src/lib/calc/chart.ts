@@ -9,11 +9,16 @@
 import type { CalcSuccess } from './types';
 
 export const CHART_W = 360;
-export const CHART_H = 240;
-const ML = 46;
-const MR = 12;
-const MT = 14;
-const MB = 30;
+export const CHART_H = 250;
+/** Font sizes in SVG units; the chart renders at its natural 360px width, so 1 unit = 1px (>= 11px on mobile). */
+export const TICK_FONT = 13;
+export const LABEL_FONT = 14;
+/** Rough average glyph width of the bold label, as a fraction of its font size (for the label pill). */
+const LABEL_CHAR_W = 0.58;
+const ML = 50;
+const MR = 14;
+const MT = 16;
+const MB = 40;
 
 export interface ChartTick {
   /** SVG coordinate along the axis. */
@@ -36,7 +41,7 @@ export interface SavingsChart {
   bandPath: string;
   costY: number;
   costLabel: string;
-  crossing: { x: number; y: number; years: number; label: string; labelX: number; labelY: number; anchor: 'start' | 'end' } | null;
+  crossing: { x: number; y: number; years: number; label: string; labelX: number; labelY: number; anchor: 'start' | 'end'; pill: { x: number; y: number; width: number; height: number } } | null;
   rows: ChartRow[];
   title: string;
   desc: string;
@@ -96,9 +101,14 @@ export function buildSavingsChart(r: ChartSource): SavingsChart | null {
     pb !== null && pb > 0 && pb <= n
       ? (() => {
           const cx = x(pb);
-          // Label sits above the cost line, left of the point (the savings line is below the cost line there); near the left edge it goes below-right instead.
-          const anchor: 'start' | 'end' = cx - left < 110 ? 'start' : 'end';
-          return { x: cx, y: y(cost), years: pb, label: `Pays back ~year ${yearsLabel(pb)}`, labelX: anchor === 'end' ? r1(cx - 8) : r1(cx + 8), labelY: anchor === 'end' ? r1(Math.max(y(cost) - 9, top + 10)) : r1(y(cost) + 18), anchor };
+          const label = `Pays back ~year ${yearsLabel(pb)}`;
+          const w = Math.ceil(label.length * LABEL_FONT * LABEL_CHAR_W);
+          // Label sits above the cost line, left of the point (the savings line is below the cost line there); when it would run into the y-axis labels it goes below-right instead.
+          const anchor: 'start' | 'end' = cx - 8 - w - 4 >= left ? 'end' : 'start';
+          const labelX = anchor === 'end' ? r1(cx - 8) : r1(cx + 8);
+          const labelY = anchor === 'end' ? r1(Math.max(y(cost) - 9, top + LABEL_FONT)) : r1(y(cost) + 8 + LABEL_FONT);
+          const pill = { x: r1(anchor === 'end' ? labelX - w - 4 : labelX - 4), y: r1(labelY - LABEL_FONT), width: w + 8, height: LABEL_FONT + 7 };
+          return { x: cx, y: y(cost), years: pb, label, labelX, labelY, anchor, pill };
         })()
       : null;
 

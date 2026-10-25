@@ -1,6 +1,6 @@
 /**
- * Extra explanatory panels under the calculator results: lease/PPA comparison (both states) and Florida battery
- * notes. No math here: figures come from financingForResult() (src/lib/calc/lease-ppa.ts) and are only formatted.
+ * Extra explanatory panels under the calculator results: lease/PPA comparison (both states). (Florida battery notes live in FlBatteryNotes.astro, below the calculator.)
+ * No math here: figures come from financingForResult() (src/lib/calc/lease-ppa.ts) and are only formatted.
  * Wording lives in src/lib/content/*.
  */
 import type { Assumptions } from '../../data/schemas';
@@ -8,7 +8,6 @@ import { financingForResult, type FinancingOption } from '../../lib/calc/lease-p
 import type { CalcSuccess } from '../../lib/calc/types';
 import { displayRange, formatSignedUsd } from '../../lib/calculator/display';
 import { FINANCING_NOTES, FINANCING_NO_NUMBERS, FINANCING_TITLE, FINANCING_WITH_NUMBERS_BASIS } from '../../lib/content/financing';
-import { FL_BATTERY_CLOSING, FL_BATTERY_INTRO, FL_BATTERY_NOTES, FL_BATTERY_TITLE } from '../../lib/content/fl-battery';
 import { formatUsd } from '../../lib/format';
 
 function rangeLine(r: { low: number; likely: number; high: number }, fmt: (n: number) => string): string {
@@ -58,25 +57,5 @@ export function FinancingPanel(p: { r: CalcSuccess; assumptions: Assumptions }) 
         <p class="mt-4 text-sm leading-6 text-stone-700">{FINANCING_NO_NUMBERS}</p>
       )}
     </section>
-  );
-}
-
-export function FlBatteryPanel(p: { batteries: 0 | 1 | 2 }) {
-  return (
-    <details open={p.batteries > 0} class="mt-6 rounded-lg border border-stone-200 bg-white">
-      <summary class="min-h-11 cursor-pointer px-4 py-3 font-semibold text-stone-900">{FL_BATTERY_TITLE}</summary>
-      <div class="px-4 pb-4">
-        <p class="text-sm leading-6 text-stone-700">{FL_BATTERY_INTRO}</p>
-        <dl class="mt-3 space-y-3">
-          {FL_BATTERY_NOTES.map((n) => (
-            <div key={n.heading}>
-              <dt class="text-sm font-semibold text-stone-900">{n.heading}</dt>
-              <dd class="mt-0.5 text-sm leading-6 text-stone-700">{n.body}</dd>
-            </div>
-          ))}
-        </dl>
-        <p class="mt-3 text-sm leading-6 text-stone-700">{FL_BATTERY_CLOSING}</p>
-      </div>
-    </details>
   );
 }

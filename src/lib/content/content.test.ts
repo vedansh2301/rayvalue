@@ -7,7 +7,7 @@ import { faqJsonLd } from '../seo/jsonld';
 describe('FAQ content', () => {
   it('has unique ids and every page list resolves', () => {
     expect(new Set(FAQ.map((f) => f.id)).size).toBe(FAQ.length);
-    expect(faqItems(HOME_FAQ_IDS)).toHaveLength(FAQ.length);
+    expect(faqItems(HOME_FAQ_IDS)).toHaveLength(4);
     expect(faqItems(QUOTES_FAQ_IDS).length).toBeGreaterThan(0);
     expect(() => faqItems(['nope'])).toThrow();
   });

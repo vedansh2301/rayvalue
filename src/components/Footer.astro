@@ -1,33 +1,60 @@
 ---
 const { legalOnly = false } = Astro.props as { legalOnly?: boolean };
-const all = [
-  { href: '/calculator/florida', label: 'Florida calculator' },
-  { href: '/calculator/california', label: 'California calculator' },
-  { href: '/about', label: 'About' },
-  { href: '/guides', label: 'Guides' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/stories', label: 'Real stories' },
-  { href: '/methodology', label: 'Methodology' },
-  { href: '/affiliate-disclosure', label: 'Affiliate Disclosure' },
-  { href: '/privacy', label: 'Privacy' },
-  { href: '/terms', label: 'Terms' },
-  { href: '/contact', label: 'Contact' },
-  { href: '/credits', label: 'Photo credits' },
-  { href: '/privacy/request?type=do_not_sell', label: 'Do Not Sell or Share My Personal Information' },
+type Link = { href: string; label: string };
+const columns: { title: string; links: Link[] }[] = [
+  { title: 'Calculators', links: [
+    { href: '/calculator/florida', label: 'Florida calculator' },
+    { href: '/calculator/california', label: 'California calculator' },
+    { href: '/quotes', label: 'Get installer quotes' },
+  ] },
+  { title: 'Learn', links: [
+    { href: '/guides', label: 'Guides' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/stories', label: 'Real stories' },
+    { href: '/methodology', label: 'Methodology' },
+  ] },
+  { title: 'Company and legal', links: [
+    { href: '/about', label: 'About' },
+    { href: '/contact', label: 'Contact' },
+    { href: '/affiliate-disclosure', label: 'Affiliate Disclosure' },
+    { href: '/privacy', label: 'Privacy' },
+    { href: '/terms', label: 'Terms' },
+    { href: '/privacy/request?type=do_not_sell', label: 'Do Not Sell or Share My Personal Information' },
+    { href: '/credits', label: 'Photo credits' },
+  ] },
 ];
 const LEGAL = new Set(['/affiliate-disclosure', '/privacy', '/terms', '/privacy/request?type=do_not_sell']);
-const links = legalOnly ? all.filter((l) => LEGAL.has(l.href)) : all;
+const shown = legalOnly
+  ? [{ title: 'Legal', links: columns.flatMap((c) => c.links).filter((l) => LEGAL.has(l.href)) }]
+  : columns;
+const linkClass = 'inline-block py-1.5 text-stone-700 hover:text-stone-900 hover:underline underline-offset-4';
 ---
 <footer class="mt-auto border-t border-stone-200 bg-white">
-  <div class="shell py-8 text-sm text-stone-600">
-    <nav aria-label="Footer">
-      <ul class="flex flex-wrap gap-x-3">
-        {links.map((l) => (
-          <li><a href={l.href} class="inline-flex min-h-11 items-center text-stone-700 hover:text-stone-900 hover:underline underline-offset-4">{l.label}</a></li>
+  <div class="shell py-10 text-sm text-stone-600">
+    <div class="grid gap-8 md:grid-cols-[1.2fr_2fr]">
+      <div>
+        <a href="/" class="inline-flex items-center gap-2.5 py-1.5 text-stone-900 no-underline" aria-label="RayValue home">
+          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+            <circle cx="16" cy="16" r="7" fill="#fbbf24"></circle>
+            <g stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round">
+              <path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M6.8 25.2l2.8-2.8M22.4 9.6l2.8-2.8"></path>
+            </g>
+          </svg>
+          <span class="text-lg font-bold tracking-tight">RayValue</span>
+        </a>
+        <p class="mt-2 max-w-sm leading-6">RayValue is an independent site, not affiliated with any utility or government agency.</p>
+      </div>
+      <nav aria-label="Footer" class:list={['grid gap-6', legalOnly ? '' : 'sm:grid-cols-3']}>
+        {shown.map((c) => (
+          <div>
+            <p class="font-semibold text-stone-900">{c.title}</p>
+            <ul class="mt-1">
+              {c.links.map((l) => <li><a href={l.href} class={linkClass}>{l.label}</a></li>)}
+            </ul>
+          </div>
         ))}
-      </ul>
-    </nav>
-    <p class="mt-4">RayValue is an independent site, not affiliated with any utility or government agency.</p>
-    <p class="mt-1">&copy; {new Date().getFullYear()} RayValue</p>
+      </nav>
+    </div>
+    <p class="mt-8">&copy; {new Date().getFullYear()} RayValue</p>
   </div>
 </footer>

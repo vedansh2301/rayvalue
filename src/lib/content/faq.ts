@@ -66,6 +66,6 @@ export function faqItems(ids: readonly string[]): FaqItem[] {
   });
 }
 
-/** Homepage shows all of them; the quotes page shows the ones about getting quotes. */
-export const HOME_FAQ_IDS = FAQ.map((f) => f.id);
+/** Homepage shows the four highest-intent questions (the rest are on /quotes and in the guides); the quotes page shows the ones about getting quotes. */
+export const HOME_FAQ_IDS = ['without-credit', 'accuracy', 'free', 'money'] as const;
 export const QUOTES_FAQ_IDS = ['free', 'money', 'contact', 'spam', 'accuracy'] as const;

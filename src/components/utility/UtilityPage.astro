@@ -90,7 +90,23 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
             <p>
               These use <strong>illustrative monthly bills</strong>, not {meta.short} averages, for a home at a {vm.repCity.name} ZIP code ({vm.repCity.coords_zcta}) with some shade, and no federal tax credit. Ranges are low to high, with the likely value for payback. Your home will differ.
             </p>
-            <div class="mt-4 overflow-x-auto">
+            <ul class="not-prose mt-4 space-y-3 sm:hidden" aria-label="Worked examples">
+              {vm.examples.map((r) => (
+                <li class="rounded-xl border border-stone-200 bg-white p-4">
+                  <p class="font-semibold text-stone-900">{formatUsd(r.bill)} a month <span aria-hidden="true">·</span> {r.battery === 0 ? 'Solar only' : 'Solar + 1 battery'}</p>
+                  {r.result ? (
+                    <dl class="mt-2 space-y-1 text-sm">
+                      <div class="flex justify-between gap-4"><dt class="text-stone-600">Installed cost</dt><dd class="text-right text-stone-900">{range(r.result.cost.low, r.result.cost.high, formatUsd)}</dd></div>
+                      <div class="flex justify-between gap-4"><dt class="text-stone-600">Year-1 savings</dt><dd class="text-right text-stone-900">{range(r.result.year1Savings.low, r.result.year1Savings.high, formatUsd)}</dd></div>
+                      <div class="flex justify-between gap-4"><dt class="text-stone-600">Payback (years)</dt><dd class="text-right font-bold text-stone-900">{paybackText(r.result)}</dd></div>
+                    </dl>
+                  ) : (
+                    <p class="mt-2 text-sm text-stone-600">being verified</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <div class="mt-4 hidden overflow-x-auto sm:block">
               <table class="w-full min-w-[40rem] border-collapse text-left text-sm">
                 <thead>
                   <tr class="border-b border-stone-300 text-stone-600">
@@ -112,7 +128,7 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
                           <td class="py-2 pr-3">{range(r.result.size.low, r.result.size.high, (n) => `${n} kW`)}</td>
                           <td class="py-2 pr-3">{range(r.result.cost.low, r.result.cost.high, formatUsd)}</td>
                           <td class="py-2 pr-3">{range(r.result.year1Savings.low, r.result.year1Savings.high, formatUsd)}</td>
-                          <td class="py-2">{paybackText(r.result)}</td>
+                          <td class="py-2 font-semibold text-stone-900">{paybackText(r.result)}</td>
                         </>
                       ) : (
                         <td colspan="4" class="py-2 text-stone-600">being verified</td>

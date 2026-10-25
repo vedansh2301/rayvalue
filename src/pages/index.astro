@@ -80,7 +80,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
          loading="eager"
          fetchpriority="high"
          decoding="async"
-         class="aspect-[4/3] w-full rounded-2xl object-cover shadow-md"
+         class="aspect-[4/3] w-full rounded-2xl object-cover object-[center_35%] shadow-md"
        />
      </div>
     </div>
@@ -99,7 +99,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
             </div>
           </div>
           <p class="mt-2 flex-1 leading-7 text-stone-700">{s.blurb}</p>
-          <div class="mt-4"><UtilityLinks state={s.code as 'FL' | 'CA'} /></div>
+          <div class="mt-4"><UtilityLinks state={s.code as 'FL' | 'CA'} chips /></div>
           <a href={s.href} class={`mt-3 w-fit ${btnPrimary}`}>
             {s.name} calculator<span aria-hidden="true">&rarr;</span>
           </a>
@@ -142,14 +142,16 @@ const steps: { title: string; body: string; icon: IconName }[] = [
   </section>
 
   <section aria-labelledby="stories-heading" class="shell pb-16">
-    <h2 id="stories-heading" class="text-2xl font-bold tracking-tight text-stone-900">Real stories from Florida and California</h2>
-    <p class="mt-2 mb-6 max-w-(--container-prose) text-stone-700">Publicly reported accounts of homeowners and communities with solar and batteries, each linked to the original reporting. <a href="/stories" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">See all stories</a>.</p>
-    <StoryCards state="both" limit={4} />
+    <h2 id="stories-heading" class="text-2xl font-bold tracking-tight text-stone-900">What&rsquo;s happened with solar in Florida and California</h2>
+    <p class="mt-2 mb-6 max-w-(--container-prose) text-stone-700">Publicly reported events, each linked to the original reporting.</p>
+    <StoryCards compact />
+    <p class="mt-5"><a href="/stories" class="font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">See all stories <span aria-hidden="true">&rarr;</span></a></p>
   </section>
 
   <div class="shell pb-16">
     <div class="max-w-(--container-prose)">
       <Faq items={faq} id="home-faq" />
+      <p class="mt-4 text-stone-700">More questions? See the <a href="/quotes#quotes-faq" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">questions about quotes and your contact details</a>, or read <a href="/guides/solar-lease-vs-buy" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">solar lease vs buy</a>.</p>
     </div>
   </div>
 

@@ -22,7 +22,7 @@ import { parseShareParams, parseUtilityParam, serializeShareParams } from '../..
 import { btnPrimary, btnSecondary, btnText } from '../ui/buttons';
 import SavingsChart from './SavingsChart';
 import { buildSavingsChart } from '../../lib/calc/chart';
-import { FinancingPanel, FlBatteryPanel } from './ResultsExtras';
+import { FinancingPanel } from './ResultsExtras';
 import ResultsActions from '../quotes/ResultsActions';
 import type { QuoteContext } from '../quotes/QuoteForm';
 import { estimateSnapshot } from '../../lib/leads/snapshot';
@@ -737,7 +737,6 @@ function Results(p: {
       {p.leadCard}
 
       {!noUsage && <FinancingPanel r={r} assumptions={p.assumptions} />}
-      {p.state === 'FL' && <FlBatteryPanel batteries={p.batteries} />}
 
       <details class="mt-6 rounded-lg border border-stone-200 bg-white">
         <summary class="min-h-11 cursor-pointer px-4 py-3 font-semibold text-stone-900">How this estimate was built ({r.assumptions.length} assumptions)</summary>
