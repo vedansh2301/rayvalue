@@ -1,6 +1,40 @@
 User-agent: *
 Allow: /
+
+
+# Transactional and private areas
 Disallow: /api/
 Disallow: /admin/
+Disallow: /unsubscribe
+Disallow: /quotes/thank-you
+Disallow: /quotes/thanks
+Disallow: /alerts/thanks
+Disallow: /privacy/request
+
+
+# Paid-traffic landing pages (noindex; for ad clicks, not search)
+Disallow: /go/
+
+
+# Internal parameters on canonical pages (duplicate content)
+Disallow: /*?*source=
+Disallow: /*?*state=
+Disallow: /*?*zip=
+Disallow: /*?*id=
+Disallow: /*?*status=
+
+
+# Tracking parameters
+Disallow: /*?*utm_
+Disallow: /*?*gclid=
+Disallow: /*?*fbclid=
+Disallow: /*?*msclkid=
+Disallow: /*?*ref=
+
+
+# Keep CSS, JS, images and social preview images crawlable for rendering
+Allow: /_astro/
+Allow: /og/
+
 
 Sitemap: https://rayvalue.com/sitemap.xml
