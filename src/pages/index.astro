@@ -6,7 +6,7 @@ import { btnPrimary, btnText } from '../components/ui/buttons';
 import UtilityLinks from '../components/utility/UtilityLinks.astro';
 import Icon, { type IconName } from '../components/icons/Icon';
 import { Picture } from 'astro:assets';
-import heroPhoto from '../assets/photos/la-home-rooftop-solar.jpg';
+import heroPhoto from '../assets/photos/ca-home-tile-roof-solar.jpg';
 import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 import StoryCards from '../components/stories/StoryCards.astro';
 import Faq from '../components/Faq.astro';
@@ -78,13 +78,13 @@ const steps: { title: string; body: string; icon: IconName }[] = [
          formats={['avif', 'webp']}
          widths={[480, 768, 1100]}
          sizes="(min-width: 1024px) 440px, (min-width: 480px) 448px, calc(100vw - 2rem)"
-         alt="Rooftop solar panels on a white two-story house framed by palm trees and a blue sky in Los Angeles"
+         alt="Aerial view of a California home with dark solar panels on its red tile roof, palm trees and a backyard pool"
          width={1100}
          height={825}
          loading="eager"
          fetchpriority="high"
          decoding="async"
-         class="aspect-[4/3] w-full rounded-2xl object-cover object-[center_35%] shadow-md"
+         class="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-md"
        />
      </div>
     </div>

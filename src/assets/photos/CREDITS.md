@@ -6,7 +6,7 @@ linked from the footer.
 
 | File | Photographer | Source page | License |
 | --- | --- | --- | --- |
-| la-home-rooftop-solar.jpg (home hero) | Downtowngal | https://commons.wikimedia.org/wiki/File:Solar_panel_roof_6th_St.jpg | CC BY-SA 4.0 (attribution on /credits; resized/cropped) |
+| ca-home-tile-roof-solar.jpg (home hero) | Senthil Balasubramanian, U.S. Department of Energy | https://commons.wikimedia.org/wiki/File:Balasubramanian_000277_173009_518477_4578_(36824326171).jpg | Public domain (U.S. government work); 20 kW residential rooftop system in California, May 2017 |
 
 | ca-rooftop-solar-install.jpg | Laksh Muchhal, U.S. Department of Energy | https://commons.wikimedia.org/wiki/File:Muchhal_000262_172296_517453_4578_(36963527475).jpg | Public domain (U.S. government work) |
 
