@@ -10,8 +10,9 @@ export const EVENT_PROPS = {
   calc_complete: ['state', 'battery', 'shading'],
   results_cta_click: ['state', 'placement'],
   quote_form_start: ['source', 'state'],
+  /** Fired once per submission on /quotes/thank-you. */
   quote_submit: ['source', 'state'],
-  /** Fired by the phone-verification step once it exists (not wired yet). */
+  /** Fired by the quote form when the SMS code is approved (only when Twilio Verify is configured). */
   phone_verified: ['source', 'state'],
   call_click: ['placement'],
 } as const satisfies Record<string, readonly string[]>;

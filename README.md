@@ -26,7 +26,7 @@ rayvalue.com: solar and battery payback calculators for Florida and California h
 
 - `GET /api/pvwatts?lat=&lon=&losses=`: PVWatts v8 proxy (NREL is now NLR: `developer.nlr.gov`). lat/lon must be in FL or CA; `losses` a whole percent from 0 to 60 (the calculator sends the `pvwatts_system_loss_pct` values; the endpoint does not read the database). Unrounded URLs get a 308 to the 2-decimal canonical URL; responses are cached 30 days on Vercel's CDN (`CDN-Cache-Control`). When it is unavailable the calculator falls back to the precomputed `pvwatts_city_production` rows passed in as page props.
 - `POST /api/subscribe`: rate-alert signup (JSON or form). Same-origin only.
-- `POST /api/leads`: installer-quote request from the quote form (JSON or form; plain form posts get 303 -> `/quotes/thanks`). `POST /api/data-requests`: privacy request from `/privacy/request` (303 -> `/privacy/request/thanks`). Same-origin only, 8 KB body cap, honeypot field `website`, 8 s database timeout; logic in `src/lib/server/leads.ts`, validation in `src/lib/leads/`.
+- `POST /api/leads`: installer-quote request from the quote form (JSON or form; 3-step form, JSON; consent text is recomputed server-side; plain form posts get 303 -> `/quotes/thank-you`). `POST /api/data-requests`: privacy request from `/privacy/request` (303 -> `/privacy/request/thanks`). Same-origin only, 8 KB body cap, honeypot field `website`, 8 s database timeout; logic in `src/lib/server/leads.ts`, validation in `src/lib/leads/`.
 
 ## Supabase (email alerts)
 
@@ -34,7 +34,19 @@ Project `qefnwgdqnkzzdcpwfmkt`, table `public.rate_alert_subscribers` (schema in
 
 ## Where leads live
 
-Quote requests are stored only in Supabase, table `public.leads`; privacy requests (delete / access / correct / do-not-sell) in `public.data_requests` (schema: `supabase/migrations/0004_leads.sql` and `0005_leads_consent_trigger.sql`, applied). As with the alert signups, `anon` (the publishable key) has column-level INSERT on the user-supplied columns only, and no SELECT, UPDATE or DELETE, so the site can add a lead but a leaked key can never read them. Each lead stores the consent sentence, version and time, set by a database trigger (`supabase/migrations/0005_leads_consent_trigger.sql`; anon cannot write those columns) with the same constants as `src/lib/leads/consent.ts` (a unit test compares them; when the text changes, bump the version there and add a migration replacing the trigger function), and the estimate they saw (`estimate_snapshot`) when it came from calculator results. To work leads: Supabase dashboard, Table Editor, `leads`; move `status` through `new` / `contacted` / `sold` / `invalid` / `deleted`. Handle `data_requests` the same way (`status` `new` / `in_progress` / `done` / `rejected`).
+Quote requests are stored only in Supabase, table `public.leads`; privacy requests in `public.data_requests`; "email me this estimate" requests (and nurture enrollment) in `public.estimate_requests`. Since migration `0006_lead_capture.sql` the public (anon) key can no longer insert leads: `/api/leads` writes them server-side with `SUPABASE_SECRET_KEY` (service role; server env only, never in client code) because only the server may decide `status`, `phone_verified`, the consent text and the installer list. Each lead stores: timestamp, IP, user agent, page URL, consent version, the full consent text exactly as shown (composed from the installers serving the ZIP, recomputed by the server and re-checked by a database trigger; `src/lib/leads/consent.ts` and the trigger share constants, a unit test compares them), `consented_installers`, optional `trustedform_cert_url`, `phone_verified`, and the estimate the person saw (`estimate_snapshot`). Statuses: `new`, `unserviced` (no active buyer for the ZIP), `nurture` ("just researching"), then `contacted` / `sold` / `invalid` / `deleted`. Renters are not stored at all.
+
+Buyers: table `public.buyers` (name, legal_name, states, zips, active); a buyer serves a ZIP if active and it lists the ZIP, or lists no ZIPs and covers the state. Add rows in the dashboard (none are seeded; with none, every ZIP is "unserviced"). Staffed call hours: table `public.staffed_hours` (per state, IANA timezone, ISO weekdays, open/close time); no rows or no `CALL_NUMBER` = no call link.
+
+Environment variables for lead capture (all server-side unless noted; all optional except the first):
+- `SUPABASE_SECRET_KEY`: required for `/api/leads` and `/api/estimate-email`.
+- `CALL_NUMBER`: staffed phone, e.g. `305-201-0123` (shown only inside `staffed_hours`).
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID`, `LEAD_SIGNING_SECRET` (random string): all four enable the SMS code step; otherwise it is skipped.
+- `RESEND_API_KEY`, `EMAIL_FROM`: enable sending the estimate email; otherwise requests are stored as `pending`.
+- `PUBLIC_TRUSTEDFORM_ENABLED=true` (build time): loads TrustedForm. Off by default (see docs/LAUNCH.md).
+- `PUBLIC_RESPONSE_WINDOW` (build time): response time shown on the thank-you page, e.g. `within 1 business day`.
+
+To work leads: Supabase dashboard, Table Editor, `leads`. Handle `data_requests` the same way (`status` `new` / `in_progress` / `done` / `rejected`).
 
 ## Data
 

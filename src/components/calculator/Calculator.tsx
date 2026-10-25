@@ -20,7 +20,8 @@ import { answerSummaryParts } from '../../lib/calculator/summary';
 import { formatUsd } from '../../lib/format';
 import { parseShareParams, serializeShareParams } from '../../lib/share';
 import { btnPrimary, btnSecondary, btnText } from '../ui/buttons';
-import QuoteForm, { type QuoteContext } from '../quotes/QuoteForm';
+import ResultsActions from '../quotes/ResultsActions';
+import type { QuoteContext } from '../quotes/QuoteForm';
 import { estimateSnapshot } from '../../lib/leads/snapshot';
 
 const loadEngine = () => import('../../lib/calculator/engine');
@@ -270,13 +271,6 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
     goTo(1);
   }
 
-  /** "Change" ZIP on the quote card: back to step 1 of the calculator, answers kept. */
-  function changeZip() {
-    focusStep.current = 'field';
-    setCollapsed(false);
-    setStep(1);
-  }
-
   /** Re-open the form at step 4 (the most-edited step), answers kept; results stay below. */
   function editAnswers() {
     focusStep.current = 'heading';
@@ -300,11 +294,11 @@ export default function Calculator(props: CalculatorProps & { alertsEnabled: boo
   /** Quote card for the answers the shown results were run with (null when nothing applies). */
   const leadCard = (snapshot: QuoteContext['snapshot'], pending: boolean) =>
     ranInputs && (
-      <LeadCard
+      <ResultsActions
         zip={ranInputs.zip}
         state={state}
         pending={pending}
-        onChangeZip={changeZip}
+        pagePath={CALCULATOR_PATHS[state]}
         context={{ utilityId: ranInputs.utilityId, bill: ranInputs.bill, battery: ranInputs.battery, shading: ranInputs.shading, snapshot }}
       />
     );
@@ -754,22 +748,5 @@ function Results(p: {
         </span>
       </div>
     </div>
-  );
-}
-
-/** "Get real quotes for this system": the quote form, prefilled with the calculator answers. */
-function LeadCard(p: { zip: string; state: 'FL' | 'CA'; pending: boolean; onChangeZip: () => void; context: QuoteContext }) {
-  return (
-    <section aria-labelledby="calc-quote-heading" class="mt-6 rounded-2xl border-2 border-sun-400 bg-sun-50 p-5 sm:p-6">
-      <h3 id="calc-quote-heading" class="text-xl font-bold tracking-tight text-stone-900">
-        Get real quotes for this system
-      </h3>
-      <p class="mb-4 mt-1 text-stone-700">
-        {p.pending
-          ? 'We’re still verifying rates — installers can still quote your home.'
-          : `Compare free quotes from up to 3 installers near ${p.zip}. Your estimate comes with you.`}
-      </p>
-      <QuoteForm id="calc-quote" source="results" pagePath={CALCULATOR_PATHS[p.state]} state={p.state} zip={p.zip} onChangeZip={p.onChangeZip} context={p.context} />
-    </section>
   );
 }

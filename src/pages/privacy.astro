@@ -36,22 +36,50 @@ const path = '/privacy';
       These companies store or process data on our behalf, only to run RayValue: Vercel hosts the site and provides
       the cookieless analytics described above (as with any website, it processes request data such as IP addresses
       to serve pages and protect the site from abuse), and Supabase hosts our database, where quote requests, privacy
-      requests and alert signups are stored.
+      requests, estimate-email requests and alert signups are stored. If you choose to confirm your phone number with a
+      text-message code, Twilio sends and checks that code. If you ask us to email you an estimate, an email delivery
+      service sends it. <!-- OWNER: name the email provider here once chosen (RESEND_API_KEY / EMAIL_FROM). -->
     </p>
 
     <h2>Quote requests</h2>
     <p>
       If you ask for installer quotes, we store what you enter in the quote form in our database (hosted by
-      Supabase): your first name, email address, phone number, ZIP code and state, whether you own the home, and when
-      you hope to go solar. When you send the form from your calculator results, we also store your calculator answers
-      (utility, monthly bill, battery and shade) and the estimate you saw. We also store the exact consent wording you
-      agreed to, when you agreed, the page you sent it from, and your browser&rsquo;s user-agent string.
+      Supabase): your first and last name, email address, mobile phone number, street address, ZIP code and state,
+      whether you own the home, your approximate monthly electric bill and utility, your roof&rsquo;s shade and age, whether you
+      want a battery, how you would like to pay, and when you hope to go solar. When you send the form from your
+      calculator results, we also store your calculator answers (utility, monthly bill, battery and shade) and the
+      estimate you saw.
     </p>
     <p>
-      We use this to connect you with solar installers. We may sell or share your quote request with up to 3 solar
-      installers serving your area that you agreed to hear from when you checked the consent box, and with no one else
-      for marketing. Those installers and RayValue may contact you about solar quotes. Apart from that, it is processed
-      only by our service providers listed above. We keep it until you ask us to delete it.
+      We also store a record of your consent: the exact consent wording you saw (including the names of the
+      installers it listed), its version, when you agreed, your IP address, the page you sent the request from and
+      your browser&rsquo;s user-agent string. If we use a consent-verification service for this, it may also record
+      your visit to the form and give us a certificate of it; we will update this page before turning one on.
+    </p>
+    <p>
+      We use this to connect you with solar installers. We may sell or share your quote request with the solar
+      installers named in the consent wording you agreed to (up to 3 serving your ZIP code), and with no one else
+      for marketing. Those installers and RayValue may contact you about solar quotes, including by calls and texts
+      made with automated technology. Consent is not a condition of purchase. Apart from that, it is processed only by
+      our service providers listed above. We keep it until you ask us to delete it.
+    </p>
+    <p>
+      <strong>If you rent</strong>, we do not send your request to installers, and the answers you entered in the
+      quote form are not sent to us or saved. <strong>If no installer serves your ZIP code yet</strong>, we still save
+      your request, with your consent wording, so we can email you when one does; it is not shared with installers
+      until then.
+    </p>
+    <p>
+      <strong>Phone confirmation.</strong> If we offer a text-message code, we send it to the number you gave and record
+      only whether you confirmed it. Message and data rates may apply. You can skip this step.
+    </p>
+
+    <h2>Email me this estimate</h2>
+    <p>
+      If you ask us to email your estimate, we store your email address, your state, the estimate you saw, the consent
+      wording you agreed to, when you agreed and your IP address. We use it to send the estimate and, because you
+      agreed, occasional updates about solar costs and savings. You can unsubscribe at any time with the
+      <a href="/privacy/request">privacy request form</a>, as explained in each email.
     </p>
 
     <h2>California residents</h2>

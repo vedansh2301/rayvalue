@@ -18,3 +18,10 @@ interface ImportMetaEnv {
   readonly SUPABASE_URL?: string;
   readonly SUPABASE_PUBLISHABLE_KEY?: string;
 }
+
+interface ImportMetaEnv {
+  /** Optional consent-evidence script (TrustedForm), OFF unless "true" (src/lib/leads/consent-vendor.ts). Setting it needs the rule-7 amendment + privacy policy update + vercel.json CSP. */
+  readonly PUBLIC_TRUSTEDFORM_ENABLED?: string;
+  /** Owner-confirmed response time shown on the thank-you page, e.g. "within 1 business day". Unset = no timing is stated. */
+  readonly PUBLIC_RESPONSE_WINDOW?: string;
+}

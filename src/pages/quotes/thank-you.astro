@@ -1,0 +1,102 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { RESPONSE_WINDOW } from '../../lib/contact';
+// Static page. The quote form saves a small summary (first name, installer names, status) in sessionStorage and
+// redirects here; the script below fills it in. Without it (direct visit, storage blocked) the generic text shows.
+// Fires the quote_submit funnel event once per submission.
+const checklist = [
+  ['Same system, same terms', 'Ask every installer to quote the same system size (kW) and the same panels, inverter and battery, so prices can be compared line by line.'],
+  ['Price per watt', 'Divide each total price by the system size in watts. It is the quickest way to see which quote is really cheaper.'],
+  ['What is included', 'Permits, utility interconnection, monitoring, a battery if you want one, and any roof or electrical-panel work. Ask what is not included.'],
+  ['Financing terms', 'For a loan: the interest rate, the term and any dealer or origination fee built into the price. For a lease or PPA: the monthly payment, the yearly increase and what happens if you sell the home.'],
+  ['No federal tax credit', 'The federal residential credit ended for 2026 installs. Be wary of a quote that counts on it.'],
+  ['Production estimate', 'Ask how much electricity the system is expected to make each year and what shading and roof direction it assumes.'],
+  ['Warranties', 'Panels, inverter, battery and workmanship each have their own length. Ask who honors the workmanship warranty if the installer closes.'],
+  ['License and insurance', 'Check the installer’s contractor license with your state (Florida: DBPR; California: CSLB) and ask for proof of insurance.'],
+  ['Payment schedule', 'Know the deposit and when each payment is due. Be cautious about large payments before work starts.'],
+] as const;
+---
+<BaseLayout title="Thanks, your quote request is in" description="What happens after you request solar quotes, what to have ready, and how to compare them." path="/quotes/thank-you" noindex>
+  <div class="page">
+    <div id="ty-ok">
+      <h1><span id="ty-hello">Thanks! Your request is in</span></h1>
+
+      <section id="ty-serviced" hidden>
+        <h2>What happens next</h2>
+        <p>We&rsquo;re passing your request to the installers you agreed to hear from. They&rsquo;ll contact you directly by phone, text or email.</p>
+        <ul id="ty-installers" class="list-disc pl-6"></ul>
+        <p id="ty-nurture" hidden>You said you&rsquo;re just researching, so we&rsquo;ve marked your request as early-stage.</p>
+        {RESPONSE_WINDOW && <p>Expect to hear from them {RESPONSE_WINDOW}.</p>}
+        <p id="ty-unverified" hidden>Tip: installers can reach you faster if your mobile number is correct. Reply to any installer message with STOP to opt out.</p>
+      </section>
+
+      <section id="ty-unserviced" hidden>
+        <h2>What happens next</h2>
+        <p>We don&rsquo;t have installers near you yet &mdash; we&rsquo;ll email you when we do. Your details are saved only for that.</p>
+      </section>
+
+      <section id="ty-generic">
+        <h2>What happens next</h2>
+        <p>If installers serve your ZIP code, the ones you agreed to hear from will contact you directly by phone, text or email. If none do yet, we&rsquo;ll email you when that changes.</p>
+        {RESPONSE_WINDOW && <p>Expect to hear from installers {RESPONSE_WINDOW}.</p>}
+      </section>
+
+      <h2>What to have ready</h2>
+      <ul class="list-disc pl-6">
+        <li>A recent electric bill (ideally the last 12 months), so installers can size the system to your real usage.</li>
+        <li>A rough idea of your roof&rsquo;s age and any shade from trees or neighbors.</li>
+        <li>Your utility account details, if you have them handy.</li>
+        <li>Questions about batteries, financing or timing that matter to you.</li>
+      </ul>
+
+      <h2>How to compare solar quotes</h2>
+      <ol class="list-decimal pl-6">
+        {checklist.map(([title, text]) => (
+          <li><strong>{title}.</strong> {text}</li>
+        ))}
+      </ol>
+    </div>
+
+    <div id="ty-error" hidden>
+      <h1>We couldn&rsquo;t send your request</h1>
+      <p>Something went wrong, or a field wasn&rsquo;t filled in correctly. Please <a href="/quotes">go back and try again</a>.</p>
+    </div>
+
+    <p class="mt-10">While you wait: run the <a href="/calculator/florida">Florida calculator</a> or the <a href="/calculator/california">California calculator</a>, or read the <a href="/methodology">methodology</a> behind the numbers.</p>
+  </div>
+  <script>
+    // Bundled (not inline) so it is covered by the CSP script hashes.
+    import { readSummary, saveSummary } from '../../lib/leads/summary';
+    import { trackEvent } from '../../lib/track';
+
+    const $ = (id: string) => document.getElementById(id);
+    if (new URLSearchParams(window.location.search).get('error') === '1') {
+      $('ty-ok')!.hidden = true;
+      $('ty-error')!.hidden = false;
+      document.title = 'Quote request problem | RayValue';
+    } else {
+      const s = readSummary();
+      if (s) {
+        $('ty-hello')!.textContent = `Thanks, ${s.firstName}! Your request is in`;
+        $('ty-generic')!.hidden = true;
+        if (s.status === 'unserviced' || !s.serviced) {
+          $('ty-unserviced')!.hidden = false;
+        } else {
+          $('ty-serviced')!.hidden = false;
+          const list = $('ty-installers')!;
+          for (const name of s.installers) {
+            const li = document.createElement('li');
+            li.textContent = name; // text, never HTML
+            list.appendChild(li);
+          }
+          if (s.status === 'nurture') $('ty-nurture')!.hidden = false;
+          if (!s.phoneVerified) $('ty-unverified')!.hidden = false;
+        }
+        if (!s.tracked) {
+          trackEvent('quote_submit', { source: s.source, state: s.state });
+          saveSummary({ ...s, tracked: true });
+        }
+      }
+    }
+  </script>
+</BaseLayout>

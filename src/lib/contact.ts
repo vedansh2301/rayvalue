@@ -19,3 +19,15 @@ export const CONTACT_EMAIL: string | null = parseContactEmail(import.meta.env.PU
 
 /** Rate-alert signups are offered only when there is a contact address for deletion requests. */
 export const ALERTS_ENABLED: boolean = CONTACT_EMAIL !== null;
+
+/**
+ * Owner-confirmed time installers usually take to reach out, e.g. "within 1 business day" (PUBLIC_RESPONSE_WINDOW,
+ * build time). Never invented: while unset the thank-you page states no timing.
+ */
+export function parseResponseWindow(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const s = raw.trim();
+  return s.length > 0 && s.length <= 80 && /^[A-Za-z0-9 ,.\-–]+$/.test(s) ? s : null;
+}
+
+export const RESPONSE_WINDOW: string | null = parseResponseWindow(import.meta.env.PUBLIC_RESPONSE_WINDOW);

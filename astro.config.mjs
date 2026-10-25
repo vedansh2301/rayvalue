@@ -10,6 +10,7 @@ import { guideFlags, excludedGuideUrls, excludedCollectionUrls } from './src/lib
 import { getPublishedCityUrls } from './src/lib/seo/sitemap-cities.ts';
 import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
 import { adCspSources, parseAdIds } from './src/lib/ads/config.ts';
+import { trustedFormCsp, trustedFormEnabled } from './src/lib/leads/consent-vendor.ts';
 
 // Server code reads secrets from process.env at request time (never import.meta.env, which Vite inlines
 // into the function bundle). Under `astro dev`, load .env.local (from `vercel env pull`) into process.env.
@@ -43,27 +44,37 @@ const ads = adCspSources(parseAdIds({
   PUBLIC_META_PIXEL_ID: process.env.PUBLIC_META_PIXEL_ID || dbEnv.PUBLIC_META_PIXEL_ID,
 }));
 
+// Optional TrustedForm consent-evidence script: OFF unless PUBLIC_TRUSTEDFORM_ENABLED=true (see docs/LAUNCH.md).
+const tf = trustedFormCsp(trustedFormEnabled(process.env.PUBLIC_TRUSTEDFORM_ENABLED || dbEnv.PUBLIC_TRUSTEDFORM_ENABLED));
+const thirdParty = {
+  script: [...ads.script, ...tf.script],
+  connect: [...ads.connect, ...tf.connect],
+  img: [...ads.img, ...tf.img],
+};
+
 // noindex utility pages (confirmations, privacy request form).
-const NOINDEX_UTILITY_PAGES = new Set(['/alerts/thanks', '/quotes/thanks', '/privacy/request', '/privacy/request/thanks']);
+const NOINDEX_UTILITY_PAGES = new Set(['/alerts/thanks', '/quotes/thank-you', '/quotes/thanks', '/privacy/request', '/privacy/request/thanks']);
 
 export default defineConfig({
   site: 'https://rayvalue.com',
   output: 'static',
+  // The confirmation page moved (kept for old links and bookmarks).
+  redirects: { '/quotes/thanks': '/quotes/thank-you' },
   // Hashed CSP for every page. With the Vercel adapter's staticHeaders, Astro sends the policy as an HTTP
   // header for prerendered pages too (not a <meta> tag, where frame-ancestors would be ignored), and
   // on-demand pages send it from the function. These directives are added to script-src/style-src hashes.
   security: {
     csp: {
       directives: [
-        ['connect-src', "'self'", ...ads.connect].join(' '),
-        ['img-src', "'self'", 'data:', ...ads.img].join(' '),
+        ['connect-src', "'self'", ...thirdParty.connect].join(' '),
+        ['img-src', "'self'", 'data:', ...thirdParty.img].join(' '),
         "font-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
         "frame-ancestors 'none'",
       ],
-      ...(ads.script.length ? { scriptDirective: { resources: ["'self'", ...ads.script] } } : {}),
+      ...(thirdParty.script.length ? { scriptDirective: { resources: ["'self'", ...thirdParty.script] } } : {}),
     },
   },
   // Shiki emits inline styles, which the hashed CSP blocks; guides have no code blocks, so no highlighting.
