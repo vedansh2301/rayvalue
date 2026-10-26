@@ -92,6 +92,45 @@ export async function adminUpdate(env: AdminEnv, table: string, filter: Record<s
   }
 }
 
+/** DELETE rows matching `filter` (a filter is required: never deletes a whole table). Returns how many rows were deleted, or null on failure. */
+export async function adminDelete(env: AdminEnv, table: string, filter: Record<string, string>, fetchImpl: typeof fetch): Promise<number | null> {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SECRET_KEY || Object.keys(filter).length === 0) return null;
+  const u = new URL(`${base(env.SUPABASE_URL)}/rest/v1/${table}`);
+  for (const [k, v] of Object.entries(filter)) u.searchParams.set(k, v);
+  u.searchParams.set('select', '*');
+  try {
+    const res = await fetchImpl(u.toString(), { method: 'DELETE', headers: adminHeaders(env.SUPABASE_SECRET_KEY, { Prefer: 'return=representation' }), signal: AbortSignal.timeout(DB_TIMEOUT_MS) });
+    if (!res.ok) {
+      console.error(`${table}: supabase status ${res.status}`);
+      return null;
+    }
+    const body = await res.json().catch(() => null);
+    return Array.isArray(body) ? body.length : null;
+  } catch (e) {
+    console.error(`${table}: supabase request failed`, e instanceof Error ? e.name : 'error');
+    return null;
+  }
+}
+
+/** INSERT several rows in one request. true when all were inserted. */
+export async function adminInsertMany(env: AdminEnv, table: string, rows: object[], fetchImpl: typeof fetch): Promise<boolean> {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SECRET_KEY) return false;
+  if (rows.length === 0) return true;
+  try {
+    const res = await fetchImpl(`${base(env.SUPABASE_URL)}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: adminHeaders(env.SUPABASE_SECRET_KEY, { Prefer: 'return=minimal' }),
+      body: JSON.stringify(rows),
+      signal: AbortSignal.timeout(DB_TIMEOUT_MS),
+    });
+    if (!res.ok) console.error(`${table}: supabase status ${res.status}`);
+    return res.ok;
+  } catch (e) {
+    console.error(`${table}: supabase request failed`, e instanceof Error ? e.name : 'error');
+    return false;
+  }
+}
+
 const PAGE_SIZE = 1000;
 
 /** SELECT every matching row, paging with limit/offset (Supabase returns at most 1000 rows per request). null on failure. */

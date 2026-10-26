@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdminNav from '../../components/admin/AdminNav.astro';
 import KpiTable from '../../components/admin/KpiTable.astro';
 import { TARGETS, completionState, pct, rate, returnState, usd } from '../../lib/kpi/report';
 import { NOINDEX_HEADERS, guardAdmin } from '../../lib/server/admin';
@@ -21,10 +22,10 @@ const pctTarget = (n: number) => `${Math.round(n * 100)}%`;
 ---
 <BaseLayout title="KPI report" description="Owner-only KPI report." path="/admin/kpi" noindex>
   <div class="shell py-8">
-    <h1 class="text-2xl font-bold text-stone-900">KPI report</h1>
+    <AdminNav current="/admin/kpi" />
+    <h1 class="mt-4 text-2xl font-bold text-stone-900">KPI report</h1>
     <p class="mt-1 text-sm text-stone-700">
       Last {weeks} weeks (weeks start Monday, UTC){data && <> from {data.from}</>}. No personal data on this page.
-      <a href="/admin/leads" class="underline underline-offset-2">Leads</a>
     </p>
     <nav aria-label="Weeks shown" class="mt-3 flex flex-wrap gap-2">
       {[4, 8, 13, 26].map((n) => <a class="rounded border border-stone-300 px-3 py-2 text-sm" aria-current={weeks === n ? 'page' : undefined} href={`/admin/kpi?weeks=${n}`}>{n} weeks</a>)}

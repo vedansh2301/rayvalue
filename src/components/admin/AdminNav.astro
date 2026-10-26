@@ -1,0 +1,45 @@
+---
+// Owner-area navigation shared by /admin, leads, KPI and every social page. Plain links, current page marked.
+interface Props {
+  /** Pathname of the current page, e.g. "/admin/social/library". */
+  current: string;
+}
+const { current } = Astro.props;
+const path = current.replace(/\/+$/, '') || '/';
+const top = [
+  { href: '/admin', label: 'Overview' },
+  { href: '/admin/leads', label: 'Leads' },
+  { href: '/admin/kpi', label: 'KPI' },
+  { href: '/admin/social', label: 'Social' },
+];
+const social = [
+  { href: '/admin/social', label: 'Posts' },
+  { href: '/admin/social/new', label: 'New post' },
+  { href: '/admin/social/library', label: 'Library' },
+  { href: '/admin/social/templates', label: 'Templates' },
+  { href: '/admin/social/insights', label: 'Insights' },
+  { href: '/admin/social/settings', label: 'Settings' },
+];
+const inSocial = path.startsWith('/admin/social');
+const topCurrent = (href: string) => (href === '/admin' ? path === '/admin' : path === href || path.startsWith(`${href}/`));
+const subCurrent = (href: string) => (href === '/admin/social' ? path === href : path === href || path.startsWith(`${href}/`));
+const link = 'inline-flex min-h-11 items-center whitespace-nowrap rounded px-3 text-sm';
+---
+<nav aria-label="Admin" class="border-b border-stone-200 pb-2">
+  <ul class="flex flex-wrap gap-1">
+    {top.map((l) => (
+      <li>
+        <a href={l.href} aria-current={topCurrent(l.href) ? 'page' : undefined} class:list={[link, topCurrent(l.href) ? 'bg-stone-900 font-semibold text-white' : 'text-stone-800 hover:bg-stone-200']}>{l.label}</a>
+      </li>
+    ))}
+  </ul>
+  {inSocial && (
+    <ul class="mt-1 flex flex-wrap gap-1" aria-label="Social">
+      {social.map((l) => (
+        <li>
+          <a href={l.href} aria-current={subCurrent(l.href) ? 'page' : undefined} class:list={[link, subCurrent(l.href) ? 'bg-sun-100 font-semibold text-sun-ink' : 'text-stone-700 hover:bg-stone-200']}>{l.label}</a>
+        </li>
+      ))}
+    </ul>
+  )}
+</nav>
