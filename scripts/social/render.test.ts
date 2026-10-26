@@ -12,7 +12,7 @@ const haveFfmpeg = ['ffmpeg', 'ffprobe'].every((b) => spawnSync(b, ['-version'])
 const slides: Slide[] = [
   { id: 'hook', theme: 'sun', kicker: 'Test', title: 'Is solar worth it?', subtitle: 'Fixture slide', seconds: 2 },
   { id: 'fig', theme: 'light', kicker: 'Cost', title: 'A typical home', big: '$10,000–$20,000', tiles: [{ label: 'Low', value: '$10,000' }, { label: 'Likely', value: '$15,000', emphasis: true }, { label: 'High', value: '$20,000' }], footer: ['Estimates, not quotes · rayvalue.com'], seconds: 2 },
-  { id: 'cta', theme: 'dark', title: 'Run your own numbers at', url: 'rayvalue.com/calculator/florida', seconds: 2 },
+  { id: 'cta', theme: 'dark', title: 'Run your own numbers', url: 'rayvalue.com/calculator/florida', seconds: 2 },
 ];
 
 const dir = mkdtempSync(join(tmpdir(), 'social-test-'));

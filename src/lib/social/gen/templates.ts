@@ -113,9 +113,9 @@ function ctaSlide(book: RefBook, url: string, dataDate: UtilityFacts['dataDate']
     id: 'cta',
     theme: 'sun',
     kicker: 'Your home is different',
-    title: 'Run your own numbers at',
+    title: 'Run your own numbers',
+    subtitle: 'Free calculator on your utility’s rates. Link in bio.',
     url,
-    lines: ['Link in bio.'],
     footer: footerFor(book, dataDate, footerLabel),
     seconds,
   };
