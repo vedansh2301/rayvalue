@@ -17,6 +17,7 @@ import { PHOTOS } from './photos';
 import { assignPhotos, seedHash } from './slide-photos';
 import { buildUtilityFacts, formatDataDate, joinRange, paybackBig, paybackPhrase } from './facts';
 import { REEL_MAX_SECONDS, reelTimeline } from './timeline';
+import { speakable } from './speech';
 import type { GeneratedPost } from './types';
 
 // ------------------------------------------------------------------ fixtures
@@ -417,5 +418,25 @@ describe('decideQueueState', () => {
     expect(decideQueueState({ ...base, settings: { ...settings, slots: [] } })).toEqual({ status: 'draft', scheduledAt: null });
     // --draft: always a draft with no slot, even when it would schedule
     expect(decideQueueState({ ...base, draft: true })).toEqual({ status: 'draft', scheduledAt: null });
+  });
+});
+
+// ------------------------------------------------------------------ voice-over speech (what the TTS engine reads)
+describe('speakable() on every Reel voice line', () => {
+  const pge = () => vmFor('pge', { production: [prod('fx-c', 'CA')], lookupZip: () => ({ state: 'CA' as const }) });
+  const reels: [string, () => GeneratedPost][] = [
+    ['utility-payback-reel/fpl', () => buildUtilityPaybackReel(fpl(), { channel: 'instagram' })],
+    ['utility-payback-reel/pge', () => buildUtilityPaybackReel(pge(), { channel: 'instagram' })],
+    ['credit-gone-reel/fl', () => buildCreditGoneReel('FL', flVms(), { channel: 'facebook' })],
+  ];
+  it.each(reels)('%s: no digits, symbols or raw acronyms left for the engine to guess at', (_k, build) => {
+    const lines = build().slides.flatMap((s) => (s.voice ? [s.voice] : []));
+    expect(lines.length).toBeGreaterThan(0);
+    for (const line of lines) {
+      const said = speakable(line);
+      expect(said, line).not.toMatch(/[\d$&%/–—’]/);
+      expect(said, line).not.toMatch(/\b[A-Z]{2,}\b/);
+      expect(said.length, line).toBeGreaterThan(0);
+    }
   });
 });

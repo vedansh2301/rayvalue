@@ -56,6 +56,17 @@ jobs:
             sudo apt-get update -y && sudo apt-get install -y ffmpeg
           fi
           ffmpeg -version | head -1
+      - name: Cache voice-over engine
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/rayvalue-tts
+          key: rayvalue-tts-${{ runner.os }}-${{ hashFiles('scripts/social/tts-setup.sh') }}
+      - name: Set up voice-over engine (Kokoro)
+        if: steps.gate.outputs.run == 'true'
+        # Without it Reels still render, with music only, so a failed download does not stop the run.
+        continue-on-error: true
+        run: bash scripts/social/tts-setup.sh
       - name: Generate posts
         if: steps.gate.outputs.run == 'true'
         run: |
