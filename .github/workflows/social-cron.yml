@@ -3,7 +3,7 @@ name: Social cron
 # job runs from here. Needs the repo secret CRON_SECRET (same value as CRON_SECRET in Vercel). Routes: src/pages/api/cron/social-*.ts
 on:
   schedule:
-    - cron: '*/15 * * * *' # publish
+    - cron: '7,22,37,52 * * * *' # publish (off the busy :00 minute; GitHub drops many top-of-hour runs)
     - cron: '17 9 * * *' # token refresh + insights, once a day
   workflow_dispatch:
     inputs:
@@ -28,7 +28,7 @@ jobs:
         id: pick
         run: |
           case "${{ github.event.schedule }}" in
-            '*/15 * * * *') routes="social-publish" ;;
+            '7,22,37,52 * * * *') routes="social-publish" ;;
             '17 9 * * *') routes="social-token social-insights" ;;
             *)
               case "${{ github.event.inputs.job }}" in
