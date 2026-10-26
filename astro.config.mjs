@@ -133,7 +133,7 @@ export default defineConfig({
   markdown: { syntaxHighlight: false },
   // Static pages stay prerendered. API routes and pages that read the Supabase calculator data
   // opt out (prerender = false) and run as Vercel Functions.
-  adapter: vercel({ staticHeaders: true }),
+  adapter: vercel({ staticHeaders: true, maxDuration: 60 }),
   // Canonical policy: no trailing slash. @astrojs/vercel forces build.format 'directory'; Vercel serves /x from x/index.html.
   trailingSlash: 'never',
   build: { format: 'directory' },

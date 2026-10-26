@@ -13,6 +13,16 @@ export const TRANSITIONS: Record<PostStatus, readonly PostStatus[]> = {
 
 export const canTransition = (from: PostStatus, to: PostStatus) => TRANSITIONS[from].includes(to);
 
+/**
+ * Extra moves only the publisher makes (the owner's UI never does): a scheduled post whose checks fail on the final
+ * re-check goes to "review", and a publish that failed with attempts left goes back to "scheduled" to retry.
+ */
+const PUBLISHER_MOVES: readonly (readonly [PostStatus, PostStatus])[] = [
+  ['scheduled', 'review'],
+  ['publishing', 'scheduled'],
+];
+export const publisherCanMove = (from: PostStatus, to: PostStatus) => canTransition(from, to) || PUBLISHER_MOVES.some(([a, b]) => a === from && b === to);
+
 /** Content edits are allowed only before the publisher has touched the post. */
 export const isEditable = (s: PostStatus) => s === 'draft' || s === 'review' || s === 'scheduled' || s === 'failed';
 

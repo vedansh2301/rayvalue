@@ -92,6 +92,24 @@ export async function adminUpdate(env: AdminEnv, table: string, filter: Record<s
   }
 }
 
+/** INSERT ... ON CONFLICT (`onConflict`) DO UPDATE one row. true when written, false on any failure. */
+export async function adminUpsert(env: AdminEnv, table: string, row: object, onConflict: string, fetchImpl: typeof fetch): Promise<boolean> {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SECRET_KEY) return false;
+  try {
+    const res = await fetchImpl(`${base(env.SUPABASE_URL)}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
+      method: 'POST',
+      headers: adminHeaders(env.SUPABASE_SECRET_KEY, { Prefer: 'resolution=merge-duplicates,return=minimal' }),
+      body: JSON.stringify(row),
+      signal: AbortSignal.timeout(DB_TIMEOUT_MS),
+    });
+    if (!res.ok) console.error(`${table}: supabase status ${res.status}`);
+    return res.ok;
+  } catch (e) {
+    console.error(`${table}: supabase request failed`, e instanceof Error ? e.name : 'error');
+    return false;
+  }
+}
+
 const PAGE_SIZE = 1000;
 
 /** SELECT every matching row, paging with limit/offset (Supabase returns at most 1000 rows per request). null on failure. */

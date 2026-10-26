@@ -1,0 +1,52 @@
+name: Social cron
+# Calls the Instagram publisher routes on rayvalue.com. Vercel Hobby crons are daily-only, so the 15-minute publish
+# job runs from here. Needs the repo secret CRON_SECRET (same value as CRON_SECRET in Vercel). Routes: src/pages/api/cron/social-*.ts
+on:
+  schedule:
+    - cron: '*/15 * * * *' # publish
+    - cron: '17 9 * * *' # token refresh + insights, once a day
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Which job to run
+        type: choice
+        options: [publish, token, insights, all]
+        default: publish
+concurrency:
+  group: social-cron-${{ github.event.schedule || github.event.inputs.job || 'manual' }}
+  cancel-in-progress: false
+permissions: {}
+jobs:
+  call:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      BASE: https://rayvalue.com
+    steps:
+      - name: Decide which routes to call
+        id: pick
+        run: |
+          case "${{ github.event.schedule }}" in
+            '*/15 * * * *') routes="social-publish" ;;
+            '17 9 * * *') routes="social-token social-insights" ;;
+            *)
+              case "${{ github.event.inputs.job }}" in
+                token) routes="social-token" ;;
+                insights) routes="social-insights" ;;
+                all) routes="social-publish social-token social-insights" ;;
+                *) routes="social-publish" ;;
+              esac ;;
+          esac
+          echo "routes=$routes" >> "$GITHUB_OUTPUT"
+      - name: Call routes (fails on any non-2xx)
+        run: |
+          if [ -z "$CRON_SECRET" ]; then echo "CRON_SECRET repo secret is not set"; exit 1; fi
+          status=0
+          for r in ${{ steps.pick.outputs.routes }}; do
+            code=$(curl -sS -o body.json -w '%{http_code}' --max-time 90 -H "Authorization: Bearer $CRON_SECRET" "$BASE/api/cron/$r") || code=000
+            echo "$r -> HTTP $code"
+            cat body.json 2>/dev/null; echo
+            case "$code" in 2??) ;; *) status=1 ;; esac
+          done
+          exit $status
