@@ -4,6 +4,7 @@
  */
 import { CHANNELS, POST_STATUSES, POST_TYPES, type Channel, type MediaKind, type MediaMime, type PostStatus, type PostType, type Slot } from './types';
 import { isChannel } from './channels';
+import { isLocationKey } from './locations';
 import { zonedToUtc, isValidSlot } from './schedule';
 import { canTransition, statusOnSchedule } from './status';
 
@@ -155,6 +156,8 @@ export interface PostFormInput {
   scheduled_local: string;
   /** New alt text per selected media id (only the ids present in the form). */
   alt_text: Record<string, string | null>;
+  /** social_locations key to tag the post with; null = no location. Existence is enforced by the foreign key. */
+  location_key: string | null;
 }
 
 export function parsePostForm(form: URLSearchParams): Result<PostFormInput> {
@@ -194,6 +197,8 @@ export function parsePostForm(form: URLSearchParams): Result<PostFormInput> {
     if (a === undefined) errors.push(`Alt text can be at most ${LIMITS.alt} characters.`);
     else alt_text[id] = a;
   }
+  const rawLocation = (form.get('location_key') ?? '').trim();
+  if (rawLocation !== '' && !isLocationKey(rawLocation)) errors.push('Choose a location from the list.');
   if (errors.length) return { ok: false, errors };
   return {
     ok: true,
@@ -210,6 +215,7 @@ export function parsePostForm(form: URLSearchParams): Result<PostFormInput> {
       when: action === 'publish_now' ? 'now' : when,
       scheduled_local: (form.get('scheduled_local') ?? '').trim(),
       alt_text,
+      location_key: rawLocation === '' ? null : rawLocation,
     },
   };
 }

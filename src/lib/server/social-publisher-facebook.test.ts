@@ -54,6 +54,7 @@ const mkPost = (over: Partial<SocialPost> = {}): SocialPost => ({
   fb_last_error: null,
   fb_insights: null,
   fb_insights_at: null,
+  location_key: null,
   created_at: '2026-10-30T00:00:00Z',
   updated_at: '2026-11-02T10:00:00Z',
   ...over,
@@ -120,6 +121,10 @@ interface Net {
   startFail?: { status: number; message?: string } | null;
   finishFail?: { status: number } | null;
   igStatus?: Record<string, string>;
+  /** Instagram refuses any container with location_id (code 100 / 2207019). */
+  igRejectLocation?: boolean;
+  /** Facebook refuses any publish call with place (code 100). */
+  fbRejectPlace?: boolean;
 }
 
 interface Call {
@@ -154,6 +159,7 @@ function fakeNet(cfg: Net = { reel: {} }) {
 
     if (url.host === 'graph.instagram.com') {
       if (method === 'POST' && path.endsWith('/media')) {
+        if (cfg.igRejectLocation && form.location_id) return json({ error: { message: 'Invalid parameter', code: 100, error_subcode: 2207019 } }, 400);
         const id = `C${++containers}`;
         cfg.igStatus ??= {};
         cfg.igStatus[id] ??= 'FINISHED';
@@ -169,6 +175,7 @@ function fakeNet(cfg: Net = { reel: {} }) {
     if (url.host === 'rupload.facebook.com') return json({ success: true });
 
     if (url.host === 'graph.facebook.com') {
+      if (cfg.fbRejectPlace && method === 'POST' && form.place) return err(400, 'Invalid place', 100);
       if (method === 'POST' && path === '/v26.0/PAGE/photos') {
         if (cfg.photoFail) return err(cfg.photoFail.status, cfg.photoFail.message ?? 'Bad photo', cfg.photoFail.code);
         const id = `PH${++photos}`;
@@ -546,5 +553,81 @@ describe('Facebook insights', () => {
     const bad = (async () => new Response(JSON.stringify({ error: { message: `bad ${FB_TOKEN}`, code: 190 } }), { status: 400 })) as typeof fetch;
     const out = await runInsightsSync(ENV, bad, NOW, deps(m.store));
     expect(out).toMatchObject({ ok: false, error: 'Facebook rejected the Page token' });
+  });
+});
+
+describe('location tags', () => {
+  const MIAMI = '110148382341970';
+  const tagged = (over: Partial<SocialPost> = {}) => Object.assign(mkPost({ location_key: 'miami-fl', ...over }), { location: { fb_place_id: MIAMI } });
+
+  it('passes location_id on the Instagram container and place on the Facebook photo', async () => {
+    const m = memoryStore({ posts: [tagged({ channels: ['instagram', 'facebook'] })], media: { p1: [{ ...jpg(), alt_text: 'Payback chart' }] } });
+    const net = fakeNet();
+    expect(await run(ENV, net, m.store)).toMatchObject({ ok: true, published: 1 });
+    const container = net.igPosts().find((c) => c.path.endsWith('/media'))!;
+    expect(container.form).toMatchObject({ location_id: MIAMI, alt_text: 'Payback chart' });
+    expect(net.fbPosts().find((c) => c.path.endsWith('/photos'))!.form.place).toBe(MIAMI);
+    expect(m.events.some((e) => e.event === 'location_dropped')).toBe(false);
+  });
+
+  it('carousel: location on the Instagram parent and the Facebook feed post only', async () => {
+    const m = memoryStore({ posts: [tagged({ type: 'carousel', channels: ['instagram', 'facebook'] })], media: { p1: [jpg(1), jpg(2)] } });
+    const net = fakeNet();
+    await run(ENV, net, m.store);
+    const ig = net.igPosts().filter((c) => c.path.endsWith('/media'));
+    expect(ig.map((c) => c.form.location_id ?? null)).toEqual([null, null, MIAMI]);
+    const fb = net.fbPosts();
+    expect(fb.map((c) => c.form.place ?? null)).toEqual([null, null, MIAMI]);
+  });
+
+  it('Facebook Reel: place on the finish call', async () => {
+    const m = memoryStore({ posts: [tagged({ type: 'reel' })], media: { p1: [mp4] } });
+    const net = fakeNet({ reel: { V1: { video_status: 'ready' } } });
+    await run(ENV, net, m.store);
+    const finish = net.fbPosts().find((c) => c.form.upload_phase === 'finish')!;
+    expect(finish.form.place).toBe(MIAMI);
+    expect(net.fbPosts().find((c) => c.form.upload_phase === 'start')!.form.place).toBeUndefined();
+  });
+
+  it('no location: no location_id and no place', async () => {
+    const m = memoryStore({ posts: [mkPost({ channels: ['instagram', 'facebook'] })] });
+    const net = fakeNet();
+    await run(ENV, net, m.store);
+    expect([...net.igPosts(), ...net.fbPosts()].some((c) => 'location_id' in c.form || 'place' in c.form)).toBe(false);
+  });
+
+  it('a location key whose row has no verified place id is not sent', async () => {
+    const m = memoryStore({ posts: [Object.assign(mkPost({ location_key: 'x', channels: ['instagram'] }), { location: { fb_place_id: null } })] });
+    const net = fakeNet();
+    await run(ENV, net, m.store);
+    expect(net.igPosts().some((c) => 'location_id' in c.form)).toBe(false);
+  });
+
+  it('Instagram refuses the location: container made again without it, post still publishes, event logged', async () => {
+    const m = memoryStore({ posts: [tagged({ channels: ['instagram'] })] });
+    const net = fakeNet({ reel: {}, igRejectLocation: true });
+    expect(await run(ENV, net, m.store)).toMatchObject({ ok: true, published: 1, failed: 0, retried: 0 });
+    const media = net.igPosts().filter((c) => c.path.endsWith('/media'));
+    expect(media.map((c) => c.form.location_id ?? null)).toEqual([MIAMI, null]);
+    expect(m.posts.get('p1')).toMatchObject({ status: 'published', attempts: 0, last_error: null });
+    const ev = m.events.find((e) => e.event === 'location_dropped')!;
+    expect(ev.detail).toMatchObject({ channel: 'instagram', location_key: 'miami-fl', place_id: MIAMI });
+    expect(JSON.stringify(m.events)).not.toContain(IG_TOKEN);
+  });
+
+  it('Facebook refuses the place: photo posted without it, event logged', async () => {
+    const m = memoryStore({ posts: [tagged()] });
+    const net = fakeNet({ reel: {}, fbRejectPlace: true });
+    expect(await run(ENV, net, m.store)).toMatchObject({ ok: true, published: 1 });
+    expect(net.fbPosts().map((c) => c.form.place ?? null)).toEqual([MIAMI, null]);
+    expect(m.events.find((e) => e.event === 'location_dropped')!.detail).toMatchObject({ channel: 'facebook' });
+  });
+
+  it('dry run records the location it would send', async () => {
+    const m = memoryStore({ posts: [tagged({ channels: ['instagram'] })] });
+    const net = fakeNet();
+    await run({ ...ENV, SOCIAL_DRY_RUN: '1' }, net, m.store);
+    expect(m.events.find((e) => e.event === 'dry_run')!.detail).toMatchObject({ location: MIAMI });
+    expect(net.igPosts()).toHaveLength(0);
   });
 });

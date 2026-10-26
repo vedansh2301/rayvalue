@@ -43,6 +43,7 @@ const mkPost = (over: Partial<SocialPost> = {}): SocialPost => ({
   fb_last_error: null,
   fb_insights: null,
   fb_insights_at: null,
+  location_key: null,
   created_at: '2026-10-30T00:00:00Z',
   updated_at: 'v0',
   ...over,

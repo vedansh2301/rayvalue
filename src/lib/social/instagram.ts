@@ -26,6 +26,13 @@
  *   for reels; stories: views, reach, shares, replies, total_interactions (available for 24h only). `impressions`
  *   is deprecated for media after 2 Jul 2024 and `plays`/`video_views` are gone, so none of them are requested.
  *   Insights are not available for the child items of an album, only for the carousel itself.
+ * - Location tag (checked 2026-10-26, same reference page): `location_id` = id of a Facebook Page with location data, on
+ *   image, Reel and carousel PARENT containers ("Not supported on images or videos in carousels"; not in the Stories
+ *   syntax). A Page without location data is refused: HTTP 400, code 100, subcode 2207019
+ *   (INSTAGRAM_PLATFORM_API__INVALID_LOCATION_ID), seen live on an unpublished container. The publisher then creates the
+ *   container once more without the tag (see createContainer) instead of failing the post.
+ * - Alt text: `alt_text` on image containers and image carousel items only ("Reels and stories are not supported");
+ *   accepted live on an unpublished image container and an unpublished carousel item, 2026-10-26.
  */
 import type { PostType, SocialMedia, SocialPost } from './types';
 
@@ -41,6 +48,8 @@ export class IgError extends Error {
     readonly status: number,
     /** Instagram error code (190 = bad/expired token, 4/17/32/613 = rate limit, 100 = bad parameter). */
     readonly code: number | null,
+    /** error_subcode (2207019 = invalid location id). */
+    readonly subcode: number | null = null,
   ) {
     super(message);
     this.name = 'IgError';
@@ -64,7 +73,21 @@ export interface IgClientOptions {
 }
 
 export type PostForContainer = Pick<SocialPost, 'type' | 'caption' | 'share_to_feed' | 'thumb_offset_ms'>;
-export type MediaForContainer = Pick<SocialMedia, 'kind' | 'public_url'>;
+export type MediaForContainer = Pick<SocialMedia, 'kind' | 'public_url'> & { alt_text?: string | null };
+
+export interface ContainerOptions {
+  /** Facebook Page id with location data to tag the post with (image, Reel, carousel parent). */
+  locationId?: string | null;
+  /** Called when Instagram refuses the location; the container is then created again without it. */
+  onLocationRejected?: (message: string) => void | Promise<void>;
+}
+
+export const IG_INVALID_LOCATION_SUBCODE = 2207019;
+/** A refusal worth one more try without the location: the documented invalid-location subcode, or any non-transient "bad parameter". */
+export const isLocationRejection = (e: unknown) => e instanceof IgError && !e.transient && (e.subcode === IG_INVALID_LOCATION_SUBCODE || e.code === 100);
+
+const altParam = (m: MediaForContainer): Record<string, string> => (m.kind === 'image' && m.alt_text ? { alt_text: m.alt_text } : {});
+const locParam = (id: string | null | undefined): Record<string, string> => (id ? { location_id: id } : {});
 
 /** Strip anything that looks like a token from text that may be stored, emailed or logged. */
 export function scrub(text: string, token?: string): string {
@@ -81,8 +104,11 @@ export const INSIGHT_METRICS: Record<PostType, string[]> = {
   story: ['views', 'reach', 'shares', 'replies', 'total_interactions'],
 };
 
-/** The form fields for the container (or carousel child / parent) of one post. Pure. */
-export function containerParams(post: PostForContainer, media: MediaForContainer[]): Record<string, string>[] {
+/**
+ * The form fields for the container (or carousel children; the parent is carouselParentParams) of one post. Pure.
+ * `locationId` goes on image and Reel containers; alt text on images and image carousel items.
+ */
+export function containerParams(post: PostForContainer, media: MediaForContainer[], opts: Pick<ContainerOptions, 'locationId'> = {}): Record<string, string>[] {
   const m = media[0];
   if (!m) throw new IgError('Post has no media.', 0, null);
   switch (post.type) {
@@ -95,19 +121,25 @@ export function containerParams(post: PostForContainer, media: MediaForContainer
           caption: post.caption,
           share_to_feed: String(post.share_to_feed),
           ...(post.thumb_offset_ms !== null ? { thumb_offset: String(post.thumb_offset_ms) } : {}),
+          ...locParam(opts.locationId),
         },
       ];
     }
     case 'image': {
       if (m.kind !== 'image') throw new IgError('A photo post needs an image.', 0, null);
-      return [{ image_url: m.public_url, caption: post.caption }];
+      return [{ image_url: m.public_url, caption: post.caption, ...altParam(m), ...locParam(opts.locationId) }];
     }
     case 'story':
       return [{ media_type: 'STORIES', ...(m.kind === 'video' ? { video_url: m.public_url } : { image_url: m.public_url }) }];
     case 'carousel':
       // One params object per child; the parent is built by the client once the child ids exist.
-      return media.map((x) => ({ is_carousel_item: 'true', ...(x.kind === 'video' ? { media_type: 'VIDEO', video_url: x.public_url } : { image_url: x.public_url }) }));
+      return media.map((x) => ({ is_carousel_item: 'true', ...(x.kind === 'video' ? { media_type: 'VIDEO', video_url: x.public_url } : { image_url: x.public_url, ...altParam(x) }) }));
   }
+}
+
+/** The carousel parent container: the children's ids, the caption and the location tag. Pure. */
+export function carouselParentParams(post: Pick<PostForContainer, 'caption'>, childIds: string[], locationId?: string | null): Record<string, string> {
+  return { media_type: 'CAROUSEL', children: childIds.join(','), caption: post.caption, ...locParam(locationId) };
 }
 
 export function createInstagramClient(opts: IgClientOptions) {
@@ -138,9 +170,10 @@ export function createInstagramClient(opts: IgClientOptions) {
     if (!res.ok || json?.error) {
       const err = json?.error;
       const code = typeof err?.code === 'number' ? err.code : null;
-      const sub = typeof err?.error_subcode === 'number' ? `/${err.error_subcode}` : '';
+      const subcode = typeof err?.error_subcode === 'number' ? err.error_subcode : null;
+      const sub = subcode !== null ? `/${subcode}` : '';
       const text = typeof err?.error_user_msg === 'string' ? err.error_user_msg : typeof err?.message === 'string' ? err.message : `HTTP ${res.status}`;
-      throw new IgError(scrub(`Instagram ${res.status}${code !== null ? ` (code ${code}${sub})` : ''}: ${text}`, token).slice(0, 300), res.status, code);
+      throw new IgError(scrub(`Instagram ${res.status}${code !== null ? ` (code ${code}${sub})` : ''}: ${text}`, token).slice(0, 300), res.status, code, subcode);
     }
     return (json ?? {}) as Record<string, unknown>;
   }
@@ -157,10 +190,22 @@ export function createInstagramClient(opts: IgClientOptions) {
     return { status: s, detail: typeof r.status === 'string' ? scrub(r.status, token).slice(0, 200) : null };
   }
 
+  /** POST the container; if it carries a location that Instagram refuses, report it and POST once more without it. */
+  async function postWithLocation(params: Record<string, string>, what: string, opts: ContainerOptions): Promise<string> {
+    try {
+      return idOf(await call('POST', `${userId}/media`, params), what);
+    } catch (e) {
+      if (!params.location_id || !isLocationRejection(e)) throw e;
+      await opts.onLocationRejected?.((e as IgError).message);
+      const { location_id: _dropped, ...rest } = params;
+      return idOf(await call('POST', `${userId}/media`, rest), what);
+    }
+  }
+
   /** Creates the container for a post (for a carousel: the children first, then the parent). Returns the id to publish. */
-  async function createContainer(post: PostForContainer, media: MediaForContainer[]): Promise<string> {
-    const params = containerParams(post, media);
-    if (post.type !== 'carousel') return idOf(await call('POST', `${userId}/media`, params[0]!), 'container');
+  async function createContainer(post: PostForContainer, media: MediaForContainer[], opts: ContainerOptions = {}): Promise<string> {
+    const params = containerParams(post, media, opts);
+    if (post.type !== 'carousel') return postWithLocation(params[0]!, 'container', opts);
 
     const children: string[] = [];
     for (const p of params) children.push(idOf(await call('POST', `${userId}/media`, p), 'carousel item'));
@@ -176,7 +221,7 @@ export function createInstagramClient(opts: IgClientOptions) {
       }
       if (!ready) throw new IgError(`Carousel item ${i + 1} is still processing; will retry.`, 0, null);
     }
-    return idOf(await call('POST', `${userId}/media`, { media_type: 'CAROUSEL', children: children.join(','), caption: post.caption }), 'carousel');
+    return postWithLocation(carouselParentParams(post, children, opts.locationId), 'carousel', opts);
   }
 
   return {

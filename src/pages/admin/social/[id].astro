@@ -11,7 +11,7 @@ import { STATUS_LABEL, canTransition, isEditable } from '../../../lib/social/sta
 import { CHANNELS, POST_TYPES, type PostType } from '../../../lib/social/types';
 import { STATUS_CHIP, metricLabel } from '../../../lib/social/view';
 import { adminEnv, adminPrelude, forbidden, redirectTo } from '../../../lib/server/social-page';
-import { getPost, getPostMedia, getSettings, listEvents, listMedia, listTemplates, nextSlotsByType, postAction, savePost } from '../../../lib/server/social-admin';
+import { getPost, getPostMedia, getSettings, listEvents, listLocations, listMedia, listTemplates, nextSlotsByType, postAction, savePost } from '../../../lib/server/social-admin';
 
 // New post (/admin/social/new) and edit (/admin/social/<uuid>). Owner-only, Basic auth, noindex.
 export const prerender = false;
@@ -55,11 +55,12 @@ if (Astro.request.method === 'POST') {
 const tz = settings?.timezone ?? 'America/New_York';
 const url = new URL(Astro.request.url);
 const ok = flashText(url.searchParams.get('ok'));
-const [library, templates, postMedia, events] = await Promise.all([
+const [library, templates, postMedia, events, locations] = await Promise.all([
   listMedia(env),
   listTemplates(env),
   post ? getPostMedia(env, post.id) : Promise.resolve([]),
   post ? listEvents(env, post.id) : Promise.resolve([]),
+  listLocations(env),
 ]);
 const nextIso = settings ? await nextSlotsByType(env, settings, post?.id ?? null, now) : null;
 const nextSlots = Object.fromEntries(POST_TYPES.map((t) => [t, nextIso?.[t] ? formatInZone(nextIso[t]!, tz) : null])) as Record<PostType, string | null>;
@@ -81,6 +82,7 @@ const editorPost: EditorPost = submitted
       data_refs: post?.data_refs ?? [],
       when: submitted.get('when') === 'custom' ? 'custom' : 'next_slot',
       scheduled_local: submitted.get('scheduled_local') ?? '',
+      location_key: submitted.get('location_key') || null,
     }
   : {
       id: post?.id ?? null,
@@ -94,7 +96,10 @@ const editorPost: EditorPost = submitted
       data_refs: post?.data_refs ?? [],
       when: post?.scheduled_at ? 'custom' : 'next_slot',
       scheduled_local: post?.scheduled_at ? toLocalInput(post.scheduled_at, tz) : '',
+      location_key: post?.location_key ?? null,
     };
+// Only locations with a verified place id can be picked (plus the post's current one, so saving never drops it silently).
+const locationsVm = (locations ?? []).filter((l) => l.fb_place_id || l.key === editorPost.location_key).map((l) => ({ key: l.key, name: l.name }));
 const libraryIds = new Set((library ?? []).map((m) => m.id));
 const selected = submitted ? submitted.getAll('media_ids').filter((m) => libraryIds.has(m)) : (postMedia ?? []).map((m) => m.id);
 const libraryVm = (library ?? []).map((m) => ({ id: m.id, kind: m.kind, public_url: m.public_url, mime: m.mime, bytes: m.bytes, width: m.width, height: m.height, duration_s: m.duration_s, alt_text: m.alt_text }));
@@ -180,6 +185,7 @@ const fmt = (iso: string) => formatInZone(iso, tz);
         action={`/admin/social/${idParam}`}
         facebookConnected={fbConnected}
         lockedChannels={post ? publishedChannels(post) : []}
+        locations={locationsVm}
       />
     )}
 

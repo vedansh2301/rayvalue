@@ -13,7 +13,12 @@ export interface PostMedia {
   width: number | null;
   height: number | null;
   duration_s: number | null;
+  /** Instagram alt text for images (social_media.alt_text). */
+  alt_text?: string | null;
 }
+
+/** A due post plus its location tag's place id (social_locations via social_posts.location_key, 0017). */
+export type DuePost = SocialPost & { location?: { fb_place_id: string | null } | null };
 
 export interface AuthRow {
   access_token: string;
@@ -34,7 +39,7 @@ export type UpdateResult = { updated_at: string } | 'nomatch' | 'error';
 export interface PublisherStore {
   loadSettings(): Promise<SocialSettings | null>;
   /** Scheduled posts due at `now` plus posts mid-publish, oldest first. */
-  loadDuePosts(now: Date, limit: number): Promise<SocialPost[] | null>;
+  loadDuePosts(now: Date, limit: number): Promise<DuePost[] | null>;
   /** Ordered media per post id. */
   loadMedia(postIds: string[]): Promise<Map<string, PostMedia[]> | null>;
   updatePost(id: string, where: PostWhere, patch: Partial<SocialPost>): Promise<UpdateResult>;
@@ -55,10 +60,10 @@ export function supabaseStore(env: AdminEnv, fetchImpl: typeof fetch): Publisher
     },
 
     async loadDuePosts(now, limit) {
-      return adminSelect<SocialPost>(
+      return adminSelect<DuePost>(
         env,
         'social_posts',
-        { select: '*', or: `(and(status.eq.scheduled,scheduled_at.lte.${now.toISOString()}),status.eq.publishing)`, order: 'scheduled_at.asc', limit: String(limit) },
+        { select: '*,location:social_locations(fb_place_id)', or: `(and(status.eq.scheduled,scheduled_at.lte.${now.toISOString()}),status.eq.publishing)`, order: 'scheduled_at.asc', limit: String(limit) },
         fetchImpl,
       );
     },
@@ -69,7 +74,7 @@ export function supabaseStore(env: AdminEnv, fetchImpl: typeof fetch): Publisher
       const rows = await adminSelect<{ post_id: string; position: number; media: PostMedia | null }>(
         env,
         'social_post_media',
-        { select: 'post_id,position,media:social_media(kind,mime,public_url,width,height,duration_s)', post_id: `in.(${postIds.join(',')})`, order: 'position.asc' },
+        { select: 'post_id,position,media:social_media(kind,mime,public_url,width,height,duration_s,alt_text)', post_id: `in.(${postIds.join(',')})`, order: 'position.asc' },
         fetchImpl,
       );
       if (!rows) return null;
