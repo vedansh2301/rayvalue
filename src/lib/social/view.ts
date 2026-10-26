@@ -1,5 +1,5 @@
 /** Display helpers for /admin/social (pure): calendar grid, insights table, status chips. */
-import type { PostStatus, SocialPost } from './types';
+import type { Channel, PostStatus, SocialPost } from './types';
 
 /** "YYYY-MM-DD" of an instant in `tz`. */
 export function dayKey(iso: string, tz: string): string {
@@ -64,27 +64,38 @@ export function buildMonthGrid(month: string, tz: string, posts: CalendarPost[])
 }
 
 // ------------------------------------------------------------------ insights
-type InsightPost = Pick<SocialPost, 'id' | 'insights'>;
+type InsightPost = Pick<SocialPost, 'id' | 'insights'> & Partial<Pick<SocialPost, 'fb_insights'>>;
 
-/** Every metric name present in any post's insights, sorted. */
-export const insightKeys = (posts: InsightPost[]): string[] => [...new Set(posts.flatMap((p) => Object.keys(p.insights ?? {})))].sort();
+/** The metrics a channel reported for a post (Instagram: insights, Facebook: fb_insights). */
+export const metricsOf = (p: InsightPost, channel: Channel = 'instagram'): Record<string, number> | null => (channel === 'facebook' ? (p.fb_insights ?? null) : p.insights);
+
+/** Every metric name present in any post's insights for the channel, sorted. */
+export const insightKeys = (posts: InsightPost[], channel: Channel = 'instagram'): string[] => [...new Set(posts.flatMap((p) => Object.keys(metricsOf(p, channel) ?? {})))].sort();
 
 /** Sum of each metric over the posts that report it. */
-export function insightTotals(posts: InsightPost[]): Record<string, number> {
+export function insightTotals(posts: InsightPost[], channel: Channel = 'instagram'): Record<string, number> {
   const t: Record<string, number> = {};
-  for (const p of posts) for (const [k, v] of Object.entries(p.insights ?? {})) if (typeof v === 'number' && Number.isFinite(v)) t[k] = (t[k] ?? 0) + v;
+  for (const p of posts) for (const [k, v] of Object.entries(metricsOf(p, channel) ?? {})) if (typeof v === 'number' && Number.isFinite(v)) t[k] = (t[k] ?? 0) + v;
   return t;
 }
 
 /** Highest first by `metric`; posts without it go last. */
-export function sortByMetric<T extends InsightPost>(posts: T[], metric: string | null): T[] {
+export function sortByMetric<T extends InsightPost>(posts: T[], metric: string | null, channel: Channel = 'instagram'): T[] {
   if (!metric) return [...posts];
   const val = (p: T) => {
-    const v = p.insights?.[metric];
+    const v = metricsOf(p, channel)?.[metric];
     return typeof v === 'number' ? v : -Infinity;
   };
   return [...posts].sort((a, b) => val(b) - val(a));
 }
+
+/** `?sort=` value: a bare key sorts by Instagram, "fb:<key>" by Facebook. Unknown keys sort by nothing. */
+export function parseInsightSort(raw: string | null, igKeys: string[], fbKeys: string[]): { channel: Channel; key: string } | null {
+  if (!raw) return null;
+  if (raw.startsWith('fb:')) return fbKeys.includes(raw.slice(3)) ? { channel: 'facebook', key: raw.slice(3) } : null;
+  return igKeys.includes(raw) ? { channel: 'instagram', key: raw } : null;
+}
+export const insightSortParam = (channel: Channel, key: string) => (channel === 'facebook' ? `fb:${key}` : key);
 
 export const metricLabel = (k: string) => k.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
 

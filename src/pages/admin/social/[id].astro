@@ -2,12 +2,13 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AdminNav from '../../../components/admin/AdminNav.astro';
 import PostEditor, { type EditorPost } from '../../../components/admin/PostEditor';
+import { CHANNEL_CHIP, channelResults, facebookConnected, normalizeChannels, publishedChannels } from '../../../lib/social/channels';
 import { strictSameOrigin } from '../../../lib/admin/auth';
 import { flashText } from '../../../lib/social/flash';
 import { isUuid, parsePostForm, toLocalInput } from '../../../lib/social/forms';
 import { formatInZone } from '../../../lib/social/schedule';
 import { STATUS_LABEL, canTransition, isEditable } from '../../../lib/social/status';
-import { POST_TYPES, type PostType } from '../../../lib/social/types';
+import { CHANNELS, POST_TYPES, type PostType } from '../../../lib/social/types';
 import { STATUS_CHIP, metricLabel } from '../../../lib/social/view';
 import { adminEnv, adminPrelude, forbidden, redirectTo } from '../../../lib/server/social-page';
 import { getPost, getPostMedia, getSettings, listEvents, listMedia, listTemplates, nextSlotsByType, postAction, savePost } from '../../../lib/server/social-admin';
@@ -71,6 +72,7 @@ const editorPost: EditorPost = submitted
   ? {
       id: post?.id ?? null,
       type: POST_TYPES.includes(sType as PostType) ? (sType as PostType) : defType,
+      channels: CHANNELS.filter((c) => submitted!.getAll('channels').includes(c)),
       title: submitted.get('title') ?? '',
       caption: (submitted.get('caption') ?? '').replace(/\r\n?/g, '\n'),
       numbers_confirmed: submitted.has('numbers_confirmed'),
@@ -83,6 +85,7 @@ const editorPost: EditorPost = submitted
   : {
       id: post?.id ?? null,
       type: post?.type ?? defType,
+      channels: post ? normalizeChannels(post.channels) : (settings?.default_channels ?? ['instagram']),
       title: post?.title ?? '',
       caption: post?.caption ?? '',
       numbers_confirmed: post?.numbers_confirmed ?? false,
@@ -97,6 +100,9 @@ const selected = submitted ? submitted.getAll('media_ids').filter((m) => library
 const libraryVm = (library ?? []).map((m) => ({ id: m.id, kind: m.kind, public_url: m.public_url, mime: m.mime, bytes: m.bytes, width: m.width, height: m.height, duration_s: m.duration_s, alt_text: m.alt_text }));
 const templatesVm = (templates ?? []).map((t) => ({ id: t.id, kind: t.kind, name: t.name, body: t.body }));
 
+const fbConnected = facebookConnected(env);
+const results = post ? channelResults(post) : [];
+const waitingOnFb = !!post && !fbConnected && normalizeChannels(post.channels).includes('facebook') && post.status !== 'published' && post.status !== 'archived' && !post.fb_post_id;
 const editable = !post || isEditable(post.status);
 const btn = 'inline-flex min-h-11 items-center justify-center rounded-lg border px-4 py-2 font-semibold';
 const fmt = (iso: string) => formatInZone(iso, tz);
@@ -124,12 +130,18 @@ const fmt = (iso: string) => formatInZone(iso, tz);
       <section aria-label="Status details" class="mt-4 space-y-1 text-sm text-stone-800">
         {post.scheduled_at && post.status !== 'published' && <p>Due: <strong>{fmt(post.scheduled_at)}</strong></p>}
         {post.status === 'failed' && <p class="font-medium text-red-800">Failed after {post.attempts} attempt{post.attempts === 1 ? '' : 's'}{post.last_error ? `: ${post.last_error}` : '.'}</p>}
-        {post.status === 'published' && (
-          <p>
-            Published {post.published_at ? fmt(post.published_at) : ''}.
-            {post.ig_permalink && <> <a href={post.ig_permalink} rel="noopener noreferrer" class="underline underline-offset-2">View on Instagram</a></>}
-          </p>
-        )}
+        <ul class="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap" aria-label="Result per channel">
+          {results.map((r) => (
+            <li class="rounded-lg border border-stone-200 bg-white px-3 py-2">
+              <span class="font-semibold text-stone-900">{r.label}</span>{' '}
+              <span class={`rounded-full border px-2 py-0.5 text-xs font-semibold ${CHANNEL_CHIP[r.state]}`}>{r.text}</span>
+              {r.at && <span class="ml-1 text-stone-700">{fmt(r.at)}</span>}
+              {r.permalink && <> · <a href={r.permalink} rel="noopener noreferrer" class="underline underline-offset-2">View on {r.label}</a></>}
+              {r.error && <span class="mt-1 block font-medium text-red-800">{r.error}</span>}
+            </li>
+          ))}
+        </ul>
+        {waitingOnFb && <p role="status" class="rounded border border-amber-400 bg-amber-100 px-3 py-2 font-medium text-amber-900">Facebook is ticked but the Page is not connected, so this post waits in review until it is (steps in docs/LAUNCH.md).</p>}
         {!isEditable(post.status) && <p class="font-medium text-stone-900">This post can no longer be edited ({STATUS_LABEL[post.status].toLowerCase()}).</p>}
       </section>
     )}
@@ -166,24 +178,35 @@ const fmt = (iso: string) => formatInZone(iso, tz);
         nextSlots={nextSlots}
         editable={editable}
         action={`/admin/social/${idParam}`}
+        facebookConnected={fbConnected}
+        lockedChannels={post ? publishedChannels(post) : []}
       />
     )}
 
-    {post?.status === 'published' && (
+    {post && (post.status === 'published' || post.ig_media_id || post.fb_post_id) && (
       <section aria-labelledby="ins-h" class="mt-8">
         <h2 id="ins-h" class="text-lg font-semibold text-stone-900">Insights</h2>
-        {post.insights && Object.keys(post.insights).length > 0 ? (
-          <>
-            <dl class="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {Object.entries(post.insights).map(([k, v]) => (
-                <div class="rounded border border-stone-200 bg-white p-3"><dt class="text-sm text-stone-700">{metricLabel(k)}</dt><dd class="text-xl font-bold text-stone-900">{v}</dd></div>
-              ))}
-            </dl>
-            {post.insights_at && <p class="mt-1 text-sm text-stone-700">Updated {fmt(post.insights_at)}.</p>}
-          </>
-        ) : (
-          <p class="mt-1 text-stone-700">No insights collected yet.</p>
-        )}
+        {CHANNELS.filter((c) => normalizeChannels(post.channels).includes(c)).map((c) => {
+          const m = c === 'facebook' ? post.fb_insights : post.insights;
+          const at = c === 'facebook' ? post.fb_insights_at : post.insights_at;
+          return (
+            <div class="mt-3">
+              <h3 class="font-medium text-stone-900">{c === 'facebook' ? 'Facebook' : 'Instagram'}</h3>
+              {m && Object.keys(m).length > 0 ? (
+                <>
+                  <dl class="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {Object.entries(m).map(([k, v]) => (
+                      <div class="rounded border border-stone-200 bg-white p-3"><dt class="text-sm text-stone-700">{metricLabel(k)}</dt><dd class="text-xl font-bold text-stone-900">{v}</dd></div>
+                    ))}
+                  </dl>
+                  {at && <p class="mt-1 text-sm text-stone-700">Updated {fmt(at)}.</p>}
+                </>
+              ) : (
+                <p class="mt-1 text-stone-700">No insights collected yet.</p>
+              )}
+            </div>
+          );
+        })}
       </section>
     )}
 

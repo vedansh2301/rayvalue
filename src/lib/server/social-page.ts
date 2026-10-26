@@ -11,6 +11,8 @@ export const adminEnv = (): AdminEnvVars => ({
   SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
   GITHUB_DISPATCH_TOKEN: process.env.GITHUB_DISPATCH_TOKEN,
+  FB_PAGE_ID: process.env.FB_PAGE_ID,
+  FB_PAGE_TOKEN: process.env.FB_PAGE_TOKEN,
 });
 
 interface PageContext {

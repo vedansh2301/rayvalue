@@ -4,6 +4,7 @@ import {
   isUuid,
   newStoragePath,
   parseGenerateTarget,
+  parseChannels,
   parseListFilters,
   parseLocalDateTime,
   parseMediaMeta,
@@ -17,12 +18,12 @@ import {
   toLocalInput,
   validateUploadRequest,
 } from './forms';
-import { buildMonthGrid, dayKey, formatBytes, insightKeys, insightTotals, parseMonth, shiftMonth, sortByMetric, type CalendarPost } from './view';
+import { buildMonthGrid, dayKey, formatBytes, insightKeys, insightSortParam, insightTotals, metricsOf, parseInsightSort, parseMonth, shiftMonth, sortByMetric, type CalendarPost } from './view';
 
 const U1 = '11111111-1111-4111-8111-111111111111';
 const U2 = '22222222-2222-4222-8222-222222222222';
 const form = (pairs: [string, string][]) => new URLSearchParams(pairs);
-const base = (extra: [string, string][] = []) => form([['action', 'save'], ['type', 'reel'], ['title', ' Hi '], ['caption', 'a\r\nb'], ...extra]);
+const base = (extra: [string, string][] = []) => form([['action', 'save'], ['type', 'reel'], ['channels', 'instagram'], ['title', ' Hi '], ['caption', 'a\r\nb'], ...extra]);
 
 describe('uploads', () => {
   it('accepts only jpeg, mp4, mov up to 50 MB', () => {
@@ -67,7 +68,7 @@ describe('post form', () => {
     expect(r.ok && r.value).toMatchObject({ title: 'Hi', caption: 'a\nb', media_ids: [U2, U1], thumb_offset_ms: 1500, share_to_feed: true, numbers_confirmed: false, when: 'none' });
   });
   it('only reels keep cover offset and share_to_feed=false', () => {
-    const r = parsePostForm(form([['action', 'save'], ['type', 'image'], ['thumb_offset_ms', '900']]));
+    const r = parsePostForm(form([['action', 'save'], ['type', 'image'], ['channels', 'instagram'], ['thumb_offset_ms', '900']]));
     expect(r.ok && [r.value.thumb_offset_ms, r.value.share_to_feed]).toEqual([null, true]);
     const reel = parsePostForm(base());
     expect(reel.ok && reel.value.share_to_feed).toBe(false);
@@ -77,18 +78,34 @@ describe('post form', () => {
     expect(parsePostForm(form([['action', 'save'], ['type', 'gif']])).ok).toBe(false);
     expect(parsePostForm(base([['media_ids', 'zzz']])).ok).toBe(false);
     expect(parsePostForm(base([['media_ids', U1], ['media_ids', U1]])).ok).toBe(false);
-    expect(parsePostForm(form([['action', 'save'], ['type', 'reel'], ['title', 'x'.repeat(121)]])).ok).toBe(false);
-    expect(parsePostForm(form([['action', 'save'], ['type', 'reel'], ['caption', 'x'.repeat(2201)]])).ok).toBe(false);
+    expect(parsePostForm(form([['action', 'save'], ['type', 'reel'], ['channels', 'instagram'], ['title', 'x'.repeat(121)]])).ok).toBe(false);
+    expect(parsePostForm(form([['action', 'save'], ['type', 'reel'], ['channels', 'instagram'], ['caption', 'x'.repeat(2201)]])).ok).toBe(false);
     expect(parsePostForm(base([['thumb_offset_ms', '-5']])).ok).toBe(false);
     expect(parsePostForm(base([['thumb_offset_ms', '1.5']])).ok).toBe(false);
     const eleven = Array.from({ length: 11 }, (_, i) => ['media_ids', `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`] as [string, string]);
     expect(parsePostForm(base(eleven)).ok).toBe(false);
   });
   it('publish_now forces the now mode; unknown when falls back to none', () => {
-    const a = parsePostForm(form([['action', 'publish_now'], ['type', 'reel'], ['when', 'custom']]));
+    const a = parsePostForm(form([['action', 'publish_now'], ['type', 'reel'], ['channels', 'instagram'], ['when', 'custom']]));
     expect(a.ok && a.value.when).toBe('now');
     const b = parsePostForm(base([['when', 'weird']]));
     expect(b.ok && b.value.when).toBe('none');
+  });
+  it('reads the channel checkboxes: any non-empty subset, canonical order, no repeats', () => {
+    const both = parsePostForm(base([['channels', 'facebook'], ['channels', 'instagram']]));
+    expect(both.ok && both.value.channels).toEqual(['instagram', 'facebook']);
+    const fb = parsePostForm(form([['action', 'save'], ['type', 'image'], ['channels', 'facebook']]));
+    expect(fb.ok && fb.value.channels).toEqual(['facebook']);
+    const dup = parsePostForm(form([['action', 'save'], ['type', 'image'], ['channels', 'facebook'], ['channels', 'facebook']]));
+    expect(dup.ok && dup.value.channels).toEqual(['facebook']);
+  });
+  it('rejects no channel and unknown channels, and keeps other errors alongside', () => {
+    const none = parsePostForm(form([['action', 'save'], ['type', 'reel']]));
+    expect(none).toEqual({ ok: false, errors: ['Pick at least one channel to post to.'] });
+    expect(parsePostForm(base([['channels', 'tiktok']])).ok).toBe(false);
+    expect(parsePostForm(form([['action', 'save'], ['type', 'reel'], ['channels', '']])).ok).toBe(false);
+    const both = parsePostForm(form([['action', 'save'], ['type', 'gif']]));
+    expect(both.ok === false && both.errors).toHaveLength(2);
   });
   it('collects alt text only for selected media', () => {
     const r = parsePostForm(base([['media_ids', U1], [`alt_${U1}`, ' A roof '], [`alt_${U2}`, 'ignored']]));
@@ -129,8 +146,9 @@ describe('resolveScheduleTarget', () => {
 
 describe('list filters', () => {
   it('keeps valid status/type and strips filter syntax from search', () => {
-    expect(parseListFilters(new URLSearchParams('status=failed&type=reel&q=a,b)(*%'))).toEqual({ status: 'failed', type: 'reel', q: 'a b' });
-    expect(parseListFilters(new URLSearchParams('status=zzz&type=x'))).toEqual({ status: null, type: null, q: '' });
+    expect(parseListFilters(new URLSearchParams('status=failed&type=reel&q=a,b)(*%'))).toEqual({ status: 'failed', type: 'reel', channel: null, q: 'a b' });
+    expect(parseListFilters(new URLSearchParams('status=zzz&type=x&channel=tiktok'))).toEqual({ status: null, type: null, channel: null, q: '' });
+    expect(parseListFilters(new URLSearchParams('channel=facebook')).channel).toBe('facebook');
     expect(sanitizeSearch('x'.repeat(200))).toHaveLength(80);
   });
 });
@@ -138,18 +156,24 @@ describe('list filters', () => {
 describe('settings form', () => {
   const slots = JSON.stringify([{ dow: 3, time: '18:00', type: 'reel' }, { dow: 1, time: '12:00', type: 'carousel' }]);
   it('parses, sorts slots and reads checkboxes', () => {
-    const r = parseSettingsForm(form([['timezone', 'America/Los_Angeles'], ['auto_publish', 'on'], ['slots', slots]]));
-    expect(r).toEqual({ ok: true, value: { auto_publish: true, paused: false, notify_email: false, timezone: 'America/Los_Angeles', slots: [{ dow: 1, time: '12:00', type: 'carousel' }, { dow: 3, time: '18:00', type: 'reel' }] } });
+    const r = parseSettingsForm(form([['timezone', 'America/Los_Angeles'], ['auto_publish', 'on'], ['default_channels', 'instagram'], ['slots', slots]]));
+    expect(r).toEqual({ ok: true, value: { default_channels: ['instagram'], auto_publish: true, paused: false, notify_email: false, timezone: 'America/Los_Angeles', slots: [{ dow: 1, time: '12:00', type: 'carousel' }, { dow: 3, time: '18:00', type: 'reel' }] } });
   });
   it('rejects unknown zones, bad slots and duplicates', () => {
-    expect(parseSettingsForm(form([['timezone', 'Europe/London'], ['slots', '[]']])).ok).toBe(false);
-    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['slots', '[{"dow":9,"time":"18:00","type":"reel"}]']])).ok).toBe(false);
-    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['slots', '[{"dow":1,"time":"25:00","type":"reel"}]']])).ok).toBe(false);
-    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['slots', '{not json']])).ok).toBe(false);
+    expect(parseSettingsForm(form([['timezone', 'Europe/London'], ['default_channels', 'instagram'], ['slots', '[]']])).ok).toBe(false);
+    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['default_channels', 'instagram'], ['slots', '[{"dow":9,"time":"18:00","type":"reel"}]']])).ok).toBe(false);
+    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['default_channels', 'instagram'], ['slots', '[{"dow":1,"time":"25:00","type":"reel"}]']])).ok).toBe(false);
+    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['default_channels', 'instagram'], ['slots', '{not json']])).ok).toBe(false);
     const dup = JSON.stringify([{ dow: 1, time: '12:00', type: 'reel' }, { dow: 1, time: '12:00', type: 'reel' }]);
-    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['slots', dup]])).ok).toBe(false);
+    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['default_channels', 'instagram'], ['slots', dup]])).ok).toBe(false);
   });
-  it('allows no slots at all', () => expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['slots', '[]']])).ok).toBe(true));
+  it('reads default channels and requires at least one', () => {
+    const both = parseSettingsForm(form([['timezone', 'America/New_York'], ['default_channels', 'facebook'], ['default_channels', 'instagram'], ['slots', '[]']]));
+    expect(both.ok && both.value.default_channels).toEqual(['instagram', 'facebook']);
+    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['slots', '[]']]))).toEqual({ ok: false, errors: ['Pick at least one default channel.'] });
+    expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['default_channels', 'myspace'], ['slots', '[]']])).ok).toBe(false);
+  });
+  it('allows no slots at all', () => expect(parseSettingsForm(form([['timezone', 'America/New_York'], ['default_channels', 'instagram'], ['slots', '[]']])).ok).toBe(true));
 });
 
 describe('template form', () => {
@@ -222,6 +246,45 @@ describe('insights', () => {
     expect(sortByMetric(posts, 'reach').map((p) => p.id)).toEqual(['b', 'a', 'c']);
     expect(sortByMetric(posts, 'likes').map((p) => p.id)).toEqual(['a', 'b', 'c']);
     expect(sortByMetric(posts, null).map((p) => p.id)).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('facebook insights', () => {
+  type P = { id: string; insights: Record<string, number> | null; fb_insights: Record<string, number> | null };
+  const posts: P[] = [
+    { id: 'a', insights: { reach: 100 }, fb_insights: { reach: 40, clicks: 3 } },
+    { id: 'b', insights: { reach: 300 }, fb_insights: null },
+    { id: 'c', insights: null, fb_insights: { reach: 90 } },
+  ];
+  it('keeps Instagram and Facebook metrics apart', () => {
+    expect(metricsOf(posts[0]!, 'facebook')).toEqual({ reach: 40, clicks: 3 });
+    expect(metricsOf(posts[0]!)).toEqual({ reach: 100 });
+    expect(insightKeys(posts, 'facebook')).toEqual(['clicks', 'reach']);
+    expect(insightKeys(posts)).toEqual(['reach']);
+    expect(insightTotals(posts, 'facebook')).toEqual({ reach: 130, clicks: 3 });
+    expect(insightTotals(posts)).toEqual({ reach: 400 });
+    expect(sortByMetric(posts, 'reach', 'facebook').map((p) => p.id)).toEqual(['c', 'a', 'b']);
+  });
+  it('reads the sort parameter for either channel and ignores unknown columns', () => {
+    expect(parseInsightSort('reach', ['reach'], ['clicks'])).toEqual({ channel: 'instagram', key: 'reach' });
+    expect(parseInsightSort('fb:clicks', ['reach'], ['clicks'])).toEqual({ channel: 'facebook', key: 'clicks' });
+    expect(parseInsightSort('clicks', ['reach'], ['clicks'])).toBeNull();
+    expect(parseInsightSort('fb:reach', ['reach'], ['clicks'])).toBeNull();
+    expect(parseInsightSort(null, [], [])).toBeNull();
+    expect(insightSortParam('facebook', 'clicks')).toBe('fb:clicks');
+    expect(insightSortParam('instagram', 'reach')).toBe('reach');
+  });
+});
+
+describe('channel checkbox parsing', () => {
+  it('accepts a non-empty known subset', () => {
+    expect(parseChannels(['facebook'])).toEqual({ ok: true, value: ['facebook'] });
+    expect(parseChannels(['facebook', 'instagram', 'facebook'])).toEqual({ ok: true, value: ['instagram', 'facebook'] });
+  });
+  it('rejects empty and unknown', () => {
+    expect(parseChannels([]).ok).toBe(false);
+    expect(parseChannels(['instagram', 'x']).ok).toBe(false);
+    expect(parseChannels([], 'Custom.')).toEqual({ ok: false, errors: ['Custom.'] });
   });
 });
 

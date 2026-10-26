@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { createRepo } from '../../src/lib/db/repo';
+import { DEFAULT_CHANNELS, normalizeChannels } from '../../src/lib/social/channels';
 import { checksPassed, runChecks, type MediaForCheck } from '../../src/lib/social/checks';
 import { countFreeSlots, isValidJob, planAuto, COOLDOWN_DAYS, type HistoryItem, type Job } from '../../src/lib/social/gen/plan';
 import { decideQueueState } from '../../src/lib/social/gen/queue';
@@ -21,15 +22,16 @@ import { describeSlide, truncateAlt } from '../../src/lib/social/gen/templates';
 import type { GeneratedPost } from '../../src/lib/social/gen/types';
 import { isValidSlot } from '../../src/lib/social/schedule';
 import { templateByKey } from '../../src/lib/social/template-keys';
-import type { SocialSettings } from '../../src/lib/social/types';
+import type { Channel, SocialSettings } from '../../src/lib/social/types';
 import { buildPost } from './build';
 import { SocialDb } from './db';
 import { hasFfmpeg, renderPost, renderSlidesOnly, type RenderedFile } from './render';
 
 // ------------------------------------------------------------------ settings
-const DEFAULT_SETTINGS: Pick<SocialSettings, 'auto_publish' | 'paused' | 'timezone' | 'slots'> = {
+const DEFAULT_SETTINGS: Pick<SocialSettings, 'auto_publish' | 'paused' | 'timezone' | 'slots' | 'default_channels'> = {
   auto_publish: true,
   paused: false,
+  default_channels: [...DEFAULT_CHANNELS],
   timezone: 'America/New_York',
   slots: [
     { dow: 1, time: '18:00', type: 'reel' },
@@ -41,13 +43,14 @@ const DEFAULT_SETTINGS: Pick<SocialSettings, 'auto_publish' | 'paused' | 'timezo
 };
 
 async function loadSettings(db: SocialDb): Promise<typeof DEFAULT_SETTINGS> {
-  const [row] = await db.select<Partial<SocialSettings>>('social_settings', { select: 'auto_publish,paused,timezone,slots', limit: '1' });
+  const [row] = await db.select<Partial<SocialSettings>>('social_settings', { select: 'auto_publish,paused,timezone,slots,default_channels', limit: '1' });
   if (!row) return DEFAULT_SETTINGS;
   return {
     auto_publish: row.auto_publish ?? DEFAULT_SETTINGS.auto_publish,
     paused: row.paused ?? DEFAULT_SETTINGS.paused,
     timezone: row.timezone ?? DEFAULT_SETTINGS.timezone,
     slots: Array.isArray(row.slots) ? row.slots.filter(isValidSlot) : DEFAULT_SETTINGS.slots,
+    default_channels: normalizeChannels(row.default_channels),
   };
 }
 
@@ -148,10 +151,10 @@ async function main(): Promise<number> {
       await mkdir(dir, { recursive: true });
       try {
         const files = ffmpeg ? await renderPost(post.type, post.slides, dir) : (await renderSlidesOnly(post.type, post.slides, dir), []);
-        const checks = runChecks({ type: post.type, caption: post.caption, data_refs: post.dataRefs, numbers_confirmed: false, media: mediaForCheck(files) });
+        const checks = runChecks({ type: post.type, caption: post.caption, data_refs: post.dataRefs, numbers_confirmed: false, media: mediaForCheck(files), channels: settings.default_channels });
         const passed = checksPassed(checks);
         const decision = decideQueueState({ checksPassed: passed, type: post.type, settings, taken, now });
-        const summary = { template: post.templateKey, target: post.target, type: post.type, title: post.title, caption: post.caption, data_refs: post.dataRefs, alt_texts: altTexts(post), checks, checks_passed: passed, would_queue_as: { status: decision.status, scheduled_at: decision.scheduledAt?.toISOString() ?? null }, files: files.map((f) => ({ file: f.path, ...f.info })) };
+        const summary = { template: post.templateKey, target: post.target, type: post.type, channels: settings.default_channels, title: post.title, caption: post.caption, data_refs: post.dataRefs, alt_texts: altTexts(post), checks, checks_passed: passed, would_queue_as: { status: decision.status, scheduled_at: decision.scheduledAt?.toISOString() ?? null }, files: files.map((f) => ({ file: f.path, ...f.info })) };
         if (args.dryRun) {
           await writeFile(join(dir, 'post.json'), JSON.stringify(summary, null, 2));
           console.log(`[dry-run] ${j.template}/${j.target}: ${files.length} file(s), checks ${passed ? 'passed' : 'FAILED'}, would queue as ${decision.status}. Output: ${dir}`);
@@ -159,7 +162,7 @@ async function main(): Promise<number> {
           continue;
         }
         if (!db) throw new Error('internal: no database client');
-        const id = await queuePost(db, post, files, checks, passed, decision, settings.paused);
+        const id = await queuePost(db, post, files, checks, passed, decision, settings.paused, settings.default_channels);
         if (decision.scheduledAt) taken = [...taken, decision.scheduledAt.toISOString()];
         console.log(`Queued ${j.template}/${j.target} as ${decision.status}${decision.scheduledAt ? ` for ${decision.scheduledAt.toISOString()}` : ''} (post ${id}).`);
       } finally {
@@ -182,6 +185,7 @@ async function queuePost(
   passed: boolean,
   decision: ReturnType<typeof decideQueueState>,
   paused: boolean,
+  channels: Channel[],
 ): Promise<string> {
   const now = new Date();
   const folder = `generated/${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
@@ -213,6 +217,7 @@ async function queuePost(
     // Insert as a draft, attach media, then move to the final status so the publisher never sees a half-built post.
     const [row] = await db.insert<{ id: string }>('social_posts', {
       type: post.type,
+      channels,
       status: 'draft',
       title: post.title,
       caption: post.caption,
@@ -231,7 +236,7 @@ async function queuePost(
     await db.insert('social_events', {
       post_id: postId,
       event: 'generated',
-      detail: { template: post.templateKey, target: post.target, status: decision.status, paused, run: process.env.GITHUB_RUN_ID ?? null },
+      detail: { template: post.templateKey, target: post.target, status: decision.status, channels, paused, run: process.env.GITHUB_RUN_ID ?? null },
     });
     return postId;
   } catch (e) {

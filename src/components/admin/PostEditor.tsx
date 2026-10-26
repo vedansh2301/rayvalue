@@ -6,13 +6,16 @@
  */
 import { useMemo, useRef, useState } from 'preact/hooks';
 import { checksPassed, countHashtags, runChecks, type MediaForCheck } from '../../lib/social/checks';
+import { CHANNEL_LABEL, channelsLabel } from '../../lib/social/channels';
 import { LIMITS } from '../../lib/social/forms';
-import { POST_TYPES, type DataRef, type PostType } from '../../lib/social/types';
+import { CHANNELS, POST_TYPES, type Channel, type DataRef, type PostType } from '../../lib/social/types';
 import MediaUploader, { type LibraryMedia } from './MediaUploader';
 
 export interface EditorPost {
   id: string | null;
   type: PostType;
+  /** Where the post goes. */
+  channels: Channel[];
   title: string;
   caption: string;
   numbers_confirmed: boolean;
@@ -43,6 +46,10 @@ interface Props {
   nextSlots: Record<PostType, string | null>;
   editable: boolean;
   action: string;
+  /** FB_PAGE_ID and FB_PAGE_TOKEN are both set on the server (never their values). */
+  facebookConnected: boolean;
+  /** Channels that already published; they stay ticked and cannot be removed. */
+  lockedChannels: Channel[];
 }
 
 const field = 'w-full rounded border border-stone-400 bg-white px-3 py-2 text-stone-900';
@@ -61,8 +68,20 @@ function Thumb(p: { m: LibraryMedia; class?: string }) {
   );
 }
 
+function PreviewMedia(p: { m: LibraryMedia | undefined }) {
+  const m = p.m;
+  if (!m) return <p class="flex h-full items-center justify-center p-4 text-center text-sm text-stone-300">No media selected</p>;
+  return m.kind === 'image' ? (
+    <img src={m.public_url} alt={m.alt_text ?? 'Preview of the first image'} class="h-full w-full object-cover" />
+  ) : (
+    <video src={`${m.public_url}#t=0.1`} controls muted playsInline preload="metadata" aria-label="Preview of the first video" class="h-full w-full object-cover" />
+  );
+}
+
 export default function PostEditor(p: Props) {
   const [type, setType] = useState<PostType>(p.post.type);
+  const [channels, setChannels] = useState<Channel[]>(p.post.channels);
+  const [previewAs, setPreviewAs] = useState<Channel>('instagram');
   const [title, setTitle] = useState(p.post.title);
   const [caption, setCaption] = useState(p.post.caption);
   const [numbersOk, setNumbersOk] = useState(p.post.numbers_confirmed);
@@ -78,8 +97,8 @@ export default function PostEditor(p: Props) {
   const byId = useMemo(() => new Map(library.map((m) => [m.id, m])), [library]);
   const chosen = selected.flatMap((id) => (byId.get(id) ? [byId.get(id)!] : []));
   const results = useMemo(
-    () => runChecks({ type, caption, data_refs: p.post.data_refs, numbers_confirmed: numbersOk, media: chosen.map(toCheck) }),
-    [type, caption, numbersOk, selected, library],
+    () => runChecks({ type, caption, data_refs: p.post.data_refs, numbers_confirmed: numbersOk, media: chosen.map(toCheck), channels }),
+    [type, caption, numbersOk, selected, library, channels],
   );
   const passed = checksPassed(results);
   const failing = results.filter((r) => !r.ok);
@@ -88,6 +107,9 @@ export default function PostEditor(p: Props) {
   const captionTemplates = p.templates.filter((t) => t.kind === 'caption');
   const hashtagSets = p.templates.filter((t) => t.kind === 'hashtags');
   const nextLabel = p.nextSlots[type];
+  const toggleChannel = (c: Channel, on: boolean) => setChannels((cs) => CHANNELS.filter((x) => (x === c ? on : cs.includes(x))));
+  const showFb = channels.includes('facebook');
+  const previewChannel: Channel = showFb && previewAs === 'facebook' ? 'facebook' : 'instagram';
 
   const append = (text: string) => {
     setCaption((c) => (c.trim() ? `${c.replace(/\s+$/, '')}\n\n${text}` : text));
@@ -134,6 +156,41 @@ export default function PostEditor(p: Props) {
             <input id="pe-title" name="title" type="text" maxLength={LIMITS.title} value={title} class={field} onInput={(e) => setTitle(e.currentTarget.value)} />
           </div>
         </div>
+
+        <fieldset class="rounded-lg border border-stone-200 bg-white p-4" aria-describedby="pe-channels-note">
+          <legend class="px-1 font-semibold text-stone-900">Post to</legend>
+          <div class="flex flex-wrap gap-x-6 gap-y-2">
+            {CHANNELS.map((c) => {
+              const locked = p.lockedChannels.includes(c);
+              return (
+                <div key={c} class="flex min-h-11 items-center gap-3">
+                  <input
+                    id={`pe-ch-${c}`}
+                    type="checkbox"
+                    name={locked ? undefined : 'channels'}
+                    value={c}
+                    checked={channels.includes(c)}
+                    disabled={locked}
+                    class="h-5 w-5 shrink-0 accent-stone-900"
+                    onChange={(e) => toggleChannel(c, e.currentTarget.checked)}
+                  />
+                  {locked && <input type="hidden" name="channels" value={c} />}
+                  <label for={`pe-ch-${c}`} class="text-stone-900">
+                    {CHANNEL_LABEL[c]}
+                    {locked && <span class="text-sm text-stone-700"> (already published)</span>}
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+          <p id="pe-channels-note" class="mt-1 text-sm text-stone-700">Stories post to Instagram only. A post is “Published” once every ticked channel has published.</p>
+          {channels.length === 0 && <p role="alert" class="mt-2 text-sm font-medium text-red-800">Pick at least one channel.</p>}
+          {showFb && !p.facebookConnected && (
+            <p role="status" class="mt-2 rounded border border-amber-400 bg-amber-100 px-3 py-2 text-sm font-medium text-amber-900">
+              The Facebook Page is not connected yet, so this post will wait in review until it is. Connection steps are in docs/LAUNCH.md.
+            </p>
+          )}
+        </fieldset>
 
         <div>
           <label for="pe-caption" class={label}>Caption</label>
@@ -292,24 +349,38 @@ export default function PostEditor(p: Props) {
       </fieldset>
 
       <aside aria-label="Preview" class="lg:sticky lg:top-4 lg:self-start">
-        <p class="mb-2 text-sm font-semibold text-stone-900">Preview</p>
-        <div class="mx-auto w-64 overflow-hidden rounded-[2rem] border-8 border-stone-900 bg-black shadow">
-          <div class="aspect-[9/16] w-full bg-stone-800">
-            {first ? (
-              first.kind === 'image' ? (
-                <img src={first.public_url} alt={first.alt_text ?? 'Preview of the first image'} class="h-full w-full object-cover" />
-              ) : (
-                <video src={`${first.public_url}#t=0.1`} controls muted playsInline preload="metadata" aria-label="Preview of the first video" class="h-full w-full object-cover" />
-              )
-            ) : (
-              <p class="flex h-full items-center justify-center p-4 text-center text-sm text-stone-300">No media selected</p>
-            )}
+        <p class="mb-2 text-sm font-semibold text-stone-900">Preview ({channelsLabel(channels.length ? channels : ['instagram'])})</p>
+        {showFb && (
+          <div class="mb-3 flex gap-1" role="group" aria-label="Preview style">
+            {CHANNELS.filter((c) => channels.includes(c)).map((c) => (
+              <button key={c} type="button" aria-pressed={previewChannel === c} class={`min-h-11 rounded border px-3 text-sm ${previewChannel === c ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300 bg-white text-stone-900'}`} onClick={() => setPreviewAs(c)}>
+                {CHANNEL_LABEL[c]}
+              </button>
+            ))}
           </div>
-          <div class="max-h-48 overflow-y-auto bg-white p-3 text-xs leading-5 text-stone-900">
-            <p class="whitespace-pre-wrap break-words">{caption || <span class="text-stone-600">Caption appears here.</span>}</p>
+        )}
+        {previewChannel === 'instagram' ? (
+          <div class="mx-auto w-64 overflow-hidden rounded-[2rem] border-8 border-stone-900 bg-black shadow">
+            <div class="aspect-[9/16] w-full bg-stone-800">
+              <PreviewMedia m={first} />
+            </div>
+            <div class="max-h-48 overflow-y-auto bg-white p-3 text-xs leading-5 text-stone-900">
+              <p class="whitespace-pre-wrap break-words">{caption || <span class="text-stone-600">Caption appears here.</span>}</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div class="mx-auto w-full max-w-xs overflow-hidden rounded-lg border border-stone-300 bg-white shadow">
+            <p class="border-b border-stone-200 px-3 py-2 text-xs font-semibold text-stone-900">Your Facebook Page</p>
+            <div class="max-h-40 overflow-y-auto px-3 py-2 text-sm leading-5 text-stone-900">
+              <p class="whitespace-pre-wrap break-words">{caption || <span class="text-stone-600">Caption appears here.</span>}</p>
+            </div>
+            <div class="aspect-[4/5] w-full bg-stone-800">
+              <PreviewMedia m={first} />
+            </div>
+          </div>
+        )}
         {chosen.length > 1 && <p class="mt-2 text-center text-xs text-stone-700">Showing item 1 of {chosen.length}.</p>}
+        {previewChannel === 'facebook' && <p class="mt-2 text-center text-xs text-stone-700">Approximate. Facebook decides the final layout.</p>}
       </aside>
     </form>
   );

@@ -2,8 +2,10 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AdminNav from '../../../components/admin/AdminNav.astro';
 import SlotsEditor from '../../../components/admin/SlotsEditor';
+import { CHANNEL_LABEL, facebookConnected } from '../../../lib/social/channels';
 import { strictSameOrigin } from '../../../lib/admin/auth';
 import { US_TIMEZONES, parseSettingsForm } from '../../../lib/social/forms';
+import { CHANNELS } from '../../../lib/social/types';
 import { adminEnv, adminPrelude, forbidden } from '../../../lib/server/social-page';
 import { getSettings, updateSettings } from '../../../lib/server/social-admin';
 
@@ -21,6 +23,7 @@ if (Astro.request.method === 'POST') {
 }
 
 const settings = await getSettings(env);
+const fbConnected = facebookConnected(env);
 const check = 'mt-1 h-5 w-5 shrink-0 accent-stone-900';
 ---
 <BaseLayout title="Social settings" description="Owner-only social settings." path="/admin/social/settings" noindex>
@@ -47,6 +50,21 @@ const check = 'mt-1 h-5 w-5 shrink-0 accent-stone-900';
             <input id="s-email" type="checkbox" name="notify_email" checked={settings.notify_email} class={check} />
             <label for="s-email"><span class="font-medium text-stone-900">Email me about failures and posts that need review</span></label>
           </div>
+        </fieldset>
+
+        <fieldset class="space-y-3 rounded-lg border border-stone-200 bg-white p-4">
+          <legend class="px-1 font-semibold text-stone-900">Channels</legend>
+          <p class="text-sm text-stone-700">New posts, including generated ones, start with these channels ticked. You can change it per post.</p>
+          {CHANNELS.map((c) => (
+            <div class="flex gap-3">
+              <input id={`s-ch-${c}`} type="checkbox" name="default_channels" value={c} checked={settings.default_channels.includes(c)} class={check} />
+              <label for={`s-ch-${c}`}><span class="font-medium text-stone-900">{CHANNEL_LABEL[c]}</span></label>
+            </div>
+          ))}
+          <p class={`rounded border px-3 py-2 text-sm ${fbConnected ? 'border-green-300 bg-green-50 text-stone-900' : 'border-amber-400 bg-amber-100 text-amber-900'}`}>
+            <strong>Facebook Page: {fbConnected ? 'connected' : 'not connected'}.</strong>
+            {fbConnected ? ' Posts with Facebook ticked publish to the Page.' : ' Posts with Facebook ticked wait in review until it is connected. Follow the Facebook Page steps in docs/LAUNCH.md (they set FB_PAGE_ID and FB_PAGE_TOKEN).'}
+          </p>
         </fieldset>
 
         <fieldset class="space-y-2 rounded-lg border border-stone-200 bg-white p-4">

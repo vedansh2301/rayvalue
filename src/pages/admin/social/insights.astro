@@ -2,11 +2,12 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AdminNav from '../../../components/admin/AdminNav.astro';
 import { formatInZone } from '../../../lib/social/schedule';
-import { insightKeys, insightTotals, metricLabel, sortByMetric } from '../../../lib/social/view';
+import { CHANNEL_LABEL } from '../../../lib/social/channels';
+import { insightKeys, insightSortParam, insightTotals, metricLabel, metricsOf, parseInsightSort, sortByMetric } from '../../../lib/social/view';
 import { adminEnv, adminPrelude } from '../../../lib/server/social-page';
 import { getSettings, publishedPosts } from '../../../lib/server/social-admin';
 
-// Read-only. Metrics are whatever keys the publisher stored in social_posts.insights; nothing is computed or invented here.
+// Read-only. Metrics are whatever keys the publisher stored in social_posts.insights (Instagram) and fb_insights (Facebook); nothing is computed or invented here.
 export const prerender = false;
 const env = adminEnv();
 const denied = await adminPrelude(Astro, env);
@@ -14,33 +15,37 @@ if (denied) return denied;
 
 const [posts, settings] = await Promise.all([publishedPosts(env), getSettings(env)]);
 const tz = settings?.timezone ?? 'America/New_York';
-const keys = posts ? insightKeys(posts) : [];
-const requested = new URL(Astro.request.url).searchParams.get('sort');
-const sort = requested && keys.includes(requested) ? requested : null;
-const rows = posts ? sortByMetric(posts, sort) : [];
-const totals = posts ? insightTotals(posts) : {};
+const igKeys = posts ? insightKeys(posts, 'instagram') : [];
+const fbKeys = posts ? insightKeys(posts, 'facebook') : [];
+const sort = parseInsightSort(new URL(Astro.request.url).searchParams.get('sort'), igKeys, fbKeys);
+const rows = posts ? sortByMetric(posts, sort?.key ?? null, sort?.channel) : [];
+const totals = { instagram: posts ? insightTotals(posts, 'instagram') : {}, facebook: posts ? insightTotals(posts, 'facebook') : {} };
+const columns = [...igKeys.map((key) => ({ channel: 'instagram' as const, key })), ...fbKeys.map((key) => ({ channel: 'facebook' as const, key }))];
 const num = (v: number | undefined) => (typeof v === 'number' ? v.toLocaleString('en-US') : '—');
 ---
 <BaseLayout title="Social insights" description="Owner-only post insights." path="/admin/social/insights" noindex>
   <div class="shell py-8">
     <AdminNav current="/admin/social/insights" />
     <h1 class="mt-4 text-2xl font-bold text-stone-900">Insights</h1>
-    <p class="mt-1 text-sm text-stone-700">Published posts with the metrics Instagram returned. Pick a column heading link to sort by it, highest first.</p>
+    <p class="mt-1 text-sm text-stone-700">Published posts with the metrics Instagram and Facebook returned, each channel in its own columns. Pick a column heading link to sort by it, highest first.</p>
 
     {posts === null && <p class="mt-6 text-stone-900">Could not read posts from the database.</p>}
     {posts !== null && posts.length === 0 && <p class="mt-6 text-stone-700">No published posts yet.</p>}
-    {posts !== null && posts.length > 0 && keys.length === 0 && <p class="mt-6 text-stone-700">{posts.length} published post{posts.length === 1 ? '' : 's'}, but no insights have been collected yet.</p>}
+    {posts !== null && posts.length > 0 && columns.length === 0 && <p class="mt-6 text-stone-700">{posts.length} published post{posts.length === 1 ? '' : 's'}, but no insights have been collected yet.</p>}
     {posts !== null && posts.length > 0 && (
       <div class="mt-6 overflow-x-auto" tabindex="0" role="region" aria-label="Insights table">
         <table class="min-w-full text-left text-sm text-stone-900">
-          <caption class="sr-only">Published posts and their insights{sort ? `, sorted by ${metricLabel(sort)}` : ''}</caption>
+          <caption class="sr-only">Published posts and their insights{sort ? `, sorted by ${CHANNEL_LABEL[sort.channel]} ${metricLabel(sort.key)}` : ''}</caption>
           <thead>
             <tr class="border-b border-stone-300">
               <th scope="col" class="px-2 py-2">Post</th>
               <th scope="col" class="px-2 py-2">Published</th>
-              {keys.map((k) => (
-                <th scope="col" class="px-2 py-2" aria-sort={sort === k ? 'descending' : undefined}>
-                  <a href={`/admin/social/insights?sort=${encodeURIComponent(k)}`} class="inline-flex min-h-11 items-center underline underline-offset-2">{metricLabel(k)}</a>
+              {columns.map((c) => (
+                <th scope="col" class="px-2 py-2" aria-sort={sort?.channel === c.channel && sort.key === c.key ? 'descending' : undefined}>
+                  <a href={`/admin/social/insights?sort=${encodeURIComponent(insightSortParam(c.channel, c.key))}`} class="inline-flex min-h-11 flex-col justify-center underline underline-offset-2">
+                    <span class="text-xs font-normal text-stone-700">{CHANNEL_LABEL[c.channel]}</span>
+                    {metricLabel(c.key)}
+                  </a>
                 </th>
               ))}
             </tr>
@@ -48,16 +53,16 @@ const num = (v: number | undefined) => (typeof v === 'number' ? v.toLocaleString
           <tbody>
             {rows.map((p) => (
               <tr class="border-b border-stone-200 align-top">
-                <td class="px-2 py-2"><a href={`/admin/social/${p.id}`} class="underline underline-offset-2">{p.title || '(untitled)'}</a> <span class="text-stone-700">({p.type})</span>{p.ig_permalink && <> · <a href={p.ig_permalink} rel="noopener noreferrer" class="underline underline-offset-2">Instagram</a></>}</td>
+                <td class="px-2 py-2"><a href={`/admin/social/${p.id}`} class="underline underline-offset-2">{p.title || '(untitled)'}</a> <span class="text-stone-700">({p.type})</span>{p.ig_permalink && <> · <a href={p.ig_permalink} rel="noopener noreferrer" class="underline underline-offset-2">Instagram</a></>}{p.fb_permalink && <> · <a href={p.fb_permalink} rel="noopener noreferrer" class="underline underline-offset-2">Facebook</a></>}</td>
                 <td class="whitespace-nowrap px-2 py-2">{p.published_at ? formatInZone(p.published_at, tz) : '—'}</td>
-                {keys.map((k) => <td class="px-2 py-2 tabular-nums">{num(p.insights?.[k])}</td>)}
+                {columns.map((c) => <td class="px-2 py-2 tabular-nums">{num(metricsOf(p, c.channel)?.[c.key])}</td>)}
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr class="border-t-2 border-stone-400 font-semibold">
               <th scope="row" class="px-2 py-2" colspan="2">Total ({rows.length} post{rows.length === 1 ? '' : 's'})</th>
-              {keys.map((k) => <td class="px-2 py-2 tabular-nums">{num(totals[k])}</td>)}
+              {columns.map((c) => <td class="px-2 py-2 tabular-nums">{num(totals[c.channel][c.key])}</td>)}
             </tr>
           </tfoot>
         </table>

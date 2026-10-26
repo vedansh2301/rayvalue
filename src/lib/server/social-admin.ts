@@ -3,6 +3,7 @@
  * layer; nothing here talks to Instagram. Status moves go through src/lib/social/status.ts and every write that depends
  * on the current status filters on it, so a post the publisher just picked up cannot be overwritten.
  */
+import { channelsLabel, normalizeChannels, publishedChannels } from '../social/channels';
 import { checksPassed, runChecks, type MediaForCheck } from '../social/checks';
 import {
   isUuid,
@@ -23,6 +24,9 @@ import { adminDelete, adminInsert, adminInsertMany, adminSelect, adminUpdate, ad
 
 export interface SocialEnv extends AdminEnv {
   GITHUB_DISPATCH_TOKEN?: string;
+  /** Only read to say whether the Page is connected; never displayed. */
+  FB_PAGE_ID?: string;
+  FB_PAGE_TOKEN?: string;
 }
 
 const f = fetch;
@@ -46,12 +50,13 @@ export interface SocialTemplate {
 // ------------------------------------------------------------------ settings
 export async function getSettings(env: SocialEnv): Promise<SocialSettings | null> {
   const rows = await adminSelect<SocialSettings>(env, 'social_settings', { select: '*', limit: '1' }, f);
-  return rows?.[0] ?? null;
+  const row = rows?.[0];
+  return row ? { ...row, default_channels: normalizeChannels(row.default_channels) } : null;
 }
 
 export async function updateSettings(env: SocialEnv, s: SettingsInput): Promise<boolean> {
-  const n = await adminUpdate(env, 'social_settings', { id: 'eq.true' }, { auto_publish: s.auto_publish, paused: s.paused, timezone: s.timezone, notify_email: s.notify_email, slots: s.slots }, f);
-  if (n) await logEvent(env, null, 'settings_saved', { paused: s.paused, auto_publish: s.auto_publish, timezone: s.timezone, slots: s.slots.length });
+  const n = await adminUpdate(env, 'social_settings', { id: 'eq.true' }, { auto_publish: s.auto_publish, paused: s.paused, timezone: s.timezone, notify_email: s.notify_email, slots: s.slots, default_channels: s.default_channels }, f);
+  if (n) await logEvent(env, null, 'settings_saved', { paused: s.paused, auto_publish: s.auto_publish, timezone: s.timezone, slots: s.slots.length, default_channels: s.default_channels });
   return n === 1;
 }
 
@@ -74,6 +79,7 @@ export async function listPosts(env: SocialEnv, filters: ListFilters): Promise<S
   const params: Record<string, string> = { select: '*', order: 'updated_at.desc', limit: String(LIST_LIMIT) };
   if (filters.status) params.status = `eq.${filters.status}`;
   if (filters.type) params.type = `eq.${filters.type}`;
+  if (filters.channel) params.channels = `cs.{${filters.channel}}`;
   if (filters.q) params.or = `(title.ilike.*${filters.q}*,caption.ilike.*${filters.q}*)`;
   return adminSelect<SocialPost>(env, 'social_posts', params, f);
 }
@@ -163,12 +169,17 @@ export async function savePost(env: SocialEnv, existing: SocialPost | null, inpu
     await adminUpdate(env, 'social_media', { id: `eq.${m.id}` }, { alt_text: input.alt_text[m.id] }, f);
   }
 
-  const results = runChecks({ type: input.type, caption: input.caption, data_refs: existing?.data_refs ?? [], numbers_confirmed: input.numbers_confirmed, media: media.map(toCheckMedia) });
+  // A channel that already published cannot be taken off the post (its result would be lost).
+  const dropped = existing ? publishedChannels(existing).filter((c) => !input.channels.includes(c)) : [];
+  if (dropped.length) return fail(`${channelsLabel(dropped)} already published this post, so it has to stay ticked.`);
+
+  const results = runChecks({ type: input.type, caption: input.caption, data_refs: existing?.data_refs ?? [], numbers_confirmed: input.numbers_confirmed, media: media.map(toCheckMedia), channels: input.channels });
   const passed = checksPassed(results);
   const from: PostStatus = existing?.status ?? 'draft';
 
   const patch: Record<string, unknown> = {
     type: input.type,
+    channels: input.channels,
     title: input.title,
     caption: input.caption,
     numbers_confirmed: input.numbers_confirmed,
@@ -210,7 +221,7 @@ export async function savePost(env: SocialEnv, existing: SocialPost | null, inpu
     if (target === 'scheduled') {
       event = 'scheduled';
       detail = { ...detail, scheduled_at: at.toISOString(), mode: input.when };
-      if (from === 'failed') Object.assign(patch, { attempts: 0, last_error: null });
+      if (from === 'failed') Object.assign(patch, { attempts: 0, last_error: null, fb_attempts: 0, fb_last_error: null });
       flash = input.when === 'now' ? 'queued_now' : 'scheduled';
     } else {
       flash = target === 'review' ? 'needs_review' : 'demoted_draft';
@@ -254,9 +265,9 @@ export async function postAction(env: SocialEnv, post: SocialPost, action: 'unsc
       if (post.status !== 'failed' || !canTransition('failed', 'scheduled')) return err('Only a failed post can be retried.');
       const media = await getPostMedia(env, post.id);
       if (!media) return err('Could not read the post media.');
-      const results = runChecks({ type: post.type, caption: post.caption, data_refs: post.data_refs, numbers_confirmed: post.numbers_confirmed, media: media.map(toCheckMedia) });
+      const results = runChecks({ type: post.type, caption: post.caption, data_refs: post.data_refs, numbers_confirmed: post.numbers_confirmed, media: media.map(toCheckMedia), channels: normalizeChannels(post.channels) });
       if (!checksPassed(results)) return err('The post fails a check, so it cannot be retried. Fix it in the editor first.');
-      const n = await adminUpdate(env, 'social_posts', { id: `eq.${post.id}`, status: 'eq.failed' }, { status: 'scheduled', scheduled_at: now.toISOString(), attempts: 0, last_error: null, checks: results, checks_passed: true }, f);
+      const n = await adminUpdate(env, 'social_posts', { id: `eq.${post.id}`, status: 'eq.failed' }, { status: 'scheduled', scheduled_at: now.toISOString(), attempts: 0, last_error: null, fb_attempts: 0, fb_last_error: null, checks: results, checks_passed: true }, f);
       if (!n) return err('Could not retry. Try again.');
       await logEvent(env, post.id, 'retry', { previous_error: post.last_error });
       return { ok: true, flash: 'retried' };
@@ -283,6 +294,7 @@ export async function postAction(env: SocialEnv, post: SocialPost, action: 'unsc
         'social_posts',
         {
           type: post.type,
+          channels: normalizeChannels(post.channels),
           status: 'draft',
           title: `${post.title} (copy)`.slice(0, 120),
           caption: post.caption,

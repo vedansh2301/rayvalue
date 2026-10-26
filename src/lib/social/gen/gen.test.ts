@@ -6,7 +6,7 @@ import { UTILITY_PAGES } from '../../utility/pages';
 import { buildUtilityPage, typicalExample, type UtilityPageVm } from '../../utility/view';
 import { captionNumbers, checksPassed, countHashtags, creditClaims, officialWording, runChecks, untracedNumbers, type MediaForCheck } from '../checks';
 import { TEMPLATE_KEYS } from '../template-keys';
-import type { Slot } from '../types';
+import type { Channel, Slot } from '../types';
 import { fitFontSize, longestLine } from './fit';
 import { AUTO_DAYS, candidatesFor, countFreeSlots, isValidJob, planAuto, targetsFor } from './plan';
 import { decideQueueState } from './queue';
@@ -51,8 +51,8 @@ const posts: [string, () => GeneratedPost][] = [
 // ------------------------------------------------------------------ templates
 describe.each(posts)('%s', (key, build) => {
   const post = build();
-  const check = () =>
-    runChecks({ type: post.type, caption: post.caption, data_refs: post.dataRefs, numbers_confirmed: false, media: mediaFor(post) });
+  const check = (channels?: Channel[]) =>
+    runChecks({ type: post.type, caption: post.caption, data_refs: post.dataRefs, numbers_confirmed: false, media: mediaFor(post), channels });
 
   it('is a known template key of the matching type', () => {
     const t = TEMPLATE_KEYS.find((x) => x.key === key)!;
@@ -65,6 +65,11 @@ describe.each(posts)('%s', (key, build) => {
     const results = check();
     expect(results.filter((r) => !r.ok && r.level === 'error')).toEqual([]);
     expect(checksPassed(results)).toBe(true);
+  });
+
+  it('also passes when the default channels include Facebook (reels and carousels are allowed there)', () => {
+    expect(checksPassed(check(['instagram', 'facebook']))).toBe(true);
+    expect(checksPassed(check(['facebook']))).toBe(true);
   });
 
   it('has 3-8 hashtags, a soft "link in bio" CTA and fits Instagram limits', () => {

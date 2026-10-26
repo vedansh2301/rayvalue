@@ -1,13 +1,14 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import AdminNav from '../../../components/admin/AdminNav.astro';
+import { CHANNEL_CHIP, CHANNEL_LABEL, channelResults } from '../../../lib/social/channels';
 import { strictSameOrigin } from '../../../lib/admin/auth';
 import { flashText } from '../../../lib/social/flash';
 import { parseGenerateTarget, parseListFilters } from '../../../lib/social/forms';
 import { formatInZone } from '../../../lib/social/schedule';
 import { STATUS_LABEL } from '../../../lib/social/status';
 import { TEMPLATE_KEYS, templateByKey } from '../../../lib/social/template-keys';
-import { POST_STATUSES, POST_TYPES } from '../../../lib/social/types';
+import { CHANNELS, POST_STATUSES, POST_TYPES } from '../../../lib/social/types';
 import { STATUS_CHIP, buildMonthGrid, monthLabel, parseMonth, shiftMonth } from '../../../lib/social/view';
 import { UTILITY_PAGES } from '../../../lib/utility/pages';
 import { adminEnv, adminPrelude, forbidden, redirectTo } from '../../../lib/server/social-page';
@@ -110,12 +111,19 @@ const btn = 'inline-flex min-h-11 items-center justify-center rounded-lg px-4 py
               {POST_TYPES.map((t) => <option value={t} selected={filters.type === t}>{t}</option>)}
             </select>
           </div>
+          <div class="flex flex-col gap-1">
+            <label for="f-channel" class="text-sm font-medium text-stone-800">Channel</label>
+            <select id="f-channel" name="channel" class={input}>
+              <option value="">All</option>
+              {CHANNELS.map((c) => <option value={c} selected={filters.channel === c}>{CHANNEL_LABEL[c]}</option>)}
+            </select>
+          </div>
           <div class="flex min-w-48 flex-1 flex-col gap-1">
             <label for="f-q" class="text-sm font-medium text-stone-800">Search title or caption</label>
             <input id="f-q" name="q" value={filters.q} maxlength="80" class={input} />
           </div>
           <button type="submit" class={`${btn} bg-stone-900 text-white hover:bg-stone-700`}>Filter</button>
-          {(filters.status || filters.type || filters.q) && <a href="/admin/social" class="inline-flex min-h-11 items-center px-2 underline underline-offset-2">Clear</a>}
+          {(filters.status || filters.type || filters.channel || filters.q) && <a href="/admin/social" class="inline-flex min-h-11 items-center px-2 underline underline-offset-2">Clear</a>}
         </form>
 
         {posts === null && <p class="mt-6 text-stone-900">Could not read posts from the database.</p>}
@@ -137,9 +145,17 @@ const btn = 'inline-flex min-h-11 items-center justify-center rounded-lg px-4 py
                     {p.scheduled_at && p.status !== 'published' && <span>Due {formatInZone(p.scheduled_at, tz)}. </span>}
                     {p.published_at && <span>Published {formatInZone(p.published_at, tz)}. </span>}
                     <span class={bad ? 'font-semibold text-red-800' : 'text-green-800'}>{bad ? `${bad} check${bad === 1 ? '' : 's'} failing` : p.checks.length ? 'Checks pass' : 'Not checked yet'}</span>
-                    {p.ig_permalink && <> · <a href={p.ig_permalink} rel="noopener noreferrer" class="underline underline-offset-2">View on Instagram</a></>}
-                    {p.last_error && p.status === 'failed' && <span class="block text-red-800">Error: {p.last_error}</span>}
                   </p>
+                  <ul class="mt-2 flex flex-wrap gap-2 text-sm" aria-label="Result per channel">
+                    {channelResults(p, { selectedOnly: true }).map((r) => (
+                      <li class="rounded border border-stone-200 px-2 py-1 text-stone-900">
+                        <span class="font-medium">{r.label}</span>{' '}
+                        <span class={`rounded-full border px-2 py-0.5 text-xs font-semibold ${CHANNEL_CHIP[r.state]}`}>{r.text}</span>
+                        {r.permalink && <> · <a href={r.permalink} rel="noopener noreferrer" class="underline underline-offset-2">View<span class="sr-only"> on {r.label}</span></a></>}
+                        {r.error && <span class="block text-red-800">Error: {r.error}</span>}
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               );
             })}

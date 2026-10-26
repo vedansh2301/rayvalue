@@ -2,9 +2,10 @@
  * Form and request parsing for /admin/social (pure). Everything the owner submits is validated here, server-side,
  * against the same limits as the check constraints in supabase/migrations/0014_social_cms.sql.
  */
+import { CHANNELS, POST_STATUSES, POST_TYPES, type Channel, type MediaKind, type MediaMime, type PostStatus, type PostType, type Slot } from './types';
+import { isChannel } from './channels';
 import { zonedToUtc, isValidSlot } from './schedule';
 import { canTransition, statusOnSchedule } from './status';
-import { POST_STATUSES, POST_TYPES, type MediaKind, type MediaMime, type PostStatus, type PostType, type Slot } from './types';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (s: unknown): s is string => typeof s === 'string' && UUID_RE.test(s);
@@ -129,9 +130,20 @@ export type PostAction = (typeof POST_ACTIONS)[number];
 export const WHEN_MODES = ['none', 'next_slot', 'custom', 'now'] as const;
 export type WhenMode = (typeof WHEN_MODES)[number];
 
+/**
+ * The "Post to" checkboxes: a non-empty set of known channels, each at most once. Returned in canonical order.
+ * `emptyMessage` is the error when nothing is ticked.
+ */
+export function parseChannels(values: string[], emptyMessage = 'Pick at least one channel to post to.'): Result<Channel[]> {
+  if (values.some((v) => !isChannel(v))) return bad('Unknown channel.');
+  const out = CHANNELS.filter((c) => values.includes(c));
+  return out.length ? { ok: true, value: out } : bad(emptyMessage);
+}
+
 export interface PostFormInput {
   action: PostAction;
   type: PostType;
+  channels: Channel[];
   title: string;
   caption: string;
   media_ids: string[];
@@ -151,6 +163,8 @@ export function parsePostForm(form: URLSearchParams): Result<PostFormInput> {
   if (!POST_ACTIONS.includes(action as PostAction)) return bad('Unknown action.');
   const type = form.get('type');
   if (!POST_TYPES.includes(type as PostType)) errors.push('Choose a post type.');
+  const channels = parseChannels(form.getAll('channels'));
+  if (!channels.ok) errors.push(...channels.errors);
   const title = trimmed(form.get('title'));
   if (title.length > LIMITS.title) errors.push(`Title can be at most ${LIMITS.title} characters.`);
   const caption = clean(form.get('caption'));
@@ -186,6 +200,7 @@ export function parsePostForm(form: URLSearchParams): Result<PostFormInput> {
     value: {
       action: action as PostAction,
       type: type as PostType,
+      channels: channels.ok ? channels.value : [],
       title,
       caption,
       media_ids,
@@ -232,6 +247,7 @@ export function resolveScheduleTarget(from: PostStatus, passed: boolean, autoPub
 export interface ListFilters {
   status: PostStatus | null;
   type: PostType | null;
+  channel: Channel | null;
   q: string;
 }
 
@@ -241,9 +257,11 @@ export const sanitizeSearch = (q: string) => q.replace(/[,()*%\\"'\u0000-\u001f]
 export function parseListFilters(p: URLSearchParams): ListFilters {
   const status = p.get('status');
   const type = p.get('type');
+  const channel = p.get('channel');
   return {
     status: POST_STATUSES.includes(status as PostStatus) ? (status as PostStatus) : null,
     type: POST_TYPES.includes(type as PostType) ? (type as PostType) : null,
+    channel: isChannel(channel) ? channel : null,
     q: sanitizeSearch(p.get('q') ?? ''),
   };
 }
@@ -255,11 +273,14 @@ export interface SettingsInput {
   timezone: string;
   notify_email: boolean;
   slots: Slot[];
+  default_channels: Channel[];
 }
 
 export function parseSettingsForm(form: URLSearchParams): Result<SettingsInput> {
   const tz = form.get('timezone') ?? '';
   if (!isUsTimezone(tz)) return bad('Choose a time zone from the list.');
+  const channels = parseChannels(form.getAll('default_channels'), 'Pick at least one default channel.');
+  if (!channels.ok) return channels;
   let raw: unknown;
   try {
     raw = JSON.parse(form.get('slots') ?? '[]');
@@ -276,7 +297,7 @@ export function parseSettingsForm(form: URLSearchParams): Result<SettingsInput> 
   const key = (s: Slot) => `${s.dow}|${s.time}|${s.type}`;
   if (new Set(slots.map(key)).size !== slots.length) return bad('Two slots are identical.');
   slots.sort((a, b) => a.dow - b.dow || a.time.localeCompare(b.time) || a.type.localeCompare(b.type));
-  return { ok: true, value: { auto_publish: form.has('auto_publish'), paused: form.has('paused'), timezone: tz, notify_email: form.has('notify_email'), slots } };
+  return { ok: true, value: { auto_publish: form.has('auto_publish'), paused: form.has('paused'), timezone: tz, notify_email: form.has('notify_email'), slots, default_channels: channels.value } };
 }
 
 // ------------------------------------------------------------------ templates
