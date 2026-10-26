@@ -12,6 +12,7 @@ import { formatUsd } from '../../lib/format';
 import { formatYears, isHttpUrl } from '../../lib/city/view';
 import { STATE_SLUG, utilityPagePath, type UtilityPageMeta } from '../../lib/utility/pages';
 import type { UtilityPageData } from '../../lib/utility/load';
+import { typicalExample } from '../../lib/utility/view';
 
 interface Props { data: UtilityPageData }
 const { data } = Astro.props;
@@ -23,8 +24,7 @@ const h1 = `Is solar worth it with ${meta.short} in 2026? (No federal tax credit
 const vm = data.kind === 'ok' ? data.vm : null;
 const range = (a: number, b: number, f: (n: number) => string) => (a === b ? f(a) : `${f(a)}–${f(b)}`);
 // Typical home for the at-a-glance graphics: the solar-only worked example with the middle bill.
-const soloRows = (vm?.indexable ? vm.examples : []).filter((r) => r.battery === 0 && r.result);
-const typical = soloRows[Math.floor((soloRows.length - 1) / 2)] ?? null;
+const typical = vm ? typicalExample(vm.examples, vm.indexable) : null;
 const maxYears = vm?.analysisYears ?? 25;
 const paybackText = (r: { paybackYears: { low: number | null; likely: number | null; high: number | null } }) => {
   const max = vm?.analysisYears ?? 25;

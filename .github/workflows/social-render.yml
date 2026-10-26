@@ -1,0 +1,66 @@
+name: Social render
+# Renders Instagram Reels / carousels from RayValue's live data and queues them in the social CMS.
+# Dispatched by /admin/social ("Generate") with these exact inputs, and nightly with --auto.
+on:
+  workflow_dispatch:
+    inputs:
+      template:
+        description: 'Template key (e.g. utility-payback-reel). Empty = auto-fill open slots.'
+        required: false
+        default: ''
+      target:
+        description: 'Utility slug or state code (fl / ca) the template is for'
+        required: false
+        default: ''
+  schedule:
+    - cron: '17 5 * * *' # nightly, 05:17 UTC
+
+concurrency:
+  group: social-render
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      TEMPLATE: ${{ inputs.template }}
+      TARGET: ${{ inputs.target }}
+    steps:
+      - name: Check secrets
+        id: gate
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SECRET_KEY" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Social render skipped: SUPABASE_URL and/or SUPABASE_SECRET_KEY repository secrets are not set."
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v4
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: steps.gate.outputs.run == 'true'
+        run: npm ci
+      - name: Verify ffmpeg
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update -y && sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -1
+      - name: Generate posts
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          if [ -n "$TEMPLATE" ]; then
+            npm run social:generate -- --template "$TEMPLATE" --target "$TARGET"
+          else
+            npm run social:generate -- --auto
+          fi
