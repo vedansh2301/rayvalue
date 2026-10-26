@@ -24,8 +24,8 @@ const run = promisify(execFile);
 const require = createRequire(import.meta.url);
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
-/** Hard cap on a rendered Reel (with its voice-over): generation fails above it. Facebook Reels allow 90 s. */
-export const REEL_RENDER_MAX_SECONDS = 60;
+/** Hard cap on a rendered Reel (with its voice-over): generation fails above it. Short Reels finish; aim for 18-25 s. */
+export const REEL_RENDER_MAX_SECONDS = 30;
 /** Reel backgrounds are rendered at this multiple of the frame so the slow zoom never upscales. */
 export const REEL_BG_SCALE = 2;
 /** How far the background zooms over one slide (1.00 -> 1.08). */
@@ -36,9 +36,13 @@ const ZOOM = 0.08;
  */
 const TEXT_IN = { at: XFADE_SECONDS, fade: 0.45, rise: 36, riseSeconds: 0.65 } as const;
 const TEXT_OUT_SECONDS = 0.3;
-/** Voice-over starts this long after its slide begins to appear (with its copy) and leaves this much air before the next transition. */
-export const VOICE_LEAD = 0.5;
-export const VOICE_TAIL = 0.45;
+/**
+ * Voice-over starts this long after its slide begins to appear (as its copy fades up) and leaves this much air before
+ * the next transition. The first slide's copy is on screen from frame one, so the hook is spoken almost at once.
+ */
+export const VOICE_LEAD = 0.4;
+export const FIRST_VOICE_LEAD = 0.15;
+export const VOICE_TAIL = 0.3;
 const FPS = 30;
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
 
@@ -137,16 +141,17 @@ const up1 = (n: number) => Math.ceil(n * 10 - 1e-9) / 10;
 
 /**
  * Slide timing for a Reel: each slide holds for its planned seconds, or longer when its voice clip needs it (lead +
- * clip + tail, and clear of the next cross-fade). The clip starts VOICE_LEAD after the slide begins to appear.
+ * clip + tail, and clear of the next cross-fade). The clip starts VOICE_LEAD after the slide begins to appear
+ * (FIRST_VOICE_LEAD on the first slide).
  */
 export function fitReelTiming(planned: readonly number[], clipSeconds: readonly (number | null)[], xfade = XFADE_SECONDS): ReelTiming {
   const last = planned.length - 1;
   const seconds = planned.map((p, i) => {
     const clip = clipSeconds[i];
-    return clip == null ? p : Math.max(p, up1(VOICE_LEAD + clip + VOICE_TAIL + (i < last ? xfade : 0)));
+    return clip == null ? p : Math.max(p, up1((i === 0 ? FIRST_VOICE_LEAD : VOICE_LEAD) + clip + VOICE_TAIL + (i < last ? xfade : 0)));
   });
   const { offsets, total } = reelTimeline(seconds, xfade);
-  const voiceAt = clipSeconds.map((c, i) => (c == null ? null : r3((i === 0 ? 0 : offsets[i - 1]!) + VOICE_LEAD)));
+  const voiceAt = clipSeconds.map((c, i) => (c == null ? null : r3(i === 0 ? FIRST_VOICE_LEAD : offsets[i - 1]! + VOICE_LEAD)));
   return { seconds, voiceAt, total };
 }
 
@@ -269,9 +274,9 @@ async function renderReel(post: GeneratedPost, dir: string): Promise<RenderedFil
       clips.map((c) => c?.seconds ?? null),
     );
     if (timing.total > REEL_RENDER_MAX_SECONDS) {
-      throw new Error(`Reel would run ${timing.total.toFixed(1)} s with its voice-over; the cap is ${REEL_RENDER_MAX_SECONDS} s. Shorten the voice lines.`);
+      throw new Error(`Reel would run ${timing.total.toFixed(1)} s with its voice-over; the cap is ${REEL_RENDER_MAX_SECONDS} s. Shorten the voice lines or drop a slide.`);
     }
-    if (timing.total > REEL_MAX_SECONDS) console.warn(`Reel runs ${timing.total.toFixed(1)} s, over the planned ${REEL_MAX_SECONDS} s.`);
+    if (timing.total > REEL_MAX_SECONDS) console.warn(`Reel runs ${timing.total.toFixed(1)} s, over the ${REEL_MAX_SECONDS} s target (short Reels get watched to the end); consider shorter voice lines.`);
 
     const layers = await Promise.all(
       slides.map(async (s, i) => {

@@ -10,13 +10,13 @@ import type { Channel, Slot } from '../types';
 import { fitFontSize, longestLine } from './fit';
 import { AUTO_DAYS, candidatesFor, countFreeSlots, isValidJob, planAuto, targetsFor } from './plan';
 import { decideQueueState } from './queue';
-import { batteryEffect, buildCreditGoneReel, buildUtilityPaybackCarousel, buildUtilityPaybackReel, describeSlide, slideTexts, truncateAlt, voiceSeconds } from './templates';
-import { facebookLink } from './captions';
-import { hashtagsFor, hashtagWord } from './hashtags';
+import { batteryEffect, buildCreditGoneReel, buildUtilityPaybackCarousel, buildUtilityPaybackReel, describeSlide, REEL_MIN_SECONDS, slideTexts, truncateAlt, voiceSeconds, voiceWords } from './templates';
+import { facebookLink, stateKeywordLine, utilityKeywordLine } from './captions';
+import { hashtagsFor, IG_HASHTAG_MAX, IG_HASHTAG_MIN } from './hashtags';
 import { PHOTOS } from './photos';
 import { assignPhotos, seedHash } from './slide-photos';
 import { buildUtilityFacts, formatDataDate, joinRange, paybackBig, paybackPhrase } from './facts';
-import { REEL_MAX_SECONDS, reelTimeline } from './timeline';
+import { REEL_MAX_SECONDS, REEL_TARGET_SECONDS, reelTimeline } from './timeline';
 import { speakable } from './speech';
 import type { GeneratedPost } from './types';
 
@@ -54,6 +54,10 @@ const builders: [string, Build][] = [
   ['credit-gone-reel', (channel) => buildCreditGoneReel('FL', flVms(), { channel })],
 ];
 const CHANNELS: Channel[] = ['instagram', 'facebook'];
+/** Names a fixture post can be about (state or utility). */
+const PLACES = /\b(Florida|California|FPL|Duke Energy Florida|TECO|PG&E|SCE|SDG&E)\b/;
+/** Reel slide kind -> its minimum hold (REEL_MIN_SECONDS). */
+const reelKind = (id: string): keyof typeof REEL_MIN_SECONDS => (id === 'hook' ? 'hook' : id === 'cta' ? 'cta' : 'figure');
 const posts: [string, Channel, () => GeneratedPost][] = builders.flatMap(([key, build]) => CHANNELS.map((c): [string, Channel, () => GeneratedPost] => [key, c, () => build(c)]));
 
 // ------------------------------------------------------------------ templates
@@ -78,21 +82,37 @@ describe.each(posts)('%s (%s)', (key, channel, build) => {
     expect(checksPassed(results)).toBe(true);
   });
 
-  it('fits caption limits and opens on a short hook line', () => {
+  it('fits caption limits and opens on a searchable keyword line (place + solar + cost/payback + 2026)', () => {
     expect(post.caption.length).toBeLessThanOrEqual(2200);
     expect(post.title.length).toBeLessThanOrEqual(120);
-    const hook = post.caption.split('\n')[0]!;
-    expect(hook.length).toBeLessThanOrEqual(120);
-    expect(hook).toMatch(/federal tax credit is gone/);
+    const first = post.caption.split('\n')[0]!;
+    expect(first.length).toBeLessThanOrEqual(120);
+    expect(first).toMatch(PLACES);
+    expect(first).toMatch(/\bsolar\b/i);
+    expect(first).toMatch(/\b(cost|payback)\b/i);
+    expect(first).toMatch(/\b2026\b/);
+    // it names the credit only as gone (rule 2)
+    expect(first).toMatch(/without the federal tax credit/);
+    expect(first).toBe(key === 'credit-gone-reel' ? stateKeywordLine('Florida') : utilityKeywordLine({ short: 'FPL', stateName: 'Florida' }));
     expect(post.caption).toMatch(/[Ee]stimates, not quotes/);
     expect(post.caption).toMatch(/likely/);
   });
 
+  it('the first slide shows the key search words on screen', () => {
+    const hook = post.slides[0]!;
+    const onScreen = [hook.kicker, hook.title, hook.subtitle].join(' ');
+    expect(onScreen).toMatch(PLACES);
+    expect(onScreen).toMatch(/\bsolar\b/i);
+    expect(onScreen).toMatch(/\b2026\b/);
+    expect(hook.title).toMatch(/2026/);
+  });
+
   if (channel === 'instagram') {
-    it('Instagram: 12-18 hashtags at the end, "link in bio" CTA, a save prompt, at most 3 emoji', () => {
+    it('Instagram: 3-5 relevant hashtags at the end, "link in bio" CTA, a save prompt, at most 3 emoji', () => {
       const tags = countHashtags(post.caption);
-      expect(tags).toBeGreaterThanOrEqual(12);
-      expect(tags).toBeLessThanOrEqual(18);
+      expect(tags).toBeGreaterThanOrEqual(3);
+      expect(tags).toBeLessThanOrEqual(5);
+      expect(post.caption).toMatch(/#solarpanels\b/);
       expect(post.caption.split('\n\n').pop()).toMatch(/^(#[a-z0-9]+ ?)+$/);
       expect(post.caption).toMatch(/Run your own numbers \(free\) — link in bio · rayvalue\.com\//);
       expect(post.caption).toMatch(/Save this/);
@@ -131,23 +151,24 @@ describe.each(posts)('%s (%s)', (key, channel, build) => {
     if (post.type === 'carousel') expect(describeSlide(post.slides[0]!)).toContain(PHOTOS[first].alt);
   });
 
-  it('Reels: every slide has a short voice line, a spoken hook first, a CTA last, 25-45 s in all', () => {
+  it('Reels: every slide has a punchy voice line (about 12 words), the hook first, a CTA last, 18-25 s planned', () => {
     if (post.type !== 'reel') {
       expect(voices).toEqual([]);
       return;
     }
     for (const s of post.slides) {
       expect(s.voice, s.id).toBeTruthy();
-      expect(s.voice!.split(/\s+/).length, s.voice).toBeLessThanOrEqual(22);
-      expect(s.seconds).toBe(voiceSeconds(s.voice!, s.id === 'hook' ? 3 : 4));
+      expect(voiceWords(s.voice!), s.voice).toBeLessThanOrEqual(12);
+      expect(s.seconds).toBe(voiceSeconds(s.voice!, REEL_MIN_SECONDS[reelKind(s.id)]));
       // ranges are spoken "X to Y", never with a dash
       expect(s.voice).not.toMatch(/\d–/);
     }
-    expect(post.slides[0]!.voice).toMatch(/^Thinking about solar (with|in) [^?]+\? The federal tax credit is gone/);
-    expect(post.slides[post.slides.length - 1]!.voice).toMatch(/Run your own numbers free at rayvalue\.com\//);
+    // The hook names the place and the year in its first words, and says the credit is gone.
+    expect(post.slides[0]!.voice).toMatch(/^(Florida|FPL) solar in 2026: federal tax credit gone\./);
+    expect(post.slides[post.slides.length - 1]!.voice).toMatch(/free at rayvalue\.com\.$/);
     const total = reelTimeline(post.slides.map((s) => s.seconds ?? 4)).total;
-    expect(total).toBeGreaterThanOrEqual(25);
-    expect(total).toBeLessThanOrEqual(45);
+    expect(total).toBeGreaterThanOrEqual(REEL_TARGET_SECONDS.min);
+    expect(total).toBeLessThanOrEqual(REEL_TARGET_SECONDS.max);
   });
 
   it('data_refs are well formed and value is the shown text', () => {
@@ -173,13 +194,14 @@ describe.each(posts)('%s (%s)', (key, channel, build) => {
 
   it('slide count and timing fit the format', () => {
     if (post.type === 'reel') {
-      expect(post.slides.length).toBeGreaterThanOrEqual(5);
-      expect(post.slides.length).toBeLessThanOrEqual(6);
+      // hook -> payback -> installed cost -> CTA
+      expect(post.slides.map((s) => s.id)).toEqual(['hook', 'payback', 'cost', 'cta']);
       expect(reelTimeline(post.slides.map((s) => s.seconds ?? 4)).total).toBeLessThanOrEqual(REEL_MAX_SECONDS);
+      expect(REEL_MAX_SECONDS).toBeLessThanOrEqual(30);
       expect(REEL_MAX_SECONDS).toBeLessThanOrEqual(FB_LIMITS.reelSeconds.max);
     } else {
       expect(post.slides.length).toBeGreaterThanOrEqual(5);
-      expect(post.slides.length).toBeLessThanOrEqual(7);
+      expect(post.slides.length).toBeLessThanOrEqual(6);
     }
   });
 
@@ -216,6 +238,22 @@ describe('per-channel posts', () => {
     }
   });
 
+  it('every utility Reel stays short: 4 voiced slides, about 12 words a line, 18-25 s planned, keyword hook on screen', () => {
+    const pge = vmFor('pge', { production: [prod('fx-c', 'CA')], lookupZip: () => ({ state: 'CA' as const }) });
+    for (const vm of [...flVms(), pge]) {
+      const post = buildUtilityPaybackReel(vm, { channel: 'instagram' });
+      expect(post.slides).toHaveLength(4);
+      // a long utility name ("Duke Energy Florida") may push the hook one word over
+      for (const s of post.slides) expect(voiceWords(s.voice!), s.voice).toBeLessThanOrEqual(13);
+      const total = reelTimeline(post.slides.map((s) => s.seconds!)).total;
+      expect(total).toBeGreaterThanOrEqual(REEL_TARGET_SECONDS.min);
+      expect(total).toBeLessThanOrEqual(REEL_TARGET_SECONDS.max);
+      expect(post.slides[0]!.title).toContain(vm.meta.short);
+      expect(post.caption.split('\n')[0]).toContain(`${vm.meta.short} solar panel cost and payback in 2026`);
+      expect(untracedNumbers(post.slides.flatMap(slideTexts).join('\n') + post.caption, post.dataRefs)).toEqual([]);
+    }
+  });
+
   it('rotates photos by target so posts for different utilities do not look identical', () => {
     const sets = ['fpl', 'duke-fl', 'teco'].map((id) => buildUtilityPaybackReel(vmFor(id), { channel: 'instagram' }).slides.map((s) => s.photo).join(','));
     expect(new Set(sets).size).toBeGreaterThan(1);
@@ -226,10 +264,13 @@ describe('per-channel posts', () => {
     expect(ca[0]!.startsWith('ca-')).toBe(true);
     expect(ca[5]!.startsWith('ca-')).toBe(true);
     expect(new Set(ca).size).toBe(ca.length);
-    const tags = hashtagsFor('instagram', { state: 'CA', utilitySlugs: ['pge'], city: 'San José' });
-    expect(tags).toEqual(expect.arrayContaining(['californiasolar', 'californiahomeowner', 'pge', 'sanjose']));
-    expect(tags.length).toBeGreaterThanOrEqual(12);
-    expect(tags.length).toBeLessThanOrEqual(18);
+    expect(hashtagsFor('instagram', { state: 'CA', utilitySlugs: ['pge'] })).toEqual(['californiasolar', 'solarpanels', 'pge', 'solarenergy']);
+    expect(hashtagsFor('instagram', { state: 'FL', utilitySlugs: ['fpl', 'duke-energy-florida', 'teco'] })).toEqual(['floridasolar', 'solarpanels', 'fpl', 'dukeenergy', 'teco']);
+    for (const slugs of [[], ['sce'], ['pge', 'sce', 'sdge']]) {
+      const n = hashtagsFor('instagram', { state: 'CA', utilitySlugs: slugs }).length;
+      expect(n).toBeGreaterThanOrEqual(IG_HASHTAG_MIN);
+      expect(n).toBeLessThanOrEqual(IG_HASHTAG_MAX);
+    }
     expect(hashtagsFor('facebook', { state: 'CA', utilitySlugs: ['sdge'] })).toEqual(['CaliforniaSolar', 'SDGE', 'SolarEnergy']);
     expect(hashtagsFor('facebook', { state: 'FL', utilitySlugs: ['fpl', 'teco'] })).toEqual(['FloridaSolar', 'Homeowners', 'SolarEnergy']);
   });
@@ -238,7 +279,6 @@ describe('per-channel posts', () => {
     expect(seedHash('abc')).toBe(seedHash('abc'));
     const many = assignPhotos('FL', 'x', ['hook', 'payback', 'payback', 'payback', 'payback', 'payback', 'payback', 'cta']);
     for (let i = 1; i < many.length; i++) expect(many[i]).not.toBe(many[i - 1]);
-    expect(hashtagWord('St. Petersburg')).toBe('stpetersburg');
     expect(facebookLink('rayvalue.com/solar/florida/fpl', 'utility-payback-reel')).toBe(
       'https://rayvalue.com/solar/florida/fpl?utm_source=facebook&utm_medium=social&utm_campaign=utility-payback-reel',
     );
@@ -299,7 +339,7 @@ describe('utility facts use the same numbers as the utility page', () => {
 
 describe('alt text helpers', () => {
   it('describes a slide and truncates at a word boundary', () => {
-    const s = buildUtilityPaybackReel(fpl(), { channel: 'instagram' }).slides[1]!;
+    const s = buildUtilityPaybackReel(fpl(), { channel: 'instagram' }).slides.find((x) => x.id === 'cost')!;
     expect(describeSlide(s)).toContain('Installed cost');
     expect(describeSlide(s)).toContain(PHOTOS[s.photo!].alt);
     expect(describeSlide(s, false)).not.toContain(PHOTOS[s.photo!].alt);

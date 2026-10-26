@@ -1,10 +1,13 @@
 /**
  * Captions per channel (pure). Every figure goes through RefBook.use(), the same as on the slides.
  *
- * Instagram: the first line is the hook (what shows before "more"), then short skimmable lines, the key ranges, the
- * "estimates, not quotes" note, a "link in bio" CTA (caption links are not clickable there), a save/share prompt and
- * 12-18 hashtags. Facebook: a conversational post with the full clickable link (UTM-tagged), a question to drive
- * comments and 2-3 hashtags.
+ * Both channels open on a keyword line: the phrase a homeowner would type into search ("FPL solar panel cost and
+ * payback in 2026: ..."), naming the utility and/or state, "solar", "cost"/"payback" and 2026. Instagram and Facebook
+ * use caption text as search keywords, and the first line is what shows before "more".
+ *
+ * Instagram: then short skimmable lines, the key ranges, the "estimates, not quotes" note, a "link in bio" CTA
+ * (caption links are not clickable there), a save/share prompt and 3-5 relevant hashtags. Facebook: a conversational
+ * post with the full clickable link (UTM-tagged), a question to drive comments and 2-3 hashtags.
  *
  * Rules: 1 (no number without a data_ref), 2 (the federal credit is only ever described as ended for 2026+ installs),
  * 3 (ranges with the likely case), 5 (no official / government wording).
@@ -19,6 +22,15 @@ export const facebookLink = (urlText: string, templateKey: string) =>
   `https://${urlText}?utm_source=facebook&utm_medium=social&utm_campaign=${encodeURIComponent(templateKey)}`;
 
 const CREDIT_ENDED = 'the federal credit ended for 2026 installs';
+
+/** The search-phrase first line for a utility post. "in Florida" is left out when the utility's name already says it. */
+export const utilityKeywordLine = (f: Pick<UtilityFacts, 'short' | 'stateName'>) =>
+  `${f.short} solar panel cost and payback in 2026: still worth it${f.short.includes(f.stateName) ? '' : ` in ${f.stateName}`} without the federal tax credit?`;
+
+/** The search-phrase first line for a state post. */
+export const stateKeywordLine = (stateName: string) => `${stateName} solar panel cost 2026: is it still worth it without the federal tax credit?`;
+
+const andList = (xs: readonly string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : (xs[0] ?? ''));
 
 export interface BatteryNote {
   /** The "1" in "1 battery" (the example's battery input). */
@@ -39,11 +51,11 @@ export function utilityCaption(book: RefBook, f: UtilityFacts, channel: Channel,
   const payLikely = usePayback(book, f.solar.payback);
   const date = f.dataDate ? ` (read ${book.use(f.dataDate)})` : '';
   const url = utilityUrlText(f);
-  const tags = hashtagLine(hashtagsFor(channel, { state: f.state, utilitySlugs: [f.slug], city: f.cityName }));
+  const tags = hashtagLine(hashtagsFor(channel, { state: f.state, utilitySlugs: [f.slug] }));
 
   if (channel === 'facebook') {
     return [
-      `The federal tax credit is gone. So does solar still pay off with ${f.short}?`,
+      utilityKeywordLine(f),
       `We ran the numbers for a typical ${f.short} home with a ${bill} monthly bill: ${size} of solar costs about ${cost} installed (likely ${costLikely}), takes ${save} off the bill in the first year, and pays for itself in ${payback} (${payLikely}).`,
       ...(battery
         ? [`Thinking about a battery too? In this example, adding ${book.use(battery.count)} battery makes payback ${battery.effect}, though many homeowners add one for backup power during outages.`]
@@ -56,7 +68,7 @@ export function utilityCaption(book: RefBook, f: UtilityFacts, channel: Channel,
   }
 
   return [
-    `The federal tax credit is gone. So how long does solar take to pay off with ${f.short} now? ☀️`,
+    `${utilityKeywordLine(f)}\nReal ${f.short} numbers ☀️`,
     [`A typical ${f.short} home (${bill} monthly bill, ${size} system):`, `• Installed: ${cost} (likely ${costLikely})`, `• First-year savings: ${save}`, `• Payback: ${payback} (${payLikely})`].join('\n'),
     ...(battery ? [`Swipe for the battery question too: in this example, adding ${book.use(battery.count)} battery makes payback ${battery.effect}.`] : []),
     `That’s the full price you pay back: ${CREDIT_ENDED}.`,
@@ -87,8 +99,8 @@ export function creditGoneCaption(book: RefBook, x: CreditGoneCaptionInput, chan
     const list = x.facts.map((u) => `${paybackPhrase(u.solar.payback)} with ${u.short} (${usePayback(book, u.solar.payback)})`);
     const joined = list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}` : list[0];
     return [
-      `Thinking about solar in ${x.stateName}? The federal tax credit is gone, so here’s what it really costs now.`,
-      `We ran the numbers on the rates of the ${x.stateName} utilities we cover, for a ${x.billNote}. Solar alone pays for itself in ${joined}.`,
+      stateKeywordLine(x.stateName),
+      `We ran the numbers on ${andList(x.facts.map((u) => u.short))} rates, for a ${x.billNote}. Solar alone pays for itself in ${joined}.`,
       `Installed prices run about ${prices} across these utilities, and that’s the full price you pay back: ${CREDIT_ENDED}.`,
       'These are estimates, not quotes. Your roof, bill and installer’s price will move them.',
       `See the numbers for your own home, free:\n${facebookLink(x.urlText, 'credit-gone-reel')}`,
@@ -98,7 +110,7 @@ export function creditGoneCaption(book: RefBook, x: CreditGoneCaptionInput, chan
   }
 
   return [
-    `Thinking about solar in ${x.stateName}? The federal tax credit is gone — here’s what it really costs now. ☀️`,
+    `${stateKeywordLine(x.stateName)}\nSolar payback with ${andList(x.facts.map((u) => u.short))}, in real numbers ☀️`,
     [`Solar-only payback for a ${x.billNote}:`, ...x.facts.map((u) => `• ${u.short}: ${paybackPhrase(u.solar.payback)} (${usePayback(book, u.solar.payback)})`)].join('\n'),
     `Installed prices run about ${prices} across these utilities. That’s the full price you pay back: ${CREDIT_ENDED}.`,
     'Estimates, not quotes, built from each utility’s published rates. Your roof, bill and installer’s price will move them.',

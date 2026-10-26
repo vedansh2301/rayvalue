@@ -6,7 +6,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import type { GeneratedPost, Slide } from '../../src/lib/social/gen/types';
 import { reelTimeline } from '../../src/lib/social/gen/timeline';
 import { creditLine } from './layout';
-import { fitReelTiming, renderPost, renderSlidePng, VOICE_LEAD, VOICE_TAIL } from './render';
+import { FIRST_VOICE_LEAD, fitReelTiming, renderPost, renderSlidePng, VOICE_LEAD, VOICE_TAIL } from './render';
 
 const haveFfmpeg = ['ffmpeg', 'ffprobe'].every((b) => spawnSync(b, ['-version']).status === 0);
 
@@ -58,9 +58,10 @@ describe('Reel timing', () => {
     expect(t.seconds[1]).toBeGreaterThanOrEqual(VOICE_LEAD + 5 + VOICE_TAIL + 0.5);
     expect(t.seconds[2]).toBeGreaterThanOrEqual(VOICE_LEAD + 6 + VOICE_TAIL);
     expect(t.total).toBeCloseTo(reelTimeline(t.seconds).total, 5);
-    // Clip k starts VOICE_LEAD after slide k begins to appear (its cross-fade in), and ends before the next one.
+    // The hook is spoken almost at once; clip k starts VOICE_LEAD after slide k begins to appear (its cross-fade in), and ends before the next one.
     const { offsets } = reelTimeline(t.seconds);
-    expect(t.voiceAt[0]).toBe(VOICE_LEAD);
+    expect(t.voiceAt[0]).toBe(FIRST_VOICE_LEAD);
+    expect(FIRST_VOICE_LEAD).toBeLessThan(0.5);
     expect(t.voiceAt[1]).toBeCloseTo(offsets[0]! + VOICE_LEAD, 5);
     expect(t.voiceAt[1]! + 5).toBeLessThanOrEqual(offsets[1]!);
   });

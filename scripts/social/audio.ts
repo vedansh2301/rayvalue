@@ -27,8 +27,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const TTS_DIR = process.env.SOCIAL_TTS_DIR || join(homedir(), '.cache', 'rayvalue-tts');
 /** Kokoro voice (af_heart: the model's best-graded American English voice). */
 export const TTS_VOICE = process.env.SOCIAL_TTS_VOICE || 'af_heart';
-/** Slightly brisk, Reel pace. */
-export const TTS_SPEED = 1.05;
+/** Brisk Reel pace that still sounds natural with af_heart. */
+export const TTS_SPEED = 1.1;
 
 /** Model files with their exact release sizes (github.com/thewh1teagle/kokoro-onnx, release model-files-v1.0). */
 export const TTS_FILES = {

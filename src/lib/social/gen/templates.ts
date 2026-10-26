@@ -33,7 +33,13 @@ import { assignPhotos, type PhotoRole } from './slide-photos';
 import type { GeneratedPost, MusicMood, Slide, Tile } from './types';
 
 export const ESTIMATES_FOOTER = 'Estimates, not quotes · rayvalue.com';
+/** Planned hold for a Reel slide without a voice line. */
 export const REEL_DEFAULT_SECONDS = 4;
+/**
+ * Minimum hold per Reel slide kind. The voice drives the pace (the renderer stretches a slide to its clip); these only
+ * keep a figure slide up long enough to read its tiles, and the hook short so the first answer comes fast.
+ */
+export const REEL_MIN_SECONDS = { hook: 2.5, figure: 5, cta: 4 } as const;
 
 export interface BuildOptions {
   /** The channel the caption is written for. Slides are the same on every channel. */
@@ -42,30 +48,27 @@ export interface BuildOptions {
 
 // ------------------------------------------------------------------ voice-over timing
 /**
- * Rough time a voice line needs on screen: about 2.7 spoken words a second plus a beat. A dollar figure is spoken as
- * ~4 words ("twelve thousand three hundred dollars"), a decimal as ~3. The renderer stretches the slide to the real
- * clip; this keeps the planned Reel length honest.
+ * Rough time a voice line needs on screen: about 3 spoken words a second (Kokoro at TTS_SPEED) plus ~1.2 s for the
+ * lead-in, the tail and the cross-fade. A dollar figure is spoken as ~4 words ("twelve thousand three hundred
+ * dollars"), a decimal as ~3, a year as 2. The renderer stretches the slide to the real clip; this keeps the planned
+ * Reel length honest.
  */
 export function voiceSeconds(voice: string, min = REEL_DEFAULT_SECONDS): number {
   const words = voice
     .split(/\s+/)
     .filter((w) => /[\p{L}\p{N}]/u.test(w))
-    .reduce((n, w) => n + (/\$\d/.test(w) ? 4 : /\d\.\d/.test(w) ? 3 : 1), 0);
-  return Math.max(min, Math.round((words / 2.7 + 0.6) * 2) / 2);
+    .reduce((n, w) => n + (/\$\d/.test(w) ? 4 : /\d\.\d/.test(w) ? 3 : /^(19|20)\d\d\b/.test(w) ? 2 : 1), 0);
+  return Math.max(min, Math.ceil((words / 3 + 1.2) * 2) / 2);
 }
 
 /** A Reel slide with its voice-over line and a hold time that fits it. */
-const voiced = (slide: Slide, voice: string, min = REEL_DEFAULT_SECONDS): Slide => ({ ...slide, voice, seconds: voiceSeconds(voice, min) });
+const voiced = (slide: Slide, voice: string, kind: keyof typeof REEL_MIN_SECONDS): Slide => ({ ...slide, voice, seconds: voiceSeconds(voice, REEL_MIN_SECONDS[kind]) });
 
-/** "8.5 kW" -> "8.5 kilowatts" (spoken). The number is the same text as on screen. */
-const spokenKw = (text: string) => text.replace(/ kW$/, ' kilowatts');
+/** Words in a voice line (what the "≤ ~12 words" guideline counts). */
+export const voiceWords = (voice: string) => voice.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 
-/** Spoken payback range without the unit: "13 to 19", "18 to more than 25", "9". */
-const spokenYears = (p: RangeFigs) => {
-  const lo = bare(p.low);
-  const hi = bare(p.high);
-  return lo === hi ? lo : `${lo} to ${hi}`;
-};
+/** Payback years a figure stands for ("13 yrs" -> 13; "more than 25 yrs" -> Infinity), for picking ends across utilities. */
+const paybackYears = (f: Fig) => (/^more than/.test(f.text) ? Infinity : figAmount(f));
 
 // ------------------------------------------------------------------ shared slide pieces
 const footerFor = (book: RefBook, dataDate: UtilityFacts['dataDate'], label = 'Rates read'): string[] => [ESTIMATES_FOOTER, ...(dataDate ? [`${label} ${book.use(dataDate)}`] : [])];
@@ -82,6 +85,9 @@ function tiles(book: RefBook, r: ExampleFacts['cost'], labels: [string, string, 
     { label: labels[2], value: book.use(r.high) },
   ];
 }
+
+/** On every post: the federal credit is named only as ended (rule 2). */
+const CREDIT_ENDED_LINE = 'The federal tax credit ended for 2026 installs, so this is the full price.';
 
 const homeLine = (book: RefBook, f: UtilityFacts) =>
   `${book.use(f.solar.size)} system · ${book.use(f.bill)} monthly bill${f.cityName ? ` · ${f.cityName} area` : ''}`;
@@ -100,6 +106,7 @@ function costSlide(book: RefBook, f: UtilityFacts): Slide {
     big: joinRange(c.low.text, c.high.text),
     bigLabel: 'Installed cost, no federal tax credit',
     tiles: t,
+    lines: [CREDIT_ENDED_LINE],
     footer: footerFor(book, f.dataDate),
   };
 }
@@ -142,16 +149,6 @@ function paybackSlide(book: RefBook, f: UtilityFacts): Slide {
   };
 }
 
-function changedSlide(short: string): Slide {
-  return {
-    id: 'changed',
-    theme: 'dark',
-    kicker: 'Why it matters',
-    title: 'The federal solar tax credit ended for 2026 installs',
-    lines: ['So you pay back the full installed price.', `Payback now depends on ${short}’s rates, your usage and your installer’s price.`],
-  };
-}
-
 function ctaSlide(book: RefBook, url: string, subtitle: string, dataDate: UtilityFacts['dataDate'], footerLabel: string): Slide {
   return {
     id: 'cta',
@@ -164,15 +161,19 @@ function ctaSlide(book: RefBook, url: string, subtitle: string, dataDate: Utilit
   };
 }
 
-/** Spoken payback line: "So it pays for itself in 13 to 19 years, most likely 15." */
+/** Spoken payback line: "It pays back in 13 to 19 years, likely 15." */
 function paybackVoice(book: RefBook, p: RangeFigs): string {
   usePayback(book, p);
   const range = paybackPhrase(p);
   const likely = bare(p.likely);
-  return p.low.text === p.high.text ? `So it pays for itself in about ${range}.` : `So it pays for itself in ${range}, most likely ${likely}.`;
+  return p.low.text === p.high.text ? `It pays back in about ${range}.` : `It pays back in ${range}, likely ${likely}.`;
 }
 
-const CTA_VOICE = (url: string) => `Every home is different. Run your own numbers free at ${url}.`;
+/** Spoken hook: names the place, the year and that the credit is gone, in the first second or so. */
+const hookVoice = (place: string) => `${place} solar in 2026: federal tax credit gone. Still worth it?`;
+
+/** The full page address is on screen; the voice says just the site so the line stays short. */
+const CTA_VOICE = 'Every home’s different. Check yours free at rayvalue.com.';
 
 // ------------------------------------------------------------------ describe (alt text)
 /** Plain-text description of a slide; with `withPhoto`, opens with what the background photo shows. */
@@ -255,25 +256,28 @@ function factsOrThrow(vm: UtilityPageVm): UtilityFacts {
 }
 
 // ------------------------------------------------------------------ utility-payback-reel
-/** Music: upbeat. A short, practical "here are your numbers" Reel. */
+/** Music: upbeat. A short (about 20 s), practical "here are your numbers" Reel: hook, payback, installed cost, CTA. */
 export function buildUtilityPaybackReel(vm: UtilityPageVm, opts: BuildOptions): GeneratedPost {
   const key = 'utility-payback-reel';
   const f = factsOrThrow(vm);
   const book = new RefBook();
   const c = f.solar.cost;
-  const s = f.solar.savings;
   const url = utilityUrlText(f);
   const slides = withPhotos(f.state, `${key}/${f.slug}`, [
     voiced(
-      { id: 'hook', theme: 'sun', kicker: utilityKicker(f), title: 'No federal tax credit. Does solar still pay off?', subtitle: `The real numbers for a typical ${f.short} home.` },
-      `Thinking about solar with ${f.short}? The federal tax credit is gone — here’s what it really costs now.`,
-      3,
+      {
+        id: 'hook',
+        theme: 'sun',
+        kicker: utilityKicker(f),
+        title: `Is ${f.short} solar still worth it in 2026?`,
+        subtitle: `${f.stateName} solar cost and payback, without the federal tax credit.`,
+      },
+      hookVoice(f.short),
+      'hook',
     ),
-    voiced(costSlide(book, f), `A typical ${f.short} home needs about ${spokenKw(book.use(f.solar.size))} of solar: ${voiceRange(book, c.low, c.high)} installed.`),
-    voiced(savingsSlide(book, f), `In year one, that takes about ${voiceRange(book, s.low, s.high)} off the bill.`),
-    voiced(paybackSlide(book, f), paybackVoice(book, f.solar.payback)),
-    voiced(changedSlide(f.short), 'The federal tax credit ended for 2026 installs, so that’s the full price you pay back.'),
-    voiced(ctaSlide(book, url, `Free, on ${f.short}’s rates. Your bill, your roof.`, f.dataDate, 'Rates read'), CTA_VOICE(url)),
+    voiced(paybackSlide(book, f), paybackVoice(book, f.solar.payback), 'figure'),
+    voiced(costSlide(book, f), `That’s on the full installed price: ${voiceRange(book, c.low, c.high)}.`, 'figure'),
+    voiced(ctaSlide(book, url, `Free, on ${f.short}’s rates. Your bill, your roof.`, f.dataDate, 'Rates read'), CTA_VOICE, 'cta'),
   ]);
   const caption = utilityCaption(book, f, opts.channel, key);
   return finish({ templateKey: key, target: f.slug, type: 'reel', channel: opts.channel, music: 'upbeat', title: `${f.short} solar payback with no federal credit`, caption, slides, book });
@@ -297,7 +301,13 @@ export function buildUtilityPaybackCarousel(vm: UtilityPageVm, opts: BuildOption
   const f = factsOrThrow(vm);
   const book = new RefBook();
   const slides: Slide[] = [
-    { id: 'cover', theme: 'sun', kicker: utilityKicker(f), title: `How long does solar take to pay off with ${f.short} now?`, subtitle: 'The federal credit is gone. Swipe for the real ranges.' },
+    {
+      id: 'cover',
+      theme: 'sun',
+      kicker: utilityKicker(f),
+      title: `How long does ${f.short} solar take to pay off in 2026?`,
+      subtitle: `${f.stateName} solar cost without the federal tax credit. Swipe for the real ranges.`,
+    },
     costSlide(book, f),
     savingsSlide(book, f),
     paybackSlide(book, f),
@@ -317,7 +327,7 @@ export function buildUtilityPaybackCarousel(vm: UtilityPageVm, opts: BuildOption
       footer: footerFor(book, f.dataDate),
     });
   }
-  slides.push(changedSlide(f.short), ctaSlide(book, utilityUrlText(f), `Free, on ${f.short}’s rates. Your bill, your roof.`, f.dataDate, 'Rates read'));
+  slides.push(ctaSlide(book, utilityUrlText(f), `Free, on ${f.short}’s rates. Your bill, your roof.`, f.dataDate, 'Rates read'));
   const caption = utilityCaption(book, f, opts.channel, key, f.battery ? { count: batteryCount, effect: batteryEffect(f.solar, f.battery) } : null);
   return finish({
     templateKey: key,
@@ -334,7 +344,8 @@ export function buildUtilityPaybackCarousel(vm: UtilityPageVm, opts: BuildOption
 
 // ------------------------------------------------------------------ credit-gone-reel
 /**
- * Music: calm. An explainer about a policy change across a whole state reads better unhurried than hyped.
+ * Music: calm. A short explainer about the policy change across a whole state: hook naming the state, payback by
+ * utility, installed cost by utility, CTA.
  * vms: the state's utility pages (as loaded for the site). Utilities without a worked example are skipped; at least
  * two are needed.
  */
@@ -359,25 +370,27 @@ export function buildCreditGoneReel(state: 'FL' | 'CA', vms: readonly UtilityPag
     const c = x.solar.cost;
     return { label: x.short, value: joinRange(book.use(c.low), book.use(c.high)), hint: `likely ${book.use(c.likely)} · ${book.use(x.solar.size)} system` };
   });
-  const spokenPaybacks = facts.map((x, i) => `${x.short}, ${i === 0 ? paybackPhrase(x.solar.payback) : spokenYears(x.solar.payback)}`);
-  const paybackList = spokenPaybacks.length > 1 ? `${spokenPaybacks.slice(0, -1).join('; ')}; and ${spokenPaybacks[spokenPaybacks.length - 1]}` : spokenPaybacks[0];
+  // Best-case and worst-case payback across the utilities (each end is one utility's own figure).
+  const payLow = facts.map((x) => x.solar.payback.low).reduce((a, b) => (paybackYears(b) < paybackYears(a) ? b : a));
+  const payHigh = facts.map((x) => x.solar.payback.high).reduce((a, b) => (paybackYears(b) > paybackYears(a) ? b : a));
+  book.use(payLow);
+  book.use(payHigh);
+  const payRange = paybackPhrase({ low: payLow, likely: payLow, high: payHigh });
+  const names = facts.map((x) => x.short);
+  const nameList = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]!;
   const url = calculatorUrlText(state);
 
   const slides = withPhotos(state, `${key}/${state.toLowerCase()}`, [
     voiced(
-      { id: 'hook', theme: 'sun', kicker: `${stateName} solar · 2026`, title: 'The federal solar tax credit is gone.', subtitle: `So does solar still pay off in ${stateName}?` },
-      `Thinking about solar in ${stateName}? The federal tax credit is gone — here’s what it really costs now.`,
-      3,
-    ),
-    voiced(
       {
-        id: 'changed',
-        theme: 'dark',
-        kicker: 'What changed',
-        title: 'The federal credit ended for 2026 installs',
-        lines: ['The full installed price is yours to pay back.', `Here is how that looks on the rates of the ${stateName} utilities we cover.`],
+        id: 'hook',
+        theme: 'sun',
+        kicker: `${stateName} solar · 2026`,
+        title: `${stateName} solar in 2026: still worth it?`,
+        subtitle: `The federal tax credit is gone. Payback and cost with ${nameList}.`,
       },
-      'It ended for 2026 installs, so you now pay back the full installed price yourself.',
+      hookVoice(stateName),
+      'hook',
     ),
     voiced(
       {
@@ -389,7 +402,8 @@ export function buildCreditGoneReel(state: 'FL' | 'CA', vms: readonly UtilityPag
         rows: paybackRows,
         footer: footerFor(book, oldest, 'Oldest rate data read'),
       },
-      `Payback on solar alone: ${paybackList}.`,
+      `Solar alone pays back in ${payRange}, by utility.`,
+      'figure',
     ),
     voiced(
       {
@@ -399,21 +413,13 @@ export function buildCreditGoneReel(state: 'FL' | 'CA', vms: readonly UtilityPag
         title: 'What that system costs',
         subtitle: sameBill ? 'Sized for the same bill, at full price' : 'Sized for each home, at full price',
         rows: costRows,
+        lines: [CREDIT_ENDED_LINE],
         footer: footerFor(book, oldest, 'Oldest rate data read'),
       },
-      `${sameBill ? 'A system for that bill' : 'A system for each home'} runs about ${voiceRange(book, costLow, costHigh)} installed, depending on the utility.`,
+      `At full price, that’s about ${voiceRange(book, costLow, costHigh)} installed.`,
+      'figure',
     ),
-    voiced(
-      {
-        id: 'moves',
-        theme: 'light',
-        kicker: 'Your number will differ',
-        title: 'What moves your payback',
-        bullets: ['Your bill and how much power you use', 'Shade and roof direction', 'Your installer’s price', 'Changes to your utility’s rates'],
-      },
-      'Your number will differ: your bill, shade, roof direction and installer’s price all move it.',
-    ),
-    voiced(ctaSlide(book, url, 'Free calculator on your utility’s rates.', oldest, 'Oldest rate data read'), CTA_VOICE(url)),
+    voiced(ctaSlide(book, url, 'Free calculator on your utility’s rates.', oldest, 'Oldest rate data read'), CTA_VOICE, 'cta'),
   ]);
 
   const caption = creditGoneCaption(book, { state, stateName, facts, billNote, costLow, costHigh, urlText: url }, opts.channel);
