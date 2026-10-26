@@ -3,7 +3,7 @@
  * otherwise it waits in "review". Covers Instagram's publishing limits and CLAUDE.md rules 1 (every number traces to
  * the database), 2 (the federal 25D credit is never shown as available) and 5 (nothing reads as official/government).
  */
-import type { CheckResult, DataRef, MediaKind, MediaMime, PostType } from './types';
+import type { Channel, CheckResult, DataRef, MediaKind, MediaMime, PostType } from './types';
 
 /**
  * Instagram Content Publishing limits (developers.facebook.com/docs/instagram-platform/content-publishing,
@@ -36,6 +36,8 @@ export interface PostForCheck {
   data_refs: DataRef[];
   numbers_confirmed: boolean;
   media: MediaForCheck[];
+  /** Defaults to Instagram only (posts made before 0015). */
+  channels?: Channel[];
 }
 
 const ok = (key: string, level: CheckResult['level'], message: string): CheckResult => ({ key, ok: true, level, message });
@@ -170,6 +172,11 @@ export function runChecks(post: PostForCheck): CheckResult[] {
   );
 
   out.push(...mediaChecks(post.type, post.media));
+
+  const channels = post.channels ?? ['instagram'];
+  if (channels.length === 0) out.push(fail('channels', 'error', 'Pick at least one channel.'));
+  // Facebook Page Stories are not available through the Pages API.
+  if (post.type === 'story' && channels.includes('facebook')) out.push(fail('channels', 'error', 'Stories post to Instagram only; untick Facebook.'));
   return out;
 }
 

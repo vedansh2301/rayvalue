@@ -6,6 +6,9 @@ export type PostType = (typeof POST_TYPES)[number];
 export const POST_STATUSES = ['draft', 'review', 'scheduled', 'publishing', 'published', 'failed', 'archived'] as const;
 export type PostStatus = (typeof POST_STATUSES)[number];
 
+export const CHANNELS = ['instagram', 'facebook'] as const;
+export type Channel = (typeof CHANNELS)[number];
+
 export type MediaKind = 'video' | 'image';
 export type MediaMime = 'video/mp4' | 'video/quicktime' | 'image/jpeg';
 
@@ -57,6 +60,16 @@ export interface SocialPost {
   last_error: string | null;
   insights: Record<string, number> | null;
   insights_at: string | null;
+  /** Where the post goes (0015). Status 'published' = every channel here has published. */
+  channels: Channel[];
+  fb_post_id: string | null;
+  fb_video_id: string | null;
+  fb_permalink: string | null;
+  fb_published_at: string | null;
+  fb_attempts: number;
+  fb_last_error: string | null;
+  fb_insights: Record<string, number> | null;
+  fb_insights_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -75,6 +88,8 @@ export interface SocialSettings {
   timezone: string;
   notify_email: boolean;
   slots: Slot[];
+  /** Channels new posts start with. */
+  default_channels: Channel[];
   updated_at: string;
 }
 

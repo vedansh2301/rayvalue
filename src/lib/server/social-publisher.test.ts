@@ -34,12 +34,21 @@ const mkPost = (over: Partial<SocialPost> = {}): SocialPost => ({
   last_error: null,
   insights: null,
   insights_at: null,
+  channels: ['instagram'],
+  fb_post_id: null,
+  fb_video_id: null,
+  fb_permalink: null,
+  fb_published_at: null,
+  fb_attempts: 0,
+  fb_last_error: null,
+  fb_insights: null,
+  fb_insights_at: null,
   created_at: '2026-10-30T00:00:00Z',
   updated_at: 'v0',
   ...over,
 });
 
-const settings = (over: Partial<SocialSettings> = {}): SocialSettings => ({ auto_publish: true, paused: false, timezone: 'America/New_York', notify_email: true, slots: [], updated_at: 'x', ...over });
+const settings = (over: Partial<SocialSettings> = {}): SocialSettings => ({ auto_publish: true, paused: false, timezone: 'America/New_York', notify_email: true, slots: [], default_channels: ['instagram'], updated_at: 'x', ...over });
 
 interface Events {
   post_id: string | null;

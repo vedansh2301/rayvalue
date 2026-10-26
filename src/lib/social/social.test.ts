@@ -63,6 +63,14 @@ describe('limits and media', () => {
   });
 });
 
+describe('channels', () => {
+  it('blocks Facebook Stories and empty channel lists', () => {
+    expect(failed(post({ type: 'story', channels: ['instagram', 'facebook'] }))).toEqual(['channels']);
+    expect(failed(post({ channels: [] }))).toEqual(['channels']);
+    expect(failed(post({ channels: ['instagram', 'facebook'] }))).toEqual([]);
+  });
+});
+
 describe('status', () => {
   it('allows only listed moves', () => {
     expect(canTransition('draft', 'scheduled')).toBe(true);
