@@ -9,7 +9,7 @@ export interface QueueDecision {
 }
 
 /**
- * - paused: generate but keep it a draft.
+ * - draft requested (`--draft`, so the owner can preview first) or paused: keep it a draft, no slot.
  * - failing checks, or auto-publish off: "review" (statusOnSchedule).
  * - otherwise: "scheduled" at the next free slot for its type; with no free slot it stays a draft.
  */
@@ -20,9 +20,11 @@ export function decideQueueState(opts: {
   /** scheduled_at of posts already holding a slot. */
   taken: (string | null)[];
   now: Date;
+  /** Always queue as a draft without a slot. */
+  draft?: boolean;
 }): QueueDecision {
   const { settings } = opts;
-  if (settings.paused) return { status: 'draft', scheduledAt: null };
+  if (opts.draft || settings.paused) return { status: 'draft', scheduledAt: null };
   const s = statusOnSchedule({ checksPassed: opts.checksPassed, autoPublish: settings.auto_publish, byOwner: false });
   if (s === 'review') return { status: 'review', scheduledAt: null };
   const slot = nextFreeSlot(settings.slots, opts.type, settings.timezone, opts.taken, opts.now);

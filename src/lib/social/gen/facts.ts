@@ -10,7 +10,7 @@ import { formatYears } from '../../city/view';
 import { formatUsd } from '../../format';
 import { STATE_SLUG, utilityPagePath } from '../../utility/pages';
 import { typicalExample, type ExampleResult, type UtilityPageVm } from '../../utility/view';
-import { fig, type Fig } from './refs';
+import { fig, type Fig, type RefBook } from './refs';
 
 export interface RangeFigs {
   low: Fig;
@@ -82,6 +82,23 @@ export function paybackBig(p: RangeFigs): string {
   if (lo === hi) return `${lo} years`;
   return hi.startsWith('more than') ? `${lo} to ${hi} years` : `${lo}–${hi} years`;
 }
+
+/** Records all three payback figures; returns the likely one as "likely 15 yrs". */
+export function usePayback(book: RefBook, p: RangeFigs): string {
+  book.use(p.low);
+  book.use(p.high);
+  return `likely ${book.use(p.likely)}`;
+}
+
+/** Spoken range: "$12,300 to $16,100", or one value when both ends are equal. Records both figures. */
+export function voiceRange(book: RefBook, lo: Fig, hi: Fig): string {
+  const a = book.use(lo);
+  const b = book.use(hi);
+  return a === b ? a : `${a} to ${b}`;
+}
+
+/** The number a dollar figure's text shows ("$12,300" -> 12300), for picking the lowest / highest across utilities. */
+export const figAmount = (f: Fig) => Number(f.text.replace(/[^0-9.]/g, ''));
 
 function exampleFacts(id: string, bill: number, battery: 0 | 1, r: ExampleResult, years: number | null): ExampleFacts {
   const calcId = `${id}/bill-${bill}/${battery ? 'solar-battery' : 'solar-only'}`;

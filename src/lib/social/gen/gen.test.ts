@@ -4,13 +4,17 @@ import { caFixture, clone, fixtureAssumptions, fixtureCosts, fixtureUtilities } 
 import { fixtureCitiesFile } from '../../db/test-rows';
 import { UTILITY_PAGES } from '../../utility/pages';
 import { buildUtilityPage, typicalExample, type UtilityPageVm } from '../../utility/view';
-import { captionNumbers, checksPassed, countHashtags, creditClaims, officialWording, runChecks, untracedNumbers, type MediaForCheck } from '../checks';
+import { captionNumbers, checksPassed, countHashtags, creditClaims, FB_LIMITS, officialWording, runChecks, untracedNumbers, type MediaForCheck } from '../checks';
 import { TEMPLATE_KEYS } from '../template-keys';
 import type { Channel, Slot } from '../types';
 import { fitFontSize, longestLine } from './fit';
 import { AUTO_DAYS, candidatesFor, countFreeSlots, isValidJob, planAuto, targetsFor } from './plan';
 import { decideQueueState } from './queue';
-import { batteryEffect, buildCreditGoneReel, buildUtilityPaybackCarousel, buildUtilityPaybackReel, describeSlide, slideTexts, truncateAlt } from './templates';
+import { batteryEffect, buildCreditGoneReel, buildUtilityPaybackCarousel, buildUtilityPaybackReel, describeSlide, slideTexts, truncateAlt, voiceSeconds } from './templates';
+import { facebookLink } from './captions';
+import { hashtagsFor, hashtagWord } from './hashtags';
+import { PHOTOS } from './photos';
+import { assignPhotos, seedHash } from './slide-photos';
 import { buildUtilityFacts, formatDataDate, joinRange, paybackBig, paybackPhrase } from './facts';
 import { REEL_MAX_SECONDS, reelTimeline } from './timeline';
 import type { GeneratedPost } from './types';
@@ -42,49 +46,107 @@ const reelMedia = (post: GeneratedPost): MediaForCheck[] => [
 const carouselMedia = (post: GeneratedPost): MediaForCheck[] => post.slides.map(() => ({ kind: 'image', mime: 'image/jpeg', width: 1080, height: 1350, duration_s: null }));
 const mediaFor = (p: GeneratedPost) => (p.type === 'reel' ? reelMedia(p) : carouselMedia(p));
 
-const posts: [string, () => GeneratedPost][] = [
-  ['utility-payback-reel', () => buildUtilityPaybackReel(fpl())],
-  ['utility-payback-carousel', () => buildUtilityPaybackCarousel(fpl())],
-  ['credit-gone-reel', () => buildCreditGoneReel('FL', flVms())],
+type Build = (channel: Channel) => GeneratedPost;
+const builders: [string, Build][] = [
+  ['utility-payback-reel', (channel) => buildUtilityPaybackReel(fpl(), { channel })],
+  ['utility-payback-carousel', (channel) => buildUtilityPaybackCarousel(fpl(), { channel })],
+  ['credit-gone-reel', (channel) => buildCreditGoneReel('FL', flVms(), { channel })],
 ];
+const CHANNELS: Channel[] = ['instagram', 'facebook'];
+const posts: [string, Channel, () => GeneratedPost][] = builders.flatMap(([key, build]) => CHANNELS.map((c): [string, Channel, () => GeneratedPost] => [key, c, () => build(c)]));
 
 // ------------------------------------------------------------------ templates
-describe.each(posts)('%s', (key, build) => {
+describe.each(posts)('%s (%s)', (key, channel, build) => {
   const post = build();
-  const check = (channels?: Channel[]) =>
+  const check = (channels: Channel[] = [post.channel]) =>
     runChecks({ type: post.type, caption: post.caption, data_refs: post.dataRefs, numbers_confirmed: false, media: mediaFor(post), channels });
+  const voices = post.slides.flatMap((s) => (s.voice ? [s.voice] : []));
 
-  it('is a known template key of the matching type', () => {
+  it('is a known template key of the matching type, for its channel', () => {
     const t = TEMPLATE_KEYS.find((x) => x.key === key)!;
     expect(post.templateKey).toBe(key);
     expect(post.type).toBe(t.type);
+    expect(post.channel).toBe(channel);
     expect(isValidJob({ template: key, target: post.target })).toBe(true);
+    expect(post.music).toBe(post.type === 'reel' ? (key === 'credit-gone-reel' ? 'calm' : 'upbeat') : null);
   });
 
-  it('caption passes every pre-publish check (checksPassed)', () => {
+  it('caption passes every pre-publish check for its channel (checksPassed)', () => {
     const results = check();
     expect(results.filter((r) => !r.ok && r.level === 'error')).toEqual([]);
     expect(checksPassed(results)).toBe(true);
   });
 
-  it('also passes when the default channels include Facebook (reels and carousels are allowed there)', () => {
-    expect(checksPassed(check(['instagram', 'facebook']))).toBe(true);
-    expect(checksPassed(check(['facebook']))).toBe(true);
-  });
-
-  it('has 3-8 hashtags, a channel-neutral CTA with the site link and fits Instagram limits', () => {
-    expect(countHashtags(post.caption)).toBeGreaterThanOrEqual(3);
-    expect(countHashtags(post.caption)).toBeLessThanOrEqual(8);
-    expect(post.caption).toMatch(/Run your own numbers \(free\): rayvalue\.com\//);
+  it('fits caption limits and opens on a short hook line', () => {
     expect(post.caption.length).toBeLessThanOrEqual(2200);
     expect(post.title.length).toBeLessThanOrEqual(120);
+    const hook = post.caption.split('\n')[0]!;
+    expect(hook.length).toBeLessThanOrEqual(120);
+    expect(hook).toMatch(/federal tax credit is gone/);
+    expect(post.caption).toMatch(/[Ee]stimates, not quotes/);
+    expect(post.caption).toMatch(/likely/);
   });
 
-  it('every number in the caption AND on the slides has a data_ref', () => {
+  if (channel === 'instagram') {
+    it('Instagram: 12-18 hashtags at the end, "link in bio" CTA, a save prompt, at most 3 emoji', () => {
+      const tags = countHashtags(post.caption);
+      expect(tags).toBeGreaterThanOrEqual(12);
+      expect(tags).toBeLessThanOrEqual(18);
+      expect(post.caption.split('\n\n').pop()).toMatch(/^(#[a-z0-9]+ ?)+$/);
+      expect(post.caption).toMatch(/Run your own numbers \(free\) — link in bio · rayvalue\.com\//);
+      expect(post.caption).toMatch(/Save this/);
+      expect(post.caption).not.toMatch(/https?:\/\//);
+      expect((post.caption.match(/\p{Extended_Pictographic}/gu) ?? []).length).toBeLessThanOrEqual(3);
+      expect(post.caption).toMatch(/#(fpl|dukeenergy|teco)\b/);
+      expect(post.caption).toMatch(/#floridasolar\b/);
+      expect(post.caption).not.toMatch(/#\w*(taxcredit|itc)\b/i);
+    });
+  } else {
+    it('Facebook: at most 3 hashtags, a clickable UTM link on its own line, a question, no "link in bio"', () => {
+      expect(countHashtags(post.caption)).toBeGreaterThanOrEqual(2);
+      expect(countHashtags(post.caption)).toBeLessThanOrEqual(3);
+      expect(post.caption).not.toMatch(/link in bio/i);
+      const link = post.caption.split('\n').find((l) => l.startsWith('https://'));
+      expect(link).toBe(`https://${post.slides[post.slides.length - 1]!.url}?utm_source=facebook&utm_medium=social&utm_campaign=${key}`);
+      expect(post.caption).toMatch(/\?[^\n]*comments/);
+    });
+  }
+
+  it('every number in the caption, on the slides AND in the voice-over has a data_ref', () => {
     expect(captionNumbers(post.caption).length).toBeGreaterThan(0);
     expect(untracedNumbers(post.caption, post.dataRefs)).toEqual([]);
     const onSlides = post.slides.flatMap(slideTexts).join('\n');
     expect(untracedNumbers(onSlides, post.dataRefs)).toEqual([]);
+    expect(untracedNumbers(voices.join('\n'), post.dataRefs)).toEqual([]);
+  });
+
+  it('every slide has a photo, adjacent slides never share one, and the alt text says what the photos show', () => {
+    for (const s of post.slides) expect(s.photo && PHOTOS[s.photo], s.id).toBeTruthy();
+    for (let i = 1; i < post.slides.length; i++) expect(post.slides[i]!.photo).not.toBe(post.slides[i - 1]!.photo);
+    const first = post.slides[0]!.photo!;
+    expect(first.startsWith('fl-')).toBe(true);
+    expect(post.slides[post.slides.length - 1]!.photo!.startsWith('fl-')).toBe(true);
+    expect(post.altText).toContain(PHOTOS[first].alt);
+    if (post.type === 'carousel') expect(describeSlide(post.slides[0]!)).toContain(PHOTOS[first].alt);
+  });
+
+  it('Reels: every slide has a short voice line, a spoken hook first, a CTA last, 25-45 s in all', () => {
+    if (post.type !== 'reel') {
+      expect(voices).toEqual([]);
+      return;
+    }
+    for (const s of post.slides) {
+      expect(s.voice, s.id).toBeTruthy();
+      expect(s.voice!.split(/\s+/).length, s.voice).toBeLessThanOrEqual(22);
+      expect(s.seconds).toBe(voiceSeconds(s.voice!, s.id === 'hook' ? 3 : 4));
+      // ranges are spoken "X to Y", never with a dash
+      expect(s.voice).not.toMatch(/\d–/);
+    }
+    expect(post.slides[0]!.voice).toMatch(/^Thinking about solar (with|in) [^?]+\? The federal tax credit is gone/);
+    expect(post.slides[post.slides.length - 1]!.voice).toMatch(/Run your own numbers free at rayvalue\.com\//);
+    const total = reelTimeline(post.slides.map((s) => s.seconds ?? 4)).total;
+    expect(total).toBeGreaterThanOrEqual(25);
+    expect(total).toBeLessThanOrEqual(45);
   });
 
   it('data_refs are well formed and value is the shown text', () => {
@@ -100,6 +162,8 @@ describe.each(posts)('%s', (key, build) => {
   it('never presents the federal credit as available, no official wording, no $0 credit figure', () => {
     const everything = [post.caption, ...post.slides.flatMap(slideTexts)].join('\n');
     expect(creditClaims(post.caption)).toEqual([]);
+    // the voice-over must say the credit ended or is gone every time it names it
+    expect(creditClaims(voices.join('\n'))).toEqual([]);
     // slides may say "no federal tax credit"; any other sentence naming the credit must say it ended
     expect(creditClaims(everything).filter((c) => !/\bno\b/i.test(c))).toEqual([]);
     expect(officialWording(everything)).toEqual([]);
@@ -111,6 +175,7 @@ describe.each(posts)('%s', (key, build) => {
       expect(post.slides.length).toBeGreaterThanOrEqual(5);
       expect(post.slides.length).toBeLessThanOrEqual(6);
       expect(reelTimeline(post.slides.map((s) => s.seconds ?? 4)).total).toBeLessThanOrEqual(REEL_MAX_SECONDS);
+      expect(REEL_MAX_SECONDS).toBeLessThanOrEqual(FB_LIMITS.reelSeconds.max);
     } else {
       expect(post.slides.length).toBeGreaterThanOrEqual(5);
       expect(post.slides.length).toBeLessThanOrEqual(7);
@@ -140,6 +205,50 @@ describe.each(posts)('%s', (key, build) => {
   });
 });
 
+describe('per-channel posts', () => {
+  it('share slides across channels; only the caption differs', () => {
+    for (const [, build] of builders) {
+      const ig = build('instagram');
+      const fb = build('facebook');
+      expect(fb.slides).toEqual(ig.slides);
+      expect(fb.caption).not.toBe(ig.caption);
+    }
+  });
+
+  it('rotates photos by target so posts for different utilities do not look identical', () => {
+    const sets = ['fpl', 'duke-fl', 'teco'].map((id) => buildUtilityPaybackReel(vmFor(id), { channel: 'instagram' }).slides.map((s) => s.photo).join(','));
+    expect(new Set(sets).size).toBeGreaterThan(1);
+  });
+
+  it('California posts use California photos and tags', () => {
+    const ca = assignPhotos('CA', 'utility-payback-reel/pge', ['hook', 'cost', 'savings', 'payback', 'changed', 'cta']);
+    expect(ca[0]!.startsWith('ca-')).toBe(true);
+    expect(ca[5]!.startsWith('ca-')).toBe(true);
+    expect(new Set(ca).size).toBe(ca.length);
+    const tags = hashtagsFor('instagram', { state: 'CA', utilitySlugs: ['pge'], city: 'San José' });
+    expect(tags).toEqual(expect.arrayContaining(['californiasolar', 'californiahomeowner', 'pge', 'sanjose']));
+    expect(tags.length).toBeGreaterThanOrEqual(12);
+    expect(tags.length).toBeLessThanOrEqual(18);
+    expect(hashtagsFor('facebook', { state: 'CA', utilitySlugs: ['sdge'] })).toEqual(['CaliforniaSolar', 'SDGE', 'SolarEnergy']);
+    expect(hashtagsFor('facebook', { state: 'FL', utilitySlugs: ['fpl', 'teco'] })).toEqual(['FloridaSolar', 'Homeowners', 'SolarEnergy']);
+  });
+
+  it('photo picks are deterministic and avoid repeats even past the pool', () => {
+    expect(seedHash('abc')).toBe(seedHash('abc'));
+    const many = assignPhotos('FL', 'x', ['hook', 'payback', 'payback', 'payback', 'payback', 'payback', 'payback', 'cta']);
+    for (let i = 1; i < many.length; i++) expect(many[i]).not.toBe(many[i - 1]);
+    expect(hashtagWord('St. Petersburg')).toBe('stpetersburg');
+    expect(facebookLink('rayvalue.com/solar/florida/fpl', 'utility-payback-reel')).toBe(
+      'https://rayvalue.com/solar/florida/fpl?utm_source=facebook&utm_medium=social&utm_campaign=utility-payback-reel',
+    );
+  });
+
+  it('voiceSeconds grows with the line and respects the minimum', () => {
+    expect(voiceSeconds('Hi.', 3)).toBe(3);
+    expect(voiceSeconds('A typical FPL home needs about 8.5 kilowatts of solar: $12,300 to $16,100 installed.')).toBeGreaterThan(voiceSeconds('Every home is different.'));
+  });
+});
+
 describe('utility facts use the same numbers as the utility page', () => {
   it('typical example = the page glance example, formatted like the page', () => {
     const vm = fpl();
@@ -155,11 +264,11 @@ describe('utility facts use the same numbers as the utility page', () => {
   it('returns null (and the builders throw) when the page has no real example', () => {
     const vm = vmFor('fpl', { production: [] });
     expect(buildUtilityFacts(vm)).toBeNull();
-    expect(() => buildUtilityPaybackReel(vm)).toThrow(/nothing honest/);
+    expect(() => buildUtilityPaybackReel(vm, { channel: 'instagram' })).toThrow(/nothing honest/);
   });
 
   it('credit-gone needs at least two utilities with examples', () => {
-    expect(() => buildCreditGoneReel('CA', [vmFor('pge', { production: [prod('fx-c', 'CA')], lookupZip: () => ({ state: 'CA' as const }) })])).toThrow(/at least 2/);
+    expect(() => buildCreditGoneReel('CA', [vmFor('pge', { production: [prod('fx-c', 'CA')], lookupZip: () => ({ state: 'CA' as const }) })], { channel: 'instagram' })).toThrow(/at least 2/);
     expect(caFixture.id).toBe('pge');
   });
 
@@ -189,8 +298,10 @@ describe('utility facts use the same numbers as the utility page', () => {
 
 describe('alt text helpers', () => {
   it('describes a slide and truncates at a word boundary', () => {
-    const s = buildUtilityPaybackReel(fpl()).slides[1]!;
+    const s = buildUtilityPaybackReel(fpl(), { channel: 'instagram' }).slides[1]!;
     expect(describeSlide(s)).toContain('Installed cost');
+    expect(describeSlide(s)).toContain(PHOTOS[s.photo!].alt);
+    expect(describeSlide(s, false)).not.toContain(PHOTOS[s.photo!].alt);
     expect(truncateAlt('word '.repeat(400)).length).toBeLessThanOrEqual(1000);
     expect(truncateAlt('short')).toBe('short');
   });
@@ -304,5 +415,7 @@ describe('decideQueueState', () => {
     expect(decideQueueState({ ...base, settings: { ...settings, auto_publish: false } })).toEqual({ status: 'review', scheduledAt: null });
     expect(decideQueueState({ ...base, settings: { ...settings, paused: true } })).toEqual({ status: 'draft', scheduledAt: null });
     expect(decideQueueState({ ...base, settings: { ...settings, slots: [] } })).toEqual({ status: 'draft', scheduledAt: null });
+    // --draft: always a draft with no slot, even when it would schedule
+    expect(decideQueueState({ ...base, draft: true })).toEqual({ status: 'draft', scheduledAt: null });
   });
 });

@@ -3,6 +3,7 @@ import type { createRepo } from '../../src/lib/db/repo';
 import type { Job } from '../../src/lib/social/gen/plan';
 import { buildCreditGoneReel, buildUtilityPaybackCarousel, buildUtilityPaybackReel } from '../../src/lib/social/gen/templates';
 import type { GeneratedPost } from '../../src/lib/social/gen/types';
+import type { Channel } from '../../src/lib/social/types';
 import { loadUtilityPageData } from '../../src/lib/utility/load';
 import { UTILITY_PAGES } from '../../src/lib/utility/pages';
 import type { UtilityPageVm } from '../../src/lib/utility/view';
@@ -15,16 +16,17 @@ async function loadVm(repo: Repo, slug: string): Promise<UtilityPageVm> {
   return data.vm;
 }
 
-export async function buildPost(job: Job, repo: Repo): Promise<GeneratedPost> {
+/** Builds the post for one channel (the caption differs per channel; slides do not). */
+export async function buildPost(job: Job, repo: Repo, channel: Channel): Promise<GeneratedPost> {
   switch (job.template) {
     case 'utility-payback-reel':
-      return buildUtilityPaybackReel(await loadVm(repo, job.target));
+      return buildUtilityPaybackReel(await loadVm(repo, job.target), { channel });
     case 'utility-payback-carousel':
-      return buildUtilityPaybackCarousel(await loadVm(repo, job.target));
+      return buildUtilityPaybackCarousel(await loadVm(repo, job.target), { channel });
     case 'credit-gone-reel': {
       const state = job.target.toUpperCase() as 'FL' | 'CA';
       const vms = await Promise.all(UTILITY_PAGES.filter((p) => p.state === state).map((p) => loadVm(repo, p.slug)));
-      return buildCreditGoneReel(state, vms);
+      return buildCreditGoneReel(state, vms, { channel });
     }
     default:
       throw new Error(`unknown template: ${job.template}`);

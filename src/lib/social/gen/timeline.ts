@@ -1,6 +1,7 @@
 /** Reel timing (pure): xfade offsets for a chain of slides that each hold for `seconds` including their half of each transition. */
 export const XFADE_SECONDS = 0.5;
-export const REEL_MAX_SECONDS = 30;
+/** Planned Reel length cap: voice-over Reels run about 25-45 s (Facebook Reels allow up to 90 s). */
+export const REEL_MAX_SECONDS = 45;
 
 export interface ReelTimeline {
   /** xfade offset for the transition into slide k (k = 1 .. n-1), at index k-1. */

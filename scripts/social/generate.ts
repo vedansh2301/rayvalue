@@ -1,10 +1,13 @@
 /**
  * Social post generator. Renders Reels (MP4) and carousels (JPEG) from RayValue's live data and queues them as posts.
  *
- *   npm run social:generate -- --template utility-payback-reel --target fpl [--dry-run]
- *   npm run social:generate -- --auto [--dry-run]
+ *   npm run social:generate -- --template utility-payback-reel --target fpl [--channel instagram|facebook] [--draft] [--dry-run]
+ *   npm run social:generate -- --auto [--channel instagram|facebook] [--draft] [--dry-run]
  *
- * --dry-run reads data, renders into ./out/social/<template>__<target>/ and writes nothing to Storage or the database.
+ * One post per channel, each with its own caption: an explicit run makes one for --channel (default: the first of
+ * social_settings.default_channels); --auto makes one per default channel for every planned job, sharing the job's slot.
+ * --draft queues every post as a draft with no slot, so the owner can preview it before it is scheduled.
+ * --dry-run reads data, renders into ./out/social/<template>__<target>__<channel>/ and writes nothing to Storage or the database.
  * Without it: SUPABASE_URL + SUPABASE_SECRET_KEY are required (the run is skipped with a log line when they are not set).
  * Never posts to Instagram; the publisher does that from the queue.
  */
@@ -14,7 +17,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { createRepo } from '../../src/lib/db/repo';
-import { DEFAULT_CHANNELS, normalizeChannels } from '../../src/lib/social/channels';
+import { DEFAULT_CHANNELS, isChannel, normalizeChannels } from '../../src/lib/social/channels';
 import { checksPassed, runChecks, type MediaForCheck } from '../../src/lib/social/checks';
 import { countFreeSlots, isValidJob, planAuto, COOLDOWN_DAYS, type HistoryItem, type Job } from '../../src/lib/social/gen/plan';
 import { decideQueueState } from '../../src/lib/social/gen/queue';
@@ -66,6 +69,9 @@ interface Args {
   target?: string;
   auto: boolean;
   dryRun: boolean;
+  draft: boolean;
+  /** undefined = not given; null = given but not a known channel. */
+  channel: Channel | null | undefined;
   out: string;
 }
 
@@ -77,17 +83,28 @@ function parseCli(argv: string[]): Args {
       target: { type: 'string' },
       auto: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
+      draft: { type: 'boolean', default: false },
+      channel: { type: 'string' },
       out: { type: 'string', default: 'out/social' },
     },
   });
-  return { template: values.template || undefined, target: values.target || undefined, auto: values.auto ?? false, dryRun: values['dry-run'] ?? false, out: values.out ?? 'out/social' };
+  const channel = values.channel === undefined ? undefined : isChannel(values.channel) ? values.channel : null;
+  return {
+    template: values.template || undefined,
+    target: values.target || undefined,
+    auto: values.auto ?? false,
+    dryRun: values['dry-run'] ?? false,
+    draft: values.draft ?? false,
+    channel,
+    out: values.out ?? 'out/social',
+  };
 }
 
 async function main(): Promise<number> {
   const args = parseCli(process.argv.slice(2));
   const explicit = args.template !== undefined;
-  if (args.auto === explicit) {
-    console.error('Usage: social:generate --template <key> --target <slug> | --auto   [--dry-run] [--out <dir>]');
+  if (args.auto === explicit || args.channel === null) {
+    console.error('Usage: social:generate --template <key> --target <slug> | --auto   [--channel instagram|facebook] [--draft] [--dry-run] [--out <dir>]');
     return 2;
   }
   let job: Job | null = null;
@@ -121,6 +138,8 @@ async function main(): Promise<number> {
   const db = secret ? new SocialDb({ url, key: secret }) : null;
   const now = new Date();
   const settings = db ? await loadSettings(db) : DEFAULT_SETTINGS;
+  const runSettings = settings;
+  const channels: Channel[] = args.channel ? [args.channel] : explicit ? [settings.default_channels[0] ?? DEFAULT_CHANNELS[0]!] : settings.default_channels;
   let taken: (string | null)[] = db ? (await db.select<{ scheduled_at: string | null }>('social_posts', { select: 'scheduled_at', status: 'in.(scheduled,publishing)', scheduled_at: 'not.is.null' })).map((r) => r.scheduled_at) : [];
 
   let jobs: Job[];
@@ -140,37 +159,63 @@ async function main(): Promise<number> {
       carousel: countFreeSlots(settings.slots, 'carousel', settings.timezone, taken, now),
     };
     jobs = planAuto({ freeSlots, history, now });
-    console.log(`Open slots in the next 7 days: ${freeSlots.reel} reel, ${freeSlots.carousel} carousel. Generating ${jobs.length}${jobs.length ? `: ${jobs.map((j) => `${j.template}/${j.target}`).join(', ')}` : ''}.`);
+    console.log(`Open slots in the next 7 days: ${freeSlots.reel} reel, ${freeSlots.carousel} carousel. Generating ${jobs.length}${jobs.length ? `: ${jobs.map((j) => `${j.template}/${j.target}`).join(', ')}` : ''} for ${channels.join(' + ')}.`);
   }
 
   let failures = 0;
-  for (const j of jobs) {
+  // One post per job and channel. Every channel's post for a job is decided against the slots taken before that job,
+  // so they share its slot (same time on each channel) instead of using up the next job's.
+  const tasks = jobs.flatMap((job) => channels.map((channel) => ({ job, channel })));
+  let jobTaken = taken;
+  let lastJob: Job | null = null;
+  for (const { job: j, channel } of tasks) {
+    if (j !== lastJob) [jobTaken, lastJob] = [taken, j];
+    const label = `${j.template}/${j.target} (${channel})`;
     try {
-      const post = await buildPost(j, repo);
-      const dir = args.dryRun ? resolve(args.out, `${j.template}__${j.target}`) : await mkdtemp(join(tmpdir(), 'social-'));
+      const post = await buildPost(j, repo, channel);
+      // This post's view of the settings: it goes to its own channel only (checks, queue row and summary read this).
+      const settings = { ...runSettings, default_channels: [post.channel] };
+      const dir = args.dryRun ? resolve(args.out, `${j.template}__${j.target}__${post.channel}`) : await mkdtemp(join(tmpdir(), 'social-'));
       await mkdir(dir, { recursive: true });
       try {
         const files = ffmpeg ? await renderPost(post.type, post.slides, dir) : (await renderSlidesOnly(post.type, post.slides, dir), []);
         const checks = runChecks({ type: post.type, caption: post.caption, data_refs: post.dataRefs, numbers_confirmed: false, media: mediaForCheck(files), channels: settings.default_channels });
         const passed = checksPassed(checks);
-        const decision = decideQueueState({ checksPassed: passed, type: post.type, settings, taken, now });
-        const summary = { template: post.templateKey, target: post.target, type: post.type, channels: settings.default_channels, title: post.title, caption: post.caption, data_refs: post.dataRefs, alt_texts: altTexts(post), checks, checks_passed: passed, would_queue_as: { status: decision.status, scheduled_at: decision.scheduledAt?.toISOString() ?? null }, files: files.map((f) => ({ file: f.path, ...f.info })) };
+        const decision = decideQueueState({ checksPassed: passed, type: post.type, settings, taken: jobTaken, now, draft: args.draft });
+        const summary = {
+          template: post.templateKey,
+          target: post.target,
+          type: post.type,
+          channel: post.channel,
+          channels: settings.default_channels,
+          music: post.music,
+          title: post.title,
+          caption: post.caption,
+          voice: post.slides.flatMap((s) => (s.voice ? [s.voice] : [])),
+          slides: post.slides.map((s) => ({ id: s.id, photo: s.photo ?? null, seconds: s.seconds ?? null, voice: s.voice ?? null, kicker: s.kicker ?? null, title: s.title, subtitle: s.subtitle ?? null })),
+          data_refs: post.dataRefs,
+          alt_texts: altTexts(post),
+          checks,
+          checks_passed: passed,
+          would_queue_as: { status: decision.status, scheduled_at: decision.scheduledAt?.toISOString() ?? null },
+          files: files.map((f) => ({ file: f.path, ...f.info })),
+        };
         if (args.dryRun) {
           await writeFile(join(dir, 'post.json'), JSON.stringify(summary, null, 2));
-          console.log(`[dry-run] ${j.template}/${j.target}: ${files.length} file(s), checks ${passed ? 'passed' : 'FAILED'}, would queue as ${decision.status}. Output: ${dir}`);
+          console.log(`[dry-run] ${label}: ${files.length} file(s), checks ${passed ? 'passed' : 'FAILED'}, would queue as ${decision.status}. Output: ${dir}`);
           for (const c of checks.filter((c) => !c.ok)) console.log(`  check failed (${c.level}): ${c.key}: ${c.message}`);
           continue;
         }
         if (!db) throw new Error('internal: no database client');
         const id = await queuePost(db, post, files, checks, passed, decision, settings.paused, settings.default_channels);
         if (decision.scheduledAt) taken = [...taken, decision.scheduledAt.toISOString()];
-        console.log(`Queued ${j.template}/${j.target} as ${decision.status}${decision.scheduledAt ? ` for ${decision.scheduledAt.toISOString()}` : ''} (post ${id}).`);
+        console.log(`Queued ${label} as ${decision.status}${decision.scheduledAt ? ` for ${decision.scheduledAt.toISOString()}` : ''} (post ${id}).`);
       } finally {
         if (!args.dryRun) await rm(dir, { recursive: true, force: true });
       }
     } catch (e) {
       failures++;
-      console.error(`FAILED ${j.template}/${j.target}: ${e instanceof Error ? e.message : String(e)}`);
+      console.error(`FAILED ${label}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
   return failures ? 1 : 0;
@@ -236,7 +281,7 @@ async function queuePost(
     await db.insert('social_events', {
       post_id: postId,
       event: 'generated',
-      detail: { template: post.templateKey, target: post.target, status: decision.status, channels, paused, run: process.env.GITHUB_RUN_ID ?? null },
+      detail: { template: post.templateKey, target: post.target, channel: post.channel, status: decision.status, channels, paused, run: process.env.GITHUB_RUN_ID ?? null },
     });
     return postId;
   } catch (e) {
