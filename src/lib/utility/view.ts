@@ -64,6 +64,15 @@ export function utilityExampleRows(
   );
 }
 
+/**
+ * The worked example the page's at-a-glance graphics (and the social generator) call "a typical home": the solar-only
+ * row with the middle bill. null when the examples are not indexable (no real result) or there is no solar-only row.
+ */
+export function typicalExample(examples: readonly UtilityExampleRow[], indexable: boolean): (UtilityExampleRow & { result: ExampleResult }) | null {
+  const solo = (indexable ? examples : []).filter((r): r is UtilityExampleRow & { result: ExampleResult } => r.battery === 0 && r.result !== null);
+  return solo[Math.floor((solo.length - 1) / 2)] ?? null;
+}
+
 /** A utility page is indexable only when the worked-examples table has at least one real result. */
 export const isIndexable = (rows: readonly UtilityExampleRow[]): boolean => rows.some((r) => r.result !== null);
 

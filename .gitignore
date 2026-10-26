@@ -10,3 +10,6 @@ dist/
 .DS_Store
 .vercel
 .env*
+
+# Social generator dry-run output
+out/
