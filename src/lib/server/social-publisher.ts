@@ -68,7 +68,8 @@ export interface PublisherDeps {
   nowMs?: () => number;
 }
 
-export const MAX_POSTS_PER_RUN = 5;
+/** Kept small: starting a carousel (one container per photo) plus Reel uploads for 5 posts overran the 60 s route limit (2026-10-26). The rest wait for the next run. */
+export const MAX_POSTS_PER_RUN = 2;
 /** Total time one run may spend polling container status (the route allows 60s). */
 export const POLL_BUDGET_MS = 45_000;
 export const POLL_INTERVAL_MS = 10_000;

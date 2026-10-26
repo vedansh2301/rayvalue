@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SocialPost, SocialSettings } from '../social/types';
-import { currentToken, runInsightsSync, runPublisher, runTokenRefresh, type SocialEnv } from './social-publisher';
+import { currentToken, MAX_POSTS_PER_RUN, runInsightsSync, runPublisher, runTokenRefresh, type SocialEnv } from './social-publisher';
 import type { AuthRow, PostMedia, PostWhere, PublisherStore, UpdateResult } from './social-publisher-store';
 
 const NOW = new Date('2026-11-02T18:00:00Z');
@@ -177,15 +177,15 @@ describe('runPublisher', () => {
     expect(net.emails).toHaveLength(0);
   });
 
-  it('ignores posts that are not due yet and handles at most 5 per run, oldest first', async () => {
+  it('ignores posts that are not due yet and handles at most MAX_POSTS_PER_RUN per run, oldest first', async () => {
     const posts = Array.from({ length: 7 }, (_, i) => mkPost({ id: `p${i}`, scheduled_at: `2026-11-02T1${i}:00:00Z` }));
     posts.push(mkPost({ id: 'future', scheduled_at: '2026-11-03T00:00:00Z' }));
     const m = memoryStore({ posts });
     const net = fakeNet();
     await run(ENV, net, m.store);
-    expect(net.containersCreated()).toBe(5);
-    expect(['p0', 'p1', 'p2', 'p3', 'p4'].every((id) => m.posts.get(id)!.status === 'published')).toBe(true);
-    expect(m.posts.get('p5')!.status).toBe('scheduled');
+    expect(net.containersCreated()).toBe(MAX_POSTS_PER_RUN);
+    expect(posts.slice(0, MAX_POSTS_PER_RUN).every((p) => m.posts.get(p.id)!.status === 'published')).toBe(true);
+    expect(m.posts.get(`p${MAX_POSTS_PER_RUN}`)!.status).toBe('scheduled');
     expect(m.posts.get('future')!.status).toBe('scheduled');
   });
 
