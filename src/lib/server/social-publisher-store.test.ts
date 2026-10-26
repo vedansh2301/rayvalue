@@ -41,6 +41,14 @@ describe('supabaseStore', () => {
     expect(u.searchParams.get('order')).toBe('scheduled_at.asc');
   });
 
+  it('loadPublishedSince includes posts published to either channel', async () => {
+    const t = fakeFetch(() => []);
+    await supabaseStore(ENV, t.f).loadPublishedSince(new Date('2026-10-01T00:00:00Z'), 60);
+    const u = t.calls[0]!.url;
+    expect(u.searchParams.get('status')).toBe('eq.published');
+    expect(u.searchParams.get('or')).toBe('(ig_media_id.not.is.null,fb_post_id.not.is.null)');
+  });
+
   it('loadMedia returns ordered media per post', async () => {
     const m = { kind: 'image', mime: 'image/jpeg', public_url: 'https://x/i.jpg', width: 1, height: 1, duration_s: null };
     const t = fakeFetch(() => [

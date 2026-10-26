@@ -1,5 +1,5 @@
 name: Social cron
-# Calls the Instagram publisher routes on rayvalue.com. Vercel Hobby crons are daily-only, so the 15-minute publish
+# Calls the social (Instagram + Facebook Page) publisher routes on rayvalue.com. Vercel Hobby crons are daily-only, so the 15-minute publish
 # job runs from here. Needs the repo secret CRON_SECRET (same value as CRON_SECRET in Vercel). Routes: src/pages/api/cron/social-*.ts
 on:
   schedule:

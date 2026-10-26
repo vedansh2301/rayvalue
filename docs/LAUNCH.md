@@ -145,6 +145,28 @@ Preview SEO scores are not meaningful (Vercel adds `X-Robots-Tag: noindex` and a
 - [ ] Hobby plan cron runs once a day, so the nurture job does too.
 
 ## Instagram publisher owner checklist
-- [ ] Vercel env (Production + Preview): `IG_USER_ID`, `IG_ACCESS_TOKEN` (bootstrap; after the first daily refresh the current token lives in `social_auth` and takes priority), `IG_APP_ID`, `IG_APP_SECRET`, `CRON_SECRET`, `OWNER_EMAIL`, `RESEND_API_KEY`, `EMAIL_FROM`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`. Optional: `SOCIAL_DRY_RUN=1` blocks every Instagram write (container create, publish) and only logs `dry_run` events.
+- [ ] Vercel env (Production + Preview): `IG_USER_ID`, `IG_ACCESS_TOKEN` (bootstrap; after the first daily refresh the current token lives in `social_auth` and takes priority), `IG_APP_ID`, `IG_APP_SECRET`, `CRON_SECRET`, `OWNER_EMAIL`, `RESEND_API_KEY`, `EMAIL_FROM`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`. Optional: `SOCIAL_DRY_RUN=1` blocks every Instagram and Facebook write (container create, publish) and only logs `dry_run` events.
 - [ ] GitHub repo secret `CRON_SECRET` (same value as Vercel). `.github/workflows/social-cron.yml` calls `/api/cron/social-publish` every 15 minutes, and `social-token` + `social-insights` daily (Vercel Hobby crons are daily only, so these are not in `vercel.json`). GitHub may delay or skip scheduled runs under load; use "Run workflow" to trigger by hand.
 - [ ] If the daily token refresh fails you get an email. Generate a new token in the Meta dashboard, set `IG_ACCESS_TOKEN`, redeploy, and run `delete from public.social_auth;` (a stored token wins over the env var until the row is removed).
+
+## Facebook Page owner checklist
+Posts can go to a Facebook Page as well as Instagram (choose channels per post; the default is set in /admin/social settings). Facebook uses a **Page access token from a Business Manager system user**, which never expires, so there is nothing to refresh (the daily token job is Instagram-only). Until `FB_PAGE_ID` and `FB_PAGE_TOKEN` are both set, a post that includes Facebook is **not published to either channel**: it moves to Needs review with "Facebook Page not connected", and the cron summary shows a `facebook` field saying so. Instagram-only posts are unaffected.
+
+Apply `supabase/migrations/0015_social_facebook.sql` first (already applied on the live project), then:
+- [ ] Create the Facebook Page for RayValue (Facebook > Pages > Create new Page).
+- [ ] Add the Page to the rayvalue.com business portfolio: business.facebook.com > Business settings > Accounts > Pages > Add > Add a Page (or Create a new Page there).
+- [ ] In the Meta developer dashboard, open the app (app-1): Add use case > **Manage everything on your Page**. This is what lets the app hold `pages_manage_posts`, `pages_read_engagement`, `pages_show_list` and `read_insights`. If Meta asks for App Review for these permissions, submit it from the same app dashboard (I could not verify from the docs whether it is required for a Page owned by the same business).
+- [ ] Business settings > Users > **System users** > Add > name it e.g. `rayvalue-publisher`, role **Admin**.
+- [ ] Select the system user > Add assets > **Pages** > the RayValue Page > toggle **Full control** > Save. Then Add assets > **Apps** > app-1 > Full control.
+- [ ] Generate new token: select the system user > Generate token > pick app-1 > set expiration to **Never** > tick `pages_manage_posts`, `pages_read_engagement`, `pages_show_list`, `read_insights` > Generate. Copy it once; it is shown only once.
+- [ ] Find the Page id: Page > About > Page transparency (or Business settings > Pages > the Page: the id is shown).
+- [ ] Vercel env (Production + Preview): `FB_PAGE_ID`, `FB_PAGE_TOKEN`; redeploy. `SOCIAL_DRY_RUN=1` also blocks every Facebook write.
+- [ ] Try it with a harmless post: set `SOCIAL_DRY_RUN=1`, schedule a photo post for both channels and read the `dry_run` event; then remove the flag and let one real post out.
+- [ ] If Facebook publishing starts failing with a token error (code 190) the daily insights run reports `Facebook rejected the Page token` and a failed post email names Facebook. Generate a new system-user token as above and replace `FB_PAGE_TOKEN`.
+
+How Facebook posts behave (so nothing surprises you):
+- Photo post: one photo. Carousel: a multi-photo post (photos only, 2 to 10; a video in a carousel cannot go to Facebook). Reel: 3 to 90 seconds (Instagram allows longer, so a long Reel must be unticked for Facebook). Stories are Instagram-only.
+- A post is Published only when every channel it lists has published. If one channel fails for good the post is Failed but the channel that worked keeps its link; **Retry only retries the missing channel** (it never re-posts to the one that is already live).
+- Facebook has no way to check a photo post that timed out, so an ambiguous failure (timeout or Facebook server error) is never retried automatically: the post is Failed with "Check the Page". Look at the Page; use Retry only if the post is not there.
+- Facebook Reels upload in steps and can finish processing a later 15-minute run; that is normal. A Reel not live an hour after upload is retried with a fresh upload.
+- Daily insights now also fill `fb_insights` for posts published in the last 30 days (reach/views, clicks and reactions for photo posts; plays and average watch time for Reels). Meta retired the old impressions metrics, so numbers are not comparable to older Page reports.

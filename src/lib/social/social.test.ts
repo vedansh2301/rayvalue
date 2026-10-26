@@ -69,6 +69,16 @@ describe('channels', () => {
     expect(failed(post({ channels: [] }))).toEqual(['channels']);
     expect(failed(post({ channels: ['instagram', 'facebook'] }))).toEqual([]);
   });
+  it('applies Facebook-only limits only when Facebook is a channel', () => {
+    const long = { ...reel, duration_s: 120 };
+    expect(failed(post({ media: [long] }))).toEqual([]); // Instagram allows 15 minutes
+    expect(failed(post({ media: [long], channels: ['facebook'] }))).toEqual(['facebook_reel_length']);
+    expect(failed(post({ media: [{ ...reel, duration_s: 90 }], channels: ['instagram', 'facebook'] }))).toEqual([]);
+    const mixed = post({ type: 'carousel', media: [jpg, reel] });
+    expect(failed(mixed)).toEqual([]);
+    expect(failed({ ...mixed, channels: ['instagram', 'facebook'] })).toEqual(['facebook_media']);
+    expect(failed(post({ type: 'carousel', media: [jpg, jpg], channels: ['facebook'] }))).toEqual([]);
+  });
 });
 
 describe('status', () => {
