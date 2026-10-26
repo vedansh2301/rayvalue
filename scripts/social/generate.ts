@@ -178,7 +178,7 @@ async function main(): Promise<number> {
       const dir = args.dryRun ? resolve(args.out, `${j.template}__${j.target}__${post.channel}`) : await mkdtemp(join(tmpdir(), 'social-'));
       await mkdir(dir, { recursive: true });
       try {
-        const files = ffmpeg ? await renderPost(post.type, post.slides, dir) : (await renderSlidesOnly(post.type, post.slides, dir), []);
+        const files = ffmpeg ? await renderPost(post, dir) : (await renderSlidesOnly(post.type, post.slides, dir), []);
         const checks = runChecks({ type: post.type, caption: post.caption, data_refs: post.dataRefs, numbers_confirmed: false, media: mediaForCheck(files), channels: settings.default_channels });
         const passed = checksPassed(checks);
         const decision = decideQueueState({ checksPassed: passed, type: post.type, settings, taken: jobTaken, now, draft: args.draft });

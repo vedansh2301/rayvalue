@@ -10,16 +10,16 @@ import type { PhotoKey } from './photos';
 export type PhotoRole = 'hook' | 'cost' | 'savings' | 'payback' | 'battery' | 'changed' | 'moves' | 'cta';
 
 const STATE_PHOTOS: Record<'FL' | 'CA', readonly PhotoKey[]> = {
-  FL: ['fl-broward-roof', 'fl-rooftop-1', 'fl-rooftop-2', 'fl-rooftop-3'],
+  FL: ['fl-broward-roof', 'fl-rooftop-1', 'fl-rooftop-2', 'fl-rooftop-3', 'fl-panels-sunrise', 'fl-broward-array'],
   CA: ['ca-tile-roof', 'ca-rooftop-install', 'ca-battery-home', 'ca-net-billing'],
 };
 
 /** Generic photos a data slide prefers, best fit first; the state's own photos follow as a fallback. */
 const ROLE_PHOTOS: Record<'cost' | 'savings' | 'changed' | 'moves', readonly PhotoKey[]> = {
   cost: ['install-crew', 'compare-quotes', 'lease-vs-buy'],
-  savings: ['worth-it', 'rooftop-wide', 'home-value'],
-  changed: ['power-lines-sunset', 'rooftop-wide'],
-  moves: ['compare-quotes', 'lease-vs-buy', 'home-value'],
+  savings: ['worth-it', 'rooftop-wide', 'home-value', 'home-suburban'],
+  changed: ['power-lines-sunset', 'roof-sky', 'rooftop-wide'],
+  moves: ['compare-quotes', 'lease-vs-buy', 'home-patio', 'home-value'],
 };
 
 /** FNV-1a: a small, stable string hash (same seed -> same photos on every run). */
