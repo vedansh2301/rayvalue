@@ -1,0 +1,205 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import PostEditor, { type EditorPost } from '../../../components/admin/PostEditor';
+import { strictSameOrigin } from '../../../lib/admin/auth';
+import { flashText } from '../../../lib/social/flash';
+import { isUuid, parsePostForm, toLocalInput } from '../../../lib/social/forms';
+import { formatInZone } from '../../../lib/social/schedule';
+import { STATUS_LABEL, canTransition, isEditable } from '../../../lib/social/status';
+import { POST_TYPES, type PostType } from '../../../lib/social/types';
+import { STATUS_CHIP, metricLabel } from '../../../lib/social/view';
+import { adminEnv, adminPrelude, forbidden, redirectTo } from '../../../lib/server/social-page';
+import { getPost, getPostMedia, getSettings, listEvents, listMedia, listTemplates, nextSlotsByType, postAction, savePost } from '../../../lib/server/social-admin';
+
+// New post (/admin/social/new) and edit (/admin/social/<uuid>). Owner-only, Basic auth, noindex.
+export const prerender = false;
+const env = adminEnv();
+const denied = await adminPrelude(Astro, env);
+if (denied) return denied;
+
+const idParam = Astro.params.id ?? '';
+const isNew = idParam === 'new';
+if (!isNew && !isUuid(idParam)) return new Response('Not found', { status: 404, headers: { 'Cache-Control': 'no-store' } });
+
+const now = new Date();
+const settings = await getSettings(env);
+const post = isNew ? null : await getPost(env, idParam);
+if (!isNew && !post) return new Response('Not found', { status: 404, headers: { 'Cache-Control': 'no-store' } });
+
+let errors: string[] = [];
+let submitted: URLSearchParams | null = null;
+if (Astro.request.method === 'POST') {
+  if (!strictSameOrigin(Astro.request)) return forbidden();
+  const form = new URLSearchParams(await Astro.request.text());
+  const action = form.get('action');
+  if (action === 'save' || action === 'schedule' || action === 'publish_now') {
+    const parsed = parsePostForm(form);
+    if (!parsed.ok) {
+      errors = parsed.errors;
+      submitted = form;
+    } else {
+      const r = await savePost(env, post, parsed.value, now);
+      if (r.ok) return redirectTo(`/admin/social/${r.id}?ok=${r.flash}`);
+      errors = r.errors;
+      submitted = form;
+    }
+  } else if (post && (action === 'unschedule' || action === 'retry' || action === 'archive' || action === 'delete' || action === 'duplicate')) {
+    const r = await postAction(env, post, action, now);
+    if (r.ok) return redirectTo(action === 'delete' ? `/admin/social?ok=${r.flash}` : `/admin/social/${r.id ?? post.id}?ok=${r.flash}`);
+    errors = [r.error];
+  } else errors = ['Unknown action.'];
+}
+
+const tz = settings?.timezone ?? 'America/New_York';
+const url = new URL(Astro.request.url);
+const ok = flashText(url.searchParams.get('ok'));
+const [library, templates, postMedia, events] = await Promise.all([
+  listMedia(env),
+  listTemplates(env),
+  post ? getPostMedia(env, post.id) : Promise.resolve([]),
+  post ? listEvents(env, post.id) : Promise.resolve([]),
+]);
+const nextIso = settings ? await nextSlotsByType(env, settings, post?.id ?? null, now) : null;
+const nextSlots = Object.fromEntries(POST_TYPES.map((t) => [t, nextIso?.[t] ? formatInZone(nextIso[t]!, tz) : null])) as Record<PostType, string | null>;
+
+// Editor values: the submitted form after a validation error, otherwise the saved post (or defaults for a new one).
+const queryType = url.searchParams.get('type');
+const defType: PostType = POST_TYPES.includes(queryType as PostType) ? (queryType as PostType) : 'reel';
+const sType = submitted?.get('type');
+const editorPost: EditorPost = submitted
+  ? {
+      id: post?.id ?? null,
+      type: POST_TYPES.includes(sType as PostType) ? (sType as PostType) : defType,
+      title: submitted.get('title') ?? '',
+      caption: (submitted.get('caption') ?? '').replace(/\r\n?/g, '\n'),
+      numbers_confirmed: submitted.has('numbers_confirmed'),
+      share_to_feed: submitted.has('share_to_feed'),
+      thumb_offset_ms: submitted.get('thumb_offset_ms') ? Number(submitted.get('thumb_offset_ms')) || null : null,
+      data_refs: post?.data_refs ?? [],
+      when: submitted.get('when') === 'custom' ? 'custom' : 'next_slot',
+      scheduled_local: submitted.get('scheduled_local') ?? '',
+    }
+  : {
+      id: post?.id ?? null,
+      type: post?.type ?? defType,
+      title: post?.title ?? '',
+      caption: post?.caption ?? '',
+      numbers_confirmed: post?.numbers_confirmed ?? false,
+      share_to_feed: post?.share_to_feed ?? true,
+      thumb_offset_ms: post?.thumb_offset_ms ?? null,
+      data_refs: post?.data_refs ?? [],
+      when: post?.scheduled_at ? 'custom' : 'next_slot',
+      scheduled_local: post?.scheduled_at ? toLocalInput(post.scheduled_at, tz) : '',
+    };
+const libraryIds = new Set((library ?? []).map((m) => m.id));
+const selected = submitted ? submitted.getAll('media_ids').filter((m) => libraryIds.has(m)) : (postMedia ?? []).map((m) => m.id);
+const libraryVm = (library ?? []).map((m) => ({ id: m.id, kind: m.kind, public_url: m.public_url, mime: m.mime, bytes: m.bytes, width: m.width, height: m.height, duration_s: m.duration_s, alt_text: m.alt_text }));
+const templatesVm = (templates ?? []).map((t) => ({ id: t.id, kind: t.kind, name: t.name, body: t.body }));
+
+const editable = !post || isEditable(post.status);
+const btn = 'inline-flex min-h-11 items-center justify-center rounded-lg border px-4 py-2 font-semibold';
+const fmt = (iso: string) => formatInZone(iso, tz);
+---
+<BaseLayout title={isNew ? 'New social post' : 'Edit social post'} description="Owner-only social post editor." path={`/admin/social/${idParam}`} noindex>
+  <div class="shell py-8">
+    <AdminNav current={isNew ? '/admin/social/new' : '/admin/social'} />
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+      <h1 class="text-2xl font-bold text-stone-900">{isNew ? 'New post' : post!.title || '(untitled post)'}</h1>
+      {post && <span class={`rounded-full border px-2 py-0.5 text-sm font-semibold ${STATUS_CHIP[post.status]}`}>{STATUS_LABEL[post.status]}</span>}
+    </div>
+    {settings?.paused && <p role="status" class="mt-3 rounded-lg border border-amber-400 bg-amber-100 px-4 py-2 font-semibold text-amber-900">Posting is paused; nothing will publish until you resume it on the posts page.</p>}
+
+    {ok && <p role="status" class="mt-4 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-stone-900">{ok}</p>}
+    {errors.length > 0 && (
+      <div role="alert" class="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-stone-900">
+        <p class="font-semibold">Not saved.</p>
+        <ul class="list-disc pl-5">{errors.map((e) => <li>{e}</li>)}</ul>
+      </div>
+    )}
+    {!settings && <p role="alert" class="mt-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-stone-900">Could not read settings from the database; scheduling is unavailable.</p>}
+    {library === null && <p role="alert" class="mt-4 text-stone-900">Could not read the media library.</p>}
+
+    {post && (
+      <section aria-label="Status details" class="mt-4 space-y-1 text-sm text-stone-800">
+        {post.scheduled_at && post.status !== 'published' && <p>Due: <strong>{fmt(post.scheduled_at)}</strong></p>}
+        {post.status === 'failed' && <p class="font-medium text-red-800">Failed after {post.attempts} attempt{post.attempts === 1 ? '' : 's'}{post.last_error ? `: ${post.last_error}` : '.'}</p>}
+        {post.status === 'published' && (
+          <p>
+            Published {post.published_at ? fmt(post.published_at) : ''}.
+            {post.ig_permalink && <> <a href={post.ig_permalink} rel="noopener noreferrer" class="underline underline-offset-2">View on Instagram</a></>}
+          </p>
+        )}
+        {!isEditable(post.status) && <p class="font-medium text-stone-900">This post can no longer be edited ({STATUS_LABEL[post.status].toLowerCase()}).</p>}
+      </section>
+    )}
+
+    {post && (
+      <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Post actions">
+        {post.status === 'scheduled' && (
+          <form method="post" action={`/admin/social/${post.id}`}><input type="hidden" name="action" value="unschedule" /><button type="submit" class={`${btn} border-stone-400 bg-white text-stone-900 hover:bg-stone-100`}>Unschedule</button></form>
+        )}
+        {post.status === 'failed' && (
+          <form method="post" action={`/admin/social/${post.id}`}><input type="hidden" name="action" value="retry" /><button type="submit" class={`${btn} border-stone-900 bg-sun-400 text-stone-900 hover:bg-sun-500`}>Retry</button></form>
+        )}
+        <form method="post" action={`/admin/social/${post.id}`}><input type="hidden" name="action" value="duplicate" /><button type="submit" class={`${btn} border-stone-400 bg-white text-stone-900 hover:bg-stone-100`}>Duplicate</button></form>
+        {canTransition(post.status, 'archived') && (
+          <form method="post" action={`/admin/social/${post.id}`}><input type="hidden" name="action" value="archive" /><button type="submit" class={`${btn} border-stone-400 bg-white text-stone-900 hover:bg-stone-100`}>Archive</button></form>
+        )}
+        {post.status === 'draft' && (
+          <details class="rounded-lg border border-red-300 px-3">
+            <summary class="flex min-h-11 cursor-pointer items-center text-red-800">Delete this draft…</summary>
+            <form method="post" action={`/admin/social/${post.id}`} class="pb-3"><input type="hidden" name="action" value="delete" /><p class="text-sm text-stone-800">This permanently deletes the draft. Its media stays in the library.</p><button type="submit" class={`${btn} mt-2 border-red-700 bg-red-700 text-white hover:bg-red-800`}>Delete draft permanently</button></form>
+          </details>
+        )}
+      </div>
+    )}
+
+    {settings && library !== null && (
+      <PostEditor
+        client:load
+        post={editorPost}
+        library={libraryVm}
+        selected={selected}
+        templates={templatesVm}
+        timezone={tz}
+        nextSlots={nextSlots}
+        editable={editable}
+        action={`/admin/social/${idParam}`}
+      />
+    )}
+
+    {post?.status === 'published' && (
+      <section aria-labelledby="ins-h" class="mt-8">
+        <h2 id="ins-h" class="text-lg font-semibold text-stone-900">Insights</h2>
+        {post.insights && Object.keys(post.insights).length > 0 ? (
+          <>
+            <dl class="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {Object.entries(post.insights).map(([k, v]) => (
+                <div class="rounded border border-stone-200 bg-white p-3"><dt class="text-sm text-stone-700">{metricLabel(k)}</dt><dd class="text-xl font-bold text-stone-900">{v}</dd></div>
+              ))}
+            </dl>
+            {post.insights_at && <p class="mt-1 text-sm text-stone-700">Updated {fmt(post.insights_at)}.</p>}
+          </>
+        ) : (
+          <p class="mt-1 text-stone-700">No insights collected yet.</p>
+        )}
+      </section>
+    )}
+
+    {post && (
+      <section aria-labelledby="ev-h" class="mt-8">
+        <h2 id="ev-h" class="text-lg font-semibold text-stone-900">Activity</h2>
+        {events === null && <p class="text-stone-700">Could not read the activity log.</p>}
+        {events !== null && events.length === 0 && <p class="text-stone-700">No activity recorded.</p>}
+        {events !== null && events.length > 0 && (
+          <ol class="mt-2 space-y-1 text-sm text-stone-800">
+            {events.map((e) => (
+              <li><span class="text-stone-700">{fmt(e.at)}</span> · <strong>{e.event.replace(/_/g, ' ')}</strong>{e.detail && Object.keys(e.detail).length > 0 && <span class="text-stone-700"> · {Object.entries(e.detail).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(', ')}</span>}</li>
+            ))}
+          </ol>
+        )}
+      </section>
+    )}
+  </div>
+</BaseLayout>

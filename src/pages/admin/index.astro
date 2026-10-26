@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdminNav from '../../components/admin/AdminNav.astro';
+import { adminEnv, adminPrelude } from '../../lib/server/social-page';
+import { getSettings, hubCounts } from '../../lib/server/social-admin';
+
+// Owner-only hub. Same Basic auth as /admin/leads. Not linked from the public site, noindex, not in the sitemap.
+export const prerender = false;
+const env = adminEnv();
+const denied = await adminPrelude(Astro, env);
+if (denied) return denied;
+
+const [counts, settings] = await Promise.all([hubCounts(env, new Date()), getSettings(env)]);
+const card = 'block rounded-lg border border-stone-200 bg-white p-4 hover:border-stone-400 focus-visible:outline-2';
+---
+<BaseLayout title="Admin" description="Owner-only admin." path="/admin" noindex>
+  <div class="shell py-8">
+    <h1 class="text-2xl font-bold text-stone-900">Admin</h1>
+    <AdminNav current="/admin" />
+
+    {settings?.paused && (
+      <p role="status" class="mt-4 rounded-lg border border-amber-400 bg-amber-100 px-4 py-3 font-semibold text-amber-900">
+        Social posting is paused. Nothing will publish. <a href="/admin/social" class="underline underline-offset-2">Resume on the posts page</a>.
+      </p>
+    )}
+
+    <ul class="mt-6 grid gap-4 sm:grid-cols-3">
+      <li>
+        <a href="/admin/leads" class={card}>
+          <span class="text-lg font-semibold text-stone-900">Leads</span>
+          <span class="mt-1 block text-sm text-stone-700">Newest leads, delivery status, returns. Contains personal data.</span>
+        </a>
+      </li>
+      <li>
+        <a href="/admin/kpi" class={card}>
+          <span class="text-lg font-semibold text-stone-900">KPI report</span>
+          <span class="mt-1 block text-sm text-stone-700">Calculator funnel, quote clicks and return rate by week.</span>
+        </a>
+      </li>
+      <li>
+        <a href="/admin/social" class={card}>
+          <span class="text-lg font-semibold text-stone-900">Social</span>
+          {counts ? (
+            <dl class="mt-2 grid grid-cols-3 gap-2 text-center text-sm text-stone-700">
+              <div class={`rounded p-2 ${counts.review ? 'bg-amber-100 text-amber-900' : 'bg-stone-100'}`}><dt>Review</dt><dd class="text-xl font-bold">{counts.review}</dd></div>
+              <div class="rounded bg-stone-100 p-2"><dt>Next 7 days</dt><dd class="text-xl font-bold">{counts.scheduledSoon}</dd></div>
+              <div class={`rounded p-2 ${counts.failed ? 'bg-red-100 text-red-900' : 'bg-stone-100'}`}><dt>Failed</dt><dd class="text-xl font-bold">{counts.failed}</dd></div>
+            </dl>
+          ) : (
+            <span class="mt-1 block text-sm text-stone-700">Could not read social posts from the database.</span>
+          )}
+          <span class="mt-2 block text-sm text-stone-700">Instagram posts: review, schedule, media, insights.</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</BaseLayout>

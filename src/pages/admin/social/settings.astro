@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AdminNav from '../../../components/admin/AdminNav.astro';
+import SlotsEditor from '../../../components/admin/SlotsEditor';
+import { strictSameOrigin } from '../../../lib/admin/auth';
+import { US_TIMEZONES, parseSettingsForm } from '../../../lib/social/forms';
+import { adminEnv, adminPrelude, forbidden } from '../../../lib/server/social-page';
+import { getSettings, updateSettings } from '../../../lib/server/social-admin';
+
+export const prerender = false;
+const env = adminEnv();
+const denied = await adminPrelude(Astro, env);
+if (denied) return denied;
+
+let flash: { ok: boolean; text: string } | null = null;
+if (Astro.request.method === 'POST') {
+  if (!strictSameOrigin(Astro.request)) return forbidden();
+  const parsed = parseSettingsForm(new URLSearchParams(await Astro.request.text()));
+  if (!parsed.ok) flash = { ok: false, text: parsed.errors[0]! };
+  else flash = (await updateSettings(env, parsed.value)) ? { ok: true, text: 'Settings saved.' } : { ok: false, text: 'Could not save settings. Try again.' };
+}
+
+const settings = await getSettings(env);
+const check = 'mt-1 h-5 w-5 shrink-0 accent-stone-900';
+---
+<BaseLayout title="Social settings" description="Owner-only social settings." path="/admin/social/settings" noindex>
+  <div class="shell py-8">
+    <AdminNav current="/admin/social/settings" />
+    <h1 class="mt-4 text-2xl font-bold text-stone-900">Social settings</h1>
+
+    {flash && <p role={flash.ok ? 'status' : 'alert'} class={`mt-4 rounded-lg border px-4 py-3 text-stone-900 ${flash.ok ? 'border-green-300 bg-green-50' : 'border-amber-300 bg-amber-50'}`}>{flash.text}</p>}
+    {!settings && <p class="mt-4 text-stone-900">Could not read settings from the database.</p>}
+
+    {settings && (
+      <form method="post" action="/admin/social/settings" class="mt-6 max-w-2xl space-y-6">
+        <fieldset class="space-y-4 rounded-lg border border-stone-200 bg-white p-4">
+          <legend class="px-1 font-semibold text-stone-900">Publishing</legend>
+          <div class="flex gap-3">
+            <input id="s-paused" type="checkbox" name="paused" checked={settings.paused} class={check} />
+            <label for="s-paused"><span class="font-medium text-stone-900">Pause all posting</span><span class="block text-sm text-stone-700">Nothing publishes while this is on, including posts already scheduled.</span></label>
+          </div>
+          <div class="flex gap-3">
+            <input id="s-auto" type="checkbox" name="auto_publish" checked={settings.auto_publish} class={check} />
+            <label for="s-auto"><span class="font-medium text-stone-900">Auto-publish</span><span class="block text-sm text-stone-700">Generated posts that pass every check are scheduled without review. Posts you schedule yourself always go out; posts with a failing check never do.</span></label>
+          </div>
+          <div class="flex gap-3">
+            <input id="s-email" type="checkbox" name="notify_email" checked={settings.notify_email} class={check} />
+            <label for="s-email"><span class="font-medium text-stone-900">Email me about failures and posts that need review</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-2 rounded-lg border border-stone-200 bg-white p-4">
+          <legend class="px-1 font-semibold text-stone-900">Time zone</legend>
+          <label for="s-tz" class="block text-sm text-stone-800">Posting slots and all times in this admin use this zone.</label>
+          <select id="s-tz" name="timezone" class="min-h-11 rounded border border-stone-400 bg-white px-3 py-2 text-stone-900">
+            {US_TIMEZONES.map((z) => <option value={z.id} selected={settings.timezone === z.id}>{z.label} ({z.id})</option>)}
+            {!US_TIMEZONES.some((z) => z.id === settings.timezone) && <option value={settings.timezone} selected disabled>{settings.timezone} (not in list; pick one to change)</option>}
+          </select>
+        </fieldset>
+
+        <fieldset class="space-y-2 rounded-lg border border-stone-200 bg-white p-4">
+          <legend class="px-1 font-semibold text-stone-900">Weekly posting slots</legend>
+          <p class="text-sm text-stone-700">The generator and “next free slot” fill these, one post per slot. A starting cadence you can change.</p>
+          <SlotsEditor client:load initial={settings.slots} />
+        </fieldset>
+
+        <button type="submit" class="inline-flex min-h-11 items-center rounded-lg bg-sun-400 px-5 py-2.5 font-semibold text-stone-900 hover:bg-sun-500">Save settings</button>
+      </form>
+    )}
+  </div>
+</BaseLayout>
