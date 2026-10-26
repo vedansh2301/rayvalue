@@ -37,6 +37,12 @@
  *   https://developers.facebook.com/docs/graph-api/reference/video/video_insights/
  *   Note: blue_reels_play_count is not on the post-insights page, only on the video_insights page, so it is requested
  *   there and per-metric fallback keeps the rest if Meta rejects one.
+ * - Location tag (checked 2026-10-26): `place` = "Page ID of a place associated with the photo" on POST /{page-id}/photos
+ *   (https://developers.facebook.com/docs/graph-api/reference/page/photos/), "Page ID of a location associated with this
+ *   post" on POST /{page-id}/feed (https://developers.facebook.com/docs/graph-api/reference/page/feed/), and on the Reels
+ *   publish (finish) call ("Tag a location: include the parameter `place`", reels-publishing guide above). Sent on the
+ *   published photo, the multi-photo feed post and the Reel finish call; if Facebook refuses it with a clean "bad parameter"
+ *   (code 100, not a timeout / 5xx), that one call is repeated once without it.
  * - Errors: { error: { message, code, error_subcode, error_user_msg } }. 190 = bad/expired token, 4/17/32/613 = rate
  *   limit, 100 = bad parameter, 200/10/283 = permission, 506 = duplicate post text.
  */
@@ -82,6 +88,16 @@ export interface FbClientOptions {
 }
 
 export type MediaForFb = Pick<SocialMedia, 'kind' | 'public_url'>;
+
+export interface PlaceOptions {
+  /** Facebook Page id of a place (with location data). */
+  place?: string | null;
+  /** Called when Facebook refuses the place; the call is then repeated once without it. */
+  onPlaceRejected?: (message: string) => void | Promise<void>;
+}
+
+/** A clean refusal of a parameter: nothing was posted, so repeating the call without the place is safe. */
+export const isPlaceRejection = (e: unknown) => e instanceof FbError && !e.ambiguous && !e.transient && e.code === 100;
 
 /** Metrics to ask for. */
 export const FB_POST_METRICS = ['post_media_view', 'post_total_media_view_unique', 'post_clicks', 'post_reactions_by_type_total'] as const;
@@ -147,6 +163,18 @@ export function createFacebookClient(opts: FbClientOptions) {
     return (json ?? {}) as Record<string, unknown>;
   }
 
+  /** POST with `place` when given; on a clean refusal report it and POST once more without it. */
+  async function postWithPlace(path: string, params: Record<string, string>, opts: PlaceOptions): Promise<Record<string, unknown>> {
+    if (!opts.place) return call('POST', path, params);
+    try {
+      return await call('POST', path, { ...params, place: opts.place });
+    } catch (e) {
+      if (!isPlaceRejection(e)) throw e;
+      await opts.onPlaceRejected?.((e as FbError).message);
+      return call('POST', path, params);
+    }
+  }
+
   const str = (r: Record<string, unknown>, key: string, what: string): string => {
     const v = r[key];
     if (typeof v !== 'string' || !v) throw new FbError(`Facebook returned no ${what} id.`, 200, null);
@@ -154,8 +182,8 @@ export function createFacebookClient(opts: FbClientOptions) {
   };
 
   /** Photo post. Returns the post id (page_post id) and the photo id. */
-  async function publishPhoto(imageUrl: string, caption: string): Promise<{ postId: string; photoId: string | null }> {
-    const r = await call('POST', `${pageId}/photos`, { url: imageUrl, caption, message: caption, published: 'true' });
+  async function publishPhoto(imageUrl: string, caption: string, opts: PlaceOptions = {}): Promise<{ postId: string; photoId: string | null }> {
+    const r = await postWithPlace(`${pageId}/photos`, { url: imageUrl, caption, message: caption, published: 'true' }, opts);
     const photoId = typeof r.id === 'string' && r.id ? r.id : null;
     const postId = typeof r.post_id === 'string' && r.post_id ? r.post_id : photoId;
     if (!postId) throw new FbError('Facebook returned no post id.', 200, null);
@@ -163,7 +191,7 @@ export function createFacebookClient(opts: FbClientOptions) {
   }
 
   /** Multi-photo post: each photo uploaded unpublished, then one feed post that attaches them. */
-  async function publishMultiPhoto(imageUrls: string[], caption: string): Promise<{ postId: string }> {
+  async function publishMultiPhoto(imageUrls: string[], caption: string, opts: PlaceOptions = {}): Promise<{ postId: string }> {
     if (imageUrls.length < 2) throw new FbError('A multi-photo post needs at least two photos.', 0, null);
     const photoIds: string[] = [];
     for (const url of imageUrls) {
@@ -174,7 +202,7 @@ export function createFacebookClient(opts: FbClientOptions) {
     photoIds.forEach((id, i) => {
       params[`attached_media[${i}]`] = JSON.stringify({ media_fbid: id });
     });
-    const r = await call('POST', `${pageId}/feed`, params);
+    const r = await postWithPlace(`${pageId}/feed`, params, opts);
     return { postId: str(r, 'id', 'post') };
   }
 
@@ -210,8 +238,8 @@ export function createFacebookClient(opts: FbClientOptions) {
   }
 
   /** Reel step 3: publish. Safe to repeat for the same video id (a video can only become one Reel). */
-  async function finishReel(videoId: string, description: string): Promise<void> {
-    const r = await call('POST', `${pageId}/video_reels`, { video_id: videoId, upload_phase: 'finish', video_state: 'PUBLISHED', description });
+  async function finishReel(videoId: string, description: string, opts: PlaceOptions = {}): Promise<void> {
+    const r = await postWithPlace(`${pageId}/video_reels`, { video_id: videoId, upload_phase: 'finish', video_state: 'PUBLISHED', description }, opts);
     if (r.success !== true) throw new FbError('Facebook did not confirm the Reel publish.', 200, null);
   }
 

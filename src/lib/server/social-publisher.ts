@@ -18,6 +18,10 @@
  *   with a new container; it stays "publishing" and the next run reads the container status. A Facebook photo or
  *   multi-photo publish has no such container, so an ambiguous failure there is never retried automatically: the
  *   channel fails and the owner checks the Page first. A Facebook Reel is one video id; finishing it twice is harmless.
+ * - Location tags (social_posts.location_key -> social_locations.fb_place_id) are best effort: Instagram gets
+ *   `location_id` (image, Reel, carousel parent), Facebook `place` (photo, multi-photo, Reel). If either refuses the
+ *   place, that call is made once more without it and a `location_dropped` event is logged; the post never fails
+ *   because of its location.
  * - SOCIAL_DRY_RUN=1: every Instagram and Facebook write is blocked (also inside the clients); posts are not moved,
  *   an event row records what would have happened.
  * Secrets: tokens come from social_auth / IG_ACCESS_TOKEN and FB_PAGE_TOKEN, are sent only to the Meta hosts, and never
@@ -31,7 +35,7 @@ import { MAX_ATTEMPTS, publisherCanMove } from '../social/status';
 import type { Channel, SocialPost } from '../social/types';
 import type { AdminEnv } from './admin-db';
 import { sendEmail, type EmailEnv } from './email';
-import { supabaseStore, type PostMedia, type PostWhere, type PublisherStore, type UpdateResult } from './social-publisher-store';
+import { supabaseStore, type DuePost, type PostMedia, type PostWhere, type PublisherStore, type UpdateResult } from './social-publisher-store';
 
 export interface SocialEnv extends AdminEnv, EmailEnv {
   IG_USER_ID?: string;
@@ -196,8 +200,11 @@ type Res =
   | { kind: 'uncertain'; message: string }
   | { kind: 'fail'; message: string; noRetry?: boolean };
 
+/** The verified place id of a post's location tag, or null (no tag, or the location has no verified id). */
+export const placeIdOf = (p: DuePost): string | null => (p.location_key && p.location?.fb_place_id ? p.location.fb_place_id : null);
+
 interface Job {
-  post: SocialPost;
+  post: DuePost;
   media: PostMedia[];
   /** The post's row version we last wrote (for compare-and-swap). */
   version: string;
@@ -291,13 +298,20 @@ export async function runPublisher(env: SocialEnv, fetchImpl: typeof fetch, now 
     return { kind: 'done' };
   }
 
+  /** Location refused by a channel: logged, and the caller has already retried without it. */
+  const locationDropped = (job: Job, ch: Channel) => async (message: string) => {
+    await store.logEvent(job.post.id, 'location_dropped', { channel: ch, location_key: job.post.location_key, place_id: placeIdOf(job.post), error: scrub(message, tokenFor(ch)).slice(0, 300) });
+  };
+  const igOpts = (job: Job) => ({ locationId: placeIdOf(job.post), onLocationRejected: locationDropped(job, 'instagram') });
+  const fbOpts = (job: Job) => ({ place: placeIdOf(job.post), onPlaceRejected: locationDropped(job, 'facebook') });
+
   // -------------------------------------------------- Instagram steps
 
   /** Creates the container (carousel: children first) and remembers its id. */
   async function startIg(job: Job): Promise<Res> {
     let containerId: string;
     try {
-      containerId = await ig!.createContainer(job.post, job.media);
+      containerId = await ig!.createContainer(job.post, job.media, igOpts(job));
     } catch (e) {
       return { kind: 'fail', message: errText(e, igToken) };
     }
@@ -351,11 +365,11 @@ export async function runPublisher(env: SocialEnv, fetchImpl: typeof fetch, now 
     if (unsupported) return { kind: 'fail', noRetry: true, message: unsupported };
     try {
       if (post.type === 'image') {
-        const r = await fb!.publishPhoto(media[0]!.public_url, post.caption);
+        const r = await fb!.publishPhoto(media[0]!.public_url, post.caption, fbOpts(job));
         return recordDone(job, 'facebook', r.postId);
       }
       if (post.type === 'carousel') {
-        const r = await fb!.publishMultiPhoto(media.map((m) => m.public_url), post.caption);
+        const r = await fb!.publishMultiPhoto(media.map((m) => m.public_url), post.caption, fbOpts(job));
         return recordDone(job, 'facebook', r.postId);
       }
     } catch (e) {
@@ -403,7 +417,7 @@ export async function runPublisher(env: SocialEnv, fetchImpl: typeof fetch, now 
       if (!job.finishCalled) {
         job.finishCalled = true;
         try {
-          await fb!.finishReel(videoId, job.post.caption);
+          await fb!.finishReel(videoId, job.post.caption, fbOpts(job));
         } catch (e) {
           if (e instanceof FbError && e.transient) return { kind: 'waiting' }; // same video id: safe to repeat next run
           return { kind: 'fail', message: errText(e, fbToken) };
@@ -648,7 +662,7 @@ export async function runPublisher(env: SocialEnv, fetchImpl: typeof fetch, now 
     }
 
     if (dry) {
-      await store.logEvent(post.id, 'dry_run', { would: 'create_container_and_publish', type: post.type, channels: missing, media: media.map((m) => m.public_url), share_to_feed: post.share_to_feed, thumb_offset_ms: post.thumb_offset_ms });
+      await store.logEvent(post.id, 'dry_run', { would: 'create_container_and_publish', type: post.type, channels: missing, media: media.map((m) => m.public_url), share_to_feed: post.share_to_feed, thumb_offset_ms: post.thumb_offset_ms, location: placeIdOf(post) });
       out.skipped! += 1;
       continue;
     }

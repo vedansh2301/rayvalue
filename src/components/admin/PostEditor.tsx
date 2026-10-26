@@ -26,6 +26,8 @@ export interface EditorPost {
   when: 'next_slot' | 'custom';
   /** "YYYY-MM-DDTHH:MM" in the settings zone. */
   scheduled_local: string;
+  /** social_locations key, or null for no location tag. */
+  location_key: string | null;
 }
 
 export interface EditorTemplate {
@@ -50,6 +52,8 @@ interface Props {
   facebookConnected: boolean;
   /** Channels that already published; they stay ticked and cannot be removed. */
   lockedChannels: Channel[];
+  /** Location tags that can be picked (social_locations). */
+  locations: { key: string; name: string }[];
 }
 
 const field = 'w-full rounded border border-stone-400 bg-white px-3 py-2 text-stone-900';
@@ -191,6 +195,17 @@ export default function PostEditor(p: Props) {
             </p>
           )}
         </fieldset>
+
+        <div>
+          <label for="pe-location" class={label}>Location tag</label>
+          <select id="pe-location" name="location_key" class={`${field} max-w-sm`} aria-describedby="pe-location-note">
+            <option value="" selected={!p.post.location_key}>None</option>
+            {p.locations.map((l) => (
+              <option key={l.key} value={l.key} selected={p.post.location_key === l.key}>{l.name}</option>
+            ))}
+          </select>
+          <p id="pe-location-note" class="mt-1 text-sm text-stone-700">Tags the Instagram and Facebook post with this place (not Stories). If a channel refuses it, the post goes out without it.</p>
+        </div>
 
         <div>
           <label for="pe-caption" class={label}>Caption</label>

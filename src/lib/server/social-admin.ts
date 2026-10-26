@@ -18,7 +18,7 @@ import {
 import type { FlashCode } from '../social/flash';
 import { nextFreeSlot } from '../social/schedule';
 import { canTransition, isEditable } from '../social/status';
-import { POST_TYPES, type PostStatus, type PostType, type SocialMedia, type SocialPost, type SocialSettings } from '../social/types';
+import { POST_TYPES, type PostStatus, type PostType, type SocialLocation, type SocialMedia, type SocialPost, type SocialSettings } from '../social/types';
 import type { CalendarPost } from '../social/view';
 import { adminDelete, adminInsert, adminInsertMany, adminSelect, adminUpdate, adminHeaders, DB_TIMEOUT_MS, type AdminEnv } from './admin-db';
 
@@ -82,6 +82,11 @@ export async function listPosts(env: SocialEnv, filters: ListFilters): Promise<S
   if (filters.channel) params.channels = `cs.{${filters.channel}}`;
   if (filters.q) params.or = `(title.ilike.*${filters.q}*,caption.ilike.*${filters.q}*)`;
   return adminSelect<SocialPost>(env, 'social_posts', params, f);
+}
+
+/** Location tags for the editor's select, by name. */
+export async function listLocations(env: SocialEnv): Promise<Pick<SocialLocation, 'key' | 'name' | 'fb_place_id'>[] | null> {
+  return adminSelect<Pick<SocialLocation, 'key' | 'name' | 'fb_place_id'>>(env, 'social_locations', { select: 'key,name,fb_place_id', order: 'name.asc' }, f);
 }
 
 export async function getPost(env: SocialEnv, id: string): Promise<SocialPost | null> {
@@ -185,6 +190,7 @@ export async function savePost(env: SocialEnv, existing: SocialPost | null, inpu
     numbers_confirmed: input.numbers_confirmed,
     share_to_feed: input.share_to_feed,
     thumb_offset_ms: input.thumb_offset_ms,
+    location_key: input.location_key,
     checks: results,
     checks_passed: passed,
   };
@@ -304,6 +310,7 @@ export async function postAction(env: SocialEnv, post: SocialPost, action: 'unsc
           numbers_confirmed: post.numbers_confirmed,
           share_to_feed: post.share_to_feed,
           thumb_offset_ms: post.thumb_offset_ms,
+          location_key: post.location_key ?? null,
           checks: [],
           checks_passed: false,
         },

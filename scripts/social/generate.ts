@@ -24,8 +24,9 @@ import { decideQueueState } from '../../src/lib/social/gen/queue';
 import { describeSlide, truncateAlt } from '../../src/lib/social/gen/templates';
 import type { GeneratedPost } from '../../src/lib/social/gen/types';
 import { isValidSlot } from '../../src/lib/social/schedule';
+import { locationKeyForTarget } from '../../src/lib/social/locations';
 import { templateByKey } from '../../src/lib/social/template-keys';
-import type { Channel, SocialSettings } from '../../src/lib/social/types';
+import type { Channel, SocialLocation, SocialSettings } from '../../src/lib/social/types';
 import { buildPost } from './build';
 import { SocialDb } from './db';
 import { hasFfmpeg, renderPost, renderSlidesOnly, type RenderedFile } from './render';
@@ -235,6 +236,13 @@ async function queuePost(
   const now = new Date();
   const folder = `generated/${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
   const alts = altTexts(post);
+  // Location tag from the target's row in social_locations; a failed read only means the post goes out untagged.
+  let location_key: string | null = null;
+  try {
+    location_key = locationKeyForTarget(await db.select<Pick<SocialLocation, 'key' | 'targets' | 'fb_place_id'>>('social_locations', { select: 'key,targets,fb_place_id' }), post.target);
+  } catch (e) {
+    console.warn(`Location lookup failed; queuing without a location tag (${e instanceof Error ? e.message.slice(0, 120) : 'error'}).`);
+  }
   const uploaded: string[] = [];
   const mediaIds: string[] = [];
   let postId: string | null = null;
@@ -272,6 +280,7 @@ async function queuePost(
       numbers_confirmed: false,
       checks,
       checks_passed: passed,
+      location_key,
     });
     postId = row!.id;
     await db.insert('social_post_media', mediaIds.map((media_id, position) => ({ post_id: postId, media_id, position })));
@@ -281,7 +290,7 @@ async function queuePost(
     await db.insert('social_events', {
       post_id: postId,
       event: 'generated',
-      detail: { template: post.templateKey, target: post.target, channel: post.channel, status: decision.status, channels, paused, run: process.env.GITHUB_RUN_ID ?? null },
+      detail: { template: post.templateKey, target: post.target, channel: post.channel, status: decision.status, channels, paused, location_key, run: process.env.GITHUB_RUN_ID ?? null },
     });
     return postId;
   } catch (e) {

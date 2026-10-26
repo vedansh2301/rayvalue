@@ -70,8 +70,20 @@ export interface SocialPost {
   fb_last_error: string | null;
   fb_insights: Record<string, number> | null;
   fb_insights_at: string | null;
+  /** Location tag (0017): a social_locations key, or null for none. */
+  location_key: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** A place a post can be tagged with (supabase/migrations/0017_social_locations.sql). */
+export interface SocialLocation {
+  key: string;
+  name: string;
+  /** Facebook Page id with location data (Instagram `location_id`, Facebook `place`); null = not verified yet. */
+  fb_place_id: string | null;
+  /** Generator targets (utility slug or state code) whose posts get this location. */
+  targets: string[];
 }
 
 export interface Slot {

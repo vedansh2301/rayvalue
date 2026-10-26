@@ -39,6 +39,8 @@ describe('supabaseStore', () => {
     const u = t.calls[0]!.url;
     expect(u.searchParams.get('or')).toBe('(and(status.eq.scheduled,scheduled_at.lte.2026-11-02T18:00:00.000Z),status.eq.publishing)');
     expect(u.searchParams.get('order')).toBe('scheduled_at.asc');
+    // the location tag's place id comes along (social_locations via location_key)
+    expect(u.searchParams.get('select')).toBe('*,location:social_locations(fb_place_id)');
   });
 
   it('loadPublishedSince includes posts published to either channel', async () => {
@@ -58,6 +60,7 @@ describe('supabaseStore', () => {
     const out = await supabaseStore(ENV, t.f).loadMedia(['a']);
     expect(out!.get('a')!.map((x) => x.public_url)).toEqual(['https://x/i.jpg', 'https://x/j.jpg']);
     expect(t.calls[0]!.url.searchParams.get('order')).toBe('position.asc');
+    expect(t.calls[0]!.url.searchParams.get('select')).toContain('alt_text');
   });
 
   it('saveAuth upserts the single social_auth row', async () => {
