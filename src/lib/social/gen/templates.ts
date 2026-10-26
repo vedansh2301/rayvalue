@@ -177,7 +177,7 @@ export function slideTexts(s: Slide): string[] {
 
 function finish(templateKey: string, target: string, type: GeneratedPost['type'], title: string, caption: string, slides: Slide[], book: RefBook): GeneratedPost {
   const altText = type === 'reel' ? truncateAlt(`Video with ${slides.length} slides. ${slides.map(describeSlide).join(' ')}`) : truncateAlt(slides.map(describeSlide).join(' '));
-  return { templateKey, target, type, title: title.slice(0, 120), caption, dataRefs: book.refs, slides, altText };
+  return { templateKey, target, type, channel: 'instagram', music: type === 'reel' ? 'upbeat' : null, title: title.slice(0, 120), caption, dataRefs: book.refs, slides, altText };
 }
 
 // ------------------------------------------------------------------ utility-payback-reel
