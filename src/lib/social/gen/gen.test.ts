@@ -72,10 +72,10 @@ describe.each(posts)('%s', (key, build) => {
     expect(checksPassed(check(['facebook']))).toBe(true);
   });
 
-  it('has 3-8 hashtags, a soft "link in bio" CTA and fits Instagram limits', () => {
+  it('has 3-8 hashtags, a channel-neutral CTA with the site link and fits Instagram limits', () => {
     expect(countHashtags(post.caption)).toBeGreaterThanOrEqual(3);
     expect(countHashtags(post.caption)).toBeLessThanOrEqual(8);
-    expect(post.caption).toMatch(/link in bio/i);
+    expect(post.caption).toMatch(/Run your own numbers \(free\): rayvalue\.com\//);
     expect(post.caption.length).toBeLessThanOrEqual(2200);
     expect(post.title.length).toBeLessThanOrEqual(120);
   });

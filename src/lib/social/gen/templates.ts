@@ -114,7 +114,7 @@ function ctaSlide(book: RefBook, url: string, dataDate: UtilityFacts['dataDate']
     theme: 'sun',
     kicker: 'Your home is different',
     title: 'Run your own numbers',
-    subtitle: 'Free calculator on your utility’s rates. Link in bio.',
+    subtitle: 'Free calculator on your utility’s rates.',
     url,
     footer: footerFor(book, dataDate, footerLabel),
     seconds,
@@ -138,7 +138,7 @@ function utilityCaption(book: RefBook, f: UtilityFacts): string {
     `Is solar worth it with ${f.short} in 2026?`,
     `For a typical home with a ${book.use(f.bill)} monthly bill, a ${book.use(f.solar.size)} solar system costs about ${joinRange(book.use(c.low), book.use(c.high))} installed (likely ${book.use(c.likely)}) and pays for itself in ${paybackPhrase(p)} (${usePayback(book, p)}).`,
     `The federal solar tax credit ended for 2026 installs, so that is the full price you pay back. These are estimates, not quotes, built from ${f.short}’s published rates${date}.`,
-    `Run your own numbers: link in bio, or ${utilityUrlText(f)}`,
+    `Run your own numbers (free): ${utilityUrlText(f)}`,
     utilityHashtags(f),
   ];
   return body.join('\n\n');
@@ -307,7 +307,7 @@ export function buildCreditGoneReel(state: 'FL' | 'CA', vms: readonly UtilityPag
       .map((x) => `${x.short} ${paybackPhrase(x.solar.payback)} (${usePayback(book, x.solar.payback)})`)
       .join(', ')}.`,
     'These are estimates, not quotes, built from each utility’s published rates. Your roof, bill and installer’s price will move them.',
-    `Run your own numbers: link in bio, or ${calculatorUrlText(state)}`,
+    `Run your own numbers (free): ${calculatorUrlText(state)}`,
     stateHashtags(state),
   ].join('\n\n');
 
