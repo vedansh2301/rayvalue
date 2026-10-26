@@ -1,5 +1,5 @@
 /**
- * Data layer of the Instagram publisher (SERVER ONLY): a small interface, the Supabase implementation that talks to
+ * Data layer of the Instagram + Facebook publisher (SERVER ONLY): a small interface, the Supabase implementation that talks to
  * PostgREST with SUPABASE_SECRET_KEY, and nothing else. The orchestration in social-publisher.ts depends only on
  * the interface, so tests drive it with an in-memory store. Tables: supabase/migrations/0014_social_cms.sql.
  */
@@ -41,7 +41,7 @@ export interface PublisherStore {
   logEvent(postId: string | null, event: string, detail?: Record<string, unknown>): Promise<void>;
   loadAuth(): Promise<AuthRow | null>;
   saveAuth(row: AuthRow): Promise<boolean>;
-  /** Published posts with an Instagram media id since `since`, newest first. */
+  /** Published posts with an Instagram media id or a Facebook post id since `since`, newest first. */
   loadPublishedSince(since: Date, limit: number): Promise<SocialPost[] | null>;
 }
 
@@ -121,7 +121,7 @@ export function supabaseStore(env: AdminEnv, fetchImpl: typeof fetch): Publisher
       return adminSelect<SocialPost>(
         env,
         'social_posts',
-        { select: '*', status: 'eq.published', ig_media_id: 'not.is.null', published_at: `gte.${since.toISOString()}`, order: 'published_at.desc', limit: String(limit) },
+        { select: '*', status: 'eq.published', or: '(ig_media_id.not.is.null,fb_post_id.not.is.null)', published_at: `gte.${since.toISOString()}`, order: 'published_at.desc', limit: String(limit) },
         fetchImpl,
       );
     },

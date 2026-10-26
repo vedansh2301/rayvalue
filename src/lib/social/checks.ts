@@ -22,6 +22,12 @@ export const IG_LIMITS = {
   imageAspect: { min: 4 / 5, max: 1.91 },
 } as const;
 
+/**
+ * Facebook Reels publishing limits (developers.facebook.com/docs/video-api/guides/reels-publishing, checked 2026-10-26):
+ * 3-90 seconds. A Facebook multi-photo post (feed attached_media) carries photos only.
+ */
+export const FB_LIMITS = { reelSeconds: { min: 3, max: 90 }, carouselMin: 2, carouselMax: 10 } as const;
+
 export interface MediaForCheck {
   kind: MediaKind;
   mime: MediaMime;
@@ -177,6 +183,22 @@ export function runChecks(post: PostForCheck): CheckResult[] {
   if (channels.length === 0) out.push(fail('channels', 'error', 'Pick at least one channel.'));
   // Facebook Page Stories are not available through the Pages API.
   if (post.type === 'story' && channels.includes('facebook')) out.push(fail('channels', 'error', 'Stories post to Instagram only; untick Facebook.'));
+  if (channels.includes('facebook') && post.type !== 'story') out.push(...facebookChecks(post.type, post.media));
+  return out;
+}
+
+/** Extra limits that apply only when the post also goes to a Facebook Page. */
+function facebookChecks(type: PostType, media: MediaForCheck[]): CheckResult[] {
+  const out: CheckResult[] = [];
+  if (type === 'reel') {
+    const v = media[0];
+    if (v?.kind === 'video' && v.duration_s !== null && (v.duration_s < FB_LIMITS.reelSeconds.min || v.duration_s > FB_LIMITS.reelSeconds.max)) {
+      out.push(fail('facebook_reel_length', 'error', `Facebook Reels must be ${FB_LIMITS.reelSeconds.min}–${FB_LIMITS.reelSeconds.max}s; this one is ${v.duration_s}s. Untick Facebook or trim it.`));
+    }
+  }
+  if (type === 'carousel' && media.some((m) => m.kind === 'video')) {
+    out.push(fail('facebook_media', 'error', 'A Facebook multi-photo post takes photos only; remove the video or untick Facebook.'));
+  }
   return out;
 }
 

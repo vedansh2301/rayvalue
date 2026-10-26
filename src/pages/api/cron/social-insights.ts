@@ -4,7 +4,7 @@ import { runInsightsSync, socialEnv } from '../../../lib/server/social-publisher
 
 export const prerender = false;
 
-/** GET /api/cron/social-insights — Stores reach/likes/etc. for posts published in the last 30 days (daily). Called by .github/workflows/social-cron.yml with the CRON_SECRET bearer token. */
+/** GET /api/cron/social-insights — Stores Instagram and Facebook Page insights for posts published in the last 30 days (daily). Called by .github/workflows/social-cron.yml with the CRON_SECRET bearer token. */
 export const GET: APIRoute = async ({ request }) => {
   const denied = cronGuard(request, process.env.CRON_SECRET);
   if (denied) return denied;

@@ -6,7 +6,7 @@ export const prerender = false;
 
 /**
  * GET /api/cron/social-publish — called every 15 minutes by .github/workflows/social-cron.yml with
- * `Authorization: Bearer $CRON_SECRET` (Vercel Hobby crons are daily only). Publishes due Instagram posts.
+ * `Authorization: Bearer $CRON_SECRET` (Vercel Hobby crons are daily only). Publishes due posts to Instagram and/or the Facebook Page.
  */
 export const GET: APIRoute = async ({ request }) => {
   const denied = cronGuard(request, process.env.CRON_SECRET);
