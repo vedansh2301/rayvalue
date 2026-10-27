@@ -15,6 +15,8 @@ export const EVENT_PROPS = {
   /** Fired by the quote form when the SMS code is approved (only when Twilio Verify is configured). */
   phone_verified: ['source', 'state'],
   call_click: ['placement'],
+  /** Header/footer link clicks: placement = header|footer, target = the link's path (query dropped). */
+  nav_click: ['placement', 'target'],
 } as const satisfies Record<string, readonly string[]>;
 
 export type EventName = keyof typeof EVENT_PROPS;

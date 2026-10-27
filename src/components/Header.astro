@@ -12,7 +12,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 ---
 <header class="border-b border-stone-200 bg-white">
   <div class="flex w-full flex-col gap-1 px-gutter pb-1 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-3">
-    <a href="/" class="flex min-h-11 w-fit items-center gap-2.5 text-stone-900 no-underline">
+    <a href="/" class="flex min-h-11 w-fit items-center gap-2.5 text-stone-900 no-underline" data-track="nav_click" data-track-placement="header" data-track-target="/">
       <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
         <circle cx="16" cy="16" r="7" fill="#fbbf24"></circle>
         <g stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round">
@@ -34,6 +34,9 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
             <li class="shrink-0">
               <a
                 href={l.href}
+                data-track="nav_click"
+                data-track-placement="header"
+                data-track-target={l.href}
                 title={l.short !== l.label ? l.label : undefined}
                 aria-current={current ? 'page' : undefined}
                 class:list={[
@@ -51,6 +54,9 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
         <li class="shrink-0">
           <a
             href="/quotes"
+            data-track="nav_click"
+            data-track-placement="header"
+            data-track-target="/quotes"
             aria-current={isCurrent('/quotes') ? 'page' : undefined}
             class="group ml-1 inline-flex min-h-11 items-center whitespace-nowrap no-underline"
           >

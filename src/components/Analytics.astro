@@ -23,13 +23,13 @@ import VercelAnalytics from '@vercel/analytics/astro';
   const ids = parseAdIds(import.meta.env);
   if (anyAdTagEnabled(ids)) initAdTags(ids, parseAdConversions(import.meta.env));
 
-  // Funnel events for static markup: [data-track="<event>"] (+ data-track-state / data-track-placement), and tel: links.
+  // Funnel events for static markup: [data-track="<event>"] (+ data-track-state / -placement / -target), and tel: links.
   document.addEventListener('click', (e) => {
     const el = e.target instanceof Element ? e.target.closest<HTMLElement>('[data-track], a[href^="tel:"]') : null;
     if (!el) return;
     const name = el.dataset.track ?? 'call_click';
     if (!isEventName(name)) return;
-    trackEvent(name, { state: el.dataset.trackState, placement: el.dataset.trackPlacement });
+    trackEvent(name, { state: el.dataset.trackState, placement: el.dataset.trackPlacement, target: el.dataset.trackTarget });
   });
 </script>
 <VercelAnalytics />

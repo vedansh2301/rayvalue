@@ -33,7 +33,7 @@ const linkClass = 'inline-block py-1.5 text-stone-700 hover:text-stone-900 hover
   <div class="shell py-10 text-sm text-stone-600">
     <div class="grid gap-8 md:grid-cols-[1.2fr_2fr]">
       <div>
-        <a href="/" class="inline-flex items-center gap-2.5 py-1.5 text-stone-900 no-underline" aria-label="RayValue home">
+        <a href="/" class="inline-flex items-center gap-2.5 py-1.5 text-stone-900 no-underline" aria-label="RayValue home" data-track="nav_click" data-track-placement="footer" data-track-target="/">
           <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
             <circle cx="16" cy="16" r="7" fill="#fbbf24"></circle>
             <g stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round">
@@ -49,7 +49,7 @@ const linkClass = 'inline-block py-1.5 text-stone-700 hover:text-stone-900 hover
           <div>
             <p class="font-semibold text-stone-900">{c.title}</p>
             <ul class="mt-1">
-              {c.links.map((l) => <li><a href={l.href} class={linkClass}>{l.label}</a></li>)}
+              {c.links.map((l) => <li><a href={l.href} class={linkClass} data-track="nav_click" data-track-placement="footer" data-track-target={l.href.split('?')[0]}>{l.label}</a></li>)}
             </ul>
           </div>
         ))}

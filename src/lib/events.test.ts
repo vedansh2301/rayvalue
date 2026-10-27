@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { EVENT_PROPS, isEventName, sanitizeEvent } from './events';
 
 describe('sanitizeEvent', () => {
-  it('knows the eight funnel events', () => {
+  it('knows the nine funnel events', () => {
     expect(Object.keys(EVENT_PROPS).sort()).toEqual(
-      ['calc_complete', 'calc_start', 'calc_step', 'call_click', 'phone_verified', 'quote_form_start', 'quote_submit', 'results_cta_click'].sort(),
+      ['calc_complete', 'calc_start', 'calc_step', 'call_click', 'nav_click', 'phone_verified', 'quote_form_start', 'quote_submit', 'results_cta_click'].sort(),
     );
+    expect(sanitizeEvent('nav_click', { placement: 'footer', target: '/calculator/florida' })).toEqual({ placement: 'footer', target: '/calculator/florida' });
     expect(isEventName('calc_start')).toBe(true);
     expect(isEventName('toString')).toBe(false);
     expect(sanitizeEvent('page_view')).toBeNull();
