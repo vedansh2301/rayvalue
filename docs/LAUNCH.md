@@ -170,3 +170,12 @@ How Facebook posts behave (so nothing surprises you):
 - Facebook has no way to check a photo post that timed out, so an ambiguous failure (timeout or Facebook server error) is never retried automatically: the post is Failed with "Check the Page". Look at the Page; use Retry only if the post is not there.
 - Facebook Reels upload in steps and can finish processing a later 15-minute run; that is normal. A Reel not live an hour after upload is retried with a fresh upload.
 - Daily insights now also fill `fb_insights` for posts published in the last 30 days (reach/views, clicks and reactions for photo posts; plays and average watch time for Reels). Meta retired the old impressions metrics, so numbers are not comparable to older Page reports.
+
+## Ads dashboard (/admin/ads)
+
+Read-only view of the Meta ad account (campaigns, ad sets, ads, delivery problems, budgets, lifetime and daily insights in INR), Instant Form + website leads, the Instagram follower count and the site funnel by `utm_campaign`. Guardrails sit at the top. Thresholds, the ad account id and `auto_pause` live in `public.ads_settings` (migration 0018); the INR->USD rate lives in `public.fx_rates` (Federal Reserve H.10, refresh it weekly or USD keeps showing the old week's range).
+- [x] Migration 0018 applied 2026-10-27 (tables `ads_settings`, `ads_cache`, `ads_guard_state`, `ads_events`, `fx_rates`; pg_cron job `ads-guard` at minute 41 of every hour via `social_cron_call`).
+- [ ] Migration 0019 (adds `fx_rates` to the `todo_verify` view) is not applied: it replaces the view. Apply it in the SQL editor, then `npm run todo:verify`.
+- [ ] Optional, for page views by campaign: `VERCEL_ANALYTICS_TOKEN` (a Vercel access token for the team), `VERCEL_ANALYTICS_PROJECT_ID`, `VERCEL_ANALYTICS_TEAM_ID` in Vercel env; redeploy. Custom events (calc_start, quote_submit, ...) through the API need the Pro plan (Hobby answers 402); until then read them in the Vercel Analytics dashboard.
+- The hourly guard (`/api/cron/ads-guard`) emails `OWNER_EMAIL` only when a rule newly trips (or a rule could not be checked, e.g. a broken token). It pauses nothing while `ads_settings.auto_pause` is false. The Pause button on the page sends `status=PAUSED` for that ad set only; it never edits budgets or creates anything.
+- Meta Instant Form leads (v1 form) carry consent for contact by RayValue only: never route them to installers.

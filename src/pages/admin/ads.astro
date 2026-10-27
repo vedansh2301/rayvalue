@@ -1,0 +1,462 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdminNav from '../../components/admin/AdminNav.astro';
+import { strictSameOrigin } from '../../lib/admin/auth';
+import { evaluateGuardrails, guardInput } from '../../lib/meta-ads/guardrails';
+import { formatUsdRange, usableRate, usdRange } from '../../lib/meta-ads/fx';
+import { FUNNEL_EVENTS } from '../../lib/meta-ads/funnel';
+import { BREAKDOWN_KEYS, BREAKDOWN_LABEL, META_CONSENT_BADGE, breakdown, sortNewest, unifyMetaLead, unifyWebsiteLead } from '../../lib/meta-ads/leads';
+import type { InsightMetrics, InsightRow, Section } from '../../lib/meta-ads/types';
+import { ACCOUNT_STATUS, DASH, ageSeconds, byIdAndDate, count, datesBetween, decimal, deliveryTree, inr, pct, statusTone } from '../../lib/meta-ads/view';
+import { formatInZone } from '../../lib/social/schedule';
+import {
+  CACHE_SECONDS,
+  FUNNEL_DAYS,
+  adsEnv,
+  dashboardSnapshot,
+  invalidateCache,
+  isAdSetId,
+  loadFxRate,
+  loadSettings,
+  pauseAdset,
+  readCache,
+  DASHBOARD_CACHE_KEY,
+  recentEvents,
+  thresholdsOf,
+  websiteLeads,
+  websiteLeadsByCampaign,
+} from '../../lib/server/meta-ads';
+import { adminEnv, adminPrelude, forbidden, redirectTo } from '../../lib/server/social-page';
+
+// Owner-only ads dashboard. Server-rendered on request; Meta, Instagram and Vercel are read on the server and only the
+// rendered numbers reach the browser (no client script). Same Basic auth as the other admin pages. Contains personal data.
+export const prerender = false;
+const denied = await adminPrelude(Astro, adminEnv());
+if (denied) return denied;
+const env = adsEnv();
+
+// ------------------------------------------------------------------ POST: refresh / pause (same-origin only)
+if (Astro.request.method === 'POST') {
+  if (!strictSameOrigin(Astro.request)) return forbidden();
+  const form = new URLSearchParams(await Astro.request.text());
+  const action = form.get('action');
+  if (action === 'refresh') {
+    await invalidateCache(env);
+    return redirectTo('/admin/ads?done=refreshed');
+  }
+  if (action === 'pause') {
+    const id = form.get('adset_id');
+    if (!isAdSetId(id)) return redirectTo('/admin/ads?done=bad_request');
+    // Only an ad set the dashboard is showing can be paused from here.
+    const cached = await readCache(env, DASHBOARD_CACHE_KEY, fetch);
+    const visible = cached?.snapshot.adsets.ok ? cached.snapshot.adsets.data.some((a) => a.id === id) : false;
+    if (!visible) return redirectTo('/admin/ads?done=not_visible');
+    const r = await pauseAdset(env, id, 'manual');
+    await invalidateCache(env);
+    return redirectTo(`/admin/ads?done=${r.ok ? 'paused' : 'pause_failed'}`);
+  }
+  return redirectTo('/admin/ads?done=bad_request');
+}
+
+// ------------------------------------------------------------------ GET
+const now = new Date();
+const done = new URL(Astro.request.url).searchParams.get('done');
+const FLASH: Record<string, { ok: boolean; text: string }> = {
+  refreshed: { ok: true, text: 'Read fresh data from Meta.' },
+  paused: { ok: true, text: 'Ad set paused (status=PAUSED sent to Meta). The table below is a fresh read.' },
+  pause_failed: { ok: false, text: 'Meta did not confirm the pause. The reason is in "Recent actions" at the bottom. Check Ads Manager before retrying.' },
+  not_visible: { ok: false, text: 'That ad set is not in the current snapshot, so it was not paused.' },
+  bad_request: { ok: false, text: 'Unknown request.' },
+};
+const flash = done ? FLASH[done] ?? null : null;
+
+const settings = await loadSettings(env, fetch);
+const thresholds = settings ? thresholdsOf(settings) : null;
+const [snap, fx, webLeads, events] = await Promise.all([settings ? dashboardSnapshot(env, settings) : Promise.resolve(null), loadFxRate(env, fetch), websiteLeads(env), recentEvents(env)]);
+const s = snap?.snapshot ?? null;
+const funnelSince = s?.funnel?.since ?? null;
+const webByCampaign = funnelSince ? await websiteLeadsByCampaign(env, funnelSince) : null;
+
+const tz = s?.account.ok && s.account.data.timezone ? s.account.data.timezone : 'Asia/Kolkata';
+const when = (iso: string) => formatInZone(iso, tz);
+const guard = s && thresholds ? evaluateGuardrails(guardInput(s), thresholds) : null;
+const rateOk = usableRate(fx);
+const usd = (n: number | null | undefined) => {
+  const r = typeof n === 'number' ? usdRange(n, fx) : null;
+  return r ? formatUsdRange(r) : null;
+};
+
+const campaigns = s?.campaigns.ok ? s.campaigns.data : [];
+const adsets = s?.adsets.ok ? s.adsets.data : [];
+const ads = s?.ads.ok ? s.ads.data : [];
+const tree = deliveryTree(campaigns, adsets, ads);
+const ins = s?.insights.ok ? s.insights.data : null;
+const lifetime = new Map<string, InsightRow>();
+if (ins) for (const lvl of ['campaign', 'adset', 'ad'] as const) for (const r of ins.lifetime[lvl]) lifetime.set(`${lvl}:${r.id}`, r);
+const accountLife = ins?.lifetime.account[0] ?? null;
+const days = ins ? datesBetween(ins.since, ins.until) : [];
+const dailyAccount = ins ? (byIdAndDate(ins.daily.account).values().next().value ?? new Map<string, InsightRow>()) : new Map<string, InsightRow>();
+const dailyAdsets = ins ? byIdAndDate(ins.daily.adset) : new Map();
+const anyProfileVisits = ins ? [...ins.lifetime.account, ...ins.lifetime.adset].some((r) => r.igProfileVisits !== null) : false;
+
+const metaLeads = s?.metaLeads.ok ? s.metaLeads.data : [];
+const unified = sortNewest([...metaLeads.map(unifyMetaLead), ...(webLeads ?? []).map(unifyWebsiteLead)]);
+const breakdowns = BREAKDOWN_KEYS.map((k) => ({ key: k, rows: breakdown(unified, k) }));
+
+const metricCols: { label: string; get: (m: InsightMetrics) => string }[] = [
+  { label: 'Spend', get: (m) => inr(m.spendInr) },
+  { label: 'Impr.', get: (m) => count(m.impressions) },
+  { label: 'Reach', get: (m) => count(m.reach) },
+  { label: 'Freq.', get: (m) => decimal(m.frequency) },
+  { label: 'CPM', get: (m) => inr(m.cpmInr) },
+  { label: 'Link clicks', get: (m) => count(m.linkClicks) },
+  { label: 'CTR (link)', get: (m) => pct(m.ctrPct) },
+  { label: 'Leads', get: (m) => count(m.leads) },
+  { label: 'Cost / lead', get: (m) => inr(m.costPerLeadInr) },
+  { label: 'ThruPlays', get: (m) => count(m.thruplays) },
+  { label: 'Cost / ThruPlay', get: (m) => inr(m.costPerThruplayInr) },
+  { label: 'IG profile visits', get: (m) => count(m.igProfileVisits) },
+];
+
+const toneClass = { good: 'bg-green-100 text-green-900 border-green-300', warn: 'bg-amber-100 text-amber-900 border-amber-300', bad: 'bg-red-100 text-red-900 border-red-300', neutral: 'bg-stone-100 text-stone-800 border-stone-300' };
+const badge = 'inline-block whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-semibold';
+const th = 'px-2 py-2 font-semibold';
+const INDENT = ['', 'pl-6', 'pl-10'] as const;
+const td = 'px-2 py-2 align-top';
+const panel = 'mt-8 rounded-lg border border-stone-200 bg-white p-4';
+const meta = 'mt-1 text-xs text-stone-700';
+const vercelDashboard = 'https://vercel.com/vedanshs-projects-5b6aa829/rayvalue/analytics';
+const sourceLine = (x: Section<unknown> | null | undefined) => (x ? `${x.source} · ${when(x.at)}` : DASH);
+---
+<BaseLayout title="Ads dashboard" description="Owner-only ad delivery, leads and guardrails." path="/admin/ads" noindex>
+  <div class="shell py-8">
+    <AdminNav current="/admin/ads" />
+    <div class="mt-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-bold text-stone-900">Ads</h1>
+        <p class="mt-1 text-sm text-stone-700">
+          Meta ad delivery, leads and guardrails. Contains personal data.
+          {snap && <> Meta data read {when(snap.fetchedAt)} ({snap.fromCache ? `cached, ${Math.round(ageSeconds(snap.fetchedAt, now) / 60)} min old; reused for up to ${CACHE_SECONDS / 60} min` : 'fresh read'}). Times in {tz}.</>}
+        </p>
+      </div>
+      <form method="post" action="/admin/ads">
+        <input type="hidden" name="action" value="refresh" />
+        <button type="submit" class="min-h-11 rounded bg-stone-900 px-4 py-2 text-sm font-semibold text-white">Refresh now</button>
+      </form>
+    </div>
+
+    {flash && <p role="status" class={`mt-4 rounded-lg border px-4 py-3 text-stone-900 ${flash.ok ? 'border-green-300 bg-green-50' : 'border-amber-300 bg-amber-50'}`}>{flash.text}</p>}
+
+    {!settings && (
+      <p role="alert" class="mt-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-stone-900">
+        The <code>ads_settings</code> row could not be read, so nothing was read from Meta. Apply migration 0018 (it holds the ad account id and the guardrail thresholds).
+      </p>
+    )}
+
+    {/* ------------------------------------------------------------ guardrails */}
+    <section aria-labelledby="guard" class={panel}>
+      <h2 id="guard" class="text-lg font-semibold text-stone-900">Guardrails</h2>
+      {settings && thresholds ? (
+        <p class={meta}>
+          Thresholds from <code>ads_settings</code> (updated {when(settings.updated_at)}): leads ad set ₹{thresholds.leadsSpendNoLeadInr} lifetime with 0 leads → pause recommended; cost per ThruPlay above ₹{thresholds.maxCostPerThruplayInr} → pause recommended; any daily budget or the sum of delivering daily budgets above ₹{thresholds.maxDailyBudgetInr} → alert; spend today while not ACTIVE → alert. Auto-pause: <strong>{settings.auto_pause ? 'ON' : 'off'}</strong>. Rationale: {settings.rationale}
+        </p>
+      ) : (
+        <p class="mt-2 text-stone-900">Not available: {settings ? 'the thresholds in ads_settings are not valid numbers' : 'ads_settings not readable'}.</p>
+      )}
+      {guard && (
+        <>
+          {guard.results.length === 0 ? (
+            <p class="mt-3 rounded border border-green-300 bg-green-50 px-3 py-2 text-stone-900">No rule tripped{guard.notEvaluated.length ? ' among the rules that could be checked' : ''}.</p>
+          ) : (
+            <ul class="mt-3 space-y-2">
+              {guard.results.map((r) => (
+                <li class={`rounded border px-3 py-2 ${r.severity === 'pause_recommended' ? 'border-red-300 bg-red-50' : 'border-amber-300 bg-amber-50'} text-stone-900`}>
+                  <span class={`${badge} ${r.severity === 'pause_recommended' ? toneClass.bad : toneClass.warn}`}>{r.severity === 'pause_recommended' ? 'Pause recommended' : 'Alert'}</span>
+                  <span class="ml-2 font-semibold">Rule ({r.rule}){r.objectName ? ` · ${r.objectName}` : ''}</span>
+                  {r.objectId && <span class="text-stone-700"> ({r.objectId})</span>}
+                  <div class="mt-1">{r.message}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {guard.notEvaluated.length > 0 && (
+            <ul class="mt-3 list-disc space-y-1 pl-6 text-sm text-stone-800">
+              {guard.notEvaluated.map((n) => <li>Rule ({n.rule}) not checked: {n.reason}.</li>)}
+            </ul>
+          )}
+          <p class={meta}>Evaluated on the snapshot read {when(s!.fetchedAt)}. The hourly job <code>/api/cron/ads-guard</code> runs the same rules on a fresh read and emails the owner when a rule newly trips.</p>
+        </>
+      )}
+    </section>
+
+    {/* ------------------------------------------------------------ account + delivery */}
+    <section aria-labelledby="delivery" class={panel}>
+      <h2 id="delivery" class="text-lg font-semibold text-stone-900">Ad delivery</h2>
+      {s && (
+        <>
+          {s.account.ok ? (
+            <dl class="mt-3 grid grid-cols-2 gap-3 text-stone-900 sm:grid-cols-4">
+              <div class="rounded border border-stone-200 p-3"><dt class="text-sm text-stone-700">Account</dt><dd class="font-semibold">{s.account.data.name ?? s.account.data.id}</dd><dd class="text-xs text-stone-700">{s.account.data.id}</dd></div>
+              <div class="rounded border border-stone-200 p-3"><dt class="text-sm text-stone-700">Status</dt><dd class="font-semibold">{s.account.data.accountStatus !== null ? (ACCOUNT_STATUS[s.account.data.accountStatus] ?? `code ${s.account.data.accountStatus}`) : DASH}</dd><dd class="text-xs text-stone-700">{s.account.data.currency ?? DASH} · {s.account.data.timezone ?? DASH}</dd></div>
+              <div class="rounded border border-stone-200 p-3"><dt class="text-sm text-stone-700">Lifetime spend</dt><dd class="text-xl font-bold">{accountLife ? inr(accountLife.spendInr) : ins ? inr(0) : DASH}</dd>{accountLife && usd(accountLife.spendInr) && <dd class="text-xs text-stone-700">{usd(accountLife.spendInr)}</dd>}<dd class="text-xs text-stone-700">{ins && !accountLife ? 'Meta returned no insights rows: nothing has been spent.' : ''}</dd></div>
+              <div class="rounded border border-stone-200 p-3"><dt class="text-sm text-stone-700">Account spending limit</dt><dd class="font-semibold">{s.account.data.spendCapInr !== null ? inr(s.account.data.spendCapInr) : 'none set'}</dd><dd class="text-xs text-stone-700">amount_spent {inr(s.account.data.amountSpentInr)} (Meta, minor units ÷ 100)</dd></div>
+            </dl>
+          ) : (
+            <p class="mt-2 text-stone-900">Account not available: {s.account.error}</p>
+          )}
+          <p class={meta}>Source: {sourceLine(s.account)}.</p>
+          {!rateOk && <p class={meta}>USD not shown: no sourced INR→USD rate in <code>fx_rates</code> (needs low / likely / high, source_url and verified_on).</p>}
+          {rateOk && fx && <p class={meta}>USD (shown as a range) uses <code>fx_rates.inr_per_usd</code>: ₹{fx.low}–₹{fx.high} per $1, {fx.observed_from} to {fx.observed_to} (<a class="underline" href={fx.source_url!} rel="noopener noreferrer">source</a>, read {fx.verified_on}, {fx.verification}).</p>}
+
+          {[s.campaigns, s.adsets, s.ads].filter((x) => !x.ok).map((x) => <p class="mt-2 text-stone-900">Not available: {x.source}: {!x.ok && x.error}</p>)}
+          {s.insights.ok ? null : <p class="mt-2 text-stone-900">Insights not available: {s.insights.error}</p>}
+
+          {tree.length === 0 ? (
+            <p class="mt-3 text-stone-700">The API returned no campaigns, ad sets or ads.</p>
+          ) : (
+            <div class="mt-4 overflow-x-auto" tabindex="0" role="region" aria-label="Campaigns, ad sets and ads">
+              <table class="min-w-full text-left text-sm text-stone-900">
+                <caption class="sr-only">Campaigns, ad sets and ads with lifetime insights</caption>
+                <thead>
+                  <tr class="border-b border-stone-300">
+                    <th scope="col" class={th}>Object</th>
+                    <th scope="col" class={th}>Effective / configured</th>
+                    <th scope="col" class={th}>Issues</th>
+                    <th scope="col" class={th}>Daily budget</th>
+                    {metricCols.map((c) => <th scope="col" class={`${th} whitespace-nowrap`}>{c.label}</th>)}
+                    <th scope="col" class={th}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tree.map(({ object: o, depth, childAds }) => {
+                    const m = lifetime.get(`${o.level}:${o.id}`);
+                    const canPause = o.level === 'adset' && o.configuredStatus !== 'PAUSED' && o.effectiveStatus !== 'DELETED' && o.effectiveStatus !== 'ARCHIVED';
+                    return (
+                      <tr class="border-b border-stone-200">
+                        <th scope="row" class={`${td} ${INDENT[depth]} text-left font-normal`}>
+                          <span class="text-xs uppercase tracking-wide text-stone-700">{o.level === 'adset' ? 'ad set' : o.level}</span>
+                          <div class="font-semibold">{o.name}</div>
+                          <div class="text-xs text-stone-700">{o.id}{o.objective ? ` · ${o.objective}` : ''}{o.optimizationGoal ? ` · ${o.optimizationGoal}` : ''}</div>
+                          {(o.startTime || o.endTime) && <div class="text-xs text-stone-700">{o.startTime ? when(o.startTime) : '?'} → {o.endTime ? when(o.endTime) : 'no end'}</div>}
+                          {childAds === 0 && <div class="text-xs font-semibold text-amber-900">0 ads visible through the API</div>}
+                        </th>
+                        <td class={td}>
+                          <span class={`${badge} ${toneClass[statusTone(o.effectiveStatus)]}`}>{o.effectiveStatus ?? DASH}</span>
+                          <div class="mt-1 text-xs text-stone-700">{o.configuredStatus ?? DASH}</div>
+                        </td>
+                        <td class={`${td} min-w-40`}>{o.issues.length ? o.issues.map((i) => <div class="text-red-900">{i.summary}{i.message ? `: ${i.message}` : ''}</div>) : <span class="text-stone-700">none reported</span>}</td>
+                        <td class={`${td} whitespace-nowrap`}>{o.dailyBudgetInr !== null ? inr(o.dailyBudgetInr) : o.lifetimeBudgetInr !== null ? `${inr(o.lifetimeBudgetInr)} lifetime` : o.level === 'ad' ? '' : 'not set here'}{o.dailyBudgetInr !== null && usd(o.dailyBudgetInr) && <div class="text-xs text-stone-700">{usd(o.dailyBudgetInr)}</div>}</td>
+                        {metricCols.map((c) => <td class={`${td} whitespace-nowrap tabular-nums`}>{m ? c.get(m) : ins && c.label === 'Spend' ? 'no delivery' : DASH}</td>)}
+                        <td class={td}>
+                          {canPause && (
+                            <form method="post" action="/admin/ads">
+                              <input type="hidden" name="action" value="pause" />
+                              <input type="hidden" name="adset_id" value={o.id} />
+                              <button type="submit" class="min-h-11 whitespace-nowrap rounded border border-red-700 px-3 py-2 text-sm font-semibold text-red-800 hover:bg-red-50" aria-label={`Pause ad set ${o.name}`}>Pause</button>
+                            </form>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p class={meta}>
+            Lifetime insights (date_preset=maximum). Source: {sourceLine(s.insights)}; objects: {sourceLine(s.campaigns)}. "no delivery" = Meta returned no insights row for that object.
+            Drafts made in Ads Manager are not returned by the API, so a draft ad set or ad does not appear here at all.
+            Instagram follows from ads: not available (the Insights API has no such field or action type; <code>instagram_follows</code> is rejected).
+            {!anyProfileVisits && ' Instagram profile visits: the field instagram_profile_visits is accepted by the API but no value has been returned yet.'}
+          </p>
+
+          {ins && (
+            <>
+              <h3 class="mt-6 font-semibold text-stone-900">Per day, {ins.since} to {ins.until} ({ins.timezone})</h3>
+              <div class="mt-2 overflow-x-auto" tabindex="0" role="region" aria-label="Account insights per day">
+                <table class="min-w-full text-left text-sm text-stone-900">
+                  <caption class="sr-only">Whole ad account, per day</caption>
+                  <thead>
+                    <tr class="border-b border-stone-300">
+                      <th scope="col" class={th}>Day</th>
+                      {metricCols.map((c) => <th scope="col" class={`${th} whitespace-nowrap`}>{c.label}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {days.map((d) => {
+                      const r = dailyAccount.get(d);
+                      return (
+                        <tr class="border-b border-stone-200">
+                          <th scope="row" class={`${td} whitespace-nowrap text-left font-medium`}>{d}{d === ins.until ? ' (today, so far)' : ''}</th>
+                          {metricCols.map((c) => <td class={`${td} whitespace-nowrap tabular-nums`}>{r ? c.get(r) : c.label === 'Spend' ? 'no delivery' : DASH}</td>)}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {adsets.length > 0 && (
+                <div class="mt-4 overflow-x-auto" tabindex="0" role="region" aria-label="Ad set spend per day">
+                  <table class="min-w-full text-left text-sm text-stone-900">
+                    <caption class="text-left text-sm font-semibold text-stone-900">Ad set spend / leads / ThruPlays per day</caption>
+                    <thead>
+                      <tr class="border-b border-stone-300">
+                        <th scope="col" class={th}>Ad set</th>
+                        {days.map((d) => <th scope="col" class={`${th} whitespace-nowrap`}>{d.slice(5)}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {adsets.map((a) => (
+                        <tr class="border-b border-stone-200">
+                          <th scope="row" class={`${td} text-left font-medium`}>{a.name}</th>
+                          {days.map((d) => {
+                            const r = dailyAdsets.get(a.id)?.get(d);
+                            return <td class={`${td} whitespace-nowrap tabular-nums`}>{r ? <>{inr(r.spendInr)}<div class="text-xs text-stone-700">{count(r.leads)} leads · {count(r.thruplays)} TP</div></> : DASH}</td>;
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <p class={meta}>Source: {sourceLine(s.insights)}. A dash = no row from Meta for that day (no delivery).</p>
+            </>
+          )}
+
+          <h3 class="mt-6 font-semibold text-stone-900">Instagram account</h3>
+          {s.instagram.ok ? (
+            <p class="mt-1 text-stone-900">@{s.instagram.data.username ?? DASH}: <strong>{count(s.instagram.data.followers)}</strong> followers.</p>
+          ) : (
+            <p class="mt-1 text-stone-900">Not available: {s.instagram.error}</p>
+          )}
+          <p class={meta}>Source: {sourceLine(s.instagram)}.</p>
+        </>
+      )}
+    </section>
+
+    {/* ------------------------------------------------------------ leads */}
+    <section aria-labelledby="leads" class={panel}>
+      <h2 id="leads" class="text-lg font-semibold text-stone-900">Leads</h2>
+      {s && (s.forms.ok ? (
+        <ul class="mt-2 text-sm text-stone-900">
+          {s.forms.data.length === 0 && <li>No Instant Forms on the Page.</li>}
+          {s.forms.data.map((fm) => <li>Instant Form <strong>{fm.name}</strong> ({fm.id}) · {fm.status ?? DASH} · leads_count {count(fm.leadsCount)}</li>)}
+        </ul>
+      ) : (
+        <p class="mt-2 text-stone-900">Instant Forms not available: {s.forms.error}</p>
+      ))}
+      {s && !s.metaLeads.ok && <p class="mt-2 text-stone-900">Meta leads not available: {s.metaLeads.error}</p>}
+      {webLeads === null && <p class="mt-2 text-stone-900">Website leads not available: could not read public.leads.</p>}
+      <p class={meta}>Sources: {s ? `${sourceLine(s.metaLeads)} (up to 100 per form)` : DASH}; Supabase public.leads (newest 200), read {when(now.toISOString())}.</p>
+
+      {unified.length === 0 ? (
+        <p class="mt-3 text-stone-700">No leads yet.</p>
+      ) : (
+        <div class="mt-3 overflow-x-auto" tabindex="0" role="region" aria-label="Recent leads">
+          <table class="min-w-full text-left text-sm text-stone-900">
+            <caption class="sr-only">Recent leads, Meta Instant Form and website</caption>
+            <thead>
+              <tr class="border-b border-stone-300">
+                <th scope="col" class={th}>When</th>
+                <th scope="col" class={th}>Origin</th>
+                <th scope="col" class={th}>Contact</th>
+                <th scope="col" class={th}>Where</th>
+                <th scope="col" class={th}>Answers</th>
+                <th scope="col" class={th}>Source</th>
+                <th scope="col" class={th}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {unified.slice(0, 200).map((l) => (
+                <tr class="border-b border-stone-200">
+                  <td class={`${td} whitespace-nowrap`}>{when(l.createdAt)}</td>
+                  <td class={td}>
+                    {l.origin === 'meta_form' ? 'Meta Instant Form' : 'Website'}
+                    {l.origin === 'meta_form' && <div class="mt-1"><span class={`${badge} ${toneClass.bad}`}>{META_CONSENT_BADGE}</span></div>}
+                    {l.origin === 'meta_form' && <div class="mt-1 text-xs text-stone-700">consent checkbox: {l.consent === null ? 'not in response' : l.consent ? 'checked' : 'not checked'}</div>}
+                  </td>
+                  <td class={td}>{l.name}<div>{l.email ?? DASH}</div><div>{l.phone ?? DASH}</div></td>
+                  <td class={`${td} whitespace-nowrap`}>{l.state ?? DASH} {l.zip ?? ''}</td>
+                  <td class={td}>homeowner {l.homeowner ?? DASH}<div>bill {l.billBucket ?? DASH}</div><div>timeline {l.timeline ?? DASH}</div></td>
+                  <td class={td}>{l.source}<div class="text-xs text-stone-700">{[l.utmSource, l.utmCampaign].filter(Boolean).join(' / ') || 'no UTM'}</div>{l.detail && <div class="text-xs text-stone-700">{l.detail}</div>}</td>
+                  <td class={td}>{l.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {unified.length > 0 && (
+        <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {breakdowns.map((b) => (
+            <table class="text-left text-sm text-stone-900">
+              <caption class="text-left font-semibold">By {BREAKDOWN_LABEL[b.key]}</caption>
+              <thead><tr class="border-b border-stone-300"><th scope="col" class="py-1 pr-2">Value</th><th scope="col" class="py-1 pr-2">All</th><th scope="col" class="py-1 pr-2">Meta</th><th scope="col" class="py-1">Web</th></tr></thead>
+              <tbody>{b.rows.map((r) => <tr class="border-b border-stone-100"><th scope="row" class="py-1 pr-2 text-left font-normal">{r.value}</th><td class="py-1 pr-2 tabular-nums">{r.total}</td><td class="py-1 pr-2 tabular-nums">{r.meta}</td><td class="py-1 tabular-nums">{r.website}</td></tr>)}</tbody>
+            </table>
+          ))}
+        </div>
+      )}
+      <p class={meta}>Meta leads carry no UTM tags (counted under "(none)"); their state comes from the ZIP prefix. Breakdowns cover the leads in the table above.</p>
+    </section>
+
+    {/* ------------------------------------------------------------ site funnel */}
+    <section aria-labelledby="funnel" class={panel}>
+      <h2 id="funnel" class="text-lg font-semibold text-stone-900">Site funnel by utm_campaign</h2>
+      {s?.funnel ? (
+        <>
+          <p class={meta}>Last {FUNNEL_DAYS} days, {s.funnel.since} to {s.funnel.until} (UTC dates), production only.</p>
+          <h3 class="mt-3 font-semibold text-stone-900">Page views</h3>
+          {s.funnel.pageviews.ok ? (
+            s.funnel.pageviews.data.length === 0 ? <p class="text-stone-700">No page views in the range.</p> : (
+              <table class="mt-1 text-left text-sm text-stone-900">
+                <caption class="sr-only">Page views by utm_campaign</caption>
+                <thead><tr class="border-b border-stone-300"><th scope="col" class="py-1 pr-4">utm_campaign</th><th scope="col" class="py-1 pr-4">Page views</th><th scope="col" class="py-1">Visitors</th></tr></thead>
+                <tbody>{s.funnel.pageviews.data.map((r) => <tr class="border-b border-stone-100"><th scope="row" class="py-1 pr-4 text-left font-normal">{r.campaign}</th><td class="py-1 pr-4 tabular-nums">{count(r.pageviews)}</td><td class="py-1 tabular-nums">{count(r.visitors)}</td></tr>)}</tbody>
+              </table>
+            )
+          ) : <p class="text-stone-900">Not available: {s.funnel.pageviews.error}</p>}
+          <p class={meta}>Source: {sourceLine(s.funnel.pageviews)}.</p>
+          <h3 class="mt-3 font-semibold text-stone-900">Funnel events ({FUNNEL_EVENTS.join(', ')})</h3>
+          {s.funnel.events.ok ? (
+            s.funnel.events.data.length === 0 ? <p class="text-stone-700">No funnel events in the range.</p> : (
+              <table class="mt-1 text-left text-sm text-stone-900">
+                <caption class="sr-only">Funnel events by utm_campaign</caption>
+                <thead><tr class="border-b border-stone-300"><th scope="col" class="py-1 pr-4">Event</th><th scope="col" class="py-1 pr-4">utm_campaign</th><th scope="col" class="py-1">Count</th></tr></thead>
+                <tbody>{s.funnel.events.data.map((r) => <tr class="border-b border-stone-100"><th scope="row" class="py-1 pr-4 text-left font-normal">{r.event}</th><td class="py-1 pr-4">{r.campaign}</td><td class="py-1 tabular-nums">{count(r.count)}</td></tr>)}</tbody>
+              </table>
+            )
+          ) : <p class="text-stone-900">Not available: {s.funnel.events.error}</p>}
+          <p class={meta}>Source: {sourceLine(s.funnel.events)}. Events are also visible in the <a class="underline" href={vercelDashboard} rel="noopener noreferrer">Vercel Analytics dashboard</a> (filter by UTM there).</p>
+        </>
+      ) : (
+        <p class="mt-2 text-stone-900">Not available: no snapshot.</p>
+      )}
+      <h3 class="mt-4 font-semibold text-stone-900">Website leads by utm_campaign</h3>
+      {webByCampaign === null ? (
+        <p class="text-stone-900">Not available: {funnelSince ? 'could not read public.leads' : 'no date range (no snapshot)'}.</p>
+      ) : webByCampaign.length === 0 ? (
+        <p class="text-stone-700">No website leads since {funnelSince}.</p>
+      ) : (
+        <table class="mt-1 text-left text-sm text-stone-900">
+          <caption class="sr-only">Website leads by utm_campaign</caption>
+          <thead><tr class="border-b border-stone-300"><th scope="col" class="py-1 pr-4">utm_campaign</th><th scope="col" class="py-1">Leads</th></tr></thead>
+          <tbody>{webByCampaign.map((r) => <tr class="border-b border-stone-100"><th scope="row" class="py-1 pr-4 text-left font-normal">{r.value}</th><td class="py-1 tabular-nums">{r.total}</td></tr>)}</tbody>
+        </table>
+      )}
+      <p class={meta}>Source: Supabase public.leads since {funnelSince ?? DASH} (UTC), read {when(now.toISOString())}.</p>
+    </section>
+
+    {/* ------------------------------------------------------------ audit */}
+    <section aria-labelledby="events" class={panel}>
+      <h2 id="events" class="text-lg font-semibold text-stone-900">Recent actions</h2>
+      {events === null ? <p class="mt-2 text-stone-900">Not available: could not read ads_events.</p> : events.length === 0 ? <p class="mt-2 text-stone-700">No pauses or guard alerts yet.</p> : (
+        <ul class="mt-2 space-y-1 text-sm text-stone-900">
+          {events.map((e) => <li><span class="whitespace-nowrap">{when(e.at)}</span> · <strong>{e.event}</strong> {e.detail ? <code class="break-all text-xs">{JSON.stringify(e.detail)}</code> : null}</li>)}
+        </ul>
+      )}
+      <p class={meta}>Source: Supabase ads_events (pauses from this page or the guard, and guard alerts).</p>
+    </section>
+  </div>
+</BaseLayout>

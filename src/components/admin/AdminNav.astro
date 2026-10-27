@@ -1,5 +1,5 @@
 ---
-// Owner-area navigation shared by /admin, leads, KPI and every social page. Plain links, current page marked.
+// Owner-area navigation shared by /admin, leads, KPI, ads and every social page. Plain links, current page marked.
 interface Props {
   /** Pathname of the current page, e.g. "/admin/social/library". */
   current: string;
@@ -10,6 +10,7 @@ const top = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/leads', label: 'Leads' },
   { href: '/admin/kpi', label: 'KPI' },
+  { href: '/admin/ads', label: 'Ads' },
   { href: '/admin/social', label: 'Social' },
 ];
 const social = [
