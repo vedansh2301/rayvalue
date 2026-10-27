@@ -25,7 +25,7 @@ Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EI
 City x losses combinations with no row in `pvwatts_city_production` (used when the live PVWatts call is unavailable). Fill them with `npm run data:pvwatts` (needs `NREL_API_KEY`; resumable), then `npm run todo:verify`.
 
 
-## Agent-sourced — needs human confirmation (61)
+## Agent-sourced — needs human confirmation (64)
 
 Read from a primary source page by an agent during the build. Only the owner sets `verification` to `human_verified`.
 
@@ -94,6 +94,9 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `cost_ranges[CA/battery_installed_cost].low` | 12400 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-25 |
 | `cost_ranges[CA/battery_installed_cost].likely` | 13120 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-25 |
 | `cost_ranges[CA/battery_installed_cost].high` | 16800 | https://www.energy.gov/cmei/systems/solar-photovoltaic-system-cost-benchmarks | 2026-10-25 |
+| `fx_rates[inr_per_usd].low` | 94.46 | https://www.federalreserve.gov/releases/h10/20261026/ | 2026-10-27 |
+| `fx_rates[inr_per_usd].likely` | 94.94 | https://www.federalreserve.gov/releases/h10/20261026/ | 2026-10-27 |
+| `fx_rates[inr_per_usd].high` | 94.94 | https://www.federalreserve.gov/releases/h10/20261026/ | 2026-10-27 |
 
 ## Model assumptions to review
 
