@@ -2,18 +2,12 @@ User-agent: *
 Allow: /
 
 
-# Transactional and private areas
+# Private areas
 Disallow: /api/
 Disallow: /admin/
-Disallow: /unsubscribe
-Disallow: /quotes/thank-you
-Disallow: /quotes/thanks
-Disallow: /alerts/thanks
-Disallow: /privacy/request
 
-
-# Paid-traffic landing pages (noindex; for ad clicks, not search)
-Disallow: /go/
+# Thank-you, form and paid-traffic pages (/go/) are NOT blocked here: they carry a noindex tag, and Google can
+# only see that tag on pages it is allowed to crawl.
 
 
 # Internal parameters on canonical pages (duplicate content)
