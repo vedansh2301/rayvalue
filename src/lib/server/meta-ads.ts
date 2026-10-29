@@ -19,7 +19,8 @@ import { evaluateGuardrails, guardInput, newlyTripped, type GuardOutcome, type G
 import { eventsFilter, parseEventsByCampaign, parseVisitsByCampaign, VERCEL_API, vercelError } from '../meta-ads/funnel';
 import type { FxRate } from '../meta-ads/fx';
 import { inWindow, parseWindows, scheduleAction, type ScheduleAction } from '../meta-ads/schedule';
-import { INSIGHT_FIELDS, LEVEL_ID_FIELDS, OBJECT_FIELDS, lastDays, parseAccount, parseAdObject, parseInsightRow, parseList } from '../meta-ads/parse';
+import { buildDigest, type DigestDay, type DigestHour } from '../meta-ads/digest';
+import { INSIGHT_FIELDS, LEVEL_ID_FIELDS, OBJECT_FIELDS, lastDays, parseAccount, parseAdObject, parseInsightRow, parseList, parseMetrics } from '../meta-ads/parse';
 import type { AdLevel, AdsInsights, AdsSnapshot, InsightRow, LeadForm, MetaLead, Section, SiteFunnel } from '../meta-ads/types';
 import { scrub } from '../social/instagram';
 import { adminDelete, adminInsert, adminSelect, adminSelectAll, adminUpdate, adminUpsert, type AdminEnv } from './admin-db';
@@ -439,6 +440,69 @@ export async function runAdsSchedule(env: AdsEnv, fetchImpl: typeof fetch = fetc
   return { ok: r.ok, ...(r.ok ? {} : { error: r.error }), ...decision, todaySpendInr };
 }
 
+// ---------------------------------------------------------------------------------------------------- daily email
+
+const adminLink = (env: AdsEnv) => `${(env.SITE_URL || 'https://rayvalue.com').replace(/\/+$/, '')}/admin/ads`;
+
+export interface DigestRunOutcome {
+  ok: boolean;
+  error?: string;
+  emailed?: 'sent' | 'disabled' | 'failed' | 'no_owner_email';
+}
+
+/** Email OWNER_EMAIL today-so-far, the last 7 days by day and by viewer hour, money left and the schedule. */
+export async function runAdsDigest(env: AdsEnv, fetchImpl: typeof fetch = fetch, now = new Date()): Promise<DigestRunOutcome> {
+  const f = withUserAgent(fetchImpl);
+  const token = env.FB_PAGE_TOKEN;
+  if (!token) return { ok: false, error: 'FB_PAGE_TOKEN is not set' };
+  if (!env.OWNER_EMAIL) return { ok: true, emailed: 'no_owner_email' };
+  const [settings, schedule] = await Promise.all([loadSettings(env, f), loadSchedule(env, f)]);
+  if (!settings) return { ok: false, error: 'ads_settings row not readable (apply migration 0018)' };
+  const cap = thresholdsOf(settings)?.maxDailyBudgetInr;
+  if (!cap) return { ok: false, error: 'ads_settings thresholds are not valid numbers' };
+
+  const g = (path: string, params: Record<string, string>) => graphGet(f, GRAPH, token, path, params);
+  const act = settings.ad_account_id;
+  const accRes = await g(act, { fields: 'name,currency,timezone_name,account_status,spend_cap,amount_spent' });
+  const account = accRes.ok ? parseAccount(accRes.body) : null;
+  if (!account?.timezone) return { ok: false, error: `ad account read failed: ${accRes.ok ? 'no time zone' : accRes.error}` };
+  if (account.currency !== 'INR') return { ok: false, error: `ad account currency is ${account.currency}, the digest is in INR` };
+  const range = lastDays(now, account.timezone, DAILY_DAYS);
+  const timeRange = JSON.stringify({ since: range.since, until: range.until });
+  const [daily, hourly, adset] = await Promise.all([
+    g(`${act}/insights`, { level: 'account', fields: INSIGHT_FIELDS.join(','), time_range: timeRange, time_increment: '1' }),
+    g(`${act}/insights`, { level: 'account', fields: 'spend,impressions,inline_link_clicks,actions,video_thruplay_watched_actions', time_range: timeRange, breakdowns: 'hourly_stats_aggregated_by_audience_time_zone', limit: '48' }),
+    schedule ? g(schedule.adset_id, { fields: 'status,end_time' }) : Promise.resolve(null),
+  ]);
+  if (!daily.ok) return { ok: false, error: `daily insights: ${daily.error}` };
+  if (!hourly.ok) return { ok: false, error: `hourly insights: ${hourly.error}` };
+  const days = parseList<DigestDay>(daily.body, (x) => {
+    const r = x as Record<string, unknown>;
+    return typeof r?.date_start === 'string' ? { date: r.date_start, ...parseMetrics(r) } : null;
+  });
+  const hours = parseList<DigestHour>(hourly.body, (x) => {
+    const r = x as Record<string, unknown>;
+    const label = r?.hourly_stats_aggregated_by_audience_time_zone;
+    return typeof label === 'string' ? { label, ...parseMetrics(r) } : null;
+  });
+  const { subject, text } = buildDigest({
+    today: range.until,
+    since: range.since,
+    timezone: account.timezone,
+    days,
+    hours,
+    spendCapInr: account.spendCapInr,
+    amountSpentInr: account.amountSpentInr,
+    capPerDayInr: cap,
+    adset: schedule ? { id: schedule.adset_id, status: adset?.ok && typeof adset.body.status === 'string' ? adset.body.status : null, endTime: adset?.ok && typeof adset.body.end_time === 'string' ? adset.body.end_time : null } : null,
+    schedule: schedule ? { enabled: schedule.enabled, timezone: schedule.timezone, windows: JSON.stringify(schedule.windows) } : null,
+    dashboardUrl: adminLink(env),
+  });
+  const emailed = await sendEmail(env, { to: env.OWNER_EMAIL, subject, text }, f);
+  await logEvent(env, 'digest_emailed', { emailed }, f);
+  return { ok: emailed !== 'failed', emailed };
+}
+
 // ---------------------------------------------------------------------------------------------------- hourly guard
 
 export interface GuardRunOutcome {
@@ -450,8 +514,6 @@ export interface GuardRunOutcome {
   emailed?: 'sent' | 'disabled' | 'failed' | 'no_owner_email' | 'nothing_new';
   paused?: string[];
 }
-
-const adminLink = (env: AdsEnv) => `${(env.SITE_URL || 'https://rayvalue.com').replace(/\/+$/, '')}/admin/ads`;
 
 /** Alert keys for an outcome, including "could not check" ones, so a broken token is reported once too. */
 export const outcomeKeys = (o: GuardOutcome) => [...o.results.map((r) => r.key), ...o.notEvaluated.map((n) => `n:${n.rule}`)];
