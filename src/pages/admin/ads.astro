@@ -17,7 +17,9 @@ import {
   invalidateCache,
   isAdSetId,
   loadFxRate,
+  loadSchedule,
   loadSettings,
+  scheduledIds,
   pauseAdset,
   readCache,
   DASHBOARD_CACHE_KEY,
@@ -72,14 +74,14 @@ const flash = done ? FLASH[done] ?? null : null;
 
 const settings = await loadSettings(env, fetch);
 const thresholds = settings ? thresholdsOf(settings) : null;
-const [snap, fx, webLeads, events] = await Promise.all([settings ? dashboardSnapshot(env, settings) : Promise.resolve(null), loadFxRate(env, fetch), websiteLeads(env), recentEvents(env)]);
+const [snap, fx, webLeads, events, schedule] = await Promise.all([settings ? dashboardSnapshot(env, settings) : Promise.resolve(null), loadFxRate(env, fetch), websiteLeads(env), recentEvents(env), loadSchedule(env, fetch)]);
 const s = snap?.snapshot ?? null;
 const funnelSince = s?.funnel?.since ?? null;
 const webByCampaign = funnelSince ? await websiteLeadsByCampaign(env, funnelSince) : null;
 
 const tz = s?.account.ok && s.account.data.timezone ? s.account.data.timezone : 'Asia/Kolkata';
 const when = (iso: string) => formatInZone(iso, tz);
-const guard = s && thresholds ? evaluateGuardrails(guardInput(s), thresholds) : null;
+const guard = s && thresholds ? evaluateGuardrails(guardInput(s, scheduledIds(schedule)), thresholds) : null;
 const rateOk = usableRate(fx);
 const usd = (n: number | null | undefined) => {
   const r = typeof n === 'number' ? usdRange(n, fx) : null;
@@ -163,6 +165,16 @@ const sourceLine = (x: Section<unknown> | null | undefined) => (x ? `${x.source}
       ) : (
         <p class="mt-2 text-stone-900">Not available: {settings ? 'the thresholds in ads_settings are not valid numbers' : 'ads_settings not readable'}.</p>
       )}
+      <p class={meta}>
+        Hour schedule (<code>ads_schedule</code>):{' '}
+        {schedule ? (
+          <>
+            <strong>{schedule.enabled ? 'ON' : 'off'}</strong> for ad set {schedule.adset_id}, {schedule.timezone}, windows {JSON.stringify(schedule.windows)}; switched on inside a window, off outside it and once today's spend reaches the daily cap. Pressing Pause on that ad set turns the schedule off. Rationale: {schedule.rationale}
+          </>
+        ) : (
+          'not readable (apply migration 0020)'
+        )}
+      </p>
       {guard && (
         <>
           {guard.results.length === 0 ? (

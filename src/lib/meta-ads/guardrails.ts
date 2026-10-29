@@ -9,7 +9,8 @@
  *   (c) any one daily budget, or the sum of the daily budgets that can deliver (ACTIVE ad sets, plus ACTIVE campaigns
  *       holding the budget themselves), > maxDailyBudgetInr -> alert;
  *   (d) spend on the latest day of the daily data (today, ad account time zone) on a campaign or ad set whose
- *       effective_status is not ACTIVE -> alert.
+ *       effective_status is not ACTIVE -> alert. Ad sets under the enabled hour schedule (ads_schedule) are skipped:
+ *       the schedule pauses them every day after they spent, and checks the daily cap itself.
  * A rule that cannot be checked (no insights, a non-INR account, ...) is listed in `notEvaluated` with the reason,
  * never treated as passing.
  */
@@ -32,6 +33,8 @@ export interface GuardSnapshot {
   dailyAdsets: InsightRow[] | null;
   /** YYYY-MM-DD in the ad account time zone. */
   today: string | null;
+  /** Ad sets the enabled hour schedule switches on and off (exempt from rule d). */
+  scheduledAdsetIds?: readonly string[];
 }
 
 export type GuardRule = 'a' | 'b' | 'c' | 'd';
@@ -161,6 +164,7 @@ export function evaluateGuardrails(s: GuardSnapshot, t: GuardThresholds): GuardO
     const byId = new Map([...s.campaigns, ...s.adsets].map((o) => [o.id, o]));
     for (const row of [...s.dailyCampaigns, ...s.dailyAdsets]) {
       if (row.dateStart !== s.today || !(row.spendInr && row.spendInr > 0)) continue;
+      if (row.level === 'adset' && s.scheduledAdsetIds?.includes(row.id)) continue;
       const o = byId.get(row.id);
       const status = o?.effectiveStatus ?? null;
       if (status === 'ACTIVE') continue;
@@ -179,7 +183,7 @@ export function evaluateGuardrails(s: GuardSnapshot, t: GuardThresholds): GuardO
 }
 
 /** The guard's view of a dashboard snapshot (missing sections stay null, so their rules are reported as not checked). */
-export function guardInput(s: AdsSnapshot): GuardSnapshot {
+export function guardInput(s: AdsSnapshot, scheduledAdsetIds: readonly string[] = []): GuardSnapshot {
   const ins = s.insights.ok ? s.insights.data : null;
   return {
     currency: s.account.ok ? s.account.data.currency : null,
@@ -189,6 +193,7 @@ export function guardInput(s: AdsSnapshot): GuardSnapshot {
     dailyCampaigns: ins ? ins.daily.campaign : null,
     dailyAdsets: ins ? ins.daily.adset : null,
     today: ins ? ins.until : null,
+    scheduledAdsetIds,
   };
 }
 

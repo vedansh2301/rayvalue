@@ -4,9 +4,11 @@
  * token, Vercel Web Analytics (optional, VERCEL_ANALYTICS_*), and Supabase with the secret key.
  *
  * Safety:
- * - The only Meta write anywhere here is pauseAdset (POST /{ad-set-id} status=PAUSED). It runs when the owner presses
- *   "Pause" on /admin/ads, or from the hourly guard only when ads_settings.auto_pause is true (false by default).
- *   Nothing here creates, edits, publishes or re-budgets an ad object.
+ * - The only Meta write anywhere here is setAdsetStatus (POST /{ad-set-id} status=PAUSED|ACTIVE). PAUSED runs when the
+ *   owner presses "Pause" on /admin/ads, from the hourly guard only when ads_settings.auto_pause is true (false by
+ *   default), or from the hour schedule. ACTIVE runs only from the hour schedule, for the one ad set named in
+ *   ads_schedule while it is enabled, inside its windows and under the daily cap. Nothing here creates, edits,
+ *   publishes or re-budgets an ad object.
  * - Tokens go in the Authorization header only and are scrubbed from every error text; nothing Meta-related reaches
  *   the browser except the rendered numbers. Lead PII is never logged.
  * - Every outgoing request carries the User-Agent "RayValueBot/1.0 (+https://rayvalue.com)".
@@ -16,6 +18,7 @@ import { breakdown, mapMetaLead, parseForm, WEBSITE_LEAD_SELECT, type WebsiteLea
 import { evaluateGuardrails, guardInput, newlyTripped, type GuardOutcome, type GuardThresholds } from '../meta-ads/guardrails';
 import { eventsFilter, parseEventsByCampaign, parseVisitsByCampaign, VERCEL_API, vercelError } from '../meta-ads/funnel';
 import type { FxRate } from '../meta-ads/fx';
+import { inWindow, parseWindows, scheduleAction, type ScheduleAction } from '../meta-ads/schedule';
 import { INSIGHT_FIELDS, LEVEL_ID_FIELDS, OBJECT_FIELDS, lastDays, parseAccount, parseAdObject, parseInsightRow, parseList } from '../meta-ads/parse';
 import type { AdLevel, AdsInsights, AdsSnapshot, InsightRow, LeadForm, MetaLead, Section, SiteFunnel } from '../meta-ads/types';
 import { scrub } from '../social/instagram';
@@ -330,11 +333,10 @@ const AD_SET_ID_RE = /^\d{5,25}$/;
 export const isAdSetId = (v: unknown): v is string => typeof v === 'string' && AD_SET_ID_RE.test(v);
 
 /**
- * POST /{ad-set-id} status=PAUSED (https://developers.facebook.com/docs/marketing-api/reference/ad-campaign/#Updating).
- * The only Meta write in the app's ads code. `by` = who asked (manual button or auto guard), recorded in ads_events.
+ * POST /{ad-set-id} status=PAUSED|ACTIVE (https://developers.facebook.com/docs/marketing-api/reference/ad-campaign/#Updating).
+ * `by` = who asked (manual button, auto guard or the hour schedule), recorded in ads_events.
  */
-export async function pauseAdset(env: AdsEnv, adsetId: string, by: 'manual' | 'auto_guard', fetchImpl: typeof fetch = fetch, reason: string | null = null): Promise<{ ok: true } | { ok: false; error: string }> {
-  const f = withUserAgent(fetchImpl);
+async function setAdsetStatus(env: AdsEnv, adsetId: string, status: 'PAUSED' | 'ACTIVE', by: 'manual' | 'auto_guard' | 'schedule', f: typeof fetch, reason: string | null): Promise<{ ok: true } | { ok: false; error: string }> {
   const token = env.FB_PAGE_TOKEN;
   if (!token) return { ok: false, error: 'FB_PAGE_TOKEN is not set' };
   if (!isAdSetId(adsetId)) return { ok: false, error: 'not an ad set id' };
@@ -343,7 +345,7 @@ export async function pauseAdset(env: AdsEnv, adsetId: string, by: 'manual' | 'a
     const res = await f(`${GRAPH}/${adsetId}`, {
       method: 'POST',
       headers: { Accept: 'application/json', Authorization: `OAuth ${token}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ status: 'PAUSED' }).toString(),
+      body: new URLSearchParams({ status }).toString(),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     const body = (await res.json().catch(() => null)) as { success?: unknown; error?: { message?: unknown; code?: unknown } } | null;
@@ -355,8 +357,86 @@ export async function pauseAdset(env: AdsEnv, adsetId: string, by: 'manual' | 'a
   } catch (e) {
     out = { ok: false, error: `request failed (${e instanceof Error ? e.name : 'network error'}); check Ads Manager before retrying` };
   }
-  await logEvent(env, out.ok ? 'adset_paused' : 'adset_pause_failed', { adset_id: adsetId, by, ...(reason ? { reason } : {}), ...(out.ok ? {} : { error: out.error }) }, f);
+  const verb = status === 'PAUSED' ? 'paused' : 'activated';
+  await logEvent(env, out.ok ? `adset_${verb}` : `adset_${verb === 'paused' ? 'pause' : 'activate'}_failed`, { adset_id: adsetId, by, ...(reason ? { reason } : {}), ...(out.ok ? {} : { error: out.error }) }, f);
   return out;
+}
+
+/** Pause one ad set. A manual pause also turns the hour schedule off, so the schedule does not switch it back on. */
+export async function pauseAdset(env: AdsEnv, adsetId: string, by: 'manual' | 'auto_guard', fetchImpl: typeof fetch = fetch, reason: string | null = null): Promise<{ ok: true } | { ok: false; error: string }> {
+  const f = withUserAgent(fetchImpl);
+  const out = await setAdsetStatus(env, adsetId, 'PAUSED', by, f, reason);
+  if (out.ok && by === 'manual') {
+    const n = await adminUpdate(env, 'ads_schedule', { adset_id: `eq.${adsetId}`, enabled: 'eq.true' }, { enabled: false, updated_at: new Date().toISOString() }, f);
+    if (n) await logEvent(env, 'schedule_disabled', { adset_id: adsetId, by }, f);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------------- hour schedule
+
+export interface AdsScheduleRow {
+  adset_id: string;
+  enabled: boolean;
+  timezone: string;
+  windows: unknown;
+  rationale: string;
+  updated_at: string;
+}
+
+/** The ad set the enabled schedule controls, as a list for guardInput. */
+export const scheduledIds = (row: AdsScheduleRow | null) => (row?.enabled ? [row.adset_id] : []);
+
+export const loadSchedule = async (env: AdsEnv, f: typeof fetch): Promise<AdsScheduleRow | null> =>
+  (await adminSelect<AdsScheduleRow>(env, 'ads_schedule', { select: '*', limit: '1' }, f))?.[0] ?? null;
+
+export interface ScheduleRunOutcome {
+  ok: boolean;
+  error?: string;
+  action?: ScheduleAction['action'];
+  reason?: string;
+  todaySpendInr?: number | null;
+}
+
+/** Switch the scheduled ad set on inside its windows and off outside them or at the daily cap (see meta-ads/schedule). */
+export async function runAdsSchedule(env: AdsEnv, fetchImpl: typeof fetch = fetch, now = new Date()): Promise<ScheduleRunOutcome> {
+  const f = withUserAgent(fetchImpl);
+  const token = env.FB_PAGE_TOKEN;
+  if (!token) return { ok: false, error: 'FB_PAGE_TOKEN is not set' };
+  const [settings, row] = await Promise.all([loadSettings(env, f), loadSchedule(env, f)]);
+  if (!settings) return { ok: false, error: 'ads_settings row not readable (apply migration 0018)' };
+  if (!row) return { ok: false, error: 'ads_schedule row not readable (apply migration 0020)' };
+  if (!row.enabled) return { ok: true, action: 'none', reason: 'schedule disabled' };
+  const windows = parseWindows(row.windows);
+  const cap = thresholdsOf(settings)?.maxDailyBudgetInr;
+  if (!windows || !cap || !isAdSetId(row.adset_id)) return { ok: false, error: 'ads_schedule windows, ad set id or the daily cap are not valid' };
+
+  const g = (path: string, params: Record<string, string>) => graphGet(f, GRAPH, token, path, params);
+  const [acct, adset, spend] = await Promise.all([
+    g(settings.ad_account_id, { fields: 'currency' }),
+    g(row.adset_id, { fields: 'status,end_time' }),
+    g(`${settings.ad_account_id}/insights`, { date_preset: 'today', fields: 'spend', level: 'account' }),
+  ]);
+  if (!adset.ok) return { ok: false, error: `ad set read failed: ${adset.error}` };
+  // The cap is in INR; any other currency (or a failed read) counts as spend unknown.
+  let todaySpendInr: number | null = null;
+  if (acct.ok && acct.body.currency === 'INR' && spend.ok) {
+    const data = Array.isArray(spend.body.data) ? (spend.body.data as { spend?: unknown }[]) : [];
+    const v = data.length ? Number(data[0]?.spend) : 0;
+    todaySpendInr = Number.isFinite(v) ? v : null;
+  }
+  const decision = scheduleAction({
+    enabled: true,
+    inWindow: inWindow(now, row.timezone, windows),
+    status: typeof adset.body.status === 'string' ? adset.body.status : null,
+    endTime: typeof adset.body.end_time === 'string' ? adset.body.end_time : null,
+    todaySpendInr,
+    capInr: cap,
+    now,
+  });
+  if (decision.action === 'none') return { ok: true, ...decision, todaySpendInr };
+  const r = await setAdsetStatus(env, row.adset_id, decision.action === 'activate' ? 'ACTIVE' : 'PAUSED', 'schedule', f, decision.reason);
+  return { ok: r.ok, ...(r.ok ? {} : { error: r.error }), ...decision, todaySpendInr };
 }
 
 // ---------------------------------------------------------------------------------------------------- hourly guard
@@ -386,8 +466,8 @@ export async function runAdsGuard(env: AdsEnv, fetchImpl: typeof fetch = fetch, 
   const state = (await adminSelect<{ active_keys: string[] }>(env, 'ads_guard_state', { select: 'active_keys', limit: '1' }, f))?.[0];
   if (!state) return { ok: false, error: 'ads_guard_state row not readable (apply migration 0018)' };
 
-  const snap = await fetchSnapshot(env, settings, f, now, { leads: false, instagram: false, funnel: false });
-  const outcome = evaluateGuardrails(guardInput(snap), thresholds);
+  const [snap, schedule] = await Promise.all([fetchSnapshot(env, settings, f, now, { leads: false, instagram: false, funnel: false }), loadSchedule(env, f)]);
+  const outcome = evaluateGuardrails(guardInput(snap, scheduledIds(schedule)), thresholds);
 
   const paused: string[] = [];
   if (settings.auto_pause && snap.adsets.ok) {

@@ -131,6 +131,10 @@ describe('rule (d): spend today while not ACTIVE', () => {
     const daily = [row('adset', 'S2', { dateStart: '2026-10-28', spendInr: 3 }), row('adset', 'S2', { dateStart: '2026-10-27', spendInr: 40 }), row('adset', 'S1', { dateStart: '2026-10-28', spendInr: 50 })];
     expect(keys(base({ dailyAdsets: daily }))).toEqual(['d:S2']);
   });
+  it('skips an ad set the hour schedule pauses every day', () => {
+    const daily = [row('adset', 'S2', { dateStart: '2026-10-28', spendInr: 3 })];
+    expect(keys(base({ dailyAdsets: daily, scheduledAdsetIds: ['S2'] }))).toEqual([]);
+  });
   it('also for objects the API does not show', () => {
     const out = evaluateGuardrails(base({ dailyCampaigns: [row('campaign', 'GHOST', { dateStart: '2026-10-28', spendInr: 1, name: 'hidden' })] }), T);
     expect(out.results[0]).toMatchObject({ key: 'd:GHOST', objectName: 'hidden' });
@@ -185,6 +189,6 @@ describe('guardInput', () => {
       instagram: fail,
       funnel: null,
     };
-    expect(guardInput(snap)).toEqual({ currency: 'INR', campaigns: [leadsCampaign], adsets: null, lifetimeAdsets: null, dailyCampaigns: null, dailyAdsets: null, today: null });
+    expect(guardInput(snap)).toEqual({ currency: 'INR', campaigns: [leadsCampaign], adsets: null, lifetimeAdsets: null, dailyCampaigns: null, dailyAdsets: null, today: null, scheduledAdsetIds: [] });
   });
 });
