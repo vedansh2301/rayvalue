@@ -110,6 +110,8 @@ export default defineConfig({
   // The confirmation page moved (kept for old links and bookmarks).
   redirects: {
     '/quotes/thanks': '/quotes/thank-you',
+    // fl-vs-ca-reel's CTA names rayvalue.com/calculator; the home page links both state calculators.
+    '/calculator': '/',
     ...Object.fromEntries(Object.entries(articleRedirects).map(([from, to]) => [from, { status: 301, destination: to }])),
   },
   // Hashed CSP for every page. With the Vercel adapter's staticHeaders, Astro sends the policy as an HTTP
