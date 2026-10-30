@@ -10,9 +10,10 @@
 import { UTILITY_PAGES } from '../../utility/pages';
 import type { UtilityPageVm } from '../../utility/view';
 import type { Channel } from '../types';
-import { creditGoneCaption, utilityCaption } from './captions';
+import { batteryCaption, billSizeCaption, creditGoneCaption, flVsCaCaption, utilityCaption } from './captions';
 import {
   bare,
+  buildBillFacts,
   buildUtilityFacts,
   calculatorUrlText,
   figAmount,
@@ -30,6 +31,7 @@ import {
 import { PHOTOS } from './photos';
 import { fig, RefBook, type Fig } from './refs';
 import { assignPhotos, type PhotoRole } from './slide-photos';
+import type { PhotoKey } from './photos';
 import type { GeneratedPost, MusicMood, Slide, Tile } from './types';
 
 export const ESTIMATES_FOOTER = 'Estimates, not quotes · rayvalue.com';
@@ -427,3 +429,231 @@ export function buildCreditGoneReel(state: 'FL' | 'CA', vms: readonly UtilityPag
 }
 
 export const utilitySlugsForState = (state: 'FL' | 'CA') => UTILITY_PAGES.filter((p) => p.state === state).map((p) => p.slug);
+
+// ------------------------------------------------------------------ battery-worth-it-reel
+/**
+ * Music: calm. "Is a battery worth adding?": hook, solar-only vs solar + 1 battery payback (the utility page's own
+ * worked examples at the typical bill), installed cost of each, CTA. Whether the battery lengthens or shortens payback
+ * is read from the likely cases; nothing else is claimed about it.
+ */
+export function buildBatteryWorthItReel(vm: UtilityPageVm, opts: BuildOptions): GeneratedPost {
+  const key = 'battery-worth-it-reel';
+  const f = factsOrThrow(vm);
+  if (!f.battery) throw new Error(`${vm.meta.slug}: no solar + battery example with a result; nothing honest to compare`);
+  const battery = f.battery;
+  const book = new RefBook();
+  const count: Fig = fig('calc_example', f.utilityId, 'battery_count', '1');
+  book.use(count);
+  const effect = batteryEffect(f.solar, battery);
+  const pair = (e: ExampleFacts) => ({ label: e.label, value: paybackBig(e.payback), hint: `${usePayback(book, e.payback)}` });
+  const costRow = (e: ExampleFacts) => ({ label: e.label, value: joinRange(book.use(e.cost.low), book.use(e.cost.high)), hint: `likely ${book.use(e.cost.likely)} · ${book.use(e.size)} system` });
+  const url = utilityUrlText(f);
+
+  const slides = withPhotos(f.state, `${key}/${f.slug}`, [
+    voiced(
+      {
+        id: 'hook',
+        theme: 'sun',
+        kicker: utilityKicker(f),
+        title: `Is a battery worth adding to ${f.short} solar in 2026?`,
+        subtitle: `Payback with and without a battery, no federal tax credit.`,
+      },
+      `${f.short} solar in 2026: federal tax credit gone. Add a battery?`,
+      'hook',
+    ),
+    voiced(
+      {
+        id: 'battery',
+        theme: 'light',
+        kicker: 'Payback compared',
+        title: `Solar only vs solar + ${book.use(count)} battery`,
+        subtitle: `Same ${book.use(f.bill)} monthly bill, ${f.short} rates`,
+        rows: [pair(f.solar), pair(battery)],
+        lines: [`In this example a battery makes payback ${effect}.`],
+        footer: footerFor(book, f.dataDate),
+      },
+      `Solar only: ${paybackPhrase(f.solar.payback)}. Plus battery: ${paybackPhrase(battery.payback)}.`,
+      'figure',
+    ),
+    voiced(
+      {
+        id: 'cost',
+        theme: 'light',
+        kicker: 'What it costs',
+        title: 'Installed cost, with and without',
+        subtitle: homeLine(book, f),
+        rows: [costRow(f.solar), costRow(battery)],
+        lines: [CREDIT_ENDED_LINE, 'Many homeowners add a battery for backup power during outages.'],
+        footer: footerFor(book, f.dataDate),
+      },
+      `With a battery, installed: ${voiceRange(book, battery.cost.low, battery.cost.high)}.`,
+      'figure',
+    ),
+    voiced(ctaSlide(book, url, `Free, on ${f.short}’s rates. Your bill, your roof.`, f.dataDate, 'Rates read'), CTA_VOICE, 'cta'),
+  ]);
+  const caption = batteryCaption(book, { ...f, battery }, count, effect, opts.channel, key);
+  return finish({ templateKey: key, target: f.slug, type: 'reel', channel: opts.channel, music: 'calm', title: `${f.short}: is a battery worth adding to solar?`, caption, slides, book });
+}
+
+// ------------------------------------------------------------------ bill-size-reel
+/**
+ * Music: upbeat. "Does your bill change payback?": solar-only payback and installed cost at each illustrative bill on
+ * the utility page (the page's examples, same rates), so a reader finds the bill closest to theirs. Needs at least two
+ * bills with results.
+ */
+export function buildBillSizeReel(vm: UtilityPageVm, opts: BuildOptions): GeneratedPost {
+  const key = 'bill-size-reel';
+  const f = factsOrThrow(vm);
+  const bills = buildBillFacts(vm);
+  if (bills.length < 2) throw new Error(`${vm.meta.slug}: only ${bills.length} bill sizes have a result; need at least 2 to compare`);
+  const book = new RefBook();
+  const first = bills[0]!;
+  const last = bills[bills.length - 1]!;
+  const effect = batteryEffect(first.solar, last.solar);
+  const url = utilityUrlText(f);
+  const payRows = bills.map((b) => ({ label: `${book.use(b.bill)} monthly bill`, value: paybackBig(b.solar.payback), hint: `${usePayback(book, b.solar.payback)} · ${book.use(b.solar.size)} system` }));
+  const costRows = bills.map((b) => ({ label: `${book.use(b.bill)} monthly bill`, value: joinRange(book.use(b.solar.cost.low), book.use(b.solar.cost.high)), hint: `likely ${book.use(b.solar.cost.likely)}` }));
+  const costLow = bills.map((b) => b.solar.cost.low).reduce((a, b) => (figAmount(b) < figAmount(a) ? b : a));
+  const costHigh = bills.map((b) => b.solar.cost.high).reduce((a, b) => (figAmount(b) > figAmount(a) ? b : a));
+
+  const slides = withPhotos(f.state, `${key}/${f.slug}`, [
+    voiced(
+      {
+        id: 'hook',
+        theme: 'sun',
+        kicker: utilityKicker(f),
+        title: `${f.short} solar in 2026: does your bill size matter?`,
+        subtitle: 'Payback at different monthly bills, without the federal tax credit.',
+      },
+      `${f.short} solar in 2026: federal tax credit gone. Bill size matter?`,
+      'hook',
+    ),
+    voiced(
+      {
+        id: 'payback',
+        theme: 'light',
+        kicker: 'Payback, solar only',
+        title: 'Payback at each bill size',
+        subtitle: `${f.short} rates, no federal tax credit`,
+        rows: payRows,
+        footer: footerFor(book, f.dataDate),
+      },
+      `At ${book.use(first.bill)}: ${paybackPhrase(first.solar.payback)}. At ${book.use(last.bill)}: ${paybackPhrase(last.solar.payback)}.`,
+      'figure',
+    ),
+    voiced(
+      {
+        id: 'cost',
+        theme: 'light',
+        kicker: 'Installed cost',
+        title: 'What each system costs',
+        subtitle: 'Sized to the bill, at full price',
+        rows: costRows,
+        lines: [CREDIT_ENDED_LINE],
+        footer: footerFor(book, f.dataDate),
+      },
+      `At full price, that’s ${voiceRange(book, costLow, costHigh)} installed.`,
+      'figure',
+    ),
+    voiced(ctaSlide(book, url, `Free, on ${f.short}’s rates. Your bill, your roof.`, f.dataDate, 'Rates read'), CTA_VOICE, 'cta'),
+  ]);
+  const caption = billSizeCaption(book, f, bills, effect, opts.channel, key);
+  return finish({ templateKey: key, target: f.slug, type: 'reel', channel: opts.channel, music: 'upbeat', title: `${f.short} solar payback at different monthly bills`, caption, slides, book });
+}
+
+// ------------------------------------------------------------------ fl-vs-ca-reel
+/** Best-case and worst-case payback across a state's utilities (each end is one utility's own figure). */
+function stateRange(facts: readonly UtilityFacts[]): RangeFigs {
+  const low = facts.map((x) => x.solar.payback.low).reduce((a, b) => (paybackYears(b) < paybackYears(a) ? b : a));
+  const high = facts.map((x) => x.solar.payback.high).reduce((a, b) => (paybackYears(b) > paybackYears(a) ? b : a));
+  return { low, likely: low, high };
+}
+
+/**
+ * Music: upbeat. Florida and California side by side: payback range and installed-cost range across each state's
+ * utilities. No target (one post covers both states). Needs at least two utilities with a worked example per state.
+ */
+export function buildFlVsCaReel(vms: readonly UtilityPageVm[], opts: BuildOptions): GeneratedPost {
+  const key = 'fl-vs-ca-reel';
+  const all = vms.map(buildUtilityFacts).filter((x): x is UtilityFacts => x !== null);
+  const fl = all.filter((x) => x.state === 'FL');
+  const ca = all.filter((x) => x.state === 'CA');
+  if (fl.length < 2 || ca.length < 2) throw new Error(`need at least 2 utilities with a worked example in each state (FL ${fl.length}, CA ${ca.length})`);
+  const book = new RefBook();
+  const oldest = all.filter((x) => x.dataDate && x.verifiedOn).sort((a, b) => a.verifiedOn!.localeCompare(b.verifiedOn!))[0]?.dataDate ?? null;
+  const sameBill = all.every((x) => x.bill.text === all[0]!.bill.text);
+  const billNote = sameBill ? `typical home with a ${book.use(all[0]!.bill)} monthly bill` : 'typical home for each utility';
+  const names = (facts: readonly UtilityFacts[]) => facts.map((x) => x.short).join(', ');
+  const costLow = (facts: readonly UtilityFacts[]) => facts.map((x) => x.solar.cost.low).reduce((a, b) => (figAmount(b) < figAmount(a) ? b : a));
+  const costHigh = (facts: readonly UtilityFacts[]) => facts.map((x) => x.solar.cost.high).reduce((a, b) => (figAmount(b) > figAmount(a) ? b : a));
+  const flPay = stateRange(fl);
+  const caPay = stateRange(ca);
+  // The likely cases across a state's utilities ("likely 11.5 to 15 yrs"), one utility's own figure at each end.
+  const likelyOf = (figs: Fig[], key: (f: Fig) => number, unitless = false) => {
+    const lo = figs.reduce((a, b) => (key(b) < key(a) ? b : a));
+    const hi = figs.reduce((a, b) => (key(b) > key(a) ? b : a));
+    const a = book.use(lo);
+    const b = book.use(hi);
+    return a === b ? `likely ${a}` : `likely ${unitless ? bare(lo) : a} to ${b}`;
+  };
+  const payRow = (label: string, facts: readonly UtilityFacts[], r: RangeFigs) => {
+    book.use(r.low);
+    book.use(r.high);
+    return { label, value: paybackBig(r), hint: `${likelyOf(facts.map((x) => x.solar.payback.likely), paybackYears, true)}\n${names(facts)}` };
+  };
+  const costRow = (label: string, facts: readonly UtilityFacts[]) => ({
+    label,
+    value: joinRange(book.use(costLow(facts)), book.use(costHigh(facts))),
+    hint: `${likelyOf(facts.map((x) => x.solar.cost.likely), figAmount)}\n${names(facts)}`,
+  });
+  const seed = `${key}/none`;
+  // Photos alternate between the two states so the Reel itself reads as a comparison.
+  const flPhotos = assignPhotos('FL', seed, ['hook', 'cost']);
+  const caPhotos = assignPhotos('CA', seed, ['payback', 'cta']);
+  const photos: PhotoKey[] = [flPhotos[0]!, caPhotos[0]!, flPhotos[1]!, caPhotos[1]!];
+
+  const built = [
+    voiced(
+      {
+        id: 'hook',
+        theme: 'sun',
+        kicker: 'Florida vs California · 2026',
+        title: 'Florida vs California solar in 2026: which pays back faster?',
+        subtitle: 'Payback and cost side by side, without the federal tax credit.',
+      },
+      'Florida versus California solar, 2026: federal tax credit gone.',
+      'hook',
+    ),
+    voiced(
+      {
+        id: 'payback',
+        theme: 'light',
+        kicker: 'Payback, solar only',
+        title: 'How long until it pays for itself',
+        subtitle: `A ${billNote}, across each state’s utilities`,
+        rows: [payRow('Florida', fl, flPay), payRow('California', ca, caPay)],
+        footer: footerFor(book, oldest, 'Oldest rate data read'),
+      },
+      `Florida: ${paybackPhrase(flPay)}. California: ${paybackPhrase(caPay)}.`,
+      'figure',
+    ),
+    voiced(
+      {
+        id: 'cost',
+        theme: 'light',
+        kicker: 'Installed cost',
+        title: 'What that system costs',
+        subtitle: 'Sized for the bill, at full price',
+        rows: [costRow('Florida', fl), costRow('California', ca)],
+        lines: [CREDIT_ENDED_LINE],
+        footer: footerFor(book, oldest, 'Oldest rate data read'),
+      },
+      `Installed, across both states: ${voiceRange(book, costLow(all), costHigh(all))}.`,
+      'figure',
+    ),
+    voiced(ctaSlide(book, 'rayvalue.com/calculator', 'Free calculator on your utility’s rates.', oldest, 'Oldest rate data read'), CTA_VOICE, 'cta'),
+  ].map((sl, i) => ({ ...sl, photo: photos[i] }));
+
+  const caption = flVsCaCaption(book, { fl, ca, billNote, urlText: 'rayvalue.com/calculator' }, opts.channel);
+  return finish({ templateKey: key, target: 'none', type: 'reel', channel: opts.channel, music: 'upbeat', title: 'Florida vs California solar payback and cost', caption, slides: built, book });
+}

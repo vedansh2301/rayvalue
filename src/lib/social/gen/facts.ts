@@ -149,6 +149,31 @@ export function buildUtilityFacts(vm: UtilityPageVm): UtilityFacts | null {
   };
 }
 
+export interface BillFacts {
+  /** The example bill, e.g. "$250". */
+  bill: Fig;
+  /** The bill as a number, for ordering only (never displayed). */
+  billAmount: number;
+  /** Solar only at this bill. */
+  solar: ExampleFacts;
+}
+
+/**
+ * Solar-only worked examples at every illustrative bill the utility page has a result for, ordered by bill (the same
+ * rows as the page's examples table). Empty when the page is not indexable (no real results).
+ */
+export function buildBillFacts(vm: UtilityPageVm): BillFacts[] {
+  if (!vm.indexable) return [];
+  return vm.examples
+    .filter((e): e is typeof e & { result: ExampleResult } => e.battery === 0 && e.result !== null)
+    .sort((a, b) => a.bill - b.bill)
+    .map((e) => ({
+      bill: fig('model_assumptions', 'utility_example_bills', 'value', formatUsd(e.bill)),
+      billAmount: e.bill,
+      solar: exampleFacts(vm.utility.id, e.bill, 0, e.result, vm.analysisYears),
+    }));
+}
+
 /** "rayvalue.com/solar/florida/fpl" (the address shown on the call-to-action slide). */
 export const utilityUrlText = (f: Pick<UtilityFacts, 'pagePath'>) => `rayvalue.com${f.pagePath}`;
 export const calculatorUrlText = (state: 'FL' | 'CA') => `rayvalue.com/calculator/${STATE_SLUG[state]}`;

@@ -24,16 +24,20 @@ export interface HashtagInput {
   state: 'FL' | 'CA';
   /** Utility page slugs the post covers. */
   utilitySlugs: readonly string[];
+  /** Posts about both states (Florida vs California) list them here; `state` is then ignored for the state tags. */
+  states?: readonly ('FL' | 'CA')[];
 }
 
 /** Tags (without "#") for one channel, deduplicated. */
 export function hashtagsFor(channel: Channel, h: HashtagInput): string[] {
   if (channel === 'facebook') {
     const util = h.utilitySlugs.length === 1 ? FB_UTILITY[h.utilitySlugs[0]!] : undefined;
+    if (h.states && h.states.length > 1) return [...h.states.map((s) => FB_STATE[s]), 'SolarEnergy'];
     return [FB_STATE[h.state], util ?? 'Homeowners', 'SolarEnergy'];
   }
   const utilities = h.utilitySlugs.flatMap((s) => (IG_UTILITY[s] ? [IG_UTILITY[s]!] : []));
-  return [...new Set([IG_STATE[h.state], 'solarpanels', ...utilities, 'solarenergy'])].slice(0, IG_HASHTAG_MAX);
+  const stateTags = (h.states?.length ? h.states : [h.state]).map((s) => IG_STATE[s]);
+  return [...new Set([...stateTags, 'solarpanels', ...utilities, 'solarenergy'])].slice(0, IG_HASHTAG_MAX);
 }
 
 export const hashtagLine = (tags: readonly string[]) => tags.map((t) => `#${t}`).join(' ');

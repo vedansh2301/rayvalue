@@ -1,7 +1,7 @@
 /** Loads the live data for a job (the same loaders the site uses) and builds the post content. */
 import type { createRepo } from '../../src/lib/db/repo';
 import type { Job } from '../../src/lib/social/gen/plan';
-import { buildCreditGoneReel, buildUtilityPaybackCarousel, buildUtilityPaybackReel } from '../../src/lib/social/gen/templates';
+import { buildBatteryWorthItReel, buildBillSizeReel, buildCreditGoneReel, buildFlVsCaReel, buildUtilityPaybackCarousel, buildUtilityPaybackReel } from '../../src/lib/social/gen/templates';
 import type { GeneratedPost } from '../../src/lib/social/gen/types';
 import type { Channel } from '../../src/lib/social/types';
 import { loadUtilityPageData } from '../../src/lib/utility/load';
@@ -28,6 +28,12 @@ export async function buildPost(job: Job, repo: Repo, channel: Channel): Promise
       const vms = await Promise.all(UTILITY_PAGES.filter((p) => p.state === state).map((p) => loadVm(repo, p.slug)));
       return buildCreditGoneReel(state, vms, { channel });
     }
+    case 'battery-worth-it-reel':
+      return buildBatteryWorthItReel(await loadVm(repo, job.target), { channel });
+    case 'bill-size-reel':
+      return buildBillSizeReel(await loadVm(repo, job.target), { channel });
+    case 'fl-vs-ca-reel':
+      return buildFlVsCaReel(await Promise.all(UTILITY_PAGES.map((p) => loadVm(repo, p.slug))), { channel });
     default:
       throw new Error(`unknown template: ${job.template}`);
   }
