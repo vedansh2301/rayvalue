@@ -1,14 +1,14 @@
 /**
  * Ad set hour schedule (pure, unit tested). Meta only dayparts ad sets with a lifetime budget, and a lifetime budget
  * front-loads spend past the owner's ₹100/day cap (27 Oct 2026: ₹289.83 in one evening). So the schedule keeps a
- * daily-budget ad set and switches it on inside the windows and off outside them, from a 15-minute cron.
+ * daily-budget ad set and switches it on inside the windows and off outside them, from a 5-minute cron.
  *
  * The windows, time zone and ad set come from public.ads_schedule (with a rationale); the cap is
  * ads_settings.max_daily_budget_inr, checked against today's whole-account spend (ad account time zone).
  * Rules, in order:
  *   - schedule disabled -> do nothing;
  *   - today's spend unknown -> never switch on; switch off if it is on;
- *   - today's spend >= cap -> switch off;
+ *   - today's spend >= the stop point (the cap, or ads_schedule.stop_at_inr below it) -> switch off;
  *   - ad set past its end_time -> do nothing (Meta has stopped it);
  *   - inside a window -> switch on; outside -> switch off.
  */
@@ -49,6 +49,14 @@ export function localDayHour(now: Date, timeZone: string): { day: Weekday; hour:
 export function inWindow(now: Date, timeZone: string, windows: Windows): boolean {
   const { day, hour } = localDayHour(now, timeZone);
   return (windows[day] ?? []).some(([s, e]) => hour >= s && hour < e);
+}
+
+/**
+ * The spend at which the schedule switches off: the daily cap, or ads_schedule.stop_at_inr when that is lower.
+ * Meta reports spend late, so stopping below the cap leaves room for spend that has not been reported yet.
+ */
+export function stopAtInr(capInr: number, stopAt: number | null): number {
+  return stopAt !== null && Number.isFinite(stopAt) && stopAt > 0 && stopAt < capInr ? stopAt : capInr;
 }
 
 export interface ScheduleInput {

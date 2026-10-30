@@ -18,7 +18,7 @@ import { breakdown, mapMetaLead, parseForm, WEBSITE_LEAD_SELECT, type WebsiteLea
 import { evaluateGuardrails, guardInput, newlyTripped, type GuardOutcome, type GuardThresholds } from '../meta-ads/guardrails';
 import { eventsFilter, parseEventsByCampaign, parseVisitsByCampaign, VERCEL_API, vercelError } from '../meta-ads/funnel';
 import type { FxRate } from '../meta-ads/fx';
-import { inWindow, parseWindows, scheduleAction, type ScheduleAction } from '../meta-ads/schedule';
+import { inWindow, parseWindows, scheduleAction, stopAtInr, type ScheduleAction } from '../meta-ads/schedule';
 import { buildDigest, type DigestDay, type DigestHour } from '../meta-ads/digest';
 import { INSIGHT_FIELDS, LEVEL_ID_FIELDS, OBJECT_FIELDS, lastDays, parseAccount, parseAdObject, parseInsightRow, parseList, parseMetrics } from '../meta-ads/parse';
 import type { AdLevel, AdsInsights, AdsSnapshot, InsightRow, LeadForm, MetaLead, Section, SiteFunnel } from '../meta-ads/types';
@@ -381,6 +381,8 @@ export interface AdsScheduleRow {
   enabled: boolean;
   timezone: string;
   windows: unknown;
+  /** Switch off at this spend when it is below the daily cap (numeric arrives as a string). */
+  stop_at_inr: number | string | null;
   rationale: string;
   updated_at: string;
 }
@@ -432,7 +434,7 @@ export async function runAdsSchedule(env: AdsEnv, fetchImpl: typeof fetch = fetc
     status: typeof adset.body.status === 'string' ? adset.body.status : null,
     endTime: typeof adset.body.end_time === 'string' ? adset.body.end_time : null,
     todaySpendInr,
-    capInr: cap,
+    capInr: stopAtInr(cap, row.stop_at_inr === null ? null : Number(row.stop_at_inr)),
     now,
   });
   if (decision.action === 'none') return { ok: true, ...decision, todaySpendInr };

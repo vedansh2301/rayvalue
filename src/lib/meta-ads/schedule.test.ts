@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { inWindow, localDayHour, parseWindows, scheduleAction, type ScheduleInput, type Windows } from './schedule';
+import { inWindow, localDayHour, parseWindows, scheduleAction, stopAtInr, type ScheduleInput, type Windows } from './schedule';
 
 const NY = 'America/New_York';
 const W: Windows = { sun: [[10, 21]], mon: [[18, 22]], tue: [[18, 22]], wed: [[18, 22]], thu: [[18, 22]], fri: [[18, 22]], sat: [[10, 21]] };
@@ -51,5 +51,15 @@ describe('scheduleAction', () => {
   it('does nothing when disabled or ended', () => {
     expect(scheduleAction({ ...base, enabled: false, status: 'ACTIVE', inWindow: false }).action).toBe('none');
     expect(scheduleAction({ ...base, endTime: '2026-10-27T00:00:00Z' }).action).toBe('none');
+  });
+});
+
+describe('stopAtInr', () => {
+  it('uses stop_at_inr only when it is below the cap', () => {
+    expect(stopAtInr(100, 75)).toBe(75);
+    expect(stopAtInr(100, null)).toBe(100);
+    expect(stopAtInr(100, 120)).toBe(100);
+    expect(stopAtInr(100, 0)).toBe(100);
+    expect(stopAtInr(100, Number.NaN)).toBe(100);
   });
 });
