@@ -1,12 +1,13 @@
-# IndexNow (Bing, Yandex, Seznam, Naver) after every production deploy and every 30 minutes. Pages render on demand
-# from Supabase, so a value edited in the Table Editor changes pages without a deploy; the 30-minute run catches those.
-# The fingerprints submitted last time live in the Actions cache, so only changed / new / removed pages are sent.
-# The Actions cache doesn't work in deployment_status runs (not tied to a branch), so that event only re-dispatches
-# this workflow on main, where the submit job runs.
+# IndexNow (Bing, Yandex, Seznam, Naver) after every push to main (= a production deploy; waits for it to go live)
+# and every 30 minutes. Pages render on demand from Supabase, so a value edited in the Table Editor changes pages
+# without a deploy; the 30-minute run catches those. The fingerprints submitted last time live in the Actions cache,
+# so only changed / new / removed pages are sent. (Vercel does not report this project's deploys to GitHub, so there
+# is no deployment_status event to hook.)
 name: IndexNow
 
 on:
-  deployment_status:
+  push:
+    branches: [main]
   schedule:
     - cron: '12,42 * * * *'
   workflow_dispatch:
@@ -15,22 +16,7 @@ permissions:
   contents: read
 
 jobs:
-  dispatch:
-    if: >-
-      ${{ github.event_name == 'deployment_status' &&
-      github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      actions: write
-    steps:
-      # Vercel marks the deploy successful a moment before the domain switches over; give it a minute.
-      - run: sleep 60 && gh workflow run indexnow.yml --repo "$GITHUB_REPOSITORY" --ref main
-        env:
-          GH_TOKEN: ${{ github.token }}
-
   submit:
-    if: ${{ github.event_name != 'deployment_status' }}
     concurrency:
       group: indexnow
       cancel-in-progress: false
@@ -47,6 +33,9 @@ jobs:
           path: indexnow-last.json
           key: indexnow-last-${{ github.run_id }}
           restore-keys: indexnow-last-
+      # Vercel builds and promotes a push in about 2-3 minutes.
+      - if: ${{ github.event_name == 'push' }}
+        run: sleep 240
       - name: Submit changed pages
         id: submit
         run: node scripts/indexnow/run.ts --state indexnow-last.json | tee -a "$GITHUB_STEP_SUMMARY"
