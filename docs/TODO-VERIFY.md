@@ -25,7 +25,7 @@ Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EI
 City x losses combinations with no row in `pvwatts_city_production` (used when the live PVWatts call is unavailable). Fill them with `npm run data:pvwatts` (needs `NREL_API_KEY`; resumable), then `npm run todo:verify`.
 
 
-## Agent-sourced — needs human confirmation (164)
+## Agent-sourced — needs human confirmation (329)
 
 Read from a primary source page by an agent during the build. Only the owner sets `verification` to `human_verified`.
 
@@ -197,6 +197,171 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `city_housing[CA/chula-vista].one_unit_detached_pct` | 52 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0613392 | 2026-11-01 |
 | `city_housing[CA/chula-vista].median_year_built` | 1987 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0613392 | 2026-11-01 |
 | `city_housing[CA/chula-vista].median_home_value` | 758700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0613392 | 2026-11-01 |
+| `city_housing[FL/hialeah].housing_units` | 79130 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1230000 | 2026-11-02 |
+| `city_housing[FL/hialeah].owner_occupied_pct` | 46.6 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1230000 | 2026-11-02 |
+| `city_housing[FL/hialeah].one_unit_detached_pct` | 38 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1230000 | 2026-11-02 |
+| `city_housing[FL/hialeah].median_year_built` | 1975 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1230000 | 2026-11-02 |
+| `city_housing[FL/hialeah].median_home_value` | 392000 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1230000 | 2026-11-02 |
+| `city_housing[FL/port-st-lucie].housing_units` | 90911 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258715 | 2026-11-02 |
+| `city_housing[FL/port-st-lucie].owner_occupied_pct` | 84 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258715 | 2026-11-02 |
+| `city_housing[FL/port-st-lucie].one_unit_detached_pct` | 87.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258715 | 2026-11-02 |
+| `city_housing[FL/port-st-lucie].median_year_built` | 2002 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258715 | 2026-11-02 |
+| `city_housing[FL/port-st-lucie].median_home_value` | 369200 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258715 | 2026-11-02 |
+| `city_housing[FL/pembroke-pines].housing_units` | 67235 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1255775 | 2026-11-02 |
+| `city_housing[FL/pembroke-pines].owner_occupied_pct` | 69.6 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1255775 | 2026-11-02 |
+| `city_housing[FL/pembroke-pines].one_unit_detached_pct` | 46 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1255775 | 2026-11-02 |
+| `city_housing[FL/pembroke-pines].median_year_built` | 1992 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1255775 | 2026-11-02 |
+| `city_housing[FL/pembroke-pines].median_home_value` | 439500 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1255775 | 2026-11-02 |
+| `city_housing[FL/hollywood].housing_units` | 72843 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1232000 | 2026-11-02 |
+| `city_housing[FL/hollywood].owner_occupied_pct` | 58.9 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1232000 | 2026-11-02 |
+| `city_housing[FL/hollywood].one_unit_detached_pct` | 43.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1232000 | 2026-11-02 |
+| `city_housing[FL/hollywood].median_year_built` | 1969 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1232000 | 2026-11-02 |
+| `city_housing[FL/hollywood].median_home_value` | 410600 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1232000 | 2026-11-02 |
+| `city_housing[FL/coral-springs].housing_units` | 47770 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1214400 | 2026-11-02 |
+| `city_housing[FL/coral-springs].owner_occupied_pct` | 60.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1214400 | 2026-11-02 |
+| `city_housing[FL/coral-springs].one_unit_detached_pct` | 48.9 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1214400 | 2026-11-02 |
+| `city_housing[FL/coral-springs].median_year_built` | 1987 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1214400 | 2026-11-02 |
+| `city_housing[FL/coral-springs].median_home_value` | 545400 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1214400 | 2026-11-02 |
+| `city_housing[FL/miramar].housing_units` | 46380 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245975 | 2026-11-02 |
+| `city_housing[FL/miramar].owner_occupied_pct` | 68.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245975 | 2026-11-02 |
+| `city_housing[FL/miramar].one_unit_detached_pct` | 62.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245975 | 2026-11-02 |
+| `city_housing[FL/miramar].median_year_built` | 1996 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245975 | 2026-11-02 |
+| `city_housing[FL/miramar].median_home_value` | 462700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245975 | 2026-11-02 |
+| `city_housing[FL/boca-raton].housing_units` | 49128 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207300 | 2026-11-02 |
+| `city_housing[FL/boca-raton].owner_occupied_pct` | 65.7 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207300 | 2026-11-02 |
+| `city_housing[FL/boca-raton].one_unit_detached_pct` | 41.7 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207300 | 2026-11-02 |
+| `city_housing[FL/boca-raton].median_year_built` | 1983 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207300 | 2026-11-02 |
+| `city_housing[FL/boca-raton].median_home_value` | 722700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207300 | 2026-11-02 |
+| `city_housing[FL/pompano-beach].housing_units` | 61070 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258050 | 2026-11-02 |
+| `city_housing[FL/pompano-beach].owner_occupied_pct` | 55.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258050 | 2026-11-02 |
+| `city_housing[FL/pompano-beach].one_unit_detached_pct` | 29 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258050 | 2026-11-02 |
+| `city_housing[FL/pompano-beach].median_year_built` | 1974 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258050 | 2026-11-02 |
+| `city_housing[FL/pompano-beach].median_home_value` | 349300 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1258050 | 2026-11-02 |
+| `city_housing[FL/palm-bay].housing_units` | 50147 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1254000 | 2026-11-02 |
+| `city_housing[FL/palm-bay].owner_occupied_pct` | 79.7 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1254000 | 2026-11-02 |
+| `city_housing[FL/palm-bay].one_unit_detached_pct` | 83.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1254000 | 2026-11-02 |
+| `city_housing[FL/palm-bay].median_year_built` | 1993 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1254000 | 2026-11-02 |
+| `city_housing[FL/palm-bay].median_home_value` | 283200 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1254000 | 2026-11-02 |
+| `city_housing[FL/naples].housing_units` | 18902 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1247625 | 2026-11-02 |
+| `city_housing[FL/naples].owner_occupied_pct` | 82.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1247625 | 2026-11-02 |
+| `city_housing[FL/naples].one_unit_detached_pct` | 31.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1247625 | 2026-11-02 |
+| `city_housing[FL/naples].median_year_built` | 1983 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1247625 | 2026-11-02 |
+| `city_housing[FL/naples].median_home_value` | 1525600 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1247625 | 2026-11-02 |
+| `city_housing[FL/boynton-beach].housing_units` | 40684 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207875 | 2026-11-02 |
+| `city_housing[FL/boynton-beach].owner_occupied_pct` | 64.7 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207875 | 2026-11-02 |
+| `city_housing[FL/boynton-beach].one_unit_detached_pct` | 40.9 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207875 | 2026-11-02 |
+| `city_housing[FL/boynton-beach].median_year_built` | 1984 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207875 | 2026-11-02 |
+| `city_housing[FL/boynton-beach].median_home_value` | 351100 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1207875 | 2026-11-02 |
+| `city_housing[FL/delray-beach].housing_units` | 37427 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1217100 | 2026-11-02 |
+| `city_housing[FL/delray-beach].owner_occupied_pct` | 63.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1217100 | 2026-11-02 |
+| `city_housing[FL/delray-beach].one_unit_detached_pct` | 34 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1217100 | 2026-11-02 |
+| `city_housing[FL/delray-beach].median_year_built` | 1983 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1217100 | 2026-11-02 |
+| `city_housing[FL/delray-beach].median_home_value` | 420300 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1217100 | 2026-11-02 |
+| `city_housing[FL/largo].housing_units` | 46806 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1239425 | 2026-11-02 |
+| `city_housing[FL/largo].owner_occupied_pct` | 61.7 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1239425 | 2026-11-02 |
+| `city_housing[FL/largo].one_unit_detached_pct` | 29.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1239425 | 2026-11-02 |
+| `city_housing[FL/largo].median_year_built` | 1978 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1239425 | 2026-11-02 |
+| `city_housing[FL/largo].median_home_value` | 229100 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1239425 | 2026-11-02 |
+| `city_housing[CA/santa-ana].housing_units` | 83701 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669000 | 2026-11-02 |
+| `city_housing[CA/santa-ana].owner_occupied_pct` | 44.6 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669000 | 2026-11-02 |
+| `city_housing[CA/santa-ana].one_unit_detached_pct` | 44.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669000 | 2026-11-02 |
+| `city_housing[CA/santa-ana].median_year_built` | 1969 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669000 | 2026-11-02 |
+| `city_housing[CA/santa-ana].median_home_value` | 713000 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669000 | 2026-11-02 |
+| `city_housing[CA/huntington-beach].housing_units` | 82624 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636000 | 2026-11-02 |
+| `city_housing[CA/huntington-beach].owner_occupied_pct` | 55.4 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636000 | 2026-11-02 |
+| `city_housing[CA/huntington-beach].one_unit_detached_pct` | 46.6 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636000 | 2026-11-02 |
+| `city_housing[CA/huntington-beach].median_year_built` | 1974 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636000 | 2026-11-02 |
+| `city_housing[CA/huntington-beach].median_home_value` | 1100000 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636000 | 2026-11-02 |
+| `city_housing[CA/ontario].housing_units` | 55966 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653896 | 2026-11-02 |
+| `city_housing[CA/ontario].owner_occupied_pct` | 58 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653896 | 2026-11-02 |
+| `city_housing[CA/ontario].one_unit_detached_pct` | 57.9 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653896 | 2026-11-02 |
+| `city_housing[CA/ontario].median_year_built` | 1980 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653896 | 2026-11-02 |
+| `city_housing[CA/ontario].median_home_value` | 607600 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653896 | 2026-11-02 |
+| `city_housing[CA/rancho-cucamonga].housing_units` | 60879 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0659451 | 2026-11-02 |
+| `city_housing[CA/rancho-cucamonga].owner_occupied_pct` | 62.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0659451 | 2026-11-02 |
+| `city_housing[CA/rancho-cucamonga].one_unit_detached_pct` | 62.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0659451 | 2026-11-02 |
+| `city_housing[CA/rancho-cucamonga].median_year_built` | 1988 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0659451 | 2026-11-02 |
+| `city_housing[CA/rancho-cucamonga].median_home_value` | 740200 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0659451 | 2026-11-02 |
+| `city_housing[CA/fontana].housing_units` | 59522 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0624680 | 2026-11-02 |
+| `city_housing[CA/fontana].owner_occupied_pct` | 66.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0624680 | 2026-11-02 |
+| `city_housing[CA/fontana].one_unit_detached_pct` | 76.6 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0624680 | 2026-11-02 |
+| `city_housing[CA/fontana].median_year_built` | 1989 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0624680 | 2026-11-02 |
+| `city_housing[CA/fontana].median_home_value` | 586800 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0624680 | 2026-11-02 |
+| `city_housing[CA/oxnard].housing_units` | 56455 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0654652 | 2026-11-02 |
+| `city_housing[CA/oxnard].owner_occupied_pct` | 54.4 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0654652 | 2026-11-02 |
+| `city_housing[CA/oxnard].one_unit_detached_pct` | 54.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0654652 | 2026-11-02 |
+| `city_housing[CA/oxnard].median_year_built` | 1977 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0654652 | 2026-11-02 |
+| `city_housing[CA/oxnard].median_home_value` | 652700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0654652 | 2026-11-02 |
+| `city_housing[CA/torrance].housing_units` | 59284 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0680000 | 2026-11-02 |
+| `city_housing[CA/torrance].owner_occupied_pct` | 55 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0680000 | 2026-11-02 |
+| `city_housing[CA/torrance].one_unit_detached_pct` | 53.4 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0680000 | 2026-11-02 |
+| `city_housing[CA/torrance].median_year_built` | 1964 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0680000 | 2026-11-02 |
+| `city_housing[CA/torrance].median_home_value` | 1074700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0680000 | 2026-11-02 |
+| `city_housing[CA/lancaster].housing_units` | 55273 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0640130 | 2026-11-02 |
+| `city_housing[CA/lancaster].owner_occupied_pct` | 60.4 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0640130 | 2026-11-02 |
+| `city_housing[CA/lancaster].one_unit_detached_pct` | 70 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0640130 | 2026-11-02 |
+| `city_housing[CA/lancaster].median_year_built` | 1986 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0640130 | 2026-11-02 |
+| `city_housing[CA/lancaster].median_home_value` | 446600 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0640130 | 2026-11-02 |
+| `city_housing[CA/palmdale].housing_units` | 48467 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0655156 | 2026-11-02 |
+| `city_housing[CA/palmdale].owner_occupied_pct` | 66.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0655156 | 2026-11-02 |
+| `city_housing[CA/palmdale].one_unit_detached_pct` | 78.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0655156 | 2026-11-02 |
+| `city_housing[CA/palmdale].median_year_built` | 1989 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0655156 | 2026-11-02 |
+| `city_housing[CA/palmdale].median_home_value` | 471000 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0655156 | 2026-11-02 |
+| `city_housing[CA/pomona].housing_units` | 44373 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0658072 | 2026-11-02 |
+| `city_housing[CA/pomona].owner_occupied_pct` | 54 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0658072 | 2026-11-02 |
+| `city_housing[CA/pomona].one_unit_detached_pct` | 58.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0658072 | 2026-11-02 |
+| `city_housing[CA/pomona].median_year_built` | 1967 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0658072 | 2026-11-02 |
+| `city_housing[CA/pomona].median_home_value` | 593800 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0658072 | 2026-11-02 |
+| `city_housing[CA/stockton].housing_units` | 105162 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0675000 | 2026-11-02 |
+| `city_housing[CA/stockton].owner_occupied_pct` | 53.9 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0675000 | 2026-11-02 |
+| `city_housing[CA/stockton].one_unit_detached_pct` | 66.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0675000 | 2026-11-02 |
+| `city_housing[CA/stockton].median_year_built` | 1980 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0675000 | 2026-11-02 |
+| `city_housing[CA/stockton].median_home_value` | 440900 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0675000 | 2026-11-02 |
+| `city_housing[CA/santa-rosa].housing_units` | 71382 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0670098 | 2026-11-02 |
+| `city_housing[CA/santa-rosa].owner_occupied_pct` | 56.7 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0670098 | 2026-11-02 |
+| `city_housing[CA/santa-rosa].one_unit_detached_pct` | 57.9 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0670098 | 2026-11-02 |
+| `city_housing[CA/santa-rosa].median_year_built` | 1980 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0670098 | 2026-11-02 |
+| `city_housing[CA/santa-rosa].median_home_value` | 713900 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0670098 | 2026-11-02 |
+| `city_housing[CA/hayward].housing_units` | 52243 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0633000 | 2026-11-02 |
+| `city_housing[CA/hayward].owner_occupied_pct` | 58 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0633000 | 2026-11-02 |
+| `city_housing[CA/hayward].one_unit_detached_pct` | 51.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0633000 | 2026-11-02 |
+| `city_housing[CA/hayward].median_year_built` | 1972 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0633000 | 2026-11-02 |
+| `city_housing[CA/hayward].median_home_value` | 854400 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0633000 | 2026-11-02 |
+| `city_housing[CA/fremont].housing_units` | 81579 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0626000 | 2026-11-02 |
+| `city_housing[CA/fremont].owner_occupied_pct` | 60.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0626000 | 2026-11-02 |
+| `city_housing[CA/fremont].one_unit_detached_pct` | 56.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0626000 | 2026-11-02 |
+| `city_housing[CA/fremont].median_year_built` | 1979 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0626000 | 2026-11-02 |
+| `city_housing[CA/fremont].median_home_value` | 1403800 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0626000 | 2026-11-02 |
+| `city_housing[CA/salinas].housing_units` | 45249 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0664224 | 2026-11-02 |
+| `city_housing[CA/salinas].owner_occupied_pct` | 47 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0664224 | 2026-11-02 |
+| `city_housing[CA/salinas].one_unit_detached_pct` | 55.4 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0664224 | 2026-11-02 |
+| `city_housing[CA/salinas].median_year_built` | 1976 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0664224 | 2026-11-02 |
+| `city_housing[CA/salinas].median_home_value` | 654100 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0664224 | 2026-11-02 |
+| `city_housing[CA/sunnyvale].housing_units` | 63239 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0677000 | 2026-11-02 |
+| `city_housing[CA/sunnyvale].owner_occupied_pct` | 43.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0677000 | 2026-11-02 |
+| `city_housing[CA/sunnyvale].one_unit_detached_pct` | 36 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0677000 | 2026-11-02 |
+| `city_housing[CA/sunnyvale].median_year_built` | 1976 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0677000 | 2026-11-02 |
+| `city_housing[CA/sunnyvale].median_home_value` | 1801800 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0677000 | 2026-11-02 |
+| `city_housing[CA/oceanside].housing_units` | 66997 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653322 | 2026-11-02 |
+| `city_housing[CA/oceanside].owner_occupied_pct` | 58.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653322 | 2026-11-02 |
+| `city_housing[CA/oceanside].one_unit_detached_pct` | 51.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653322 | 2026-11-02 |
+| `city_housing[CA/oceanside].median_year_built` | 1984 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653322 | 2026-11-02 |
+| `city_housing[CA/oceanside].median_home_value` | 770300 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653322 | 2026-11-02 |
+| `city_housing[CA/escondido].housing_units` | 52239 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0622804 | 2026-11-02 |
+| `city_housing[CA/escondido].owner_occupied_pct` | 53.4 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0622804 | 2026-11-02 |
+| `city_housing[CA/escondido].one_unit_detached_pct` | 51.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0622804 | 2026-11-02 |
+| `city_housing[CA/escondido].median_year_built` | 1981 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0622804 | 2026-11-02 |
+| `city_housing[CA/escondido].median_home_value` | 714500 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0622804 | 2026-11-02 |
+| `city_housing[CA/carlsbad].housing_units` | 47314 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0611194 | 2026-11-02 |
+| `city_housing[CA/carlsbad].owner_occupied_pct` | 62.9 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0611194 | 2026-11-02 |
+| `city_housing[CA/carlsbad].one_unit_detached_pct` | 52.9 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0611194 | 2026-11-02 |
+| `city_housing[CA/carlsbad].median_year_built` | 1989 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0611194 | 2026-11-02 |
+| `city_housing[CA/carlsbad].median_home_value` | 1257000 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0611194 | 2026-11-02 |
+| `city_housing[CA/el-cajon].housing_units` | 35185 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0621712 | 2026-11-02 |
+| `city_housing[CA/el-cajon].owner_occupied_pct` | 41.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0621712 | 2026-11-02 |
+| `city_housing[CA/el-cajon].one_unit_detached_pct` | 39.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0621712 | 2026-11-02 |
+| `city_housing[CA/el-cajon].median_year_built` | 1974 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0621712 | 2026-11-02 |
+| `city_housing[CA/el-cajon].median_home_value` | 681700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0621712 | 2026-11-02 |
 
 ## Model assumptions to review
 
@@ -223,7 +388,7 @@ Product choices, not facts (table `model_assumptions`). Each has a rationale ins
 | `target_offset` | `{"low": 0.9, "high": 1}` | Share of annual usage the recommended system aims to cover. Product choice: size to roughly 90-100% of usage. |
 | `utility_example_bills` | `{"value": [150, 250, 350]}` | Illustrative low, middle and high monthly electric bills for the worked-examples table on utility pages (/solar/<state>/<utility>). Product choice to show a spread of bill sizes; these are not facts or averages for any utility, and the pages label them as illustrative. |
 
-## City to utility mappings not confirmed at city level (6)
+## City to utility mappings not confirmed at city level (10)
 
 `utility_confidence` is `county` (source names only the county) or `indirect` (inferred from a related list). Confirm the serving utility for the city itself before publishing its page.
 
@@ -233,3 +398,7 @@ Product choices, not facts (table `model_assumptions`). Each has a rationale ins
 - [ ] `CA/bakersfield` -> `pge` [county]: PG&E's service area page lists Kern County; Bakersfield is named in only one of the page's two Kern County lists and is absent from the other, so only the county is reliably confirmed (not 'city'; not 'indirect' because the page does name Bakersfield once) (https://www.pge.com/en/featured/pge-service-area.html)
 - [ ] `CA/san-diego` -> `sdge` [indirect]: city listed among SDG&E-territory communities served by San Diego Community Power; SDG&E's own page does not name individual cities otherwise (https://www.sdge.com/customer-choice/community-choice-aggregation/active-ccas)
 - [ ] `CA/chula-vista` -> `sdge` [indirect]: city listed among SDG&E-territory communities served by San Diego Community Power; SDG&E's own page does not name individual cities otherwise (https://www.sdge.com/customer-choice/community-choice-aggregation/active-ccas)
+- [ ] `CA/oceanside` -> `sdge` [indirect]: SDG&E active CCAs page lists Oceanside among Clean Energy Alliance cities (SDG&E territory) (https://www.sdge.com/customer-choice/community-choice-aggregation/active-ccas)
+- [ ] `CA/escondido` -> `sdge` [indirect]: SDG&E active CCAs page lists Escondido among Clean Energy Alliance cities (SDG&E territory) (https://www.sdge.com/customer-choice/community-choice-aggregation/active-ccas)
+- [ ] `CA/carlsbad` -> `sdge` [indirect]: SDG&E active CCAs page lists Carlsbad among Clean Energy Alliance cities (SDG&E territory) (https://www.sdge.com/customer-choice/community-choice-aggregation/active-ccas)
+- [ ] `CA/el-cajon` -> `sdge` [indirect]: SDG&E active CCAs page lists El Cajon in its community selector; it is in no CCA's city list there (https://www.sdge.com/customer-choice/community-choice-aggregation/active-ccas)
