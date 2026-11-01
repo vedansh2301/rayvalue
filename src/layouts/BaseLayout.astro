@@ -43,7 +43,7 @@ const gscToken = import.meta.env.PUBLIC_GSC_VERIFICATION;
     {withCanonical && !noindex && <link rel="canonical" href={canonical} />}
     <meta name="theme-color" content="#fbbf24" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="robots" content={noindex ? 'noindex' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
     {gscToken && <meta name="google-site-verification" content={gscToken} />}
     <SeoHead title={fullTitle} description={description} canonical={canonical} image={new URL(ogImagePath, Astro.site).href} type={ogType} imageAlt={ogImageAlt ?? fullTitle} publishedTime={publishedTime} modifiedTime={modifiedTime} jsonLd={jsonLd} />
     <slot name="head" />

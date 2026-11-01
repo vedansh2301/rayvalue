@@ -1,0 +1,58 @@
+# IndexNow (Bing, Yandex, Seznam, Naver) after every production deploy and every 30 minutes. Pages render on demand
+# from Supabase, so a value edited in the Table Editor changes pages without a deploy; the 30-minute run catches those.
+# The fingerprints submitted last time live in the Actions cache, so only changed / new / removed pages are sent.
+# The Actions cache doesn't work in deployment_status runs (not tied to a branch), so that event only re-dispatches
+# this workflow on main, where the submit job runs.
+name: IndexNow
+
+on:
+  deployment_status:
+  schedule:
+    - cron: '12,42 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    if: >-
+      ${{ github.event_name == 'deployment_status' &&
+      github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      # Vercel marks the deploy successful a moment before the domain switches over; give it a minute.
+      - run: sleep 60 && gh workflow run indexnow.yml --repo "$GITHUB_REPOSITORY" --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  submit:
+    if: ${{ github.event_name != 'deployment_status' }}
+    concurrency:
+      group: indexnow
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Restore last submitted fingerprints
+        uses: actions/cache/restore@v6
+        with:
+          path: indexnow-last.json
+          key: indexnow-last-${{ github.run_id }}
+          restore-keys: indexnow-last-
+      - name: Submit changed pages
+        id: submit
+        run: node scripts/indexnow/run.ts --state indexnow-last.json | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Save fingerprints
+        if: ${{ steps.submit.outputs.saved == 'true' }}
+        uses: actions/cache/save@v6
+        with:
+          path: indexnow-last.json
+          key: indexnow-last-${{ github.run_id }}
