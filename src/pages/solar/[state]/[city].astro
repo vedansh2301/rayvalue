@@ -6,14 +6,16 @@ import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import RateTable from '../../../components/city/RateTable.astro';
 import ProductionChart from '../../../components/city/ProductionChart.astro';
 import ExamplePayback from '../../../components/city/ExamplePayback.astro';
+import HousingFacts from '../../../components/city/HousingFacts.astro';
 import { btnPrimary, btnSecondary } from '../../../components/ui/buttons';
-import { DB_PAGE_CACHE_HEADERS, loadCalcConfig, loadCities, loadCity, loadProduction } from '../../../lib/db/repo';
+import { DB_PAGE_CACHE_HEADERS, loadCalcConfig, loadCities, loadCity, loadCityHousing, loadProduction } from '../../../lib/db/repo';
 import {
   STATE_NAMES,
   exampleBills,
   exampleRows,
   introParagraphs,
   pickProduction,
+  sunRank,
   slugFromState,
   stateFromSlug,
 } from '../../../lib/city/view';
@@ -30,9 +32,9 @@ const city = cityRes && cityRes.ok ? cityRes.value : null;
 const stateName = state ? STATE_NAMES[state] : '';
 const stateSlug = state ? slugFromState(state) : 'florida';
 
-const [cfgRes, prodRes, citiesRes] = city && state
-  ? await Promise.all([loadCalcConfig(state), loadProduction(state, city.slug), loadCities(state)])
-  : [null, null, null];
+const [cfgRes, prodRes, citiesRes, housingRes, stateProdRes] = city && state
+  ? await Promise.all([loadCalcConfig(state), loadProduction(state, city.slug), loadCities(state), loadCityHousing(state, city.slug), loadProduction(state)])
+  : [null, null, null, null, null];
 const cfg = cfgRes && cfgRes.ok ? cfgRes.value : null;
 const production = cfg && prodRes && prodRes.ok ? pickProduction(prodRes.value, cfg.assumptions) : null;
 const defaultUtility = cfg && city ? cfg.utilities.find((u) => u.id === city.default_utility_id) ?? null : null;
@@ -43,6 +45,12 @@ const examples = city && bills
   : null;
 const intro = city ? introParagraphs(city.intro_md) : [];
 const otherCities = citiesRes && citiesRes.ok && city ? citiesRes.value.filter((c) => c.slug !== city.slug && c.published) : [];
+// Optional sections: a failure here hides the section, never the page.
+const housing = housingRes && housingRes.ok ? housingRes.value : null;
+const rank = city && cfg && stateProdRes && stateProdRes.ok
+  ? sunRank(stateProdRes.value, cfg.assumptions, city.slug, [city.slug, ...otherCities.map((c) => c.slug)])
+  : null;
+const ordinal = (n: number) => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th');
 
 if (status === 'not_found') Astro.response.status = 404;
 else if (status === 'unavailable') {
@@ -90,6 +98,15 @@ const quotesHref = `/quotes?${quotesParams.toString()}`;
 
       <RateTable defaultUtility={defaultUtility} others={otherUtilities} cityName={city.name} />
       <ProductionChart cityName={city.name} monthly={production?.monthly_kwh_per_kw ?? null} annual={production?.annual_kwh_per_kw ?? null} />
+      {rank && (
+        <p>
+          Rooftop solar in {city.name} makes about {Math.round(rank.annual).toLocaleString('en-US')} kWh per kW a year,
+          {rank.rank === 1 ? ' the most' : rank.rank === rank.total ? ' the least' : ` the ${ordinal(rank.rank)} most`} of the {rank.total} {stateName} cities on RayValue
+          (they range from {Math.round(rank.min).toLocaleString('en-US')} to {Math.round(rank.max).toLocaleString('en-US')}, a {Math.round(((rank.max - rank.min) / rank.min) * 100)}% spread).
+          {(rank.max - rank.min) / rank.min < 0.1 ? ` Sun varies little across ${stateName}, so your rates and bill matter more to payback than which city you live in.` : ' More sun means more power from the same panels, which shortens payback.'}
+        </p>
+      )}
+      <HousingFacts housing={housing} cityName={city.name} />
       <ExamplePayback rows={examples} cityName={city.name} analysisYears={cfg?.assumptions.analysis_years.value ?? null} />
 
       {city.local_notes.length > 0 ? (

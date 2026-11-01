@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { chartBars, formatKwhLabel, exampleBills, exportCreditSource, isHttpUrl, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows } from './view';
+import { chartBars, formatKwhLabel, exampleBills, exportCreditSource, isHttpUrl, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows, housingFacts, sunRank } from './view';
+import { lossesForShading } from '../calc';
 import { fixtureAssumptions, fixtureCosts, fixtureUtilities, flTwoTier, caFixture } from '../calc/test-fixtures';
 import { fixtureCitiesFile } from '../db/test-rows';
 import type { CityProduction } from '../../data/schemas';
@@ -136,5 +137,27 @@ describe('exportCreditSource', () => {
     expect(exportCreditSource({ ...caFixture, export_credit_source_url: 'javascript:alert(1)' })).toBeNull();
     expect(exportCreditSource({ ...caFixture, avg_export_credit_per_kwh: null })).toBeNull();
     expect(exportCreditSource(flTwoTier)).toBeNull();
+  });
+});
+
+describe('housingFacts', () => {
+  const base = { state: 'FL', slug: 'miami', census_place_geoid: '1245000', census_place_name: 'Miami city', acs_period: '2020-2024', source_url: 'https://data.census.gov/x', verified_on: '2026-11-01' } as const;
+  it('formats every fact that has a value and skips nulls', () => {
+    const facts = housingFacts({ ...base, housing_units: 223826, owner_occupied_pct: 30.8, one_unit_detached_pct: 22.4, median_year_built: 1979, median_home_value: 518100 });
+    expect(facts.map((f) => f.value)).toEqual(['223,826', '30.8% of occupied homes', '22.4% of homes', '1979', '$518,100']);
+    expect(housingFacts({ ...base, housing_units: null, owner_occupied_pct: 50, one_unit_detached_pct: null, median_year_built: null, median_home_value: null })).toHaveLength(1);
+    expect(housingFacts(null)).toEqual([]);
+  });
+});
+
+describe('sunRank', () => {
+  const prod = (slug: string, annual: number, losses: number) => ({ state: 'FL', slug, losses, annual_kwh_per_kw: annual }) as never;
+  const assumptions = fixtureAssumptions;
+  it('ranks among the given cities at the "some shading" losses (1 = most sun)', () => {
+    const loss = lossesForShading('some', assumptions);
+    const rows = [prod('a', 1400, loss), prod('b', 1500, loss), prod('c', 1450, loss), prod('d', 1600, loss), prod('a', 9999, loss + 1)];
+    expect(sunRank(rows, assumptions, 'c', ['a', 'b', 'c'])).toEqual({ annual: 1450, rank: 2, total: 3, min: 1400, max: 1500 });
+    expect(sunRank(rows, assumptions, 'c', ['c'])).toBeNull();
+    expect(sunRank(rows, assumptions, 'zzz', ['a', 'b'])).toBeNull();
   });
 });

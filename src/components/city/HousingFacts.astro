@@ -1,0 +1,33 @@
+---
+/** "Homes in <city>": Census ACS housing facts for the city's Census place, with the source. Hidden when there is no data. */
+import type { CityHousing } from '../../data/schemas';
+import { housingFacts } from '../../lib/city/view';
+interface Props { housing: CityHousing | null; cityName: string }
+const { housing, cityName } = Astro.props;
+const facts = housingFacts(housing);
+const [startYear, endYear] = housing ? housing.acs_period.split('-') : ['', ''];
+---
+{housing && facts.length > 0 && (
+  <section aria-labelledby="homes-h">
+    <h2 id="homes-h">Homes in {cityName}</h2>
+    <dl class="not-prose mt-4 grid gap-3 sm:grid-cols-2">
+      {facts.map((f) => (
+        <div class="rounded-lg border border-stone-200 bg-white p-4">
+          <dt class="text-sm text-stone-600">{f.label}</dt>
+          <dd class="mt-1 text-lg font-semibold text-stone-900">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
+    <p class="mt-4">
+      Rooftop solar is usually the homeowner's decision, and it is simplest on a house with a roof of its own.
+      {housing.owner_occupied_pct !== null && <> In {cityName}, {housing.owner_occupied_pct.toFixed(1)}% of occupied homes are lived in by their owner</>}{housing.owner_occupied_pct !== null && housing.one_unit_detached_pct !== null ? <> and {housing.one_unit_detached_pct.toFixed(1)}% of all homes are detached single-family houses.</> : housing.owner_occupied_pct !== null ? '.' : housing.one_unit_detached_pct !== null ? <> In {cityName}, {housing.one_unit_detached_pct.toFixed(1)}% of all homes are detached single-family houses.</> : null}
+      {' '}Condos, townhomes and apartments usually need approval from the building or association first.
+    </p>
+    {housing.median_year_built !== null && (
+      <p>Half of {cityName}'s homes were built before {housing.median_year_built}. Panels last decades, so if your roof is near the end of its life, ask installers whether to replace it before they install.</p>
+    )}
+    <p class="text-sm text-stone-700">
+      Source: US Census Bureau, American Community Survey {startYear}–{endYear} 5-year estimates for {housing.census_place_name}, read on {housing.verified_on}. <a href={housing.source_url} rel="noopener">See the Census table</a>. Estimates have a margin of error.
+    </p>
+  </section>
+)}

@@ -8,6 +8,7 @@ import { z } from 'zod';
 import {
   AssumptionsSchema,
   CitiesSchema,
+  CityHousingSchema,
   CityProductionListSchema,
   CitySchema,
   CostsSchema,
@@ -15,6 +16,7 @@ import {
   UtilitiesSchema,
   type Assumptions,
   type City,
+  type CityHousing,
   type CityProduction,
   type Costs,
   type Offer,
@@ -145,7 +147,25 @@ export function createRepo(deps: RepoDeps = {}) {
     return validate(CityProductionListSchema, r.value.map(productionFromRow), 'pvwatts_city_production');
   }
 
-  return { loadCalcConfig, loadUtilities, loadCosts, loadAssumptions, loadOffer, loadCities, loadCity, loadProduction };
+  /** Census housing facts for one city page (null when there is no row). */
+  async function loadCityHousing(state: State, slug: string): Promise<Result<CityHousing | null>> {
+    if (!isState(state) || !CitySchema.shape.slug.safeParse(slug).success) return err('not_found', 'no such city');
+    const r = await rows<Record<string, unknown>>('city_housing', { select: '*', state: `eq.${state}`, slug: `eq.${slug}` });
+    if (!r.ok) return r;
+    const row = r.value[0];
+    if (!row) return ok(null);
+    const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
+    return validate(CityHousingSchema, {
+      ...row,
+      housing_units: num(row.housing_units),
+      owner_occupied_pct: num(row.owner_occupied_pct),
+      one_unit_detached_pct: num(row.one_unit_detached_pct),
+      median_year_built: num(row.median_year_built),
+      median_home_value: num(row.median_home_value),
+    }, 'city_housing');
+  }
+
+  return { loadCalcConfig, loadUtilities, loadCosts, loadAssumptions, loadOffer, loadCities, loadCity, loadProduction, loadCityHousing };
 }
 
 export type Repo = ReturnType<typeof createRepo>;
@@ -156,6 +176,7 @@ export const loadUtilities = (state?: State, deps?: RepoDeps) => createRepo(deps
 export const loadCities = (state?: State, deps?: RepoDeps) => createRepo(deps).loadCities(state);
 export const loadCity = (state: State, slug: string, deps?: RepoDeps) => createRepo(deps).loadCity(state, slug);
 export const loadProduction = (state: State, slug?: string, deps?: RepoDeps) => createRepo(deps).loadProduction(state, slug);
+export const loadCityHousing = (state: State, slug: string, deps?: RepoDeps) => createRepo(deps).loadCityHousing(state, slug);
 
 /** CDN caching for on-demand pages that read the DB: owner edits show up within ~5 minutes. */
 export const DB_PAGE_CACHE_HEADERS = {

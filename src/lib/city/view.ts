@@ -3,7 +3,7 @@
  * database (via src/lib/db); this file only shapes and formats them. Anything unknown is
  * returned as null and shown as "being verified" by the components.
  */
-import type { Assumptions, City, CityProduction, Utility } from '../../data/schemas';
+import type { Assumptions, City, CityHousing, CityProduction, Utility } from '../../data/schemas';
 import { calculate, lossesForShading } from '../calc';
 import type { CalcContext, CalcSuccess } from '../calc';
 import { formatUsd } from '../format';
@@ -144,4 +144,34 @@ export function exampleRows(
 
 export function formatYears(y: number | null, max: number): string {
   return y === null ? `more than ${max}` : String(y);
+}
+
+export interface HousingFact { label: string; value: string }
+
+/** The Census housing facts that have a value, formatted for the "Homes in <city>" list. */
+export function housingFacts(h: CityHousing | null): HousingFact[] {
+  if (!h) return [];
+  const out: HousingFact[] = [];
+  if (h.housing_units !== null) out.push({ label: 'Homes (housing units)', value: h.housing_units.toLocaleString('en-US') });
+  if (h.owner_occupied_pct !== null) out.push({ label: 'Lived in by their owner', value: `${h.owner_occupied_pct.toFixed(1)}% of occupied homes` });
+  if (h.one_unit_detached_pct !== null) out.push({ label: 'Detached single-family houses', value: `${h.one_unit_detached_pct.toFixed(1)}% of homes` });
+  if (h.median_year_built !== null) out.push({ label: 'Median year built', value: String(h.median_year_built) });
+  if (h.median_home_value !== null) out.push({ label: 'Median value of owner-occupied homes', value: formatUsd(h.median_home_value) });
+  return out;
+}
+
+export interface SunRank { annual: number; rank: number; total: number; min: number; max: number }
+
+/**
+ * Where a city's solar output (PVWatts, 1 kW, the page's shading assumption) ranks among the given cities of the same
+ * state: rank 1 = most sun. null when this city or fewer than two cities have production data.
+ */
+export function sunRank(rows: readonly CityProduction[], assumptions: Assumptions, slug: string, slugs: readonly string[]): SunRank | null {
+  const loss = lossesForShading('some', assumptions);
+  const annual = new Map<string, number>();
+  for (const r of rows) if (slugs.includes(r.slug) && Math.abs(r.losses - loss) < 1e-9) annual.set(r.slug, r.annual_kwh_per_kw);
+  const mine = annual.get(slug);
+  if (mine === undefined || annual.size < 2) return null;
+  const values = [...annual.values()];
+  return { annual: mine, rank: values.filter((v) => v > mine).length + 1, total: values.length, min: Math.min(...values), max: Math.max(...values) };
 }

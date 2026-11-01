@@ -404,6 +404,25 @@ export const ZipMetaSchema = z.object({
 });
 export type ZipMeta = z.infer<typeof ZipMetaSchema>;
 
+// ------------------------------------------------------------ city housing
+
+/** Census ACS 5-year housing facts for a city page's Census place (table city_housing). A null value = not available. */
+export const CityHousingSchema = z.object({
+  state: StateSchema,
+  slug: CitySchema.shape.slug,
+  census_place_geoid: z.string().regex(/^\d{7}$/),
+  census_place_name: z.string().min(1),
+  acs_period: z.string().regex(/^\d{4}-\d{4}$/),
+  housing_units: z.number().int().nonnegative().nullable(),
+  owner_occupied_pct: z.number().min(0).max(100).nullable(),
+  one_unit_detached_pct: z.number().min(0).max(100).nullable(),
+  median_year_built: z.number().int().min(1900).max(2100).nullable(),
+  median_home_value: z.number().int().nonnegative().nullable(),
+  source_url: z.url(),
+  verified_on: IsoDate,
+});
+export type CityHousing = z.infer<typeof CityHousingSchema>;
+
 // ---------------------------------------------------------------- pvwatts
 
 /** Precomputed PVWatts v8 output for 1 kW DC at one city and one `losses` percent (scripts/precompute-pvwatts.mjs). */

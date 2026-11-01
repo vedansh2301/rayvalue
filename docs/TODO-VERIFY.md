@@ -25,7 +25,7 @@ Unknown values. Find a primary source (utility tariff, PSC/CPUC filing, LBNL, EI
 City x losses combinations with no row in `pvwatts_city_production` (used when the live PVWatts call is unavailable). Fill them with `npm run data:pvwatts` (needs `NREL_API_KEY`; resumable), then `npm run todo:verify`.
 
 
-## Agent-sourced — needs human confirmation (64)
+## Agent-sourced — needs human confirmation (164)
 
 Read from a primary source page by an agent during the build. Only the owner sets `verification` to `human_verified`.
 
@@ -97,6 +97,106 @@ Three kinds of simple arithmetic on source figures are involved, each explained 
 | `fx_rates[inr_per_usd].low` | 94.46 | https://www.federalreserve.gov/releases/h10/20261026/ | 2026-10-27 |
 | `fx_rates[inr_per_usd].likely` | 94.94 | https://www.federalreserve.gov/releases/h10/20261026/ | 2026-10-27 |
 | `fx_rates[inr_per_usd].high` | 94.94 | https://www.federalreserve.gov/releases/h10/20261026/ | 2026-10-27 |
+| `city_housing[FL/miami].housing_units` | 223826 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245000 | 2026-11-01 |
+| `city_housing[FL/miami].owner_occupied_pct` | 30.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245000 | 2026-11-01 |
+| `city_housing[FL/miami].one_unit_detached_pct` | 22.4 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245000 | 2026-11-01 |
+| `city_housing[FL/miami].median_year_built` | 1979 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245000 | 2026-11-01 |
+| `city_housing[FL/miami].median_home_value` | 518100 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1245000 | 2026-11-01 |
+| `city_housing[FL/fort-lauderdale].housing_units` | 101691 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224000 | 2026-11-01 |
+| `city_housing[FL/fort-lauderdale].owner_occupied_pct` | 54.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224000 | 2026-11-01 |
+| `city_housing[FL/fort-lauderdale].one_unit_detached_pct` | 34 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224000 | 2026-11-01 |
+| `city_housing[FL/fort-lauderdale].median_year_built` | 1973 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224000 | 2026-11-01 |
+| `city_housing[FL/fort-lauderdale].median_home_value` | 486700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224000 | 2026-11-01 |
+| `city_housing[FL/west-palm-beach].housing_units` | 62464 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1276600 | 2026-11-01 |
+| `city_housing[FL/west-palm-beach].owner_occupied_pct` | 50.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1276600 | 2026-11-01 |
+| `city_housing[FL/west-palm-beach].one_unit_detached_pct` | 38.4 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1276600 | 2026-11-01 |
+| `city_housing[FL/west-palm-beach].median_year_built` | 1988 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1276600 | 2026-11-01 |
+| `city_housing[FL/west-palm-beach].median_home_value` | 414200 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1276600 | 2026-11-01 |
+| `city_housing[FL/fort-myers].housing_units` | 48984 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224125 | 2026-11-01 |
+| `city_housing[FL/fort-myers].owner_occupied_pct` | 49.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224125 | 2026-11-01 |
+| `city_housing[FL/fort-myers].one_unit_detached_pct` | 36.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224125 | 2026-11-01 |
+| `city_housing[FL/fort-myers].median_year_built` | 2001 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224125 | 2026-11-01 |
+| `city_housing[FL/fort-myers].median_home_value` | 384500 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1224125 | 2026-11-01 |
+| `city_housing[FL/sarasota].housing_units` | 32324 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1264175 | 2026-11-01 |
+| `city_housing[FL/sarasota].owner_occupied_pct` | 57.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1264175 | 2026-11-01 |
+| `city_housing[FL/sarasota].one_unit_detached_pct` | 39 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1264175 | 2026-11-01 |
+| `city_housing[FL/sarasota].median_year_built` | 1976 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1264175 | 2026-11-01 |
+| `city_housing[FL/sarasota].median_home_value` | 463000 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1264175 | 2026-11-01 |
+| `city_housing[FL/daytona-beach].housing_units` | 42158 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1216525 | 2026-11-01 |
+| `city_housing[FL/daytona-beach].owner_occupied_pct` | 47.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1216525 | 2026-11-01 |
+| `city_housing[FL/daytona-beach].one_unit_detached_pct` | 41.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1216525 | 2026-11-01 |
+| `city_housing[FL/daytona-beach].median_year_built` | 1981 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1216525 | 2026-11-01 |
+| `city_housing[FL/daytona-beach].median_home_value` | 287700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1216525 | 2026-11-01 |
+| `city_housing[FL/st-petersburg].housing_units` | 141508 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1263000 | 2026-11-01 |
+| `city_housing[FL/st-petersburg].owner_occupied_pct` | 62.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1263000 | 2026-11-01 |
+| `city_housing[FL/st-petersburg].one_unit_detached_pct` | 55.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1263000 | 2026-11-01 |
+| `city_housing[FL/st-petersburg].median_year_built` | 1969 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1263000 | 2026-11-01 |
+| `city_housing[FL/st-petersburg].median_home_value` | 371100 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1263000 | 2026-11-01 |
+| `city_housing[FL/clearwater].housing_units` | 61123 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1212875 | 2026-11-01 |
+| `city_housing[FL/clearwater].owner_occupied_pct` | 58.6 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1212875 | 2026-11-01 |
+| `city_housing[FL/clearwater].one_unit_detached_pct` | 38.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1212875 | 2026-11-01 |
+| `city_housing[FL/clearwater].median_year_built` | 1978 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1212875 | 2026-11-01 |
+| `city_housing[FL/clearwater].median_home_value` | 361300 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1212875 | 2026-11-01 |
+| `city_housing[FL/tampa].housing_units` | 182425 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1271000 | 2026-11-01 |
+| `city_housing[FL/tampa].owner_occupied_pct` | 50.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1271000 | 2026-11-01 |
+| `city_housing[FL/tampa].one_unit_detached_pct` | 50.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1271000 | 2026-11-01 |
+| `city_housing[FL/tampa].median_year_built` | 1985 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1271000 | 2026-11-01 |
+| `city_housing[FL/tampa].median_home_value` | 420400 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1271000 | 2026-11-01 |
+| `city_housing[FL/brandon].housing_units` | 48953 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1208150 | 2026-11-01 |
+| `city_housing[FL/brandon].owner_occupied_pct` | 56.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1208150 | 2026-11-01 |
+| `city_housing[FL/brandon].one_unit_detached_pct` | 54.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1208150 | 2026-11-01 |
+| `city_housing[FL/brandon].median_year_built` | 1993 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1208150 | 2026-11-01 |
+| `city_housing[FL/brandon].median_home_value` | 339000 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US1208150 | 2026-11-01 |
+| `city_housing[CA/san-francisco].housing_units` | 414602 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0667000 | 2026-11-01 |
+| `city_housing[CA/san-francisco].owner_occupied_pct` | 38.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0667000 | 2026-11-01 |
+| `city_housing[CA/san-francisco].one_unit_detached_pct` | 18 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0667000 | 2026-11-01 |
+| `city_housing[CA/san-francisco].median_year_built` | 1946 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0667000 | 2026-11-01 |
+| `city_housing[CA/san-francisco].median_home_value` | 1394500 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0667000 | 2026-11-01 |
+| `city_housing[CA/san-jose].housing_units` | 345066 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0668000 | 2026-11-01 |
+| `city_housing[CA/san-jose].owner_occupied_pct` | 55.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0668000 | 2026-11-01 |
+| `city_housing[CA/san-jose].one_unit_detached_pct` | 51.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0668000 | 2026-11-01 |
+| `city_housing[CA/san-jose].median_year_built` | 1976 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0668000 | 2026-11-01 |
+| `city_housing[CA/san-jose].median_home_value` | 1233200 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0668000 | 2026-11-01 |
+| `city_housing[CA/oakland].housing_units` | 191713 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653000 | 2026-11-01 |
+| `city_housing[CA/oakland].owner_occupied_pct` | 42.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653000 | 2026-11-01 |
+| `city_housing[CA/oakland].one_unit_detached_pct` | 41.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653000 | 2026-11-01 |
+| `city_housing[CA/oakland].median_year_built` | 1953 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653000 | 2026-11-01 |
+| `city_housing[CA/oakland].median_home_value` | 929900 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0653000 | 2026-11-01 |
+| `city_housing[CA/fresno].housing_units` | 189098 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0627000 | 2026-11-01 |
+| `city_housing[CA/fresno].owner_occupied_pct` | 50.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0627000 | 2026-11-01 |
+| `city_housing[CA/fresno].one_unit_detached_pct` | 61.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0627000 | 2026-11-01 |
+| `city_housing[CA/fresno].median_year_built` | 1980 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0627000 | 2026-11-01 |
+| `city_housing[CA/fresno].median_home_value` | 374800 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0627000 | 2026-11-01 |
+| `city_housing[CA/bakersfield].housing_units` | 135724 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0603526 | 2026-11-01 |
+| `city_housing[CA/bakersfield].owner_occupied_pct` | 60.6 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0603526 | 2026-11-01 |
+| `city_housing[CA/bakersfield].one_unit_detached_pct` | 71.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0603526 | 2026-11-01 |
+| `city_housing[CA/bakersfield].median_year_built` | 1990 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0603526 | 2026-11-01 |
+| `city_housing[CA/bakersfield].median_home_value` | 371700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0603526 | 2026-11-01 |
+| `city_housing[CA/irvine].housing_units` | 120206 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636770 | 2026-11-01 |
+| `city_housing[CA/irvine].owner_occupied_pct` | 44.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636770 | 2026-11-01 |
+| `city_housing[CA/irvine].one_unit_detached_pct` | 37.4 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636770 | 2026-11-01 |
+| `city_housing[CA/irvine].median_year_built` | 2002 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636770 | 2026-11-01 |
+| `city_housing[CA/irvine].median_home_value` | 1191500 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0636770 | 2026-11-01 |
+| `city_housing[CA/long-beach].housing_units` | 181477 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0643000 | 2026-11-01 |
+| `city_housing[CA/long-beach].owner_occupied_pct` | 41.2 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0643000 | 2026-11-01 |
+| `city_housing[CA/long-beach].one_unit_detached_pct` | 40.5 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0643000 | 2026-11-01 |
+| `city_housing[CA/long-beach].median_year_built` | 1959 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0643000 | 2026-11-01 |
+| `city_housing[CA/long-beach].median_home_value` | 806600 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0643000 | 2026-11-01 |
+| `city_housing[CA/santa-clarita].housing_units` | 78081 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669088 | 2026-11-01 |
+| `city_housing[CA/santa-clarita].owner_occupied_pct` | 71.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669088 | 2026-11-01 |
+| `city_housing[CA/santa-clarita].one_unit_detached_pct` | 60.7 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669088 | 2026-11-01 |
+| `city_housing[CA/santa-clarita].median_year_built` | 1987 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669088 | 2026-11-01 |
+| `city_housing[CA/santa-clarita].median_home_value` | 784700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0669088 | 2026-11-01 |
+| `city_housing[CA/san-diego].housing_units` | 568668 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0666000 | 2026-11-01 |
+| `city_housing[CA/san-diego].owner_occupied_pct` | 47.3 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0666000 | 2026-11-01 |
+| `city_housing[CA/san-diego].one_unit_detached_pct` | 43.1 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0666000 | 2026-11-01 |
+| `city_housing[CA/san-diego].median_year_built` | 1979 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0666000 | 2026-11-01 |
+| `city_housing[CA/san-diego].median_home_value` | 906700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0666000 | 2026-11-01 |
+| `city_housing[CA/chula-vista].housing_units` | 90273 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0613392 | 2026-11-01 |
+| `city_housing[CA/chula-vista].owner_occupied_pct` | 59.8 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0613392 | 2026-11-01 |
+| `city_housing[CA/chula-vista].one_unit_detached_pct` | 52 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0613392 | 2026-11-01 |
+| `city_housing[CA/chula-vista].median_year_built` | 1987 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0613392 | 2026-11-01 |
+| `city_housing[CA/chula-vista].median_home_value` | 758700 | https://data.census.gov/table/ACSDP5Y2024.DP04?g=160XX00US0613392 | 2026-11-01 |
 
 ## Model assumptions to review
 
