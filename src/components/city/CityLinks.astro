@@ -1,0 +1,15 @@
+---
+/** Links to the published city pages of a state (optionally only the cities served by one utility). */
+import { publishedCityLinks } from '../../lib/seo/city-links';
+interface Props { state: 'FL' | 'CA'; heading?: string; utilityId?: string; exclude?: string }
+const { state, heading, utilityId, exclude } = Astro.props;
+const cities = (await publishedCityLinks()).filter((c) => c.state === state && (!utilityId || c.utilityId === utilityId) && c.slug !== exclude);
+---
+{cities.length > 0 && (
+  <nav aria-label={heading ?? 'Solar payback by city'}>
+    {heading && <h2 class="text-xl font-semibold text-stone-900">{heading}</h2>}
+    <ul class:list={['flex flex-wrap gap-x-4 gap-y-1', heading && 'mt-3']}>
+      {cities.map((c) => <li><a href={c.href} class="inline-flex min-h-11 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900">{c.name}</a></li>)}
+    </ul>
+  </nav>
+)}

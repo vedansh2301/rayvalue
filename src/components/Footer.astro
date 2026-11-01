@@ -1,5 +1,15 @@
 ---
+import { publishedCityLinks } from '../lib/seo/city-links';
+import { utilityPagePath, utilityPagesForState } from '../lib/utility/pages';
 const { legalOnly = false } = Astro.props as { legalOnly?: boolean };
+// Solar payback by state: calculator, utility pages and every published city page (the same list as the sitemap).
+const cityLinks = legalOnly ? [] : await publishedCityLinks();
+const byState = (['FL', 'CA'] as const).map((st) => ({
+  name: st === 'FL' ? 'Florida' : 'California',
+  calc: `/calculator/${st === 'FL' ? 'florida' : 'california'}`,
+  utilities: utilityPagesForState(st).map((p) => ({ href: utilityPagePath(p), label: p.short })),
+  cities: cityLinks.filter((c) => c.state === st).map((c) => ({ href: c.href, label: c.name })),
+}));
 type Link = { href: string; label: string };
 const columns: { title: string; links: Link[] }[] = [
   { title: 'Calculators', links: [
@@ -55,6 +65,19 @@ const linkClass = 'inline-block py-1.5 text-stone-700 hover:text-stone-900 hover
         ))}
       </nav>
     </div>
+    {!legalOnly && (
+      <nav aria-label="Solar payback by state, utility and city" class="mt-8 grid gap-6 border-t border-stone-200 pt-6 sm:grid-cols-2">
+        {byState.map((st) => (
+          <div>
+            <p class="font-semibold text-stone-900"><a href={st.calc} class="hover:underline underline-offset-4" data-track="nav_click" data-track-placement="footer" data-track-target={st.calc}>Solar payback in {st.name}</a></p>
+            <p class="mt-2 text-xs font-medium uppercase tracking-wide text-stone-500">By utility</p>
+            <ul class="flex flex-wrap gap-x-4">{st.utilities.map((l) => <li><a href={l.href} class={linkClass} data-track="nav_click" data-track-placement="footer" data-track-target={l.href}>{l.label}</a></li>)}</ul>
+            {st.cities.length > 0 && <p class="mt-2 text-xs font-medium uppercase tracking-wide text-stone-500">By city</p>}
+            <ul class="flex flex-wrap gap-x-4">{st.cities.map((l) => <li><a href={l.href} class={linkClass} data-track="nav_click" data-track-placement="footer" data-track-target={l.href}>{l.label}</a></li>)}</ul>
+          </div>
+        ))}
+      </nav>
+    )}
     <p class="mt-8">&copy; {new Date().getFullYear()} RayValue</p>
   </div>
 </footer>

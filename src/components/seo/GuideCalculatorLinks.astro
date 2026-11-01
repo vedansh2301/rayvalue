@@ -9,6 +9,7 @@ import { STATE_NAMES } from '../../lib/calculator/form';
 import { indexableUtilityPagesOnce } from '../../lib/utility/sitemap';
 import { utilityPagePath } from '../../lib/utility/pages';
 import { btnPrimary } from '../ui/buttons';
+import { publishedCityLinks } from '../../lib/seo/city-links';
 
 interface Props {
   state: 'FL' | 'CA' | 'both';
@@ -21,6 +22,7 @@ const { state, kind, slug, place = 'top' } = Astro.props;
 const calcs = calculatorsForState(state);
 const quotesHref = `/quotes?${state === 'both' ? '' : `state=${state}&`}source=${kind}:${slug}`;
 const utilities = (await indexableUtilityPagesOnce()).filter((p) => state === 'both' || p.state === state);
+const cities = (await publishedCityLinks()).filter((c) => state === 'both' || c.state === state);
 const headingId = `calc-cta-${place}`;
 ---
 <aside class:list={['not-prose rounded-2xl border border-sun-300 bg-sun-50 p-5 sm:p-6', place === 'rail' ? 'my-0' : 'my-8']} aria-labelledby={headingId}>
@@ -34,6 +36,12 @@ const headingId = `calc-cta-${place}`;
     <p class="mt-3 text-sm text-stone-700">
       By utility:
       {utilities.map((u, i) => <>{i > 0 ? ', ' : ' '}<a class="text-sun-ink underline underline-offset-2 hover:text-stone-900" href={utilityPagePath(u)}>{u.short}</a></>)}
+    </p>
+  )}
+  {place !== 'top' && cities.length > 0 && (
+    <p class="mt-2 text-sm text-stone-700">
+      By city:
+      {cities.map((c, i) => <>{i > 0 ? ', ' : ' '}<a class="text-sun-ink underline underline-offset-2 hover:text-stone-900" href={c.href}>{c.name}{state === 'both' ? `, ${c.state}` : ''}</a></>)}
     </p>
   )}
 </aside>
