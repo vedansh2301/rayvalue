@@ -15,6 +15,15 @@ export const roundKw = (kw: number) => roundTo(kw, 0.1);
 /** Dollars to the nearest $100. */
 export const roundUsd = (usd: number) => roundTo(usd, 100);
 
+/**
+ * Money in any currency to the nearest `unit` (markets.display_round: 100 for USD/AUD/CAD, larger for INR/JPY/PKR).
+ * No FX happens anywhere in the engine: the unit is in the market's own currency.
+ */
+export const roundMoney = (amount: number, unit: number) => roundTo(amount, unit);
+
+/** A rounder for a market's display unit (null/undefined = the default $100-style unit, 100). */
+export const moneyRounder = (unit: number | null | undefined) => (n: number) => roundTo(n, unit ?? 100);
+
 /** Years to the nearest 0.5. */
 export const roundYears = (years: number) => roundTo(years, 0.5);
 
