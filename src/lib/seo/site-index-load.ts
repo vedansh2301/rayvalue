@@ -14,8 +14,8 @@ let cache: { at: number; value: Promise<Result<IndexEntry[]>> } | null = null;
 async function load(): Promise<Result<IndexEntry[]>> {
   const [guides, blog] = await Promise.all([getCollection('guides'), getCollection('blog')]);
   const articles: ArticleInput[] = [
-    ...guides.map((g): ArticleInput => ({ collection: 'guides', id: g.id, route: g.data.route, title: g.data.title, seoTitle: g.data.seoTitle, description: g.data.description, published: g.data.published, updated: g.data.updated, draft: g.data.draft, noindex: g.data.noindex })),
-    ...blog.map((b): ArticleInput => ({ collection: 'blog', id: b.id, route: (b.data as { route?: string }).route, title: b.data.title, seoTitle: b.data.seoTitle, description: b.data.description, published: b.data.published, updated: b.data.updated, draft: (b.data as { draft?: boolean }).draft, noindex: (b.data as { noindex?: boolean }).noindex })),
+    ...guides.map((g): ArticleInput => ({ collection: 'guides', id: g.id, route: g.data.route, country: g.data.country, title: g.data.title, seoTitle: g.data.seoTitle, description: g.data.description, published: g.data.published, updated: g.data.updated, draft: g.data.draft, noindex: g.data.noindex })),
+    ...blog.map((b): ArticleInput => ({ collection: 'blog', id: b.id, country: b.data.country, title: b.data.title, seoTitle: b.data.seoTitle, description: b.data.description, published: b.data.published, updated: b.data.updated, draft: (b.data as { draft?: boolean }).draft, noindex: (b.data as { noindex?: boolean }).noindex })),
   ];
   const db = await loadDbIndexEntries();
   if (!db.ok) return err(db.error.kind, db.error.message);

@@ -5,6 +5,7 @@
  * Sitemap layout (root-level children, so a country is added by emitting more files, never by changing the index):
  *   /sitemap.xml                        <sitemapindex>
  *   /sitemap-<cc>-<type>.xml            e.g. sitemap-us-calculators.xml, -us-utilities, -us-cities, -us-articles
+ *   /sitemap-<cc>-articles.xml          non-US guides and blog (e.g. sitemap-uk-articles.xml), only when non-empty
  *   /sitemap-global-pages.xml           home, guides, blog and the other country-independent pages
  */
 import { UNREVIEWED_PAGES } from './unreviewed-pages.ts';
@@ -18,7 +19,8 @@ export const SITE_ORIGIN = 'https://rayvalue.com';
 export type PageType = 'pages' | 'calculators' | 'utilities' | 'cities' | 'articles';
 /** Where an entry is listed in /llms.txt. */
 export type Section = 'home' | 'calculators' | 'utilities' | 'cities' | 'guides' | 'blog' | 'tax' | 'about';
-export type Country = 'us' | 'global';
+/** 'us', 'global', or the URL segment of another country (ISO2 lowercase; GB is 'uk'). */
+export type Country = string;
 
 export interface IndexEntry {
   /** Path, no trailing slash ("/" for home). */
@@ -72,6 +74,8 @@ export function isExcludedStaticPath(rawPath: string, ctx: ExclusionContext = {}
 const utilityPaths: ReadonlySet<string> = new Set(UTILITY_PAGES.map(utilityPagePath));
 const CALC_RE = /^\/us\/solar-payback\/(florida|california)$/;
 const CITY_RE = /^\/us\/solar-payback\/(florida|california)\/[a-z0-9-]+$/;
+/** Non-US article and article-index paths: /<cc>/guides, /<cc>/blog/<slug>, ... (cc is a URL segment, never 'us'). */
+const INTL_ARTICLE_RE = /^\/(?!us\/)([a-z]{2})\/(guides|blog)(\/[a-z0-9-]+)?$/;
 
 /** Which sitemap type a path belongs to. */
 export function pageTypeOf(rawPath: string): PageType {
@@ -79,18 +83,21 @@ export function pageTypeOf(rawPath: string): PageType {
   if (CALC_RE.test(path)) return 'calculators';
   if (utilityPaths.has(path)) return 'utilities';
   if (CITY_RE.test(path)) return 'cities';
+  if (INTL_ARTICLE_RE.test(path)) return 'articles';
   if (path === taxPath() || path.startsWith(`${taxPath()}/`)) return 'articles';
   return 'pages';
 }
 
 export const countryOf = (rawPath: string): Country => {
   const path = normalize(rawPath);
+  const intl = INTL_ARTICLE_RE.exec(path);
+  if (intl) return intl[1]!;
   return path === US_BASE || path.startsWith(`${US_BASE}/`) ? 'us' : 'global';
 };
 
 /** sitemap file name for a (country, type) pair. */
 export const sitemapFileName = (country: Country, type: PageType): string => `sitemap-${country}-${type}.xml`;
-export const SITEMAP_FILE_RE = /^sitemap-(us|global)-(pages|calculators|utilities|cities|articles)\.xml$/;
+export const SITEMAP_FILE_RE = /^sitemap-(us|global|[a-z]{2})-(pages|calculators|utilities|cities|articles)\.xml$/;
 
 export const absoluteUrl = (path: string, origin = SITE_ORIGIN): string => `${origin}${path}`;
 
@@ -104,6 +111,9 @@ export const STATIC_INDEX: Readonly<Record<string, { title: string; summary: str
   '/guides': { title: PAGE_META.guides.title, summary: PAGE_META.guides.description, section: 'guides' },
   '/blog': { title: PAGE_META.blog.title, summary: PAGE_META.blog.description, section: 'blog' },
 };
+
+/** Per-country (non-US) article index page, e.g. /uk/guides. */
+export const intlIndexPath = (collection: 'guides' | 'blog', segment: string): string => `/${segment}/${collection}`;
 
 /** Static index pages that are listed only while their collection has published (non-draft, indexable) entries. */
 export const COLLECTION_INDEX_PATHS: Readonly<Record<string, 'guides' | 'blog'>> = { '/guides': 'guides', '/blog': 'blog' };

@@ -1,0 +1,12 @@
+---
+import BlogArticle from '../../../components/content/BlogArticle.astro';
+import { publishedIntlPosts } from '../../../lib/blog';
+import { articleSlug, countrySegment } from '../../../lib/content/paths';
+
+// /<cc>/blog/<slug> for posts under src/content/blog/<cc>/ (GB under /uk/).
+export async function getStaticPaths() {
+  return (await publishedIntlPosts()).map((post) => ({ params: { cc: countrySegment(post.data.country), slug: articleSlug(post.id, post.data.country) }, props: { post } }));
+}
+const { post } = Astro.props;
+---
+<BlogArticle post={post} />

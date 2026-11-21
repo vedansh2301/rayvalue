@@ -19,13 +19,14 @@ export async function loadAffiliateRows(fetchImpl: typeof fetch = fetch): Promis
   return out;
 }
 
-export function pickOffers(rows: readonly AffiliateOfferRow[], categories: readonly OfferCategory[], max: number, now: Date): PublicOffer[] {
-  return livePublicOffers(rows, now, { categories, country: 'US' }).slice(0, max);
+export function pickOffers(rows: readonly AffiliateOfferRow[], categories: readonly OfferCategory[], max: number, now: Date, country = 'us'): PublicOffer[] {
+  // Offers with a country only show on that country's pages; an offer with no country is global.
+  return livePublicOffers(rows, now, { categories, country: country.toUpperCase() }).slice(0, max);
 }
 
 /** The single entry point pages use: offers to show for this page context (empty array = render nothing). */
 export async function offersForPage(ctx: PlacementContext, now = new Date(), fetchImpl: typeof fetch = fetch): Promise<PublicOffer[]> {
   const place = placementFor(ctx);
   if (!place.show) return [];
-  return pickOffers(await loadAffiliateRows(fetchImpl), place.categories, place.max, now);
+  return pickOffers(await loadAffiliateRows(fetchImpl), place.categories, place.max, now, ctx.country ?? 'us');
 }

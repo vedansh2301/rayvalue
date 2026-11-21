@@ -5,13 +5,19 @@
  */
 import { SITE_ORIGIN, absoluteUrl, type Country, type IndexEntry } from './site-index.ts';
 
-const COUNTRY_NAMES: Record<Exclude<Country, 'global'>, { name: string; blurb: string }> = {
-  us: { name: 'United States', blurb: 'Florida and California homeowners' },
+const US_NAME = { name: 'United States', blurb: 'Florida and California homeowners' };
+/** Display name of a non-US country segment ('uk' is GB), via the runtime's region names; no hand-typed list. */
+const regionName = (cc: string): string => {
+  try { return new Intl.DisplayNames(['en'], { type: 'region' }).of((cc === 'uk' ? 'gb' : cc).toUpperCase()) ?? cc.toUpperCase(); } catch { return cc.toUpperCase(); }
 };
+const COUNTRY_NAMES = (cc: string): { name: string; blurb: string } => (cc === 'us' ? US_NAME : { name: regionName(cc), blurb: 'guides and blog posts' });
+/** Countries (URL segments) that have a /<cc>/llms.txt: the US plus any country with article entries. */
+export const llmsCountries = (entries: readonly IndexEntry[]): string[] => [...new Set(entries.map((e) => e.country))].filter((c) => c !== 'global').sort();
 
 const STATE_NAMES = { FL: 'Florida', CA: 'California' } as const;
 
 export const LLMS_PATHS = ['/llms.txt', '/llms-full.txt', '/us/llms.txt'] as const;
+const isLlmsPath = (p: string): boolean => (LLMS_PATHS as readonly string[]).includes(p) || /^\/[a-z]{2}\/llms\.txt$/.test(p);
 
 const link = (e: IndexEntry, origin: string): string => `- [${e.title}](${absoluteUrl(e.path, origin)}): ${e.summary}`;
 const bySection = (entries: readonly IndexEntry[], section: IndexEntry['section']) => entries.filter((e) => e.section === section);
@@ -25,7 +31,7 @@ const INTRO = [
 
 /** /llms.txt: what RayValue is, how the numbers are made, the countries (each linking to its own llms.txt), global guides. */
 export function renderRootLlms(entries: readonly IndexEntry[], origin = SITE_ORIGIN): string {
-  const countries = [...new Set(entries.map((e) => e.country))].filter((c): c is Exclude<Country, 'global'> => c !== 'global');
+  const countries = llmsCountries(entries);
   const lines = ['# RayValue', ...INTRO, '', '## How the numbers are made'];
   lines.push(`- [Methodology](${origin}/methodology): how system size, installed cost, bill savings and payback are estimated, and where every input comes from.`);
   lines.push('- Rates, costs and assumptions are read from a database; each fact stores its source URL and verification date, and each assumption stores its rationale.');
@@ -34,7 +40,9 @@ export function renderRootLlms(entries: readonly IndexEntry[], origin = SITE_ORI
     const mine = entries.filter((e) => e.country === cc);
     const cities = mine.filter((e) => e.type === 'cities').length;
     const utilities = mine.filter((e) => e.type === 'utilities').length;
-    lines.push(`- [${COUNTRY_NAMES[cc].name}](${origin}/${cc}/llms.txt): ${COUNTRY_NAMES[cc].blurb}; ${plural(cities, 'city page')}, ${plural(utilities, 'utility page')}.`);
+    const articles = mine.filter((e) => e.path.split('/').length === 4 && (e.section === 'guides' || e.section === 'blog')).length;
+    const detail = cc === 'us' ? `${plural(cities, 'city page')}, ${plural(utilities, 'utility page')}` : plural(articles, 'article');
+    lines.push(`- [${COUNTRY_NAMES(cc).name}](${origin}/${cc}/llms.txt): ${COUNTRY_NAMES(cc).blurb}; ${detail}.`);
   }
   for (const [heading, section] of [['Guides', 'guides'], ['Blog', 'blog'], ['About this site', 'about']] as const) {
     const list = bySection(entries.filter((e) => e.country === 'global'), section);
@@ -44,15 +52,26 @@ export function renderRootLlms(entries: readonly IndexEntry[], origin = SITE_ORI
   return lines.join('\n') + '\n';
 }
 
+/** /<cc>/llms.txt for a non-US country: its guides and blog posts (indexable entries only). */
+function renderArticleCountryLlms(mine: readonly IndexEntry[], cc: string, origin: string): string {
+  const lines = [`# RayValue: ${COUNTRY_NAMES(cc).name}`, '> Independent solar and home-battery articles for readers in this country. Sources are listed on each article.'];
+  for (const [heading, section] of [['Guides', 'guides'], ['Blog', 'blog']] as const) {
+    const list = bySection(mine, section).sort((a, b) => a.path.localeCompare(b.path));
+    if (list.length) lines.push('', `## ${heading}`, ...list.map((e) => link(e, origin)));
+  }
+  return lines.join('\n') + '\n';
+}
+
 /** /<cc>/llms.txt: calculators, utilities (with the sources of their rates), guides and every published city. */
-export function renderCountryLlms(entries: readonly IndexEntry[], cc: Exclude<Country, 'global'>, origin = SITE_ORIGIN): string {
+export function renderCountryLlms(entries: readonly IndexEntry[], cc: Country, origin = SITE_ORIGIN): string {
   const mine = entries.filter((e) => e.country === cc);
+  if (cc !== 'us') return renderArticleCountryLlms(mine, cc, origin);
   const cities = mine.filter((e) => e.type === 'cities');
   const utilities = mine.filter((e) => e.type === 'utilities');
   const states = [...new Set(mine.map((e) => e.state).filter((s): s is 'FL' | 'CA' => !!s))].sort();
   const newest = mine.map((e) => e.lastmod).filter((d): d is string => !!d).sort().at(-1);
   const lines = [
-    `# RayValue: ${COUNTRY_NAMES[cc].name}`,
+    `# RayValue: ${COUNTRY_NAMES(cc).name}`,
     '> Solar and battery payback for Florida and California homeowners, as low / likely / high ranges. The federal 25D credit is $0 for 2026+ installs and is never applied.',
     '',
     `Coverage (computed from the database): ${plural(states.length, 'state')}, ${plural(utilities.length, 'utility page')}, ${plural(cities.length, 'city page')}${newest ? `; newest data check ${newest}` : ''}.`,
@@ -96,7 +115,7 @@ export function llmsPageUrls(txt: string, origin = SITE_ORIGIN): string[] {
     const u = m[0].replace(/[.,;]+$/, '');
     if (!u.startsWith(`${origin}/`) && u !== origin) continue;
     const path = u.slice(origin.length) || '/';
-    if ((LLMS_PATHS as readonly string[]).includes(path)) continue;
+    if (isLlmsPath(path)) continue;
     urls.add(u);
   }
   return [...urls];

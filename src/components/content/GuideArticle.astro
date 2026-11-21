@@ -12,15 +12,18 @@ import Faq from '../Faq.astro';
 import OfferSlot from '../OfferSlot.astro';
 import { offersForPage } from '../../lib/offers/load';
 import { coverTopic, stateKey } from '../../lib/content/cards';
-import { articlePath } from '../../lib/content/paths';
+import { articleIndexPath, articlePath } from '../../lib/content/paths';
 import { articleJsonLd, faqJsonLd } from '../../lib/seo/jsonld';
 import { displayDate, showUpdated } from '../../lib/dates';
 
 interface Props { guide: CollectionEntry<'guides'>; crumbs?: { label: string; href?: string }[] }
 const { guide, crumbs } = Astro.props;
 const { Content, headings } = await render(guide);
-const path = articlePath('guides', guide.id, guide.data.route);
-const offers = await offersForPage({ kind: 'guide', id: guide.id, topic: guide.data.topic });
+const { country } = guide.data;
+const isUs = country === 'us';
+const path = articlePath('guides', guide.id, guide.data.route, country);
+const state = guide.data.state ?? 'both';
+const offers = await offersForPage({ kind: 'guide', id: guide.id, topic: guide.data.topic, country });
 const day = (d: Date) => d.toISOString().slice(0, 10);
 const ld = articleJsonLd({
   headline: guide.data.title,
@@ -28,16 +31,16 @@ const ld = articleJsonLd({
   path,
   published: guide.data.published,
   updated: guide.data.updated,
-  image: new URL(`/og/guides/${guide.id}.png`, Astro.site).href,
+  image: new URL(`/og${isUs ? `/guides/${guide.id}` : path}.png`, Astro.site).href,
 }, Astro.site?.href);
 const faq = (guide.data.faq ?? []).map((f, i) => ({ id: `faq-${i}`, ...f }));
 const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
 ---
-<BaseLayout title={guide.data.seoTitle ?? guide.data.title} ogImageAlt={`${guide.data.title} (RayValue guide)`} publishedTime={guide.data.published} modifiedTime={guide.data.updated} description={guide.data.description} path={path} ogImagePath={`/og/guides/${guide.id}.png`} ogType="article" noindex={guide.data.noindex} jsonLd={jsonLd}>
+<BaseLayout title={guide.data.seoTitle ?? guide.data.title} ogImageAlt={`${guide.data.title} (RayValue guide)`} publishedTime={guide.data.published} modifiedTime={guide.data.updated} description={guide.data.description} path={path} ogImagePath={`/og${isUs ? `/guides/${guide.id}` : path}.png`} lang={guide.data.lang} ogType="article" noindex={guide.data.noindex} jsonLd={jsonLd}>
   <article class="page">
     <div class="max-w-none lg:grid lg:grid-cols-[minmax(0,var(--container-prose))_minmax(0,1fr)] lg:gap-12 xl:gap-16">
     <div>
-    <Breadcrumbs items={crumbs ?? [{ label: 'Home', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.data.title }]} />
+    <Breadcrumbs items={crumbs ?? [{ label: 'Home', href: '/' }, { label: 'Guides', href: articleIndexPath('guides', country) }, { label: guide.data.title }]} />
     <h1>{guide.data.title}</h1>
     <p class="text-sm text-stone-700">
       {guide.data.published && <>Published <time datetime={day(guide.data.published)}>{displayDate(guide.data.published)}</time></>}
@@ -55,14 +58,14 @@ const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
         class="mt-6 aspect-video rounded-2xl"
       />
     )}
-    <div class="lg:hidden"><GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="top" /></div>
+    {isUs && <div class="lg:hidden"><GuideCalculatorLinks state={state} kind="guide" slug={guide.id} place="top" /></div>}
     <TableOfContents headings={headings} />
     <div class="prose-guide mt-4 space-y-4">
       <Content />
     </div>
     <OfferSlot offers={offers} pagePath={path} />
     {faq.length > 0 && <div class="mt-10"><Faq items={faq} id="guide-faq" /></div>}
-    <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="end" />
+    {isUs && <GuideCalculatorLinks state={state} kind="guide" slug={guide.id} place="end" />}
     <section class="mt-8" aria-labelledby="sources">
       <h2 id="sources">Sources</h2>
       <ul class="list-disc pl-5">
@@ -73,7 +76,7 @@ const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
     <aside class="hidden lg:block" aria-label="Article tools">
       <div class="sticky top-6 space-y-5">
         <TableOfContents headings={headings} variant="rail" />
-        <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="rail" />
+        {isUs && <GuideCalculatorLinks state={state} kind="guide" slug={guide.id} place="rail" />}
       </div>
     </aside>
     </div>

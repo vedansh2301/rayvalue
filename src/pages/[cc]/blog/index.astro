@@ -1,0 +1,14 @@
+---
+import IntlIndex from '../../../components/content/IntlIndex.astro';
+import { publishedIntlPosts } from '../../../lib/blog';
+import { countrySegment } from '../../../lib/content/paths';
+
+// Non-US countries only (GB is /uk/); the US index is /blog. Built only for countries with a non-draft post.
+export async function getStaticPaths() {
+  const all = await publishedIntlPosts();
+  const segs = [...new Set(all.map((p) => countrySegment(p.data.country)))];
+  return segs.map((cc) => ({ params: { cc }, props: { country: all.find((p) => countrySegment(p.data.country) === cc)!.data.country, entries: all.filter((p) => countrySegment(p.data.country) === cc) } }));
+}
+const { country, entries } = Astro.props;
+---
+<IntlIndex collection="blog" country={country} entries={entries} />

@@ -1,0 +1,92 @@
+---
+/** Blog post page body. Used by /blog/[slug] (US) and /<cc>/blog/[slug] (non-US). */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import GuideCalculatorLinks from '../../components/seo/GuideCalculatorLinks.astro';
+import { articleJsonLd } from '../../lib/seo/jsonld';
+import RelatedReading from '../../components/seo/RelatedReading.astro';
+import ArticleByline from '../../components/seo/ArticleByline.astro';
+import TableOfContents from '../../components/seo/TableOfContents.astro';
+import Cover from '../../components/content/Cover.astro';
+import { coverTopic, stateKey } from '../../lib/content/cards';
+import { publishedPosts, publishedPostsFor } from '../../lib/blog';
+import { articleIndexPath, articlePath } from '../../lib/content/paths';
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+import OfferSlot from '../../components/OfferSlot.astro';
+import { offersForPage } from '../../lib/offers/load';
+import { pickRelated } from '../../lib/related';
+import { displayDate, showUpdated } from '../../lib/dates';
+
+interface Props { post: CollectionEntry<'blog'> }
+const { post } = Astro.props;
+const { country } = post.data;
+const isUs = country === 'us';
+const pool = isUs ? await publishedPosts() : await publishedPostsFor(country);
+const { Content, headings } = await render(post);
+const path = articlePath('blog', post.id, undefined, country);
+const ogPath = `/og${isUs ? `/blog/${post.id}` : path}.png`;
+const offers = await offersForPage({ kind: 'blog', id: post.id, tags: post.data.tags, topic: post.data.topic, country });
+const day = (d: Date) => d.toISOString().slice(0, 10);
+const related = pickRelated(
+  { id: post.id, state: post.data.state, tags: post.data.tags, published: post.data.published },
+  pool.map((p) => ({ id: p.id, state: p.data.state, tags: p.data.tags, published: p.data.published, title: p.data.title })),
+).map((p) => ({ href: articlePath('blog', p.id, undefined, country), title: p.title }));
+const ld = articleJsonLd({
+  type: 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description,
+  path,
+  published: post.data.published,
+  updated: post.data.updated ?? post.data.published,
+  image: new URL(ogPath, Astro.site).href,
+}, Astro.site?.href);
+---
+<BaseLayout title={post.data.seoTitle ?? post.data.title} ogImageAlt={`${post.data.title} (RayValue blog)`} publishedTime={post.data.published} modifiedTime={post.data.updated ?? post.data.published} description={post.data.description} path={path} ogImagePath={ogPath} lang={post.data.lang} ogType="article" noindex={post.data.noindex} jsonLd={[ld]}>
+  <article class="page">
+    <div class="max-w-none lg:grid lg:grid-cols-[minmax(0,var(--container-prose))_minmax(0,1fr)] lg:gap-12 xl:gap-16">
+    <div>
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Blog', href: articleIndexPath('blog', country) }, { label: post.data.title }]} />
+    <h1>{post.data.title}</h1>
+    <p class="text-sm text-stone-700">
+      Published <time datetime={day(post.data.published)}>{displayDate(post.data.published)}</time>
+      {showUpdated(post.data.published, post.data.updated) && <> · Updated <time datetime={day(post.data.updated!)}>{displayDate(post.data.updated!)}</time></>}
+    </p>
+    <ArticleByline hasSources={post.data.sources.length > 0} />
+    {post.data.cover && (
+      <Cover
+        topic={coverTopic({ topic: post.data.topic, tags: post.data.tags, title: post.data.title, state: post.data.state })}
+        state={stateKey(post.data.state)}
+        cover={post.data.cover}
+        coverAlt={post.data.coverAlt}
+        eager
+        sizes="(min-width: 832px) 768px, calc(100vw - 2rem)"
+        class="mt-6 aspect-video rounded-2xl"
+      />
+    )}
+    {isUs && <div class="lg:hidden"><GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="top" /></div>}
+    <TableOfContents headings={headings} />
+    <div class="prose-guide mt-4 space-y-4">
+      <Content />
+    </div>
+    <OfferSlot offers={offers} pagePath={path} />
+    {isUs && <GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="end" />}
+    <RelatedReading heading="Related reading" id="related-h" items={related} />
+    {post.data.sources.length > 0 && (
+      <section class="mt-8" aria-labelledby="sources">
+        <h2 id="sources">Sources</h2>
+        <ul class="list-disc pl-5">
+          {post.data.sources.map((s) => <li><a class="underline underline-offset-4" href={s.url} rel="noopener">{s.title}</a></li>)}
+        </ul>
+      </section>
+    )}
+    </div>
+    <aside class="hidden lg:block" aria-label="Article tools">
+      <div class="sticky top-6 space-y-5">
+        <TableOfContents headings={headings} variant="rail" />
+        {isUs && <GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="rail" />}
+      </div>
+    </aside>
+    </div>
+  </article>
+</BaseLayout>
