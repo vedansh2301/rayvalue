@@ -114,15 +114,16 @@ comment on column public.pvwatts_city_production.provider is 'pvwatts_v8 (US, CA
 
 -- ---------------------------------------------------------------- offers, city_housing
 
-alter table public.offers
-  add column country text not null default 'US' references public.markets (code) on update cascade,
-  add column region_code text;
-update public.offers set region_code = state;
-alter table public.offers alter column region_code set not null;
-alter table public.offers drop constraint offers_state_check;
+-- 0032 (affiliate offers) already added offers.country (nullable ISO2) and made state optional: affiliate rows
+-- have no region. So region_code stays nullable here, the region FK only binds rows that have a region
+-- (MATCH SIMPLE skips nulls), and the one-lead-partner-per-region rule is a partial unique index.
+alter table public.offers add column if not exists country text;
+alter table public.offers add column region_code text;
+update public.offers set region_code = state, country = coalesce(country, 'US') where state is not null;
+alter table public.offers drop constraint if exists offers_state_check;
 alter table public.offers add constraint offers_region_fk
   foreign key (country, region_code) references public.regions (country, code) on update cascade;
-alter table public.offers add constraint offers_country_region_key unique (country, region_code);
+create unique index offers_country_region_key on public.offers (country, region_code) where region_code is not null;
 create trigger sync_region_state before insert or update on public.offers for each row execute function public.sync_region_state();
 
 alter table public.city_housing
