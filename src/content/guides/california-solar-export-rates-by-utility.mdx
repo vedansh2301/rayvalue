@@ -1,0 +1,93 @@
+---
+title: "California NEM 3.0 export rates explained, by utility (2026)"
+seoTitle: "California NEM 3.0 export rates by utility (2026)"
+description: "What PG&E, SCE and SDG&E pay for solar exports under the Solar Billing Plan, with PG&E's 2026 hourly export values, the 9-year lock-in and why batteries matter."
+published: 2026-11-22
+updated: 2026-11-22
+state: CA
+topic: chart
+draft: false
+noindex: true
+sources:
+  - title: "PG&E: Solar Billing Plan 2026 Energy Export Credit (EEC) Values price sheet (via pge.com/energyexportcredit)"
+    url: "https://www.pge.com/energyexportcredit"
+  - title: "SCE: Understanding export pricing (Solar Billing Plan)"
+    url: "https://www.sce.com/customer-service-center/help-center/solar/solar-billing-plan/understanding-export-pricing"
+  - title: "SDG&E: Solar Billing Plan Export Pricing"
+    url: "https://www.sdge.com/node/25561"
+  - title: "CPUC: Net Billing Tariff"
+    url: "https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/demand-side-management/customer-generation/nem-revisit/net-billing-tariff"
+  - title: "CPUC Fact Sheet: Modernizing NEM (December 2022 decision)"
+    url: "https://www.cpuc.ca.gov/-/media/cpuc-website/divisions/energy-division/documents/net-energy-metering-nem/nemrevisit/final-december-2022-fact-sheet-nem.pdf"
+  - title: "U.S. EIA: Electric Power Monthly, Table 5.6.A"
+    url: "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a"
+faq:
+  - question: "How much does PG&E pay for solar exports in 2026?"
+    answer: "It depends on the hour and month. On PG&E's 2026 price sheet for bundled customers, a weekday export at 1 p.m. in April earns about 0.4 cents per kWh, while a weekday export at 6 p.m. in August earns about $1.13 per kWh. Most midday hours are in the low single-digit cents."
+  - question: "Are export rates locked in?"
+    answer: "Yes, for 9 years. SCE says you only have fixed prices for 9 years from the date you started using solar energy, and SDG&E and PG&E price sheets are organized by the year you applied (the vintage)."
+  - question: "Do CCA customers get the same export credit?"
+    answer: "No. PG&E's price sheet says the Energy Produced credit applies only to customers who get generation from PG&E. CCA and Direct Access customers should ask their provider."
+  - question: "Is NEM 3.0 the same as the Solar Billing Plan?"
+    answer: "Yes. NEM 3.0 is the common name for the CPUC's Net Billing Tariff, which PG&E, SCE and SDG&E market as the Solar Billing Plan. It applies to interconnection applications submitted on or after April 15, 2023."
+todo:
+  - "Add SCE and SDG&E 2026 hourly values once the SCE SharePoint file and SDG&E MIDAS zip are parsed (SDG&E file: LY2026 NBT Pricing Upload MIDAS _1.zip)."
+  - "Confirm ACC Plus adder amounts per utility from a primary source (D.22-12-056 or tariff sheet)."
+---
+
+Under California's Net Billing Tariff (often called NEM 3.0, and sold as the Solar Billing Plan), PG&E, SCE and SDG&E credit the solar you send to the grid at hourly values set from the CPUC's Avoided Cost Calculator, not at the retail price you pay. On PG&E's 2026 price sheet, midday exports in spring are worth less than 2 cents per kWh, while early evening exports in August are worth more than $1 per kWh. That gap is why new California systems are usually sized to use solar at home and store the rest in a battery.
+
+## Key numbers
+
+- **April 15, 2023:** the Net Billing Tariff applies to interconnection applications submitted on or after this date (CPUC).
+- **9 years:** export values are fixed for 9 years from when you start using solar (SCE), based on your application-year vintage.
+- **About 0.4 cents per kWh:** PG&E's 2026 weekday export value at 1 p.m. in April, Energy Produced plus Energy Delivered (PG&E 2026 EEC price sheet).
+- **About $1.13 per kWh:** PG&E's 2026 weekday export value at 6 p.m. in August (same sheet).
+- **29.75 cents per kWh:** California's average residential electricity price in August 2026 (EIA, preliminary).
+
+## How are NEM 3.0 export rates set?
+
+All three utilities follow the same CPUC rules. SCE explains that its export credit prices are calculated from the CPUC Avoided Cost Calculator approved as of January 1 of the vintage year, averaged for each month of a 9-year lock-in period, and split by hour and by weekday versus weekend or holiday. SDG&E describes the same approach: hourly calculator values averaged across climate zones, adjusted for daylight saving time, and averaged by month, hour and day type.
+
+Each hour's credit has two parts. PG&E calls them Energy Produced and Energy Delivered. SDG&E calls them Generation and Delivery. Your total credit for an hour is the sum.
+
+## PG&E Solar Billing Plan export values in 2026
+
+These are from PG&E's 2026 Energy Export Credit price sheet for the 2026 interconnection application year. Each figure is Energy Produced plus Energy Delivered, per kWh, on weekdays. They apply to customers who buy generation from PG&E. If you are with a Community Choice Aggregator (CCA), the Produced part comes from your CCA.
+
+| Month (weekday) | Noon | 6 p.m. | Highest hour | 24-hour simple average |
+|---|---|---|---|---|
+| January | 6.7¢ | 10.3¢ | 10.9¢ (5 p.m.) | 8.6¢ |
+| April | 0.9¢ | 7.8¢ | 8.1¢ (2 a.m.) | 4.7¢ |
+| June | 3.3¢ | 27.1¢ | 27.1¢ (6 p.m.) | 9.2¢ |
+| August | 6.8¢ | $1.13 | $1.15 (7 p.m.) | 32.0¢ |
+| September | 6.2¢ | 46.1¢ | 59.5¢ (7 p.m.) | 13.4¢ |
+| December | 6.3¢ | 9.8¢ | 10.0¢ (6 a.m.) | 8.4¢ |
+
+The 24-hour average is our simple average of the 24 hourly figures, not a production-weighted value. Solar produces most around midday, when credits are lowest, so a panel-only system earns less than these averages suggest.
+
+PG&E's how-to guide shows the math: multiply the kWh you exported in an hour by the Produced value, do the same with the Delivered value, and add the two. Its October example credits 7.02 kWh at $0.04783 plus $0.00781, for $0.38 in total.
+
+## SCE and SDG&E export rates
+
+- **SCE** publishes its export price files on its [export pricing page](https://www.sce.com/customer-service-center/help-center/solar/solar-billing-plan/understanding-export-pricing). It lists vintages NBT23 through NBT27 with fixed prices for 9 years, and NBT00 for customers who take current-year prices. SCE says all Net Billing Tariff customers are on a time-of-use rate.
+- **SDG&E** publishes Current 2026 and Legacy 2026 export pricing files on its [export pricing page](https://www.sdge.com/node/25561). It notes the 2027 and 2028 files are preliminary and under review.
+
+We have not yet parsed the SCE and SDG&E 2026 hourly files, so we do not quote their values here. The structure is the same as PG&E's: low credits at midday, high credits in summer evenings.
+
+## Export value vs the price you pay
+
+California's average residential price was 29.75 cents per kWh in August 2026 (EIA). Most midday export hours on PG&E's 2026 sheet are worth a few cents. So a kWh of solar you use at home usually saves you far more than a kWh you export at noon. Exports only beat that during summer evening peaks, which is when a battery can discharge.
+
+## What this means for system design
+
+- **Size panels to your use.** Oversizing to export at midday earns little.
+- **Consider a battery.** Storing midday solar and using or exporting it after 5 p.m. captures far more value. See [California NEM 3.0 and batteries](/guides/california-nem-3-batteries).
+- **Know your vintage.** Your 9-year export values are set by the year you apply.
+- **Check your provider.** CCA customers should ask their CCA for its export rates.
+
+## Next steps
+
+- See your utility's numbers: [PG&E](/us/utility/california/pge), [SCE](/us/utility/california/sce), [SDG&E](/us/utility/california/sdge).
+- Run the [California calculator](/us/solar-payback/california), which models export credits by utility.
+- Read [is solar worth it in California in 2026](/guides/is-solar-worth-it-california-2026).
