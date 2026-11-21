@@ -1,0 +1,115 @@
+---
+title: "Are solar panels worth it in the UK in 2026?"
+seoTitle: "Are solar panels worth it in the UK? (2026 data)"
+description: "UK solar in 2026: yield by city from PVGIS, the Ofgem price cap, official installed cost data and export rates. Who it pays for, and what drives the result."
+country: gb
+lang: en-GB
+updated: 2026-11-22
+topic: sun
+draft: false
+noindex: true
+sources:
+  - title: "Ofgem: Changes to energy price cap between 1 October and 31 December 2026"
+    url: "https://www.ofgem.gov.uk/publications/changes-energy-price-cap-between-1-october-and-31-december-2026"
+  - title: "EU JRC PVGIS 5.3: London, 1 kWp, optimal angles"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Manchester, 1 kWp, optimal angles"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=53.4794&lon=-2.2453&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Glasgow, 1 kWp, optimal angles"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.8611&lon=-4.25&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Plymouth, 1 kWp, optimal angles"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=50.3714&lon=-4.1422&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "DESNZ: Solar PV cost data workbook 2025/26 (TIC)"
+    url: "https://assets.publishing.service.gov.uk/media/6a1709e4050971fbebf3bb3b/Solar_Costs_2025-26__TIC_.xlsx"
+  - title: "DESNZ: Solar photovoltaics deployment (Energy Trends 6.3, October 2026)"
+    url: "https://assets.publishing.service.gov.uk/media/6ae0cc0c16428df537606259/ET_6.3_SOLAR_PV_OCT_26.xlsx"
+  - title: "Octopus Energy: Smart Export Guarantee tariff"
+    url: "https://octopus.energy/smart/smart-export-guarantee/"
+  - title: "Octopus Energy: Outgoing Octopus"
+    url: "https://octopus.energy/outgoing/"
+  - title: "EDF: Smart Export Guarantee tariffs"
+    url: "https://www.edfenergy.com/node/20365"
+  - title: "HMRC: VAT Notice 708/6"
+    url: "https://www.gov.uk/guidance/vat-on-energy-saving-materials-and-heating-equipment-notice-7086"
+todo:
+  - "Update the unit-rate figures after Ofgem announces the Jan–Mar 2027 cap on 25 Nov 2026."
+  - "No sourced UK self-consumption share; payback deliberately not computed. Add once an assumption with rationale exists in the DB."
+faq:
+  - question: "How much electricity do solar panels make in the UK?"
+    answer: "PVGIS (EU JRC) gives about 1,023 kWh per kWp per year for an optimally tilted system in London, 888 in Manchester, 862 in Glasgow and 1,123 in Plymouth. A 4 kWp system therefore makes roughly 3,400 to 4,500 kWh a year depending on location."
+  - question: "What does solar cost in the UK?"
+    answer: "DESNZ's MCS-based data for 2025/26 gives a median installed cost of £1,595 per kW for systems up to 4 kW and £1,546 per kW for 4–10 kW, excluding batteries."
+  - question: "Is a kWh I use worth more than a kWh I export?"
+    answer: "Usually much more. Under the October–December 2026 price cap the average unit rate is 26.32p per kWh, while open-to-anyone export tariffs pay 2p to 6p. Tariffs tied to your import supplier pay around 12p to 18p."
+---
+
+For many UK homeowners, yes: solar panels still pay, because electricity is expensive and every kWh you use from your own roof avoids an average of 26.32p under the current price cap. How well it pays depends on three things: how much sun your roof gets, how much of the power you use at home, and which export tariff you pick. Record numbers of households are going ahead, with 296,000 UK installations in the 12 months to September 2026.
+
+## Key numbers
+
+- **26.32p/kWh** and **54.83p/day**: average Direct Debit electricity price cap, 1 Oct–31 Dec 2026, Great Britain, no VAT (Ofgem).
+- **862 to 1,123 kWh per kWp per year**: PVGIS yield for Glasgow and Plymouth, optimally tilted (EU JRC PVGIS 5.3, retrieved 22 Nov 2026). London is 1,023.
+- **£1,546 per kW**: median installed cost, 4–10 kW MCS systems, 2025/26, excluding batteries (DESNZ).
+- **2p to 18p/kWh**: range of export rates from the big suppliers in November 2026 (supplier pages).
+- **0% VAT** on installation until 31 March 2027 (HMRC).
+- **296,000** UK solar installations in the year to September 2026, the most in any 12-month period on record (DESNZ ET 6.3).
+
+## Are solar panels worth it in the UK?
+
+Solar makes money two ways. Power you use at home cuts your bill at your full unit rate. Power you export earns your export tariff. In the UK the gap between those two is large, so the value of a system depends heavily on how much you use yourself.
+
+At the current cap, a kWh you use is worth 26.32p on average. A kWh you export is worth between 2p (EDF's SEG Export Variable since 28 October 2026) and about 18p (EDF's Export Exclusive, only for EDF solar or battery customers). Octopus pays 4.1p on its SEG tariff to anyone, and 12p on Outgoing Octopus if Octopus supplies your electricity.
+
+## How much will a 4 kWp system generate where I live?
+
+PVGIS is the European Commission's solar yield model. These are its figures for a 1 kWp south-facing system at the optimal tilt, with 14% system losses, multiplied by four for a 4 kWp system:
+
+| Place | kWh per kWp per year | 4 kWp system, kWh per year |
+|---|---|---|
+| Plymouth | 1,123 | about 4,490 |
+| London | 1,023 | about 4,090 |
+| Manchester | 888 | about 3,550 |
+| Glasgow | 862 | about 3,450 |
+
+Your own roof will differ. East or west facing roofs produce less, and shading matters more than latitude. North-facing roofs are covered in [When solar panels don't pay in the UK](/uk/blog/when-solar-panels-dont-pay-uk).
+
+## What is the output worth in a year?
+
+This is simple arithmetic at today's prices, showing the two extremes. Real homes sit between them.
+
+| 4 kWp in London (4,090 kWh) | Value per year |
+|---|---|
+| All exported at 4.1p (Octopus SEG) | about £168 |
+| All exported at 12p (Outgoing Octopus) | about £491 |
+| All used at home at 26.32p (cap average) | about £1,077 |
+
+The same calculation for Glasgow (3,450 kWh) gives about £141 to £907. Regional cap rates differ from the average, and unit rates change every quarter, so treat these as a range, not a forecast.
+
+The share you use yourself depends on when you are home, what you run in the day and whether you have a battery, EV or heat pump. We do not yet have a sourced UK figure for a typical share, so we have not turned this into a single payback number.
+
+## What does it cost?
+
+DESNZ publishes installed costs from the MCS database. For 2025/26:
+
+| System size | Median £/kW | Mean £/kW |
+|---|---|---|
+| 0–4 kW | £1,595 | £1,808 |
+| 4–10 kW | £1,546 | £1,622 |
+
+These exclude batteries. For a 4 kWp system that suggests a middle of roughly £6,200 to £6,400, with plenty of quotes above and below. Compare any quote you get with these medians.
+
+## Who does solar pay best for?
+
+- **Homes that use power in the day.** Home workers, retirees, families with daytime loads, EVs charged at home, or heat pumps.
+- **South-facing, unshaded roofs**, especially in the south and south-west of England.
+- **Households that can switch to a better export tariff.** Moving from a 2p tariff to a 12p tariff tied to your supplier can more than double export income, as long as the import tariff is also competitive.
+- **People who can finish before 31 March 2027**, when VAT on installation rises to 5%. See [the VAT deadline guide](/uk/guides/solar-panels-vat-deadline-2027).
+
+## How can I make it pay more?
+
+1. Check your export rate. Many people stay on whatever their supplier offers. Our [SEG comparison](/uk/guides/best-seg-rates) lists the open and tied tariffs.
+2. Move flexible loads into the day: washing, dishwashers, immersion heaters and EV charging.
+3. Consider a battery if you use most of your power in the evening, and look at time-of-use tariffs. See [Home batteries in the UK](/uk/guides/solar-battery-worth-it-uk).
+4. Get at least three quotes from MCS-certified installers, and read [Solar quote red flags](/uk/blog/solar-panel-scams-uk).
+
+Prices and rates were checked on 22 November 2026. Ofgem announces the January–March 2027 cap on 25 November 2026; see [what the January 2027 price cap means for solar](/uk/blog/energy-price-cap-january-2027-solar).

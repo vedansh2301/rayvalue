@@ -1,0 +1,110 @@
+---
+title: "Home batteries in the UK: when they pay with time-of-use tariffs"
+seoTitle: "Is a solar battery worth it in the UK? ToU tariffs"
+description: "How a home battery earns money in the UK: storing solar instead of exporting it, and shifting cheap night-time power into the 4–7pm peak. Real Octopus Flux rates, VAT and loan rules."
+country: gb
+lang: en-GB
+updated: 2026-11-22
+topic: battery
+draft: false
+noindex: true
+sources:
+  - title: "Octopus Energy: Octopus Flux"
+    url: "https://octopus.energy/smart/flux/"
+  - title: "Octopus Energy API: Flux Import unit rates, region C (London)"
+    url: "https://api.octopus.energy/v1/products/FLUX-IMPORT-23-02-14/electricity-tariffs/E-1R-FLUX-IMPORT-23-02-14-C/standard-unit-rates/"
+  - title: "Octopus Energy API: Flux Export unit rates, region C (London)"
+    url: "https://api.octopus.energy/v1/products/FLUX-EXPORT-23-02-14/electricity-tariffs/E-1R-FLUX-EXPORT-23-02-14-C/standard-unit-rates/"
+  - title: "Octopus Energy: Outgoing Octopus (Prime Outgoing)"
+    url: "https://octopus.energy/outgoing/"
+  - title: "Octopus Energy: Smart Export Guarantee tariff"
+    url: "https://octopus.energy/smart/smart-export-guarantee/"
+  - title: "Ofgem: Changes to energy price cap between 1 October and 31 December 2026"
+    url: "https://www.ofgem.gov.uk/publications/changes-energy-price-cap-between-1-october-and-31-december-2026"
+  - title: "HMRC: VAT Notice 708/6, section 2.19 batteries"
+    url: "https://www.gov.uk/guidance/vat-on-energy-saving-materials-and-heating-equipment-notice-7086"
+  - title: "GOV.UK: Warm Homes Loan Scheme factsheet"
+    url: "https://www.gov.uk/government/news/warm-homes-loan-scheme-factsheet"
+todo:
+  - "UK installed battery cost (£/kWh): no official source found. Add a sourced range before publishing any payback figure."
+  - "Battery round-trip efficiency not sourced; spreads below are before losses."
+  - "Flux rates were read for 21 Nov 2026, region C only; add other regions or link a regional table."
+faq:
+  - question: "Is a solar battery worth it in the UK?"
+    answer: "It can be when the gap between what you would earn exporting and what you pay to import is large, or when you can use a time-of-use tariff. On Octopus Flux in London on 21 November 2026, night import was 16.17p and peak export 30.31p, a gap of 14.14p per kWh before losses. Whether that repays the battery depends on the installed price, which we do not yet have an official source for."
+  - question: "Is there VAT on home batteries?"
+    answer: "Not until 31 March 2027. HMRC zero-rates batteries installed in homes, including batteries retrofitted to existing solar panels. The rate goes to 5% from 1 April 2027."
+  - question: "Can I borrow for a battery?"
+    answer: "The Warm Homes Loan Scheme supports loans of up to £15,000 for an electrical storage battery, through participating lenders and MCS-certified installers."
+---
+
+A home battery pays in the UK when it moves electricity from a cheap time to an expensive one. With solar, that means storing power you would otherwise export for a few pence and using it in the evening instead of buying it at around 26p. With a time-of-use tariff, it can also mean charging at night and avoiding, or selling into, the 4–7pm peak. The spread is real. Whether it covers the price of the battery depends on the quote you get.
+
+## Key numbers
+
+- **16.17p / 26.78p / 37.38p per kWh**: Octopus Flux import, London region, night (2–5am) / day / peak (4–7pm), 21 Nov 2026 (Octopus API).
+- **4.72p / 11.11p / 30.31p per kWh**: Octopus Flux export, same region and times.
+- **16p (4–7pm) and 9p (other times)**: Prime Outgoing Octopus export, for Octopus import customers (Octopus).
+- **26.32p/kWh**: average capped unit rate, Oct–Dec 2026 (Ofgem).
+- **0% VAT** on home batteries until 31 March 2027, 5% after (HMRC Notice 708/6).
+- **£15,000**: maximum Warm Homes Loan for a battery (GOV.UK factsheet, Oct 2026).
+
+## How does a battery save money?
+
+There are two separate ways, and many homes use both.
+
+**1. Keep your own solar.** Without a battery, solar you do not use straight away is exported. On an open SEG tariff such as Octopus SEG that earns 4.1p per kWh. Stored and used in the evening, the same kWh avoids buying from the grid at the cap average of 26.32p. That is about 22p per kWh more value, before battery losses.
+
+**2. Shift grid power.** On a time-of-use tariff, you charge the battery when power is cheap and use or export it when power is expensive. This works even in winter, when there is little solar.
+
+## What do time-of-use tariffs pay?
+
+Octopus Flux is designed for homes with solar and a battery. Octopus says its cheap period is 02:00 to 05:00 and its peak is 16:00 to 19:00 all year round. Rates are set by region. These were the London (region C) rates for 21 November 2026 from Octopus's public tariff data:
+
+| Time | Flux import (p/kWh) | Flux export (p/kWh) |
+|---|---|---|
+| 02:00–05:00 | 16.17 | 4.72 |
+| 05:00–16:00 and 19:00–02:00 | 26.78 | 11.11 |
+| 16:00–19:00 | 37.38 | 30.31 |
+
+The standing charge on that tariff was 42.29p per day. Other regions are close: in the North West (region A) peak import was 37.41p and peak export 30.33p.
+
+Prime Outgoing Octopus is an export-only option for Octopus import customers that pays 16p from 4pm to 7pm and 9p at other times.
+
+## What is each stored kWh worth?
+
+Simple per-kWh arithmetic using the rates above, before battery losses:
+
+| Move | Gain per kWh |
+|---|---|
+| Charge at Flux night rate (16.17p), avoid Flux peak import (37.38p) | 21.21p |
+| Charge at Flux night rate (16.17p), export at Flux peak (30.31p) | 14.14p |
+| Store solar instead of exporting at 4.1p, avoid cap rate (26.32p) | 22.22p |
+| Store solar instead of Flux day export (11.11p), export at Flux peak (30.31p) | 19.20p |
+
+Batteries lose some energy on each cycle, so real gains are a little lower. You can only count each stored kWh once a day, and the battery size limits how many kWh you can move.
+
+## When does a battery pay best?
+
+- **You use most power in the evening.** Out at work in the day, cooking and heating in the evening.
+- **You are on a low export rate.** The lower your export tariff, the more each stored kWh is worth.
+- **You are willing to use a time-of-use tariff** and let the battery follow the schedule.
+- **Your solar system is already in place** and you can add a battery that works with your inverter.
+- **You finish before 31 March 2027**, while VAT on the battery is 0%.
+
+## When does it not?
+
+- If you already use most of your solar during the day.
+- If you are on a tied export tariff that pays 12p or more at all times, the gain from storing is smaller.
+- If the quote is high. We have not found an official UK source for installed battery prices, so we cannot give a reliable cost range. Get at least three quotes from MCS-certified installers and divide the price by the usable kWh.
+
+## How do I compare a battery quote?
+
+1. Ask for usable capacity (kWh), not just the headline size.
+2. Ask how the battery will be controlled for your tariff.
+3. Work out a realistic number of kWh shifted per day, multiply by the spread above, and multiply by 365.
+4. Compare that yearly figure with the price, including any loan interest.
+
+For the solar side, see [Are solar panels worth it in the UK?](/uk/guides/are-solar-panels-worth-it-uk) and [SEG rates compared](/uk/guides/best-seg-rates).
+
+Tariff rates change regularly. The Flux rates here are a snapshot for 21 November 2026 and will change with the January 2027 price cap.
