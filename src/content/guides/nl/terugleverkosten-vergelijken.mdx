@@ -1,0 +1,89 @@
+---
+title: "Terugleverkosten per energieleverancier vergelijken"
+seoTitle: "Terugleverkosten 2027 vergelijken per leverancier"
+description: "Zo vergelijk je terugleverkosten en terugleververgoeding per energieleverancier voor 2027. Met alleen bevestigde bedragen uit de rekenvoorbeelden van leveranciers zelf."
+country: nl
+lang: nl-NL
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: scale
+sources:
+  - title: "ACM: Terugleverkosten zonnestroom niet onredelijk, contracten wel moeilijk te vergelijken (17 december 2025)"
+    url: "https://www.acm.nl/nl/publicaties/acm-terugleverkosten-zonnestroom-niet-onredelijk-contracten-wel-moeilijk-te-vergelijken"
+  - title: "Rijksoverheid: Salderingsregeling"
+    url: "https://www.rijksoverheid.nl/onderwerpen/energie-thuis/salderingsregeling"
+  - title: "Staatsblad 2025, 17: Wet van 18 december 2024 ter uitvoering van de beëindiging van de salderingsregeling"
+    url: "https://zoek.officielebekendmakingen.nl/stb-2025-17.html"
+  - title: "Eneco: Rekenvoorbeelden met en zonder salderen"
+    url: "https://www.eneco.nl/klantenservice/einde-salderen/rekenvoorbeelden/"
+  - title: "Greenchoice: Rekenvoorbeelden salderingsregeling 2027"
+    url: "https://www.greenchoice.nl/zonnepanelen/salderen/rekenvoorbeelden/"
+  - title: "Vattenfall: Alles over de salderingsregeling in 2027"
+    url: "https://www.vattenfall.nl/zonnepanelen/salderen/salderingsregeling-2027/"
+  - title: "Consumentenbond: Terugleverkosten (bijgewerkt 22 oktober 2026)"
+    url: "https://www.consumentenbond.nl/energie-vergelijken/terugleverkosten"
+  - title: "Milieu Centraal: Kosten en opbrengst zonnepanelen (laatst gewijzigd 5 november 2026)"
+    url: "https://www.milieucentraal.nl/energie-besparen/zonnepanelen/kosten-en-opbrengst-zonnepanelen/"
+faq:
+  - question: "Welke leverancier heeft de laagste terugleverkosten in 2027?"
+    answer: "Dat kunnen we nog niet eerlijk zeggen. Leveranciers publiceren hun 2027-tarieven op verschillende momenten en manieren, en sommige noemen alleen indicaties. Vergelijk het tariefblad van je eigen contract met dat van een alternatief."
+  - question: "Wat is belangrijker: een hoge terugleververgoeding of lage terugleverkosten?"
+    answer: "Het verschil tussen de twee, en daarnaast je stroomprijs. De Consumentenbond waarschuwt dat een hoge terugleververgoeding een contract niet vanzelf voordelig maakt. Kijk naar je totale verwachte kosten."
+  - question: "Betaal ik bij een dynamisch contract terugleverkosten?"
+    answer: "Volgens de ACM betalen klanten met een dynamisch contract nauwelijks of geen terugleverkosten. Zo'n contract past alleen bij wie sterk wisselende prijzen kan dragen."
+todo:
+  - "Essent (essent.nl, 403) en Energiedirect (403): tariefpagina's niet te openen. Niet opgenomen; opnieuw proberen."
+  - "Per-leverancier-tabel uitbreiden met tariefbladen 2027 van minimaal 10 leveranciers zodra gepubliceerd (Supabase-rij per leverancier met source_url + verified_on)."
+  - "Greenchoice-cijfers zijn verwachte waarden op basis van maart 2025-tarief; vervangen door definitief 2027-tarief."
+---
+
+Terugleverkosten vergelijk je op het verschil tussen wat je per teruggeleverde kWh krijgt (de terugleververgoeding) en wat je per kWh betaalt (de terugleverkosten), en daarna op je totale stroomrekening. In de rekenvoorbeelden die leveranciers zelf publiceren, liggen vergoeding en kosten voor 2027 dicht bij elkaar, zodat je netto vaak maar een fractie van een cent per kWh overhoudt.
+
+## Belangrijkste cijfers
+
+- **Eneco 2027**: terugleverkosten **€ 0,03865 per kWh** (incl. btw), terugleververgoeding **€ 0,05058 per kWh** (excl. btw), 1-jarig vast contract, peildatum 25 februari 2026.
+- **Greenchoice 2027** (verwacht, op basis van enkeltarief maart 2025): terugleverkosten **€ 0,05184**, vergoeding **€ 0,05434 per kWh**, beide incl. btw.
+- **Rond 1,25 cent per kWh** netto bij een vast of variabel contract, volgens Milieu Centraal (5 november 2026).
+- **16** leveranciers door de ACM onderzocht; terugleverkosten "niet onredelijk", contracten "moeilijk te vergelijken" (ACM, 17 december 2025).
+- **Per kWh**: sinds 1 januari 2026 moeten terugleverkosten in het modelcontract per teruggeleverde kWh worden berekend (ACM).
+
+## Wat zijn terugleverkosten precies?
+
+Terugleverkosten zijn kosten die je leverancier rekent omdat jij stroom teruglevert. Volgens de Rijksoverheid mogen dat vanaf 2027 alleen kosten zijn die de leverancier maakt om teruggeleverde stroom te verwerken. De wet zegt daarnaast dat zulke kosten alleen bij klanten die terugleveren in rekening mogen worden gebracht ([Staatsblad 2025, 17](https://zoek.officielebekendmakingen.nl/stb-2025-17.html)). De ACM houdt toezicht.
+
+De ACM vroeg informatie op bij 16 leveranciers en bezocht Essent, Eneco, Greenchoice, Frank Energie en Zonneplan. Conclusie: de kosten zijn te onderbouwen, klanten met zonnepanelen betalen niet mee aan andere kosten, maar leveranciers rekenen terugleverkosten "op allerlei verschillende manieren" door. Daardoor zijn contracten lastig naast elkaar te leggen.
+
+## Terugleverkosten 2027 per leverancier: wat is bevestigd?
+
+We nemen alleen bedragen op die we op de eigen website van de leverancier hebben gezien. Let op het verschil in btw en in de datum waarop het tarief is gebaseerd.
+
+| Leverancier | Terugleverkosten 2027 | Terugleververgoeding 2027 | Basis | Bron |
+|---|---|---|---|---|
+| Eneco | € 0,03865 per kWh (incl. btw) | € 0,05058 per kWh (excl. btw) | 1-jarig vast, peildatum 25-02-2026 | [Eneco](https://www.eneco.nl/klantenservice/einde-salderen/rekenvoorbeelden/) |
+| Greenchoice | € 0,05184 per kWh (incl. btw) | € 0,05434 per kWh (incl. btw) | Verwachting, enkeltarief maart 2025 | [Greenchoice](https://www.greenchoice.nl/zonnepanelen/salderen/rekenvoorbeelden/) |
+| Vattenfall | Variabel bedrag per kWh, geen bedrag op de pagina | Bedrag per kWh, minimaal 50% van kale leveringstarief | Hangt af van contracttype | [Vattenfall](https://www.vattenfall.nl/zonnepanelen/salderen/salderingsregeling-2027/) |
+
+Geraadpleegd op 22 november 2026. Andere leveranciers staan er nog niet in, omdat we hun 2027-tarief niet op een eigen bron konden bevestigen. Vergelijkingssites noemen wel bedragen, maar die spreken elkaar tegen.
+
+Bij Greenchoice, waar beide bedragen incl. btw zijn, is het verschil € 0,05434 min € 0,05184, ofwel € 0,0025 per kWh. Dat is een kwart cent netto per teruggeleverde kWh. Bij Eneco kun je de twee bedragen niet zomaar van elkaar aftrekken, omdat het ene incl. en het andere excl. btw is vermeld.
+
+## Hoe vergelijk je terugleverkosten eerlijk?
+
+1. **Zet alles op dezelfde basis.** Incl. of excl. btw, per kWh, voor hetzelfde jaar.
+2. **Reken met je eigen teruglevering.** Op je jaarafrekening of in de app van je slimme meter zie je hoeveel kWh je teruglevert. Vermenigvuldig dat met het netto verschil per kWh.
+3. **Tel je stroomprijs mee.** De Consumentenbond waarschuwt: "Een hoge terugleververgoeding maakt een contract niet vanzelf voordelig." Een leverancier met lage terugleverkosten maar een hoge stroomprijs kan per saldo duurder zijn.
+4. **Kijk hoe lang tarieven vaststaan.** Vattenfall laat variabele tarieven met minstens 30 dagen vooraankondiging wijzigen. Bij een vast contract van na 24 juni 2025 staan vergoeding en kosten vast tot het einde van de vaste periode.
+5. **Zoek naar verborgen posten.** Volgens de Consumentenbond betekent het ontbreken van een aparte post "terugleverkosten" niet automatisch dat terugleveren gratis is.
+
+## Vast, variabel of dynamisch contract?
+
+De ACM noemt dynamische contracten interessanter geworden, omdat klanten daarbij nauwelijks of geen terugleverkosten betalen. Daar staat tegenover dat je per uur een andere prijs betaalt en krijgt. Dat past bij wie verbruik kan verschuiven en schommelingen kan opvangen. Wie zekerheid wil, kiest eerder een vast contract en vergelijkt dan vooral de terugleverkosten per kWh.
+
+## Wat als ik het niet eens ben met mijn terugleverkosten?
+
+De Consumentenbond raadt aan je contract, tariefblad en eventuele wijzigingsberichten na te lezen, je leverancier schriftelijk om uitleg te vragen en bij een klacht ConsuWijzer te raadplegen. De ACM houdt toezicht op de redelijkheid van de tarieven.
+
+## Wat levert vergelijken op?
+
+Hoeveel het scheelt, hangt af van hoeveel je teruglevert. Wie weinig teruglevert, merkt een verschil van een cent per kWh nauwelijks. Wie duizenden kWh per jaar teruglevert, wel. De grootste winst zit meestal in meer zelf gebruiken: zie [zijn zonnepanelen na 2027 nog rendabel?](/nl/guides/zonnepanelen-na-2027-nog-rendabel) en [minimale terugleververgoeding tot 2030](/nl/guides/minimale-terugleververgoeding-tot-2030).
