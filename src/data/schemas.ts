@@ -19,10 +19,10 @@ export type State = z.infer<typeof StateSchema>;
 export const VerificationSchema = z.enum(['agent_sourced', 'human_verified', 'unverified']);
 export type Verification = z.infer<typeof VerificationSchema>;
 
-const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expected YYYY-MM-DD');
+export const IsoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expected YYYY-MM-DD');
 
 /** Provenance fields shared by every sourced record. */
-const provenanceShape = {
+export const provenanceShape = {
   source_url: z.url().nullable(),
   verified_on: IsoDate.nullable(),
   verification: VerificationSchema,
@@ -37,7 +37,7 @@ function hasNumber(value: unknown): boolean {
 }
 
 /** A record that holds any number must be fully sourced. */
-function requireProvenanceWhenNumeric<T extends { source_url: string | null; verified_on: string | null; verification: Verification }>(
+export function requireProvenanceWhenNumeric<T extends { source_url: string | null; verified_on: string | null; verification: Verification }>(
   rec: T,
   ctx: z.RefinementCtx,
 ) {
@@ -49,7 +49,7 @@ function requireProvenanceWhenNumeric<T extends { source_url: string | null; ver
 }
 
 /** An unsourced record must say so: no source and no date. */
-function requireUnverifiedWhenEmpty<T extends { source_url: string | null; verified_on: string | null; verification: Verification }>(
+export function requireUnverifiedWhenEmpty<T extends { source_url: string | null; verified_on: string | null; verification: Verification }>(
   rec: T,
   ctx: z.RefinementCtx,
 ) {
@@ -131,8 +131,8 @@ export const SourcedRangeSchema = z
   });
 export type SourcedRange = z.infer<typeof SourcedRangeSchema>;
 
-export const UtilitySchema = z
-  .object({
+/** Field definitions of a utility (US ids/states). The multi-country schema (schemas-global.ts) reuses them with wider id/state/metering enums. */
+export const utilityShape = {
     id: z.enum(['fpl', 'duke-fl', 'teco', 'pge', 'sce', 'sdge']),
     name: z.string().min(1),
     state: StateSchema,
@@ -175,8 +175,12 @@ export const UtilitySchema = z
     /** Set when the source is undated, old, or internally inconsistent; listed prominently in TODO-VERIFY. */
     source_caveat: z.string().nullable(),
     ...provenanceShape,
-  })
-  .superRefine((u, ctx) => {
+};
+
+type UtilityBase = z.infer<z.ZodObject<typeof utilityShape>>;
+
+/** The cross-field rules, shared by UtilitySchema and the multi-country GlobalUtilitySchema. */
+export function refineUtility(u: Omit<UtilityBase, 'id' | 'state' | 'metering_type'> & { state: string; metering_type: string }, ctx: z.RefinementCtx): void {
     if (u.rate_type === 'tiered') {
       if (!u.tier_sets) ctx.addIssue({ code: 'custom', path: ['tier_sets'], message: 'tiered utilities need tier_sets' });
       else {
@@ -215,7 +219,9 @@ export const UtilitySchema = z
       if (!exportDate) ctx.addIssue({ code: 'custom', path: ['export_credit_verified_on'], message: 'an export credit needs export_credit_verified_on' });
       if (exportVerification === 'unverified') ctx.addIssue({ code: 'custom', path: ['export_credit_verification'], message: 'an export credit cannot be "unverified"' });
     }
-  });
+}
+
+export const UtilitySchema = z.object(utilityShape).superRefine(refineUtility);
 export type Utility = z.infer<typeof UtilitySchema>;
 export type UtilityId = Utility['id'];
 
