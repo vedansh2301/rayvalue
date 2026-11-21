@@ -40,7 +40,7 @@ describe('nurture emails', () => {
   it('email 1 shows the saved estimate and a link back to the calculator', () => {
     const m = renderNurtureEmail(1, ctx())!;
     expect(m.text).toContain('Payback: 12 years likely');
-    expect(m.text).toContain('https://rayvalue.com/calculator/florida');
+    expect(m.text).toContain('https://rayvalue.com/us/solar-payback/florida');
   });
   it('email 4 is state specific', () => {
     expect(renderNurtureEmail(4, ctx({ state: 'FL' }))!.text).toMatch(/outage/i);

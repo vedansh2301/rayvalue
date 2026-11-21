@@ -9,6 +9,7 @@
  *
  * Schedule (src/lib/nurture/schedule.ts): 1 immediately, 2 on day 2, 3 on day 5, 4 on day 10, 5 on day 18.
  */
+import { calcPath } from "../lib/paths";
 import { estimateLines } from '../lib/server/email';
 import type { EstimateSnapshot } from '../lib/leads/validate';
 
@@ -31,7 +32,7 @@ export interface NurtureEmail {
 
 const STATE_NAME = { FL: 'Florida', CA: 'California' } as const;
 
-const calcUrl = (c: NurtureContext) => (c.state ? `${c.siteUrl}/calculator/${STATE_NAME[c.state].toLowerCase()}` : c.siteUrl);
+const calcUrl = (c: NurtureContext) => (c.state ? `${c.siteUrl}${calcPath(c.state)}` : c.siteUrl);
 /** Quotes link prefilled with the state and tagged so the lead's source shows up as nurture email. */
 export function quotesUrl(c: NurtureContext, campaign: string): string {
   const q = new URLSearchParams();

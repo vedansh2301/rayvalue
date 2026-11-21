@@ -3,6 +3,8 @@
  * NAV_MIN_PUBLISHED published (non-draft) items, so the nav never leads to a near-empty section.
  * The routes stay live (and noindex while empty, see the index pages) and the footer still links them.
  */
+import { calcPath } from './paths';
+
 export const NAV_MIN_PUBLISHED = 3;
 
 export interface NavLink {
@@ -12,8 +14,8 @@ export interface NavLink {
 }
 
 const ALWAYS: NavLink[] = [
-  { href: '/calculator/florida', label: 'Florida calculator', short: 'Florida' },
-  { href: '/calculator/california', label: 'California calculator', short: 'California' },
+  { href: calcPath('FL'), label: 'Florida calculator', short: 'Florida' },
+  { href: calcPath('CA'), label: 'California calculator', short: 'California' },
 ];
 
 export function showInNav(publishedCount: number, min: number = NAV_MIN_PUBLISHED): boolean {

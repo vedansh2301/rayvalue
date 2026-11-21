@@ -11,6 +11,7 @@ export function safeJsonLd(obj: unknown): string {
 export const SITE_URL = 'https://rayvalue.com';
 export const SITE_NAME = 'RayValue';
 
+import { calcPath } from '../paths';
 export type State = 'FL' | 'CA';
 export type Crumb = { label: string; href?: string };
 
@@ -86,10 +87,7 @@ export function articleJsonLd(
   };
 }
 
-export const CALCULATOR_PATH: Record<State, string> = {
-  FL: '/calculator/florida',
-  CA: '/calculator/california',
-};
+export const CALCULATOR_PATH: Record<State, string> = { FL: calcPath('FL'), CA: calcPath('CA') };
 const STATE_NAME: Record<State, string> = { FL: 'Florida', CA: 'California' };
 
 export function webApplicationJsonLd(state: State, site: string = SITE_URL) {

@@ -14,6 +14,7 @@ import { isGoPath } from './src/lib/go.ts';
 import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
 import { parseSitemapEntries, renderSitemapXml } from './src/lib/seo/sitemap-xml.ts';
 import { routeRedirects } from './src/lib/content/paths.ts';
+import { taxPath, usRedirects } from './src/lib/paths.ts';
 import { adCspSources, parseAdIds } from './src/lib/ads/config.ts';
 import { trustedFormCsp, trustedFormEnabled } from './src/lib/leads/consent-vendor.ts';
 
@@ -46,10 +47,13 @@ for (const [dir, base] of [['./src/content/guides', '/guides'], ['./src/content/
 // The Florida and California tax pages were briefly blog posts; keep those URLs pointing at the keyword routes.
 const articleRedirects = {
   ...routeRedirects(routed),
-  '/blog/florida-solar-tax-benefits-2026': '/solar-tax-benefits/florida',
-  '/blog/california-solar-tax-benefits-2026': '/solar-tax-benefits/california',
+  '/blog/florida-solar-tax-benefits-2026': taxPath('FL'),
+  '/blog/california-solar-tax-benefits-2026': taxPath('CA'),
 };
-const redirectedPaths = new Set(Object.keys(articleRedirects));
+// Old US paths (/calculator/<state>, /solar/<state>/<utility>, /solar-tax-benefits...) -> /us/ in one hop. City pages
+// (/solar/<state>/<city>) are covered by the vercel.json pattern fallback, so DB cities need no entry here.
+const legacyRedirects = usRedirects(UTILITY_PAGES);
+const redirectedPaths = new Set([...Object.keys(articleRedirects), ...Object.keys(legacyRedirects)]);
 const excludedGuides = excludedGuideUrls(readFlags('./src/content/guides'));
 const excludedBlog = excludedCollectionUrls('/blog', readFlags('./src/content/blog'));
 
@@ -112,7 +116,7 @@ export default defineConfig({
     '/quotes/thanks': '/quotes/thank-you',
     // fl-vs-ca-reel's CTA names rayvalue.com/calculator; the home page links both state calculators.
     '/calculator': '/',
-    ...Object.fromEntries(Object.entries(articleRedirects).map(([from, to]) => [from, { status: 301, destination: to }])),
+    ...Object.fromEntries(Object.entries({ ...articleRedirects, ...legacyRedirects }).map(([from, to]) => [from, { status: 301, destination: to }])),
   },
   // Hashed CSP for every page. With the Vercel adapter's staticHeaders, Astro sends the policy as an HTTP
   // header for prerendered pages too (not a <meta> tag, where frame-ancestors would be ignored), and

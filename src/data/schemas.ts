@@ -295,7 +295,7 @@ export const AssumptionsSchema = z
      * Optional: when the row is missing the city page hides that table ("being verified"); the calculator is unaffected.
      */
     city_example_bills: assumption({ value: z.array(z.number().positive()).min(1).max(6) }).optional(),
-    /** Illustrative monthly bills (USD) for the worked-examples table on utility pages (/solar/<state>/<utility>). Model inputs, not facts. */
+    /** Illustrative monthly bills (USD) for the worked-examples table on utility pages (/us/utility/<state>/<utility>). Model inputs, not facts. */
     utility_example_bills: assumption({ value: z.array(z.number().positive()).min(1).max(6) }).optional(),
     /**
      * California utility pages: the visible note under the rates table (its text is this row's rationale) that the

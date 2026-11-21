@@ -8,7 +8,8 @@
  */
 import { formatYears } from '../../city/view';
 import { formatUsd } from '../../format';
-import { STATE_SLUG, utilityPagePath } from '../../utility/pages';
+import { calcPath } from '../../paths';
+import { utilityPagePath } from '../../utility/pages';
 import { typicalExample, type ExampleResult, type UtilityPageVm } from '../../utility/view';
 import { fig, type Fig, type RefBook } from './refs';
 
@@ -37,7 +38,7 @@ export interface UtilityFacts {
   name: string;
   state: 'FL' | 'CA';
   stateName: string;
-  /** Page path on rayvalue.com, e.g. /solar/florida/fpl */
+  /** Page path on rayvalue.com, e.g. /us/utility/florida/fpl */
   pagePath: string;
   cityName: string | null;
   bill: Fig;
@@ -174,6 +175,6 @@ export function buildBillFacts(vm: UtilityPageVm): BillFacts[] {
     }));
 }
 
-/** "rayvalue.com/solar/florida/fpl" (the address shown on the call-to-action slide). */
+/** "rayvalue.com/us/utility/florida/fpl" (the address shown on the call-to-action slide). */
 export const utilityUrlText = (f: Pick<UtilityFacts, 'pagePath'>) => `rayvalue.com${f.pagePath}`;
-export const calculatorUrlText = (state: 'FL' | 'CA') => `rayvalue.com/calculator/${STATE_SLUG[state]}`;
+export const calculatorUrlText = (state: 'FL' | 'CA') => `rayvalue.com${calcPath(state)}`;

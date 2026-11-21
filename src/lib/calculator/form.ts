@@ -3,9 +3,10 @@
  * messages; the engine (src/lib/calc) re-checks everything and stays the authority.
  */
 import type { State } from '../../data/schemas';
+import { calcPath } from '../paths';
 
 export const STATE_NAMES: Record<State, string> = { FL: 'Florida', CA: 'California' };
-export const CALCULATOR_PATHS: Record<State, string> = { FL: '/calculator/florida', CA: '/calculator/california' };
+export const CALCULATOR_PATHS: Record<State, string> = { FL: calcPath('FL'), CA: calcPath('CA') };
 
 export type BillCheck = { ok: true; value: number } | { ok: false; error: 'empty' | 'not_number' | 'too_low' | 'too_high' };
 

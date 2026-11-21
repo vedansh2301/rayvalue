@@ -30,7 +30,7 @@ describe('rule 5: official wording', () => {
 
 describe('rule 1: numbers trace to data', () => {
   it('extracts reader-visible numbers, skipping years, hashtags, handles, URLs and NEM 3.0', () => {
-    expect(captionNumbers('In 2026 a $24,000 system pays back in 9–12 years (NEM 3.0) #solar2026 @fpl rayvalue.com/calculator/florida 35%')).toEqual(['24000', '9', '12', '35']);
+    expect(captionNumbers('In 2026 a $24,000 system pays back in 9–12 years (NEM 3.0) #solar2026 @fpl rayvalue.com/us/solar-payback/florida 35%')).toEqual(['24000', '9', '12', '35']);
   });
   it('matches against data_refs values, including ranges', () => {
     const refs = [{ table: 'utilities', id: 'fpl', field: 'payback_years', value: '9–12 years' }];

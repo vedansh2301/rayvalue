@@ -256,8 +256,8 @@ describe('handleLead: attribution, dedupe, Do Not Sell, routing, rate limit', ()
 
   it('stores attribution columns (sanitized) sent by the browser', async () => {
     const f = db2();
-    await handleLead(jsonReq({ ...lead, attribution: { utm_source: 'google', utm_medium: 'cpc', gclid: 'G<1>', landing_page: 'https://rayvalue.com/calculator/florida', referrer: 'https://www.google.com/search', evil: 'x' } }), ENV, asFetch(f));
-    expect(posted(f, 'leads')[0]).toMatchObject({ utm_source: 'google', utm_medium: 'cpc', gclid: 'G1', landing_page: 'https://rayvalue.com/calculator/florida', referrer: 'https://www.google.com/search', utm_term: null, fbclid: null });
+    await handleLead(jsonReq({ ...lead, attribution: { utm_source: 'google', utm_medium: 'cpc', gclid: 'G<1>', landing_page: 'https://rayvalue.com/us/solar-payback/florida', referrer: 'https://www.google.com/search', evil: 'x' } }), ENV, asFetch(f));
+    expect(posted(f, 'leads')[0]).toMatchObject({ utm_source: 'google', utm_medium: 'cpc', gclid: 'G1', landing_page: 'https://rayvalue.com/us/solar-payback/florida', referrer: 'https://www.google.com/search', utm_term: null, fbclid: null });
     expect(posted(f, 'leads')[0]).not.toHaveProperty('evil');
   });
 

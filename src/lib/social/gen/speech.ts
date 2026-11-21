@@ -4,7 +4,7 @@
  *   "$30,900 to $53,500"               -> "thirty thousand nine hundred to fifty-three thousand five hundred dollars"
  *   "10.5 to 15.5"                     -> "ten and a half to fifteen and a half"
  *   "12.4 kilowatts"                   -> "twelve point four kilowatts"
- *   "rayvalue.com/calculator/florida"  -> "Ray Value dot com slash calculator slash Florida"
+ *   "rayvalue.com/us/solar-payback/florida"  -> "Ray Value dot com slash U S slash solar payback slash Florida"
  *   "PG&E", "SDG&E", "FPL"             -> "P G and E", "S D G and E", "F P L"
  *   em-dash                            -> a comma pause
  * No number is added, dropped or rounded: every figure is spelled out exactly as written.
@@ -104,6 +104,7 @@ const LEXICON: [RegExp, string][] = [
 /** URL path segments with their own pronunciation (utility page slugs). */
 const URL_WORDS: Record<string, string> = {
   rayvalue: 'Ray Value',
+  us: 'U S',
   fpl: 'F P L',
   teco: 'Teeko',
   pge: 'P G and E',

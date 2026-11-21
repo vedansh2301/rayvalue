@@ -34,7 +34,7 @@ export interface Slide {
   rows?: Row[];
   lines?: string[];
   bullets?: string[];
-  /** Call-to-action address shown as a pill, e.g. "rayvalue.com/solar/florida/fpl". */
+  /** Call-to-action address shown as a pill, e.g. "rayvalue.com/us/utility/florida/fpl". */
   url?: string;
   /** Small print at the bottom (estimates disclaimer, data date). */
   footer?: string[];

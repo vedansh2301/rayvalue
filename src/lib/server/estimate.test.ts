@@ -90,7 +90,7 @@ describe('email adapter', () => {
   it('builds a ranges-only plain text email; null without an estimate', () => {
     const m = buildEstimateEmail('a@b.co', snap, 'Florida')!;
     expect(m.text).toContain('Payback: 14 years likely (11.5 years to 16.5 years)');
-    expect(m.text).toContain('https://rayvalue.com/calculator/florida');
+    expect(m.text).toContain('https://rayvalue.com/us/solar-payback/florida');
     expect(m.text).toContain('No federal tax credit is applied');
     expect(m.text).toContain('https://rayvalue.com/privacy/request');
     expect(buildEstimateEmail('a@b.co', null, null)).toBeNull();

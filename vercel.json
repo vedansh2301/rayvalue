@@ -5,6 +5,13 @@
     { "path": "/api/cron/deliveries", "schedule": "0 14 * * *" },
     { "path": "/api/cron/nurture", "schedule": "0 15 * * *" }
   ],
+  "redirects": [
+    {
+      "source": "/solar/:state(florida|california)/:city((?!(?:fpl|duke-energy-florida|teco|pge|sce|sdge)$)[^/]+)",
+      "destination": "/us/solar-payback/:state/:city",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/admin/:path*",

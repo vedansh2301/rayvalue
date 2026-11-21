@@ -14,9 +14,8 @@ type Freq = 'daily' | 'weekly' | 'monthly';
 /** changefreq + priority for a path (no trailing slash; "/" for home). */
 export function sitemapRank(path: string): { changefreq: Freq; priority: string } {
   if (path === '/') return { changefreq: 'daily', priority: '1.0' };
-  if (path.startsWith('/calculator/') || path === '/quotes') return { changefreq: 'weekly', priority: '0.9' };
-  if (path.startsWith('/solar/')) return { changefreq: 'weekly', priority: '0.9' };
-  if (path === '/solar-tax-benefits' || path.startsWith('/solar-tax-benefits/')) return { changefreq: 'weekly', priority: '0.9' };
+  if (path === '/quotes' || path.startsWith('/us/solar-payback/') || path.startsWith('/us/utility/')) return { changefreq: 'weekly', priority: '0.9' };
+  if (path === '/us/solar-tax-benefits' || path.startsWith('/us/solar-tax-benefits/')) return { changefreq: 'weekly', priority: '0.9' };
   if (path === '/guides' || path === '/blog' || path === '/stories') return { changefreq: 'weekly', priority: '0.8' };
   if (path.startsWith('/guides/') || path.startsWith('/blog/')) return { changefreq: 'monthly', priority: '0.8' };
   return { changefreq: 'monthly', priority: '0.5' };

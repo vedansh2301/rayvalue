@@ -6,14 +6,14 @@ const city = (state: 'FL' | 'CA', slug: string, name: string, published: boolean
   ({ state, slug, name, published, default_utility_id: utility }) as unknown as City;
 
 describe('cityLinksFrom', () => {
-  it('links only published cities, sorted by state then name, at /solar/<state>/<slug>', () => {
+  it('links only published cities, sorted by state then name, at /us/solar-payback/<state>/<slug>', () => {
     const links = cityLinksFrom([
       city('FL', 'tampa', 'Tampa', true, 'teco'),
       city('CA', 'fresno', 'Fresno', true, 'pge'),
       city('FL', 'miami', 'Miami', true),
       city('FL', 'brandon', 'Brandon', false),
     ]);
-    expect(links.map((l) => l.href)).toEqual(['/solar/california/fresno', '/solar/florida/miami', '/solar/florida/tampa']);
+    expect(links.map((l) => l.href)).toEqual(['/us/solar-payback/california/fresno', '/us/solar-payback/florida/miami', '/us/solar-payback/florida/tampa']);
     expect(links[2]).toMatchObject({ name: 'Tampa', utilityId: 'teco', state: 'FL' });
   });
 

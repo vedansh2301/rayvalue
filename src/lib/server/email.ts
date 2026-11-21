@@ -4,6 +4,7 @@
  * Plain text only; every value interpolated into a message is a short snapshot string already limited by
  * parseSnapshot, so a visitor cannot use the endpoint to send arbitrary content.
  */
+import { calcPath } from "../paths";
 import type { EstimateSnapshot, SnapshotValue } from '../leads/validate';
 
 export interface EmailEnv {
@@ -67,7 +68,7 @@ export function buildEstimateEmail(
 ): EmailMessage | null {
   const rows = estimateLines(snapshot);
   if (!rows.length) return null;
-  const calc = stateName ? `${siteUrl}/calculator/${stateName.toLowerCase()}` : siteUrl;
+  const calc = stateName ? `${siteUrl}${calcPath(stateName.toLowerCase())}` : siteUrl;
   return {
     to,
     subject: 'Your RayValue solar estimate',

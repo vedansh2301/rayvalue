@@ -7,6 +7,7 @@ import { calculate } from '../calc';
 import type { CalcSuccess } from '../calc';
 import { isHttpUrl, formatRate, pickProduction, utilityRateRows, type RateRow } from '../city/view';
 import type { FaqItem } from '../content/faq';
+import { calcPath } from "../paths";
 import { STATE_SLUG, UTILITY_PAGES, type UtilityPageMeta } from './pages';
 
 /** California only: the stored note (a model_assumptions rationale) about the modeled schedule being a pre-solar proxy. */
@@ -196,7 +197,7 @@ export function buildUtilityPage(i: UtilityPageInput): UtilityPageVm | null {
     analysisYears: i.assumptions.analysis_years.value,
     faq: utilityFaq(utility, i.meta, repCity),
     indexable: isIndexable(examples),
-    calcHref: `/calculator/${stateSlug}?utility=${utility.id}`,
+    calcHref: `${calcPath(stateSlug)}?utility=${utility.id}`,
     quotesHref: `/quotes?state=${i.meta.state}&source=utility:${i.meta.slug}`,
     otherPages: UTILITY_PAGES.filter((p) => p.state === i.meta.state && p.slug !== i.meta.slug),
   };

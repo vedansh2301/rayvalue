@@ -55,9 +55,9 @@ describe('speakable: the forms the Reel copy uses', () => {
     ['8.5 kW', 'eight and a half kilowatts'],
     ['900 kWh', 'nine hundred kilowatt hours'],
     ['30%', 'thirty percent'],
-    ['rayvalue.com/calculator/florida', 'Ray Value dot com slash calculator slash Florida'],
-    ['rayvalue.com/solar/california/sdge', 'Ray Value dot com slash solar slash California slash S D G and E'],
-    ['rayvalue.com/solar/florida/duke-energy-florida', 'Ray Value dot com slash solar slash Florida slash duke energy florida'],
+    ['rayvalue.com/us/solar-payback/florida', 'Ray Value dot com slash U S slash solar payback slash Florida'],
+    ['rayvalue.com/us/utility/california/sdge', 'Ray Value dot com slash U S slash utility slash California slash S D G and E'],
+    ['rayvalue.com/us/utility/florida/duke-energy-florida', 'Ray Value dot com slash U S slash utility slash Florida slash duke energy florida'],
     ['rayvalue.com', 'Ray Value dot com'],
     ['PG&E', 'P G and E'],
     ['SDG&E', 'S D G and E'],
@@ -76,8 +76,8 @@ describe('speakable: the forms the Reel copy uses', () => {
     expect(speakable('A system for that bill runs about $30,900 to $53,500 installed, depending on the utility.')).toBe(
       'A system for that bill runs about thirty thousand nine hundred to fifty-three thousand five hundred dollars installed, depending on the utility.',
     );
-    expect(speakable('Every home is different. Run your own numbers free at rayvalue.com/calculator/florida.')).toBe(
-      'Every home is different. Run your own numbers free at Ray Value dot com slash calculator slash Florida.',
+    expect(speakable('Every home is different. Run your own numbers free at rayvalue.com/us/solar-payback/florida.')).toBe(
+      'Every home is different. Run your own numbers free at Ray Value dot com slash U S slash solar payback slash Florida.',
     );
     expect(speakable('A typical PG&E home needs about 12.4 kilowatts of solar: $30,900 to $53,500 installed.')).toBe(
       'A typical P G and E home needs about twelve point four kilowatts of solar: thirty thousand nine hundred to fifty-three thousand five hundred dollars installed.',

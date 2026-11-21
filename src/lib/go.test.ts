@@ -6,7 +6,7 @@ describe('/go landing pages', () => {
   it('are /go/fl and /go/ca', () => {
     expect(GO_PAGES.map((g) => g.path)).toEqual(['/go/fl', '/go/ca']);
     expect(isGoPath('/go/fl/')).toBe(true);
-    expect(isGoPath('/calculator/florida')).toBe(false);
+    expect(isGoPath('/us/solar-payback/florida')).toBe(false);
   });
   it('FAQ ids exist', () => {
     expect(faqItems(GO_FAQ_IDS)).toHaveLength(GO_FAQ_IDS.length);

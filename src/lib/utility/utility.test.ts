@@ -11,8 +11,8 @@ import type { CityProduction, Assumptions } from '../../data/schemas';
 describe('utility page metadata', () => {
   it('has the six guide URLs', () => {
     expect(UTILITY_PAGES.map(utilityPagePath)).toEqual([
-      '/solar/florida/fpl', '/solar/florida/duke-energy-florida', '/solar/florida/teco',
-      '/solar/california/pge', '/solar/california/sce', '/solar/california/sdge',
+      '/us/utility/florida/fpl', '/us/utility/florida/duke-energy-florida', '/us/utility/florida/teco',
+      '/us/utility/california/pge', '/us/utility/california/sce', '/us/utility/california/sdge',
     ]);
   });
   it('full title is 50-60 chars and description 150-160 chars', () => {
@@ -52,7 +52,7 @@ describe('buildUtilityPage', () => {
     expect(vm.indexable).toBe(true);
     const [solar, batt] = [vm.examples[0]!.result!, vm.examples[1]!.result!];
     expect(batt.cost.likely).toBeGreaterThan(solar.cost.likely);
-    expect(vm.calcHref).toBe('/calculator/florida?utility=fpl');
+    expect(vm.calcHref).toBe('/us/solar-payback/florida?utility=fpl');
     expect(vm.quotesHref).toBe('/quotes?state=FL&source=utility:fpl');
     expect(vm.otherPages.map((p) => p.slug)).toEqual(['duke-energy-florida', 'teco']);
   });
@@ -109,7 +109,7 @@ describe('getIndexableUtilityUrls', () => {
       const vm = buildUtilityPage(input('fpl'))!;
       return slug === 'fpl' ? { kind: 'ok', vm } : slug === 'teco' ? { kind: 'ok', vm: { ...vm, indexable: false } } : { kind: 'unavailable', meta: vm.meta, error: null };
     });
-    expect(urls).toEqual(['https://rayvalue.com/solar/florida/fpl']);
+    expect(urls).toEqual(['https://rayvalue.com/us/utility/florida/fpl']);
   });
 });
 

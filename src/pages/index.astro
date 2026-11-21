@@ -27,8 +27,8 @@ const forYou = [
 ];
 
 const states = [
-  { name: 'Florida', code: 'FL', icon: 'florida' as IconName, fact: 'Net metering \u00b7 tiered rates', href: '/calculator/florida', blurb: 'Florida utilities credit the solar you send to the grid through net metering, and we price it through your utility\u2019s own tiered rates. See what rooftop solar and a battery are worth on FPL, Duke Energy Florida or TECO.' },
-  { name: 'California', code: 'CA', icon: 'california' as IconName, fact: 'NEM 3.0 \u00b7 batteries matter', href: '/calculator/california', blurb: 'Export credits and self-consumption shape the math here. See how solar and a battery affect payback on PG&E, SCE or SDG&E.' },
+  { name: 'Florida', code: 'FL', icon: 'florida' as IconName, fact: 'Net metering \u00b7 tiered rates', href: '/us/solar-payback/florida', blurb: 'Florida utilities credit the solar you send to the grid through net metering, and we price it through your utility\u2019s own tiered rates. See what rooftop solar and a battery are worth on FPL, Duke Energy Florida or TECO.' },
+  { name: 'California', code: 'CA', icon: 'california' as IconName, fact: 'NEM 3.0 \u00b7 batteries matter', href: '/us/solar-payback/california', blurb: 'Export credits and self-consumption shape the math here. See how solar and a battery affect payback on PG&E, SCE or SDG&E.' },
 ];
 const steps: { title: string; body: string; icon: IconName }[] = [
   { icon: 'clipboard', title: 'Tell us about your home', body: 'Pick your state and utility, then enter your average monthly bill and whether you want a battery.' },
@@ -56,8 +56,8 @@ const steps: { title: string; body: string; icon: IconName }[] = [
         <div role="group" aria-labelledby="hero-state-label" class="flex flex-col gap-2">
           <p id="hero-state-label" class="text-sm font-medium text-stone-700">Pick your state to start</p>
           <div class="flex flex-col gap-2 sm:flex-row">
-            <a href="/calculator/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
-            <a href="/calculator/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
+            <a href="/us/solar-payback/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
+            <a href="/us/solar-payback/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
           </div>
         </div>
         <p class="mt-2"><a href="/quotes?source=home" class={btnText}>Get installer quotes <span aria-hidden="true">&rarr;</span></a></p>
@@ -185,8 +185,8 @@ const steps: { title: string; body: string; icon: IconName }[] = [
       <h2 id="closing-cta" class="text-2xl font-bold tracking-tight text-stone-900">Ready to see your numbers?</h2>
       <p class="mt-2 max-w-(--container-prose) text-stone-800">It takes about a minute, it&rsquo;s free, and no federal tax credit is assumed.</p>
       <div class="mt-5 flex flex-col gap-2 sm:flex-row">
-        <a href="/calculator/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
-        <a href="/calculator/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
+        <a href="/us/solar-payback/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
+        <a href="/us/solar-payback/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
       </div>
       <p class="mt-3"><a href="/quotes?source=home" class={btnText}>or get installer quotes</a></p>
     </div>

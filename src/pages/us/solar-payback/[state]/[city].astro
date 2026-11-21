@@ -1,14 +1,15 @@
 ---
 export const prerender = false;
 
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-import Breadcrumbs from '../../../components/Breadcrumbs.astro';
-import RateTable from '../../../components/city/RateTable.astro';
-import ProductionChart from '../../../components/city/ProductionChart.astro';
-import ExamplePayback from '../../../components/city/ExamplePayback.astro';
-import HousingFacts from '../../../components/city/HousingFacts.astro';
-import { btnPrimary, btnSecondary } from '../../../components/ui/buttons';
-import { DB_PAGE_CACHE_HEADERS, loadCalcConfig, loadCities, loadCity, loadCityHousing, loadProduction } from '../../../lib/db/repo';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
+import { calcPath, cityPath } from '../../../../lib/paths';
+import RateTable from '../../../../components/city/RateTable.astro';
+import ProductionChart from '../../../../components/city/ProductionChart.astro';
+import ExamplePayback from '../../../../components/city/ExamplePayback.astro';
+import HousingFacts from '../../../../components/city/HousingFacts.astro';
+import { btnPrimary, btnSecondary } from '../../../../components/ui/buttons';
+import { DB_PAGE_CACHE_HEADERS, loadCalcConfig, loadCities, loadCity, loadCityHousing, loadProduction } from '../../../../lib/db/repo';
 import {
   STATE_NAMES,
   exampleBills,
@@ -18,7 +19,7 @@ import {
   sunRank,
   slugFromState,
   stateFromSlug,
-} from '../../../lib/city/view';
+} from '../../../../lib/city/view';
 
 const state = stateFromSlug(Astro.params.state);
 const slug = Astro.params.city ?? '';
@@ -63,8 +64,8 @@ else if (status === 'unavailable') {
   Astro.response.headers.set('CDN-Cache-Control', 'public, s-maxage=60');
 } else for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
 
-const path = `/solar/${stateSlug}/${slug}`;
-const calcHref = `/calculator/${stateSlug}`;
+const path = cityPath(stateSlug, slug);
+const calcHref = calcPath(stateSlug);
 // The city's ZIP (its ZCTA) prefills the quote form when it is a valid 5-digit ZIP; otherwise none.
 const quotesParams = new URLSearchParams({ state: state ?? 'FL', source: `city:${stateSlug}/${slug}` });
 if (city && /^\d{5}$/.test(city.coords_zcta ?? '')) quotesParams.set('zip', city.coords_zcta);
@@ -129,7 +130,7 @@ const quotesHref = `/quotes?${quotesParams.toString()}`;
       {otherCities.length > 0 && (
         <nav aria-label={`Other ${stateName} cities`} class="mt-10">
           <h2>Other {stateName} cities</h2>
-          <ul class="flex flex-wrap gap-x-4">{otherCities.map((c) => <li><a href={`/solar/${stateSlug}/${c.slug}`}>{c.name}</a></li>)}</ul>
+          <ul class="flex flex-wrap gap-x-4">{otherCities.map((c) => <li><a href={cityPath(stateSlug, c.slug)}>{c.name}</a></li>)}</ul>
         </nav>
       )}
     </div>

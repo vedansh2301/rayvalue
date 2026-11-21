@@ -6,7 +6,7 @@ describe('sanitizeEvent', () => {
     expect(Object.keys(EVENT_PROPS).sort()).toEqual(
       ['calc_complete', 'calc_start', 'calc_step', 'call_click', 'nav_click', 'phone_verified', 'quote_form_start', 'quote_submit', 'results_cta_click'].sort(),
     );
-    expect(sanitizeEvent('nav_click', { placement: 'footer', target: '/calculator/florida' })).toEqual({ placement: 'footer', target: '/calculator/florida' });
+    expect(sanitizeEvent('nav_click', { placement: 'footer', target: '/us/solar-payback/florida' })).toEqual({ placement: 'footer', target: '/us/solar-payback/florida' });
     expect(isEventName('calc_start')).toBe(true);
     expect(isEventName('toString')).toBe(false);
     expect(sanitizeEvent('page_view')).toBeNull();

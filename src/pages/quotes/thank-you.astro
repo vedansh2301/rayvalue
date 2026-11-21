@@ -46,7 +46,7 @@ const checklist = [
         ))}
       </ol>
 
-      <p class="not-prose mt-6"><a id="ty-calc" href="/calculator/florida" class={btnPrimary}>See your payback range while you wait<span aria-hidden="true">&rarr;</span></a></p>
+      <p class="not-prose mt-6"><a id="ty-calc" href="/us/solar-payback/florida" class={btnPrimary}>See your payback range while you wait<span aria-hidden="true">&rarr;</span></a></p>
 
       <section id="ty-serviced" hidden>
         <h2>What happens next</h2>
@@ -103,7 +103,7 @@ const checklist = [
       <p>Something went wrong, or a field wasn&rsquo;t filled in correctly. Please <a href="/quotes">go back and try again</a>.</p>
     </div>
 
-    <p class="mt-10">While you wait: run the <a href="/calculator/florida">Florida calculator</a> or the <a href="/calculator/california">California calculator</a>, or read the <a href="/methodology">methodology</a> behind the numbers.</p>
+    <p class="mt-10">While you wait: run the <a href="/us/solar-payback/florida">Florida calculator</a> or the <a href="/us/solar-payback/california">California calculator</a>, or read the <a href="/methodology">methodology</a> behind the numbers.</p>
   </div>
   <script>
     // Bundled (not inline) so it is covered by the CSP script hashes.
@@ -118,7 +118,7 @@ const checklist = [
     } else {
       const s = readSummary();
       if (s) {
-        if (s.state === 'CA') ($('ty-calc') as HTMLAnchorElement).href = '/calculator/california';
+        if (s.state === 'CA') ($('ty-calc') as HTMLAnchorElement).href = '/us/solar-payback/california';
         $('ty-hello')!.textContent = `Thanks, ${s.firstName}! Your request is in`;
         $('ty-generic')!.hidden = true;
         if (s.status === 'unserviced' || !s.serviced) {

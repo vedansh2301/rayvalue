@@ -8,14 +8,14 @@ describe('getPublishedCityUrls', () => {
   it('returns absolute URLs and queries only published cities', async () => {
     const f = json([{ state: 'FL', slug: 'miami' }, { state: 'CA', slug: 'san-diego' }]);
     expect(await getPublishedCityUrls({ ...base, fetch: f as never })).toEqual([
-      'https://rayvalue.com/solar/florida/miami',
-      'https://rayvalue.com/solar/california/san-diego',
+      'https://rayvalue.com/us/solar-payback/florida/miami',
+      'https://rayvalue.com/us/solar-payback/california/san-diego',
     ]);
     expect(String((f.mock.calls as unknown as [URL][])[0]![0])).toContain('published=is.true');
   });
   it('skips malformed rows', async () => {
     const f = json([{ state: 'TX', slug: 'a' }, { state: 'FL', slug: '../x' }, null, { state: 'FL', slug: 'ok' }]);
-    expect(await getPublishedCityUrls({ ...base, fetch: f as never })).toEqual(['https://rayvalue.com/solar/florida/ok']);
+    expect(await getPublishedCityUrls({ ...base, fetch: f as never })).toEqual(['https://rayvalue.com/us/solar-payback/florida/ok']);
   });
   it('returns [] on missing env, http error, bad body, or network failure', async () => {
     expect(await getPublishedCityUrls({ url: '', key: '' })).toEqual([]);

@@ -27,7 +27,7 @@ const guides = defineCollection({
     draft: z.boolean().optional(),
     /** Owner-facing notes (unverified items, missing sources). Never rendered. */
     todo: z.array(z.string()).optional(),
-    /** Optional keyword URL (e.g. /solar-tax-benefits/florida) instead of /guides/<id>; the old path 301-redirects to it. */
+    /** Optional keyword URL (e.g. /us/solar-tax-benefits/florida) instead of /guides/<id>; the old path 301-redirects to it. */
     route: z.string().regex(/^\/[a-z0-9-]+(\/[a-z0-9-]+)*$/).optional(),
     /** Default true: guides are not indexed (noindex + not in sitemap) until the owner sets false. */
     noindex: z.boolean().default(true),

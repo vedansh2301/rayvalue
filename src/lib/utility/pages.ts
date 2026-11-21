@@ -1,9 +1,10 @@
 /**
- * Utility pages: /solar/<state>/<utility>. This is routing and copy metadata only (slugs, display names, titles);
+ * Utility pages: /us/utility/<state>/<utility>. This is routing and copy metadata only (slugs, display names, titles);
  * every rate, cost and assumption shown on the page comes from the database (see view.ts).
- * Static routes win over /solar/[state]/[city], so these slugs are reserved: no city may use one.
+ * Static routes win over /us/solar-payback/[state]/[city], so these slugs are reserved: no city may use one.
  */
 import type { Utility } from '../../data/schemas';
+import { STATE_SLUG, utilityPath } from '../paths';
 
 export interface UtilityPageMeta {
   slug: string;
@@ -50,7 +51,7 @@ export const UTILITY_PAGES: readonly UtilityPageMeta[] = [
   },
 ];
 
-export const STATE_SLUG = { FL: 'florida', CA: 'california' } as const;
+export { STATE_SLUG };
 
 /** Slugs a city page must never use (the static utility route would shadow it). */
 export const RESERVED_CITY_SLUGS: ReadonlySet<string> = new Set(UTILITY_PAGES.map((p) => p.slug));
@@ -58,5 +59,5 @@ export const RESERVED_CITY_SLUGS: ReadonlySet<string> = new Set(UTILITY_PAGES.ma
 export const utilityPageByPath = (state: 'FL' | 'CA', slug: string): UtilityPageMeta | null =>
   UTILITY_PAGES.find((p) => p.state === state && p.slug === slug) ?? null;
 
-export const utilityPagePath = (p: UtilityPageMeta): string => `/solar/${STATE_SLUG[p.state]}/${p.slug}`;
+export const utilityPagePath = (p: UtilityPageMeta): string => utilityPath(p.state, p.slug);
 export const utilityPagesForState = (state: 'FL' | 'CA'): UtilityPageMeta[] => UTILITY_PAGES.filter((p) => p.state === state);

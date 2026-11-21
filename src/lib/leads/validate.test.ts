@@ -18,7 +18,7 @@ export const good = {
   phone: '(305) 201-0123',
   consent: 'on',
   source: 'results',
-  page_path: '/calculator/florida?zip=33101&bill=200',
+  page_path: '/us/solar-payback/florida?zip=33101&bill=200',
 };
 
 describe('normalizePhone', () => {
@@ -131,7 +131,7 @@ describe('validateLead', () => {
       bill_bucket: '150_200',
       utility_id: 'fpl',
       source: 'results',
-      page_path: '/calculator/florida',
+      page_path: '/us/solar-payback/florida',
       avg_monthly_bill: null,
       battery: null,
       estimate_snapshot: null,

@@ -131,7 +131,7 @@ const web = (over: Partial<WebsiteLead> = {}): WebsiteLead => ({
   utm_medium: 'paid',
   utm_campaign: 'fl_reel',
   fbclid: 'x',
-  landing_page: '/calculator/florida',
+  landing_page: '/us/solar-payback/florida',
   ...over,
 });
 
@@ -141,7 +141,7 @@ describe('unify + breakdown', () => {
   it('sorts newest first and marks the origin', () => {
     expect(rows.map((r) => r.id)).toEqual(['L1', 'W1', 'W2']);
     expect(rows[0]).toMatchObject({ origin: 'meta_form', source: 'meta_instant_form', state: 'FL', homeowner: 'no', utmCampaign: null, status: 'meta_form (not routed)' });
-    expect(rows[1]).toMatchObject({ origin: 'website', homeowner: 'yes', utmCampaign: 'fl_reel', detail: 'landed /calculator/florida · fbclid' });
+    expect(rows[1]).toMatchObject({ origin: 'website', homeowner: 'yes', utmCampaign: 'fl_reel', detail: 'landed /us/solar-payback/florida · fbclid' });
   });
   it('counts by field with Meta / website split, empty values as (none)', () => {
     expect(breakdown(rows, 'utmCampaign')).toEqual([

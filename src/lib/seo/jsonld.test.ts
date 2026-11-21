@@ -54,7 +54,7 @@ describe('jsonld', () => {
     expect(w.offers.price).toBe(0);
     expect(w.isAccessibleForFree).toBe(true);
     expect(w.offers.price).toBe(0);
-    expect(w.url).toBe('https://rayvalue.com/calculator/florida');
+    expect(w.url).toBe('https://rayvalue.com/us/solar-payback/florida');
   });
   it('calculatorsForState', () => {
     expect(calculatorsForState('both').map((c) => c.state)).toEqual(['FL', 'CA']);

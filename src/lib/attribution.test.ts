@@ -10,8 +10,8 @@ const win = (search: string, href: string, referrer: string, s: Storage = store(
 
 describe('parseAttribution', () => {
   it('reads UTMs and click ids; landing page and referrer drop query strings', () => {
-    const a = parseAttribution('?utm_source=google&utm_medium=cpc&utm_campaign=fl&utm_term=solar+cost&utm_content=a&gclid=G1&fbclid=F1&zip=33101', 'https://rayvalue.com/calculator/florida?zip=33101', 'https://www.google.com/search?q=x');
-    expect(a).toEqual({ utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'fl', utm_term: 'solar cost', utm_content: 'a', gclid: 'G1', fbclid: 'F1', landing_page: 'https://rayvalue.com/calculator/florida', referrer: 'https://www.google.com/search' });
+    const a = parseAttribution('?utm_source=google&utm_medium=cpc&utm_campaign=fl&utm_term=solar+cost&utm_content=a&gclid=G1&fbclid=F1&zip=33101', 'https://rayvalue.com/us/solar-payback/florida?zip=33101', 'https://www.google.com/search?q=x');
+    expect(a).toEqual({ utm_source: 'google', utm_medium: 'cpc', utm_campaign: 'fl', utm_term: 'solar cost', utm_content: 'a', gclid: 'G1', fbclid: 'F1', landing_page: 'https://rayvalue.com/us/solar-payback/florida', referrer: 'https://www.google.com/search' });
   });
   it('omits an own-site or missing referrer and absent params', () => {
     expect(parseAttribution('', 'https://rayvalue.com/', 'https://rayvalue.com/guides')).toEqual({ landing_page: 'https://rayvalue.com/' });

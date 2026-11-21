@@ -215,7 +215,7 @@ describe.each(posts)('%s (%s)', (key, channel, build) => {
 
   it('has the CTA with the page path', () => {
     const last = post.slides[post.slides.length - 1]!;
-    expect(last.url).toMatch(/^rayvalue\.com\/(solar\/(florida|california)\/[a-z-]+|calculator\/(florida|california))$/);
+    expect(last.url).toMatch(/^rayvalue\.com\/us\/(utility\/(florida|california)\/[a-z-]+|solar-payback\/(florida|california))$/);
   });
 
   it('alt text is within the database limit', () => {
@@ -279,8 +279,8 @@ describe('per-channel posts', () => {
     expect(seedHash('abc')).toBe(seedHash('abc'));
     const many = assignPhotos('FL', 'x', ['hook', 'payback', 'payback', 'payback', 'payback', 'payback', 'payback', 'cta']);
     for (let i = 1; i < many.length; i++) expect(many[i]).not.toBe(many[i - 1]);
-    expect(facebookLink('rayvalue.com/solar/florida/fpl', 'utility-payback-reel')).toBe(
-      'https://rayvalue.com/solar/florida/fpl?utm_source=facebook&utm_medium=social&utm_campaign=utility-payback-reel',
+    expect(facebookLink('rayvalue.com/us/utility/florida/fpl', 'utility-payback-reel')).toBe(
+      'https://rayvalue.com/us/utility/florida/fpl?utm_source=facebook&utm_medium=social&utm_campaign=utility-payback-reel',
     );
   });
 
@@ -299,7 +299,7 @@ describe('utility facts use the same numbers as the utility page', () => {
     expect(f.solar.cost.low.text).toBe(`$${t.result.cost.low.toLocaleString('en-US')}`);
     expect(f.solar.size.text).toBe(`${t.result.size.likely} kW`);
     expect(f.solar.payback.likely.text).toBe(`${t.result.paybackYears.likely} yrs`);
-    expect(f.pagePath).toBe('/solar/florida/fpl');
+    expect(f.pagePath).toBe('/us/utility/florida/fpl');
   });
 
   it('returns null (and the builders throw) when the page has no real example', () => {

@@ -1,20 +1,21 @@
 ---
 import { publishedCityLinks } from '../lib/seo/city-links';
+import { calcPath } from '../lib/paths';
 import { utilityPagePath, utilityPagesForState } from '../lib/utility/pages';
 const { legalOnly = false } = Astro.props as { legalOnly?: boolean };
 // Solar payback by state: calculator, utility pages and every published city page (the same list as the sitemap).
 const cityLinks = legalOnly ? [] : await publishedCityLinks();
 const byState = (['FL', 'CA'] as const).map((st) => ({
   name: st === 'FL' ? 'Florida' : 'California',
-  calc: `/calculator/${st === 'FL' ? 'florida' : 'california'}`,
+  calc: calcPath(st),
   utilities: utilityPagesForState(st).map((p) => ({ href: utilityPagePath(p), label: p.short })),
   cities: cityLinks.filter((c) => c.state === st).map((c) => ({ href: c.href, label: c.name })),
 }));
 type Link = { href: string; label: string };
 const columns: { title: string; links: Link[] }[] = [
   { title: 'Calculators', links: [
-    { href: '/calculator/florida', label: 'Florida calculator' },
-    { href: '/calculator/california', label: 'California calculator' },
+    { href: '/us/solar-payback/florida', label: 'Florida calculator' },
+    { href: '/us/solar-payback/california', label: 'California calculator' },
     { href: '/quotes', label: 'Get installer quotes' },
   ] },
   { title: 'Learn', links: [

@@ -5,14 +5,15 @@
  */
 import { loadCities } from '../db/repo';
 import type { City, State } from '../../data/schemas';
-import { RESERVED_CITY_SLUGS, STATE_SLUG } from '../utility/pages';
+import { cityPath } from '../paths';
+import { RESERVED_CITY_SLUGS } from '../utility/pages';
 
 export interface CityLink { state: State; slug: string; name: string; utilityId: string; href: string }
 
 export function cityLinksFrom(cities: readonly City[]): CityLink[] {
   return cities
     .filter((c) => c.published && !RESERVED_CITY_SLUGS.has(c.slug))
-    .map((c) => ({ state: c.state, slug: c.slug, name: c.name, utilityId: c.default_utility_id, href: `/solar/${STATE_SLUG[c.state]}/${c.slug}` }))
+    .map((c) => ({ state: c.state, slug: c.slug, name: c.name, utilityId: c.default_utility_id, href: cityPath(c.state, c.slug) }))
     .sort((a, b) => a.state.localeCompare(b.state) || a.name.localeCompare(b.name));
 }
 
