@@ -160,7 +160,19 @@ export function housingFacts(h: CityHousing | null): HousingFact[] {
   return out;
 }
 
-export interface SunRank { annual: number; rank: number; total: number; min: number; max: number }
+/** Wording threshold (not a modelled number): below this relative spread the page says sun varies little across the state. */
+export const SMALL_SPREAD = 0.1;
+
+export interface SunRank {
+  annual: number; rank: number; total: number; min: number; max: number;
+  /** (max - min) / min as a whole percent. */
+  spreadPct: number;
+  /** True when (max - min) / min < SMALL_SPREAD. */
+  smallSpread: boolean;
+}
+
+/** 1 -> "1st", 2 -> "2nd", 11 -> "11th". */
+export const ordinal = (n: number): string => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th');
 
 /**
  * Where a city's solar output (PVWatts, 1 kW, the page's shading assumption) ranks among the given cities of the same
@@ -173,5 +185,8 @@ export function sunRank(rows: readonly CityProduction[], assumptions: Assumption
   const mine = annual.get(slug);
   if (mine === undefined || annual.size < 2) return null;
   const values = [...annual.values()];
-  return { annual: mine, rank: values.filter((v) => v > mine).length + 1, total: values.length, min: Math.min(...values), max: Math.max(...values) };
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const spread = (max - min) / min;
+  return { annual: mine, rank: values.filter((v) => v > mine).length + 1, total: values.length, min, max, spreadPct: Math.round(spread * 100), smallSpread: spread < SMALL_SPREAD };
 }

@@ -8,6 +8,10 @@ import RateTable from '../../../../components/city/RateTable.astro';
 import ProductionChart from '../../../../components/city/ProductionChart.astro';
 import ExamplePayback from '../../../../components/city/ExamplePayback.astro';
 import HousingFacts from '../../../../components/city/HousingFacts.astro';
+import KeyNumbers from '../../../../components/seo/KeyNumbers.astro';
+import { cityDescription, cityTitle } from '../../../../lib/city/meta';
+import { cityKeyNumbers, middleExample } from '../../../../lib/city/key-numbers';
+import { UTILITY_PAGES } from '../../../../lib/utility/pages';
 import { btnPrimary, btnSecondary } from '../../../../components/ui/buttons';
 import { DB_PAGE_CACHE_HEADERS, loadCalcConfig, loadCities, loadCity, loadCityHousing, loadProduction } from '../../../../lib/db/repo';
 import {
@@ -17,6 +21,7 @@ import {
   introParagraphs,
   pickProduction,
   sunRank,
+  ordinal,
   slugFromState,
   stateFromSlug,
 } from '../../../../lib/city/view';
@@ -51,7 +56,24 @@ const housing = housingRes && housingRes.ok ? housingRes.value : null;
 const rank = city && cfg && stateProdRes && stateProdRes.ok
   ? sunRank(stateProdRes.value, cfg.assumptions, city.slug, [city.slug, ...otherCities.map((c) => c.slug)])
   : null;
-const ordinal = (n: number) => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th');
+
+const utilityShort = city ? UTILITY_PAGES.find((p) => p.utilityId === city.default_utility_id)?.short ?? defaultUtility?.name ?? null : null;
+const mid = middleExample(examples);
+const midPb = mid?.result?.paybackYears;
+const metaTitle = city ? cityTitle({ name: city.name, state: city.state }) : '';
+const metaDescription = city
+  ? cityDescription({
+      name: city.name,
+      state: city.state,
+      stateName,
+      utilityShort,
+      example: mid && midPb && cfg ? { bill: mid.bill, low: midPb.low, likely: midPb.likely, high: midPb.high, analysisYears: cfg.assumptions.analysis_years.value } : null,
+      annualKwhPerKw: production?.annual_kwh_per_kw ?? null,
+    })
+  : '';
+const keyNumbers = city && state
+  ? cityKeyNumbers({ city, utility: defaultUtility, utilityShort, production, costs: cfg?.costs[state] ?? null, examples, analysisYears: cfg?.assumptions.analysis_years.value ?? null })
+  : null;
 
 if (status === 'not_found') Astro.response.status = 404;
 else if (status === 'unavailable') {
@@ -81,14 +103,16 @@ const quotesHref = `/quotes?${quotesParams.toString()}`;
   </BaseLayout>
 ) : (
   <BaseLayout
-    title={`Solar payback in ${city.name}, ${city.state}`}
-    description={`Electricity rates, sun hours and example solar payback for homeowners in ${city.name}, ${stateName}.`}
+    title={metaTitle}
+    description={metaDescription}
     path={path}
     noindex={!city.published}
   >
     <div class="page">
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${stateName} calculator`, href: calcHref }, { label: city.name }]} />
       <h1 class="!mt-4">Solar payback in {city.name}, {city.state}</h1>
+
+      {keyNumbers && <KeyNumbers id="key-numbers-h" heading={`Solar in ${city.name}: key numbers`} block={keyNumbers} />}
 
       {intro.length > 0 ? intro.map((p) => <p>{p}</p>) : (
         <>
@@ -103,8 +127,8 @@ const quotesHref = `/quotes?${quotesParams.toString()}`;
         <p>
           Rooftop solar in {city.name} makes about {Math.round(rank.annual).toLocaleString('en-US')} kWh per kW a year,
           {rank.rank === 1 ? ' the most' : rank.rank === rank.total ? ' the least' : ` the ${ordinal(rank.rank)} most`} of the {rank.total} {stateName} cities on RayValue
-          (they range from {Math.round(rank.min).toLocaleString('en-US')} to {Math.round(rank.max).toLocaleString('en-US')}, a {Math.round(((rank.max - rank.min) / rank.min) * 100)}% spread).
-          {(rank.max - rank.min) / rank.min < 0.1 ? ` Sun varies little across ${stateName}, so your rates and bill matter more to payback than which city you live in.` : ' More sun means more power from the same panels, which shortens payback.'}
+          (they range from {Math.round(rank.min).toLocaleString('en-US')} to {Math.round(rank.max).toLocaleString('en-US')}, a {rank.spreadPct}% spread).
+          {rank.smallSpread ? ` Sun varies little across ${stateName}, so your rates and bill matter more to payback than which city you live in.` : ' More sun means more power from the same panels, which shortens payback.'}
         </p>
       )}
       <HousingFacts housing={housing} cityName={city.name} />
