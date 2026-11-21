@@ -36,6 +36,20 @@ export function monthSpan(months: readonly number[]): string {
   return [...set].sort((a, b) => a - b).map((m) => MONTHS[m - 1]).join(', ');
 }
 
+/** Money formatters for any market: whole units ("A$12,500"), two decimals, and per-kWh rates up to 5 decimals. */
+export function moneyFormatter(locale: string, currency: string) {
+  const f = (min: number, max: number) => new Intl.NumberFormat(locale, { style: 'currency', currency, minimumFractionDigits: min, maximumFractionDigits: max });
+  const whole0 = f(0, 0);
+  const two = f(2, 2);
+  const fine = f(2, 5);
+  return {
+    money: (n: number) => whole0.format(n),
+    cents: (n: number) => two.format(n),
+    perKwh: (n: number) => `${fine.format(n)}/kWh`,
+    perWatt: (n: number) => `${two.format(n)}/W`,
+  };
+}
+
 /** PVWatts v8 code labels (API documentation names, not values). */
 export const PVWATTS_MODULE_TYPES: Record<number, string> = { 0: 'standard', 1: 'premium', 2: 'thin film' };
 export const PVWATTS_ARRAY_TYPES: Record<number, string> = {

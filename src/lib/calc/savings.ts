@@ -17,6 +17,15 @@ import { monthBill } from './usage';
  * @param monthlyProductionKwh 12 values, index 0 = January
  */
 export function flSavingsYear(rates: TieredRates, monthlyUsageKwh: number, monthlyProductionKwh: readonly number[]): number {
+  return flSavingsYearDetailed(rates, monthlyUsageKwh, monthlyProductionKwh).savings;
+}
+
+/** Same as flSavingsYear, also returning the kWh still banked after December (for true-up policies other than forfeit). */
+export function flSavingsYearDetailed(
+  rates: TieredRates,
+  monthlyUsageKwh: number,
+  monthlyProductionKwh: readonly number[],
+): { savings: number; leftoverKwh: number } {
   let bank = 0;
   let savings = 0;
   for (let m = 0; m < 12; m++) {
@@ -26,7 +35,7 @@ export function flSavingsYear(rates: TieredRates, monthlyUsageKwh: number, month
     bank = Math.max(0, available - monthlyUsageKwh);
     savings += monthBill(rates, tiers, monthlyUsageKwh) - monthBill(rates, tiers, billed);
   }
-  return savings;
+  return { savings, leftoverKwh: bank };
 }
 
 export interface CaSavings {

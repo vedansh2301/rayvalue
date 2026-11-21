@@ -1,10 +1,10 @@
 import type { Assumptions, SourcedRange, Utility } from '../../data/schemas';
-import { costRange, fillSourcedRange, type FilledRange } from './cost';
+import { fillSourcedRange, type FilledRange } from './cost';
+import { runEngine } from './engine';
+import { legacyExport } from './export-policy';
 import { lossesForShading, monthlyShares, validateProduction } from './production';
-import { netSavings, paybackYears, projectSavings } from './payback';
 import { resolveRates, type RateModel, type TieredRates } from './rates';
-import { roundKw, roundKwh, roundPayback, roundRange, roundUsd } from './round';
-import { caSavingsYear, flSavingsYear } from './savings';
+import { roundKw, roundKwh, roundUsd } from './round';
 import { sizeSystem, type Sizing } from './sizing';
 import { arrayText, cents, dollars, monthSpan, num, pct, perKwh, perWatt } from './text';
 import type { CalcContext, CalcFailure, CalcInput, CalcResult, ProductionInput, Range } from './types';
@@ -13,15 +13,6 @@ import { estimateAnnualKwh, zeroUsageMonthlyBill } from './usage';
 const fail = (reason: CalcFailure['reason'], missing?: string[]): CalcFailure => (missing ? { ok: false, reason, missing } : { ok: false, reason });
 
 const SHARE_KEY = { 0: 'solar_only', 1: 'solar_plus_1_battery', 2: 'solar_plus_2_batteries' } as const;
-
-/** One end of the outcome range. */
-interface Scenario {
-  sizeKw: number;
-  /** CA self-consumption share (unused in FL). */
-  share: number;
-  escalation: number;
-  cost: number;
-}
 
 /**
  * Solar payback calculator. Pure: everything it needs is passed in.
@@ -73,67 +64,48 @@ export function calculate(input: CalcInput, ctx: CalcContext): CalcResult {
   const perWattRange = ppw.value.range;
   const batteryRange: Range = bat?.ok ? bat.value.range : { low: 0, likely: 0, high: 0 };
 
-  // ---- usage, size, cost
+  // ---- usage, size
   const annualKwh = estimateAnnualKwh(bill, model);
   const kwhPerKw = production.annualKwhPerKw;
   const sizing = sizeSystem(annualKwh, kwhPerKw, a);
-  const size = sizing.size;
-  const cost = costRange(size, perWattRange, input.battery, batteryRange);
 
-  // ---- savings
+  // ---- savings (shared scenario engine; the legacy export policy reproduces the pre-global arithmetic exactly)
   const esc = a.annual_rate_escalation[state];
   const share = a.ca_self_consumption_share[SHARE_KEY[input.battery]];
-  const degradation = a.panel_degradation_per_year.value;
   const years = a.analysis_years.value;
-  const shares = monthlyShares(production);
-
-  /** Savings in year n (1-based) for a scenario: production degrades, retail rates escalate. */
-  const savingsInYear = (s: Scenario, n: number): number => {
-    const annualProduction = s.sizeKw * kwhPerKw * (1 - degradation) ** (n - 1);
-    const rateGrowth = (1 + s.escalation) ** (n - 1);
-    if (model.kind === 'tiered') {
-      const monthlyProduction = shares.map((sh) => sh * annualProduction);
-      return flSavingsYear(model, annualKwh / 12, monthlyProduction) * rateGrowth;
-    }
-    const r = caSavingsYear(model, annualKwh, annualProduction, s.share);
-    return r.retailValue * rateGrowth + r.exportValue; // export credit held flat
-  };
-
-  // One system size for every outcome scenario (see the doc comment).
-  const kw = size.likely;
-  const scenarioCost = (end: keyof Range) => kw * 1000 * perWattRange[end] + input.battery * batteryRange[end];
-  const worst: Scenario = { sizeKw: kw, share: share.low, escalation: esc.low, cost: scenarioCost('high') };
-  const likely: Scenario = { sizeKw: kw, share: share.likely, escalation: esc.likely, cost: cost.likely };
-  const best: Scenario = { sizeKw: kw, share: share.high, escalation: esc.high, cost: scenarioCost('low') };
-  const flows = (s: Scenario) => projectSavings(years, (n) => savingsInYear(s, n));
-  const fw = flows(worst);
-  const fl = flows(likely);
-  const fb = flows(best);
-
-  // Year-1 display range follows the size range (year 1 has no escalation or degradation).
-  const year1Savings: Range = {
-    low: savingsInYear({ sizeKw: size.low, share: share.low, escalation: 0, cost: 0 }, 1),
-    likely: fl[0] ?? 0,
-    high: savingsInYear({ sizeKw: size.high, share: share.high, escalation: 0, cost: 0 }, 1),
-  };
-  const payback = { low: paybackYears(best.cost, fb), likely: paybackYears(likely.cost, fl), high: paybackYears(worst.cost, fw) };
-  const net: Range = { low: netSavings(worst.cost, fw), likely: netSavings(likely.cost, fl), high: netSavings(best.cost, fb) };
+  const r = runEngine({
+    model,
+    export: legacyExport(model, years),
+    annualKwh,
+    kwhPerKw,
+    shares: monthlyShares(production),
+    sizing,
+    perWattRange,
+    batteries: input.battery,
+    batteryRange,
+    share,
+    escalation: esc,
+    degradation: a.panel_degradation_per_year.value,
+    years,
+    incentives: null,
+    roundMoney: roundUsd,
+  });
 
   return {
     ok: true,
     state,
     utilityId: utility.id,
-    annualUsageKwh: roundKwh(annualKwh),
-    size: roundRange(size, roundKw),
-    cost: roundRange(cost, roundUsd),
-    year1Savings: roundRange(year1Savings, roundUsd),
-    paybackYears: roundPayback(payback),
-    netSavings25: roundRange(net, roundUsd),
-    year1ProductionKwh: roundKwh(kw * kwhPerKw),
-    yearlySavings: fl.map((v) => Math.round(v)),
-    yearlySavingsLow: fw.map((v) => Math.round(v)),
-    yearlySavingsHigh: fb.map((v) => Math.round(v)),
-    analysisYears: years,
+    annualUsageKwh: r.annualUsageKwh,
+    size: r.size,
+    cost: r.cost,
+    year1Savings: r.year1Savings,
+    paybackYears: r.paybackYears,
+    netSavings25: r.netSavings25,
+    year1ProductionKwh: r.year1ProductionKwh,
+    yearlySavings: r.yearlySavings,
+    yearlySavingsLow: r.yearlySavingsLow,
+    yearlySavingsHigh: r.yearlySavingsHigh,
+    analysisYears: r.analysisYears,
     assumptions: buildAssumptions({ input, utility, model, a, sizing, annualKwh, production, ppw: ppw.value, bat: bat?.ok ? bat.value : null, costs: costs[state], spread, share }),
     warnings: buildWarnings({ input, model, a, sizing, annualKwh }),
   };

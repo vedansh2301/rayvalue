@@ -1,5 +1,11 @@
 import type { Utility } from '../../data/schemas';
 
+/** The utility fields rate resolution reads. US Utility records satisfy it; so do global (non-US) utility records. */
+export type RateSource = Pick<
+  Utility,
+  'tier_sets' | 'minimum_bill_basis' | 'fixed_monthly_charge' | 'minimum_monthly_bill' | 'avg_rate_per_kwh' | 'avg_export_credit_per_kwh' | 'rate_type'
+> & { id: string };
+
 /** A tier with every value present. `upTo` is the monthly kWh ceiling; null = open-ended. */
 export interface ResolvedTier {
   upTo: number | null;
@@ -52,7 +58,7 @@ export type Resolved<T> = { ok: true; value: T } | { ok: false; missing: string[
  * minimum_monthly_bill) + every tier's base_rate_per_kwh when the minimum is on base charges; CA = fixed_monthly_charge + avg_rate_per_kwh.likely + avg_export_credit_per_kwh.
  * Not needed (so not reported): CA avg_rate_per_kwh.low/high, TOU rates, baseline credit.
  */
-export function resolveRates(u: Utility): Resolved<RateModel> {
+export function resolveRates(u: RateSource, opts: { needExportCredit?: boolean } = {}): Resolved<RateModel> {
   const p = `utilities[${u.id}]`;
   const missing: string[] = [];
 
@@ -91,7 +97,9 @@ export function resolveRates(u: Utility): Resolved<RateModel> {
   if (u.fixed_monthly_charge === null) missing.push(`${p}.fixed_monthly_charge`);
   const retail = u.avg_rate_per_kwh?.likely ?? null;
   if (retail === null) missing.push(`${p}.avg_rate_per_kwh.likely`);
-  if (u.avg_export_credit_per_kwh === null) missing.push(`${p}.avg_export_credit_per_kwh`);
+  // Global markets take the export rate from the export policy (needExportCredit: false), not from the utility row.
+  const needExport = opts.needExportCredit ?? true;
+  if (needExport && u.avg_export_credit_per_kwh === null) missing.push(`${p}.avg_export_credit_per_kwh`);
   if (missing.length) return { ok: false, missing };
   return {
     ok: true,
@@ -99,7 +107,7 @@ export function resolveRates(u: Utility): Resolved<RateModel> {
       kind: 'avg',
       fixedMonthly: u.fixed_monthly_charge as number,
       retailRate: retail as number,
-      exportCredit: u.avg_export_credit_per_kwh as number,
+      exportCredit: needExport ? (u.avg_export_credit_per_kwh as number) : 0,
     },
   };
 }

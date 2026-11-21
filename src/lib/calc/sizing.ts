@@ -1,4 +1,9 @@
-import type { Assumptions } from '../../data/schemas';
+/** The assumption fields sizing reads (the US Assumptions and GlobalAssumptions both satisfy it). */
+export interface SizingAssumptions {
+  target_offset: { low: number; high: number };
+  system_size_cap_kw: { value: number };
+  min_system_size_kw: { value: number };
+}
 import type { Range } from './types';
 
 export interface Sizing {
@@ -13,7 +18,7 @@ export interface Sizing {
 }
 
 /** kW = annual kWh × offset ÷ kWh per kW-year, per offset end, then capped. */
-export function sizeSystem(annualKwh: number, kwhPerKwYear: number, a: Assumptions): Sizing {
+export function sizeSystem(annualKwh: number, kwhPerKwYear: number, a: SizingAssumptions): Sizing {
   const { low, high } = a.target_offset;
   const offset: Range = { low, likely: (low + high) / 2, high };
   const cap = a.system_size_cap_kw.value;
