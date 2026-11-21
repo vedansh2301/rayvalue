@@ -73,14 +73,15 @@ describe('leads admin helpers', () => {
 });
 
 describe('admin is kept out of search', () => {
-  it('robots.txt disallows /admin/ and /api/', async () => {
-    const { readFileSync } = await import('node:fs');
-    const robots = readFileSync('public/robots.txt', 'utf8');
-    expect(robots).toContain('Disallow: /admin/');
+  it('generated robots.txt disallows /admin and /api/', async () => {
+    const { renderRobots } = await import('../seo/robots');
+    const robots = renderRobots();
+    expect(robots).toContain('Disallow: /admin\n');
     expect(robots).toContain('Disallow: /api/');
   });
-  it('the sitemap filter in astro.config excludes /admin', async () => {
-    const { readFileSync } = await import('node:fs');
-    expect(readFileSync('astro.config.mjs', 'utf8')).toContain("!path.startsWith('/admin')");
+  it('the sitemap/llms exclusion predicate excludes /admin', async () => {
+    const { isExcludedStaticPath } = await import('../seo/site-index');
+    expect(isExcludedStaticPath('/admin')).toBe(true);
+    expect(isExcludedStaticPath('/admin/kpi')).toBe(true);
   });
 });
