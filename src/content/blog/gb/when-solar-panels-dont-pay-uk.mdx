@@ -1,0 +1,109 @@
+---
+title: "When solar panels don't pay in the UK"
+seoTitle: "When solar panels aren't worth it in the UK"
+description: "North-facing roofs, low export rates, little daytime use and high quotes: the situations where UK solar struggles to pay back, with PVGIS, Ofgem and DESNZ data."
+country: gb
+lang: en-GB
+published: 2026-11-22
+updated: 2026-11-22
+topic: scale
+tags: [solar-payback, uk, export-rates, orientation]
+draft: false
+noindex: true
+sources:
+  - title: "EU JRC PVGIS 5.3: London, 35° tilt, south"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&angle=35&aspect=0&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: London, 35° tilt, east"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&angle=35&aspect=-90&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: London, 35° tilt, west"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&angle=35&aspect=90&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: London, 35° tilt, north"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&angle=35&aspect=180&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Manchester, 35° tilt, north"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=53.4794&lon=-2.2453&peakpower=1&loss=14&angle=35&aspect=180&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Manchester, 35° tilt, south"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=53.4794&lon=-2.2453&peakpower=1&loss=14&angle=35&aspect=0&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: London, 1 kWp, optimal angles (monthly output)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EDF: Smart Export Guarantee tariffs"
+    url: "https://www.edfenergy.com/node/20365"
+  - title: "Utilita: our schemes (SEG)"
+    url: "https://utilita.co.uk/our-schemes"
+  - title: "Ofgem: Changes to energy price cap between 1 October and 31 December 2026"
+    url: "https://www.ofgem.gov.uk/publications/changes-energy-price-cap-between-1-october-and-31-december-2026"
+  - title: "Ofgem: Smart Export Guarantee (SEG)"
+    url: "https://www.ofgem.gov.uk/environmental-and-social-schemes/smart-export-guarantee-seg"
+  - title: "HMRC: Temporary zero rate of VAT in Great Britain for domestic electricity"
+    url: "https://www.gov.uk/government/publications/temporary-zero-rate-of-vat-for-domestic-electricity-in-great-britain/temporary-zero-rate-of-vat-in-great-britain-for-domestic-electricity"
+  - title: "DESNZ: Solar PV cost data workbook 2025/26 (TIC)"
+    url: "https://assets.publishing.service.gov.uk/media/6a1709e4050971fbebf3bb3b/Solar_Costs_2025-26__TIC_.xlsx"
+  - title: "Ofgem: Energy Company Obligation (ECO)"
+    url: "https://www.ofgem.gov.uk/environmental-and-social-schemes/energy-company-obligation-eco"
+todo:
+  - "Power NI / NI export arrangements unverified; NI section kept general."
+---
+
+Solar panels are a good buy for many UK homes, but not for all of them. They struggle to pay back when the roof faces north or is shaded, when almost all the power is exported at 2p to 4p, when nobody is home to use it, when the quote is far above the official cost data, or when you will move before the system has earned its cost back. Here is how to tell if that is you.
+
+## Key numbers
+
+- **541 vs 1,019 kWh per kWp a year**: a north-facing vs south-facing 35° roof in London, about 53% (PVGIS).
+- **2.0p/kWh**: EDF's open SEG rate since 28 October 2026; Utilita pays 3p (supplier pages).
+- **26.32p/kWh**: average capped unit rate, Oct–Dec 2026, Great Britain (Ofgem).
+- **£1,595 per kW**: median installed cost of 0–4 kW systems, 2025/26 (DESNZ); mean £1,808, so plenty of quotes run higher.
+- **31 December 2026**: ECO4 ends (Ofgem).
+
+## Does a north-facing roof make solar not worth it?
+
+It roughly halves the output. PVGIS figures for 1 kWp at a 35° tilt:
+
+| Roof direction | London (kWh/kWp/yr) | Manchester (kWh/kWp/yr) |
+|---|---|---|
+| South | 1,019 | 886 |
+| East | 817 | 717 |
+| West | 787 | 702 |
+| North | 541 | 494 |
+
+East and west roofs lose about a fifth, which is often still fine, and they spread generation across the morning or evening. A north-facing roof produces about 53% of a south-facing one in London and 56% in Manchester, but costs the same to install. That pushes payback out a long way. If your only free roof faces north, get the installer's yield estimate in writing and check it against PVGIS.
+
+Shading from trees, chimneys or nearby buildings can cut output further. PVGIS does not model your neighbour's tree.
+
+## What if I export most of what I generate?
+
+Then you are mostly selling at the export rate, not saving at the unit rate. At the current cap, a kWh you use is worth 26.32p. Exported on EDF's SEG Export Variable it is now worth 2.0p, after EDF cut the rate from 3.0p on 28 October 2026. Utilita pays 3p.
+
+Simple arithmetic: a household that exports 3,000 kWh a year earns £60 at 2p and £90 at 3p. Using the same 3,000 kWh at home would avoid about £790 of electricity. If your house is empty all day and you will not change tariff, add a battery or move loads, most of your solar is worth a few pence a unit.
+
+This is the most common reason solar disappoints. The fix is often cheap: switch to a better export tariff (see [SEG rates compared](/uk/guides/best-seg-rates)) and move washing, dishwashers and EV charging into daylight.
+
+## Is the quote too high?
+
+DESNZ publishes the installed cost of MCS solar systems. For 2025/26 the median was £1,595 per kW for systems up to 4 kW and £1,546 per kW for 4–10 kW, excluding batteries. The 0–4 kW mean was £1,808 per kW, higher than the median because some homes pay a lot more.
+
+If a quote for panels alone is far above these figures, ask why. Scaffolding, a difficult roof or extra electrical work can justify some of it. A salesperson's "special offer" usually does not. See [Solar quote red flags in the UK](/uk/blog/solar-panel-scams-uk).
+
+## Will I move before it pays back?
+
+A system you leave behind may add appeal to a house, but we have not found UK data on how much it adds to the sale price, so do not count on getting the cost back when you sell. If you expect to move within a few years, the yearly savings you will actually collect may not cover the cost.
+
+## Do I live in Northern Ireland?
+
+The Smart Export Guarantee only covers installations in Great Britain, according to Ofgem, and the Ofgem price cap does not apply in Northern Ireland. Domestic electricity VAT there stays at 5% while Great Britain has a temporary zero rate (HMRC). That does not mean solar cannot pay in NI, but UK-wide figures for export and bills do not apply, so check local tariffs before you buy.
+
+## Am I counting on a grant that has ended?
+
+There is no universal UK solar grant. ECO4, the supplier-delivered scheme for lower-income homes, runs until 31 December 2026, according to Ofgem. In Scotland, the Home Energy Scotland table no longer lists standard solar PV (see [what Home Energy Scotland funds now](/uk/guides/home-energy-scotland-solar)). If a payback estimate depends on a grant, check the scheme is still open and that you qualify.
+
+## When does solar still make sense?
+
+If your roof faces anywhere from east through south to west, is not heavily shaded, someone uses power at home during the day (or you add a battery or EV), the price is near the official medians, and you plan to stay, solar has a good chance of paying back. Our [UK solar guide](/uk/guides/are-solar-panels-worth-it-uk) has the details.
+
+## FAQ
+
+**Is solar worth it if I'm out at work all day?** Less so, unless you add a battery, run appliances on timers or pick a higher export tariff. The gap between 26.32p (bought) and 2p to 4p (open export) is what you lose on each exported kWh.
+
+**Are east-west roofs bad?** No. PVGIS gives about 77–80% of a south roof's output in London for east or west at 35°.
+
+**Does solar work in winter?** It produces much less. In London, PVGIS gives about 38 kWh per kWp in December against about 121 in July for an optimally tilted system.
+
+Data checked on 22 November 2026.
