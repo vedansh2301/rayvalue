@@ -13,6 +13,13 @@ describe('indexnow', () => {
       .toEqual(['https://rayvalue.com/a', 'https://rayvalue.com/b?x=1&y=2']);
   });
 
+  it('parseLocs reads the sitemap index children (with lastmod) from /sitemap.xml', async () => {
+    const { renderSitemapIndex } = await import('../../src/lib/seo/sitemap-xml');
+    const names = ['sitemap-global-pages.xml', 'sitemap-us-calculators.xml', 'sitemap-us-utilities.xml', 'sitemap-us-cities.xml', 'sitemap-us-articles.xml'];
+    const xml = renderSitemapIndex(names.map((n) => ({ loc: `https://rayvalue.com/${n}`, lastmod: '2026-11-01' })));
+    expect(parseLocs(xml)).toEqual(names.map((n) => `https://rayvalue.com/${n}`));
+  });
+
   it('fingerprint ignores scripts and attributes but sees visible text, title and robots changes', () => {
     const page = (body: string, nonce = 'n1', robots = 'index, follow') =>
       `<title>T</title><meta name="robots" content="${robots}"><main class="x" data-n="${nonce}"><script nonce="${nonce}">x()</script><p>${body}</p></main>`;

@@ -1,61 +1,26 @@
-/**
- * Single, human-readable /sitemap.xml (one <urlset>, two-space indent) built from the URL list that
- * @astrojs/sitemap already filtered (indexable pages only). Each entry gets changefreq and priority by
- * page type; lastmod is kept only where the source sitemap has a real content date (article `updated`).
- */
+/** Sitemap XML rendering (urlset and sitemapindex). No changefreq/priority: search engines ignore both. */
 
-export interface SitemapEntry {
+export interface SitemapUrl {
   loc: string;
-  lastmod?: string;
+  lastmod?: string | null;
 }
 
-type Freq = 'daily' | 'weekly' | 'monthly';
+export const escapeXml = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** changefreq + priority for a path (no trailing slash; "/" for home). */
-export function sitemapRank(path: string): { changefreq: Freq; priority: string } {
-  if (path === '/') return { changefreq: 'daily', priority: '1.0' };
-  if (path === '/quotes' || path.startsWith('/us/solar-payback/') || path.startsWith('/us/utility/')) return { changefreq: 'weekly', priority: '0.9' };
-  if (path === '/us/solar-tax-benefits' || path.startsWith('/us/solar-tax-benefits/')) return { changefreq: 'weekly', priority: '0.9' };
-  if (path === '/guides' || path === '/blog' || path === '/stories') return { changefreq: 'weekly', priority: '0.8' };
-  if (path.startsWith('/guides/') || path.startsWith('/blog/')) return { changefreq: 'monthly', priority: '0.8' };
-  return { changefreq: 'monthly', priority: '0.5' };
-}
+const HEAD = '<?xml version="1.0" encoding="UTF-8"?>\n';
+const NS = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
 
-const escapeXml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const item = (tag: 'url' | 'sitemap', e: SitemapUrl): string =>
+  [`  <${tag}>`, `    <loc>${escapeXml(e.loc)}</loc>`, ...(e.lastmod ? [`    <lastmod>${e.lastmod.slice(0, 10)}</lastmod>`] : []), `  </${tag}>`].join('\n');
 
-/** Parse the <url> entries of a sitemap-N.xml written by @astrojs/sitemap. */
-export function parseSitemapEntries(xml: string): SitemapEntry[] {
-  const out: SitemapEntry[] = [];
-  for (const m of xml.matchAll(/<url>([\s\S]*?)<\/url>/g)) {
-    const loc = /<loc>([^<]+)<\/loc>/.exec(m[1]!)?.[1];
-    if (!loc) continue;
-    const lastmod = /<lastmod>([^<]+)<\/lastmod>/.exec(m[1]!)?.[1];
-    out.push(lastmod ? { loc, lastmod } : { loc });
-  }
-  return out;
-}
-
-/** Order: home, calculators/quotes, utility and city pages, hubs, articles, everything else; then by URL. */
-export function renderSitemapXml(entries: SitemapEntry[]): string {
+/** One <urlset>; duplicates dropped, input order kept. */
+export function renderUrlset(entries: readonly SitemapUrl[]): string {
   const seen = new Set<string>();
-  const rows = entries
-    .filter((e) => (seen.has(e.loc) ? false : (seen.add(e.loc), true)))
-    .map((e) => {
-      const path = new URL(e.loc).pathname.replace(/\/+$/, '') || '/';
-      return { ...e, ...sitemapRank(path) };
-    })
-    .sort((a, b) => Number(b.priority) - Number(a.priority) || a.loc.localeCompare(b.loc));
-  const body = rows
-    .map((r) =>
-      [
-        '  <url>',
-        `    <loc>${escapeXml(r.loc)}</loc>`,
-        ...(r.lastmod ? [`    <lastmod>${r.lastmod.slice(0, 10)}</lastmod>`] : []),
-        `    <changefreq>${r.changefreq}</changefreq>`,
-        `    <priority>${r.priority}</priority>`,
-        '  </url>',
-      ].join('\n'),
-    )
-    .join('\n');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
+  const rows = entries.filter((e) => (seen.has(e.loc) ? false : (seen.add(e.loc), true))).map((e) => item('url', e));
+  return `${HEAD}<urlset ${NS}>\n${rows.join('\n')}\n</urlset>\n`;
+}
+
+/** A <sitemapindex> of child sitemap files (children are never nested indexes). */
+export function renderSitemapIndex(children: readonly SitemapUrl[]): string {
+  return `${HEAD}<sitemapindex ${NS}>\n${children.map((e) => item('sitemap', e)).join('\n')}\n</sitemapindex>\n`;
 }
