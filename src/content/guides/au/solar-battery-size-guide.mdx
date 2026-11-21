@@ -1,0 +1,92 @@
+---
+title: "What size battery do you need? Usage, the 14 and 28 kWh rebate tiers, and cost"
+seoTitle: "Solar battery sizes in Australia: how big do you need?"
+description: "Size a home battery to your evening and overnight use. How the 14, 28 and 50 kWh rebate tiers change value per kWh, typical installed prices by size, and the state scheme limits."
+country: au
+lang: en-AU
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: battery
+sources:
+  - title: "AER: Information Kit, Default Market Offer 2026-27 (annual usage assumed per network; read via web.archive.org snapshot 10 Jun 2026, live host blocks bots)"
+    url: "https://www.aer.gov.au/system/files/2026-05/Information%20Kit%20-%20Default%20Market%20Offer%20-%202026-27_0.pdf"
+  - title: "Federal Register of Legislation: Renewable Energy Legislation Amendment (2026 Measures No. 1) Regulations 2026 (F2026L00093)"
+    url: "https://www.legislation.gov.au/F2026L00093/asmade/2026-02-09/text/original/pdf"
+  - title: "Clean Energy Regulator: Solar batteries (nominal vs usable capacity)"
+    url: "https://cer.gov.au/batteries"
+  - title: "CHOICE: Solar home battery rebate (installed prices by size, payback assumptions; last updated 12 June 2026; secondary source)"
+    url: "https://www.choice.com.au/home-and-living/energy-and-water/energy-saving-products/articles/solar-home-battery-rebate"
+  - title: "Government of Western Australia: WA Residential Battery Scheme eligibility requirements"
+    url: "https://www.wa.gov.au/organisation/energy-policy-wa/wa-residential-battery-scheme-eligibility-requirements"
+  - title: "Energy NSW: Connect your battery to a virtual power plant"
+    url: "https://www.energy.nsw.gov.au/households/grants-rebates/household-energy-saving-upgrades/connect-your-battery-virtual-power-plant"
+  - title: "ACCC: Electricity industry on notice as more households invest in subsidised batteries and solar (1 August 2025)"
+    url: "https://www.accc.gov.au/media-release/electricity-industry-on-notice-as-more-households-invest-in-subsidised-batteries-and-solar"
+faq:
+  - question: "What size battery does an average Australian home need?"
+    answer: "There is no single answer, but the AER's 2026-27 price comparisons assume households use 3,900 to 4,900 kWh a year, which is about 11 to 13 kWh a day in total. Only the evening and overnight part matters for a battery. CHOICE's 2026 examples assume 7 kWh of overnight use."
+  - question: "Is a bigger battery better because of the rebate?"
+    answer: "Not per dollar. The federal rebate counts the first 14 kWh at the full factor, 14 to 28 kWh at 60% and 28 to 50 kWh at only 15%. A battery larger than you can use most nights earns less rebate per kWh and less saving."
+  - question: "Is the rebate based on the size on the label?"
+    answer: "No. STCs are calculated on usable capacity, which can be lower than the nominal capacity on the label. The battery must be 5 to 100 kWh nominal to qualify."
+todo:
+  - "Replace the rule-of-thumb sizing with RayValue's AU calculator once built (half-hourly load profile + PVGIS yield)."
+---
+
+Size a battery to the power you use between sunset and the next morning, not to the biggest rebate on offer. The AER's 2026-27 price comparisons assume a home uses about 11 to 13 kWh a day in total, and only part of that falls after dark. Homes with an EV or electric heating use more. Above 14 kWh the federal rebate per kWh drops, and above 28 kWh it drops sharply, so oversizing costs more than it used to.
+
+## Key numbers
+
+- **Typical annual use in the AER's 2026-27 price comparisons:** 3,900 kWh (Ausgrid), 4,000 kWh (SA Power Networks), 4,600 kWh (Energex, Essential), 4,900 kWh (Endeavour). That is about 11 to 13 kWh a day in total.
+- **Federal rebate tiers (from 1 May 2026):** full factor on the first **14 kWh** usable, **60%** on 14 to 28 kWh, **15%** on 28 to 50 kWh.
+- **Eligible size:** **5 to 100 kWh** nominal; STCs on the first **50 kWh usable** (CER).
+- **Installed price after the federal rebate (CHOICE, using SolarQuotes data, June 2026; secondary):** 10 kWh $7,000 to $11,000; 15 kWh $11,000 to $15,000; 20 kWh $14,000 to $19,000; 30 kWh $18,000 to $22,000; 50 kWh $24,000 to $30,000.
+- **State limits:** WA's rebate is capped at **10 kWh** with a **5 kWh** minimum. The NSW VPP incentive scales up to **28 kWh**.
+
+## What size battery do you need?
+
+Start from your bill, not a brochure:
+
+1. **Find your daily use.** Divide your annual kWh (on your bill) by 365. The AER's 2026-27 [information kit](https://www.aer.gov.au/system/files/2026-05/Information%20Kit%20-%20Default%20Market%20Offer%20-%202026-27_0.pdf) uses 3,900 to 4,900 kWh a year depending on the network, about 11 to 13 kWh a day.
+2. **Estimate the evening and overnight share.** A smart-meter export from your retailer shows usage by half hour. Add up roughly 4 pm to 7 am. That is the most a battery can cover.
+3. **Check your spare solar.** The battery can only store what your panels produce beyond your daytime use. A small solar system can't fill a big battery in winter.
+4. **Allow for what's coming.** An EV, a switch from gas to electric heating, or a heat pump hot water system all add evening load.
+
+CHOICE's 2026 payback examples assume **7 kWh** of overnight use, which shows how modest a typical overnight load can be. A battery much bigger than your overnight use will spend most nights part-full.
+
+## Battery sizes and the rebate tiers
+
+The [regulation](https://www.legislation.gov.au/F2026L00093/asmade/2026-02-09/text/original/pdf) tapers the STC factor by usable capacity. Here is what that means at the 2026 factor of 6.8:
+
+| Usable kWh | STCs (2026) | STCs per kWh | CHOICE installed price after rebate |
+|---|---|---|---|
+| 10 | 68 | 6.8 | $7,000 to $11,000 |
+| 14 | 95 | 6.8 | n/a |
+| 15 | 99 | 6.6 | $11,000 to $15,000 |
+| 20 | 119 | 6.0 | $14,000 to $19,000 |
+| 30 | 154 | 5.1 | $18,000 to $22,000 |
+| 50 | 174 | 3.5 | $24,000 to $30,000 |
+
+STCs are worked out under the regulation's method and rounded down. Prices are CHOICE's approximate ranges based on SolarQuotes information ([CHOICE](https://www.choice.com.au/home-and-living/energy-and-water/energy-saving-products/articles/solar-home-battery-rebate)). They are a guide only. CHOICE notes a complex installation "can increase costs considerably".
+
+The price per kWh does fall for bigger batteries. But the saving only comes from the kWh you actually cycle. A 30 kWh battery in a home that uses 8 kWh overnight earns little more than a 10 kWh one.
+
+## Nominal vs usable capacity
+
+The [CER](https://cer.gov.au/batteries) uses nominal capacity (usually on the label) for eligibility and usable capacity for the rebate. Quotes sometimes quote the bigger nominal number. Compare batteries on usable kWh.
+
+## State scheme limits that affect size
+
+- **Western Australia.** The [Residential Battery Scheme](https://www.wa.gov.au/organisation/energy-policy-wa/wa-residential-battery-scheme-eligibility-requirements) needs at least 5.0 kWh usable and caps the rebate at 10 kWh. A bigger battery still gets the capped amount.
+- **New South Wales.** The [VPP incentive](https://www.energy.nsw.gov.au/households/grants-rebates/household-energy-saving-upgrades/connect-your-battery-virtual-power-plant) applies to batteries of 2 to 50 kWh and scales with capacity up to 28 kWh.
+
+## Ask for sizing in writing
+
+The ACCC advises consumers to "ask for personalised information from solar and battery sellers about the appropriate size for their system and the projected cost savings" ([ACCC, August 2025](https://www.accc.gov.au/media-release/electricity-industry-on-notice-as-more-households-invest-in-subsidised-batteries-and-solar)). A good quote explains how the size was chosen from your usage data. If a seller pushes the largest size "to maximise the rebate", ask them to show the STCs per kWh and your expected nightly use.
+
+## Related
+
+- [How the battery rebate is calculated](/au/guides/how-battery-stcs-work)
+- [When a battery is not worth it](/au/guides/when-a-battery-is-not-worth-it)
+- [Battery rebate drops on 1 January 2027](/au/guides/battery-rebate-changes-2027)
