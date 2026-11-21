@@ -3,6 +3,8 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../Breadcrumbs.astro';
 import Faq from '../Faq.astro';
+import KeyNumbers from '../seo/KeyNumbers.astro';
+import { utilityKeyNumbers } from '../../lib/utility/key-numbers';
 import UtilityLinks from './UtilityLinks.astro';
 import CityLinks from '../city/CityLinks.astro';
 import ReadMore from './ReadMore.astro';
@@ -26,6 +28,7 @@ const h1 = `Is solar worth it with ${meta.short} in 2026? (No federal tax credit
 const vm = data.kind === 'ok' ? data.vm : null;
 const range = (a: number, b: number, f: (n: number) => string) => (a === b ? f(a) : `${f(a)}–${f(b)}`);
 // Typical home for the at-a-glance graphics: the solar-only worked example with the middle bill.
+const keyNumbers = vm ? utilityKeyNumbers(vm.utility, meta.short) : null;
 const typical = vm ? typicalExample(vm.examples, vm.indexable) : null;
 const maxYears = vm?.analysisYears ?? 25;
 const paybackText = (r: { paybackYears: { low: number | null; likely: number | null; high: number | null } }) => {
@@ -41,7 +44,7 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
     </div>
   </BaseLayout>
 ) : (
-  <BaseLayout title={meta.title} description={meta.description} path={path} ogImagePath={`/og/${path.slice(1)}.png`} noindex={!vm.indexable} jsonLd={[faqJsonLd(vm.faq)]}>
+  <BaseLayout title={meta.title} description={meta.description} path={path} ogImagePath={`/og/${path.slice(1)}.png`} noindex={!vm.indexable} jsonLd={vm.faq.length ? [faqJsonLd(vm.faq)] : []}>
     <div class="page lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-x-12">
     <div>
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: `${stateName} calculator`, href: calcPath(stateSlug) }, { label: meta.short }]} />
@@ -54,6 +57,8 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
         <a href={vm.calcHref} class={btnPrimary}>Run my {meta.short} numbers<span aria-hidden="true">&rarr;</span></a>
         <a href={vm.quotesHref} class={btnSecondary}>Get installer quotes</a>
       </div>
+
+      {keyNumbers && <KeyNumbers id="key-numbers-h" heading={`${meta.short}: key numbers`} block={keyNumbers} />}
 
       {typical?.result && (
         <section aria-labelledby="glance-h">

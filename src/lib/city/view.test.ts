@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chartBars, formatKwhLabel, exampleBills, exportCreditSource, isHttpUrl, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows, housingFacts, sunRank } from './view';
+import { chartBars, formatKwhLabel, exampleBills, exportCreditSource, isHttpUrl, exampleRows, formatYears, introParagraphs, pickProduction, slugFromState, stateFromSlug, utilityRateRows, housingFacts, sunRank, ordinal } from './view';
 import { lossesForShading } from '../calc';
 import { fixtureAssumptions, fixtureCosts, fixtureUtilities, flTwoTier, caFixture } from '../calc/test-fixtures';
 import { fixtureCitiesFile } from '../db/test-rows';
@@ -156,8 +156,17 @@ describe('sunRank', () => {
   it('ranks among the given cities at the "some shading" losses (1 = most sun)', () => {
     const loss = lossesForShading('some', assumptions);
     const rows = [prod('a', 1400, loss), prod('b', 1500, loss), prod('c', 1450, loss), prod('d', 1600, loss), prod('a', 9999, loss + 1)];
-    expect(sunRank(rows, assumptions, 'c', ['a', 'b', 'c'])).toEqual({ annual: 1450, rank: 2, total: 3, min: 1400, max: 1500 });
+    expect(sunRank(rows, assumptions, 'c', ['a', 'b', 'c'])).toEqual({ annual: 1450, rank: 2, total: 3, min: 1400, max: 1500, spreadPct: 7, smallSpread: true });
     expect(sunRank(rows, assumptions, 'c', ['c'])).toBeNull();
     expect(sunRank(rows, assumptions, 'zzz', ['a', 'b'])).toBeNull();
+  });
+  it('flags a wide spread (>= 10%) as not small and rounds the percent', () => {
+    const loss = lossesForShading('some', assumptions);
+    const rows = [prod('a', 1000, loss), prod('b', 1250, loss)];
+    expect(sunRank(rows, assumptions, 'a', ['a', 'b'])).toMatchObject({ rank: 2, spreadPct: 25, smallSpread: false });
+    expect(sunRank([prod('a', 1000, loss), prod('b', 1100, loss)], assumptions, 'a', ['a', 'b'])).toMatchObject({ spreadPct: 10, smallSpread: false });
+  });
+  it('ordinal', () => {
+    expect([1, 2, 3, 4, 11, 12, 13, 21, 22, 103].map(ordinal)).toEqual(['1st', '2nd', '3rd', '4th', '11th', '12th', '13th', '21st', '22nd', '103rd']);
   });
 });
