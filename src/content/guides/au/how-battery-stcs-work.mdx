@@ -1,0 +1,117 @@
+---
+title: "How the battery rebate is calculated: STCs per kWh, tiers and rounding"
+seoTitle: "How many STCs per kWh for a battery? The rebate maths"
+description: "The federal battery rebate is a number of STCs: factor x usable kWh, tapered above 14 and 28 kWh and rounded down. Worked examples for 2026 and 2027, and why the dollar value varies."
+country: au
+lang: en-AU
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: scale
+sources:
+  - title: "Federal Register of Legislation: Renewable Energy Legislation Amendment (2026 Measures No. 1) Regulations 2026 (F2026L00093), reg 20(7)-(8) method statement and reg 59"
+    url: "https://www.legislation.gov.au/F2026L00093/asmade/2026-02-09/text/original/pdf"
+  - title: "Clean Energy Regulator: Calculate small-scale technology certificate entitlements"
+    url: "https://cer.gov.au/schemes/renewable-energy-target/small-scale-renewable-energy-scheme/small-scale-technology-certificates/calculate-small-scale-technology-certificate-entitlements"
+  - title: "Clean Energy Regulator: Solar batteries (nominal vs usable capacity, 50 kWh STC limit)"
+    url: "https://cer.gov.au/batteries"
+  - title: "Clean Energy Regulator: Battery rebates are changing 1 May 2026 (18 March 2026)"
+    url: "https://cer.gov.au/news-and-media/media/2026/march/battery-rebates-are-changing-1-may-2026"
+  - title: "Clean Energy Regulator: Changes to rebate for solar batteries from 1 May (17 February 2026)"
+    url: "https://cer.gov.au/news-and-media/news/2026/february/changes-to-rebate-solar-batteries-1-may"
+  - title: "CHOICE: Solar home battery rebate ($ per kWh schedule and admin fees; last updated 12 June 2026; secondary source)"
+    url: "https://www.choice.com.au/home-and-living/energy-and-water/energy-saving-products/articles/solar-home-battery-rebate"
+faq:
+  - question: "How many STCs per kWh does a battery get?"
+    answer: "6.8 STCs per usable kWh for the first 14 kWh if the battery is certified for compliance between 1 May and 31 December 2026, and 5.7 from 1 January 2027. Capacity from 14 to 28 kWh earns 60% of that, and 28 to 50 kWh earns 15%."
+  - question: "Is the rebate based on nominal or usable capacity?"
+    answer: "Usable capacity. The battery must be 5 to 100 kWh nominal to qualify, but STCs are only calculated on usable capacity, up to 50 kWh."
+  - question: "Why do quotes show different rebate amounts for the same battery?"
+    answer: "The number of STCs is fixed by the formula, but each STC's dollar value depends on the market price and the fees the installer or agent charges. Ask every quote to show the STC count and the price per STC."
+todo:
+  - "STC market price is secondary (CHOICE implied ~$40). Source a primary/market STC price series."
+---
+
+The federal battery rebate is paid as small-scale technology certificates (STCs), not dollars. You take your battery's usable capacity and multiply the first 14 kWh by the factor (6.8 in 2026, 5.7 from 1 January 2027). The next 14 kWh count at 60% of the factor and the next 22 kWh at 15%. The total is rounded down to a whole number. Your installer usually turns those certificates into an upfront discount, so the dollar value depends on the STC price and fees.
+
+## Key numbers
+
+- **Factor:** 6.8 STCs per usable kWh for batteries certified for compliance 1 May to 31 December 2026; 5.7 from 1 January 2027; 5.2 from 1 July 2027 (regulation F2026L00093).
+- **Tier 1:** 0 to 14 kWh at **100%** of the factor.
+- **Tier 2:** above 14 up to 28 kWh at **60%**.
+- **Tier 3:** above 28 up to 50 kWh at **15%**.
+- **Rounding:** the total is rounded **down** to the nearest whole number.
+- **Eligible size:** 5 to 100 kWh nominal; STCs only on the first **50 kWh usable** (CER).
+- **Dollar value:** CHOICE puts it at about **$272 per kWh** for May to December 2026, before about **10%** in admin fees (secondary, 12 June 2026).
+
+## How many STCs per kWh does a battery get?
+
+The rule is in the method statement the 2026 amendments added to the Renewable Energy (Electricity) Regulations. The [registered text (F2026L00093)](https://www.legislation.gov.au/F2026L00093/asmade/2026-02-09/text/original/pdf) works in four steps:
+
+1. Multiply usable capacity up to 14 kWh by the factor.
+2. Multiply usable capacity above 14 kWh, up to 28 kWh, by the factor and by 0.6.
+3. Multiply usable capacity above 28 kWh, up to 50 kWh, by the factor and by 0.15.
+4. Add them up and round down to the nearest whole number.
+
+The factor that applies depends on when "the battery for the unit is certified for compliance". The CER puts it more simply: "rebates are determined by the installation date, not when a contract is signed" ([CER, 18 March 2026](https://cer.gov.au/news-and-media/media/2026/march/battery-rebates-are-changing-1-may-2026)).
+
+## Worked examples
+
+**A 10 kWh usable battery in 2026.** 10 × 6.8 = 68 STCs. No tier 2 or 3.
+
+**A 20 kWh usable battery in 2026.**
+- Tier 1: 14 × 6.8 = 95.2
+- Tier 2: 6 × 6.8 × 0.6 = 24.48
+- Total 119.68, rounded down to **119 STCs**
+
+**The same 20 kWh battery in January 2027.**
+- Tier 1: 14 × 5.7 = 79.8
+- Tier 2: 6 × 5.7 × 0.6 = 20.52
+- Total 100.32, rounded down to **100 STCs**
+
+**A 40 kWh usable battery in 2026.**
+- Tier 1: 14 × 6.8 = 95.2
+- Tier 2: 14 × 6.8 × 0.6 = 57.12
+- Tier 3: 12 × 6.8 × 0.15 = 12.24
+- Total 164.56, rounded down to **164 STCs**
+
+## STCs by battery size
+
+| Usable kWh | 2026 (6.8) | Jan to Jun 2027 (5.7) | Jul to Dec 2027 (5.2) | STCs per kWh in 2026 |
+|---|---|---|---|---|
+| 5 | 34 | 28 | 26 | 6.8 |
+| 10 | 68 | 57 | 52 | 6.8 |
+| 14 | 95 | 79 | 72 | 6.8 |
+| 20 | 119 | 100 | 91 | 6.0 |
+| 28 | 152 | 127 | 116 | 5.4 |
+| 40 | 164 | 137 | 125 | 4.1 |
+| 50 | 174 | 146 | 133 | 3.5 |
+
+The last column shows the effect of the tiers. Each extra kWh above 28 earns only about a seventh as many certificates as one of the first 14. That is deliberate. The [CER](https://cer.gov.au/news-and-media/news/2026/february/changes-to-rebate-solar-batteries-1-may) says the taper aims to keep the discount at around 30% for small, medium and large systems.
+
+## Nominal vs usable capacity
+
+The [CER's battery rules](https://cer.gov.au/batteries) use both:
+
+- **Nominal capacity** (usually on the label) decides eligibility. It must be 5 to 100 kWh.
+- **Usable capacity** (what you can actually draw) decides the STCs, capped at 50 kWh.
+
+The CER's own example: a battery with 70 kWh nominal and 60 kWh usable may be eligible, but STCs are claimed on 50 kWh only. When you compare quotes, make sure each one uses usable capacity.
+
+## From STCs to dollars
+
+STCs are traded certificates. In most cases you assign them to your installer or an agent, who takes their value off your price. The CER's [STC entitlements page](https://cer.gov.au/schemes/renewable-energy-target/small-scale-renewable-energy-scheme/small-scale-technology-certificates/calculate-small-scale-technology-certificate-entitlements) explains how certificates are created. The dollar value moves with the market. CHOICE's schedule of $272 per kWh for 2026 and $228 for early 2027 implies about $40 per STC. CHOICE also says to "expect to lose 10% of your rate to admin fees". So a 10 kWh battery's 68 STCs are worth roughly $2,700 at $40, before fees.
+
+A good quote shows:
+
+- usable capacity in kWh
+- the number of STCs
+- the price per STC
+- any agent or admin fee
+
+If a quote only shows a lump "government rebate", ask for those four lines. See [battery quote red flags](/au/guides/battery-rebate-scams).
+
+## Related
+
+- [Battery rebate drops on 1 January 2027](/au/guides/battery-rebate-changes-2027)
+- [What size battery do you need?](/au/guides/solar-battery-size-guide)
