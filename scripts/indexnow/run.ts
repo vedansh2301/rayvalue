@@ -18,7 +18,7 @@ async function get(url: string): Promise<string> {
 
 async function sitemapUrls(): Promise<string[]> {
   const out: string[] = [];
-  for (const sm of parseLocs(await get(`${ORIGIN}/sitemap-index.xml`))) out.push(...parseLocs(await get(sm)));
+  for (const sm of parseLocs(await get(`${ORIGIN}/sitemap.xml`))) out.push(...parseLocs(await get(sm)));
   return [...new Set(out)];
 }
 

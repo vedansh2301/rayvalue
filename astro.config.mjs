@@ -1,18 +1,11 @@
 import { defineConfig } from 'astro/config';
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import mdx from '@astrojs/mdx';
 import preact from '@astrojs/preact';
-import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 import tailwindcss from '@tailwindcss/vite';
 import { loadEnv } from 'vite';
-import { guideFlags, excludedGuideUrls, excludedCollectionUrls } from './src/lib/seo/guide-flags.ts';
-import { getPublishedCityUrls } from './src/lib/seo/sitemap-cities.ts';
-import { UTILITY_PAGES, utilityPagePath } from './src/lib/utility/pages.ts';
-import { createServer as createViteServer } from 'vite';
-import { isGoPath } from './src/lib/go.ts';
-import { UNREVIEWED_PAGES } from './src/lib/seo/unreviewed-pages.ts';
-import { parseSitemapEntries, renderSitemapXml } from './src/lib/seo/sitemap-xml.ts';
+import { UTILITY_PAGES } from './src/lib/utility/pages.ts';
 import { routeRedirects } from './src/lib/content/paths.ts';
 import { taxPath, usRedirects } from './src/lib/paths.ts';
 import { adCspSources, parseAdIds } from './src/lib/ads/config.ts';
@@ -28,11 +21,7 @@ if (process.argv.includes('dev')) {
   }
 }
 
-const readFlags = (dir) =>
-  readdirSync(dir).filter((f) => f.endsWith('.mdx')).map((f) => ({ id: f.replace(/\.mdx$/, ''), ...guideFlags(readFileSync(`${dir}/${f}`, 'utf8')) }));
-// lastmod for blog and guide URLs comes from the `updated` frontmatter date. Entries with a keyword `route`
-// live at that path and their default /guides/<id> path 301-redirects there.
-const lastmodByPath = new Map();
+// Entries with a keyword `route` live at that path and their default /guides/<id> path 301-redirects there.
 const routed = [];
 for (const [dir, base] of [['./src/content/guides', '/guides'], ['./src/content/blog', '/blog']]) {
   for (const f of readdirSync(dir).filter((x) => x.endsWith('.mdx'))) {
@@ -40,8 +29,6 @@ for (const [dir, base] of [['./src/content/guides', '/guides'], ['./src/content/
     const id = f.replace(/\.mdx$/, '');
     const route = /^route:\s*"?(\/[a-z0-9/-]+)"?\s*$/m.exec(src)?.[1];
     if (route) routed.push({ collection: base.slice(1), id, route });
-    const m = /^updated:\s*"?(\d{4}-\d{2}-\d{2})/m.exec(src);
-    if (m) lastmodByPath.set(route ?? `${base}/${id}`, new Date(`${m[1]}T00:00:00Z`).toISOString());
   }
 }
 // The Florida and California tax pages were briefly blog posts; keep those URLs pointing at the keyword routes.
@@ -53,40 +40,10 @@ const articleRedirects = {
 // Old US paths (/calculator/<state>, /solar/<state>/<utility>, /solar-tax-benefits...) -> /us/ in one hop. City pages
 // (/solar/<state>/<city>) are covered by the vercel.json pattern fallback, so DB cities need no entry here.
 const legacyRedirects = usRedirects(UTILITY_PAGES);
-const redirectedPaths = new Set([...Object.keys(articleRedirects), ...Object.keys(legacyRedirects)]);
-const excludedGuides = excludedGuideUrls(readFlags('./src/content/guides'));
-const excludedBlog = excludedCollectionUrls('/blog', readFlags('./src/content/blog'));
-
-// Published city pages are on-demand, so list them for the sitemap from the DB at build time
-// (offline / no env => [], build still succeeds). Unpublished cities are never listed.
 const dbEnv = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
-const cityUrls = await getPublishedCityUrls({
-  url: process.env.SUPABASE_URL || dbEnv.SUPABASE_URL,
-  key: process.env.SUPABASE_PUBLISHABLE_KEY || dbEnv.SUPABASE_PUBLISHABLE_KEY,
-});
-
-// Utility pages (on demand, from DB data) are listed only when their worked examples have real results.
+// Build-time pages (blog and guide cards) read the same DB env as the functions do.
 process.env.SUPABASE_URL ||= dbEnv.SUPABASE_URL;
 process.env.SUPABASE_PUBLISHABLE_KEY ||= dbEnv.SUPABASE_PUBLISHABLE_KEY;
-// Loaded through a short-lived Vite server: the loader chain uses extensionless TS imports (and dynamic imports)
-// that Node alone cannot resolve.
-async function loadUtilityUrls() {
-  const vite = await createViteServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom', optimizeDeps: { noDiscovery: true } });
-  try {
-    const mod = await vite.ssrLoadModule('/src/lib/utility/sitemap.ts');
-    return await mod.getIndexableUtilityUrls();
-  } finally {
-    await vite.close();
-  }
-}
-const utilityUrls = process.env.SUPABASE_URL
-  ? await loadUtilityUrls().catch((e) => {
-      console.warn('[sitemap] utility pages skipped:', e?.message ?? e);
-      return [];
-    })
-  : [];
-
-const utilityPaths = new Set(UTILITY_PAGES.map(utilityPagePath));
 
 // Optional ad/measurement tags (GA4, Google Ads, Meta pixel): OFF unless an ID env var is set. Their third-party
 // origins are added to the CSP only then. Enabling also needs the CLAUDE.md rule-7 amendment, the privacy policy,
@@ -105,9 +62,6 @@ const thirdParty = {
   img: [...ads.img, ...tf.img],
 };
 
-// noindex utility pages (confirmations, privacy request form).
-const NOINDEX_UTILITY_PAGES = new Set(['/alerts/thanks', '/quotes/thank-you', '/quotes/thanks', '/privacy/request', '/privacy/request/thanks']);
-
 export default defineConfig({
   site: 'https://rayvalue.com',
   output: 'static',
@@ -116,6 +70,9 @@ export default defineConfig({
     '/quotes/thanks': '/quotes/thank-you',
     // fl-vs-ca-reel's CTA names rayvalue.com/calculator; the home page links both state calculators.
     '/calculator': '/',
+    // The old @astrojs/sitemap output; /sitemap.xml is now the one index.
+    '/sitemap-index.xml': { status: 301, destination: '/sitemap.xml' },
+    '/sitemap-0.xml': { status: 301, destination: '/sitemap.xml' },
     ...Object.fromEntries(Object.entries({ ...articleRedirects, ...legacyRedirects }).map(([from, to]) => [from, { status: 301, destination: to }])),
   },
   // Hashed CSP for every page. With the Vercel adapter's staticHeaders, Astro sends the policy as an HTTP
@@ -146,32 +103,8 @@ export default defineConfig({
   integrations: [
     mdx(),
     preact(),
-    // Sitemap = prerendered pages minus noindex ones (noindex/draft guides, /guides while none is published,
-    // unreviewed static pages, confirmation pages and the privacy request form, API), plus published cities.
-    sitemap({
-      customPages: [...cityUrls, ...utilityUrls],
-      serialize: (item) => {
-        const lastmod = lastmodByPath.get(new URL(item.url).pathname.replace(/\/+$/, ''));
-        return lastmod ? { ...item, lastmod } : item;
-      },
-      filter: (page) => {
-        const path = new URL(page).pathname.replace(/\/+$/, '') || '/';
-        // On-demand utility routes are auto-discovered; keep only those whose data makes them indexable.
-        if (utilityPaths.has(path) && !utilityUrls.includes(page)) return false;
-        return !redirectedPaths.has(path) && !excludedGuides.has(path) && !excludedBlog.has(path) && !UNREVIEWED_PAGES.has(path) && !NOINDEX_UTILITY_PAGES.has(path) && !path.startsWith('/api/') && !path.startsWith('/admin') && !isGoPath(path) && path !== '/unsubscribe';
-      },
-    }),
-    // One readable /sitemap.xml (changefreq + priority) from the filtered sitemap-N.xml files above.
-    {
-      name: 'rayvalue-sitemap-xml',
-      hooks: {
-        'astro:build:done': ({ dir }) => {
-          const files = readdirSync(dir).filter((f) => /^sitemap-\d+\.xml$/.test(f));
-          const entries = files.flatMap((f) => parseSitemapEntries(readFileSync(new URL(f, dir), 'utf8')));
-          if (entries.length) writeFileSync(new URL('sitemap.xml', dir), renderSitemapXml(entries));
-        },
-      },
-    },
+    // Sitemap, robots.txt and llms files are endpoints (src/pages/sitemap*.ts, robots.txt.ts, llms*.txt.ts) built from
+    // src/lib/seo/site-index.ts, so there is no sitemap integration here.
   ],
   vite: { plugins: [tailwindcss()] },
 });
