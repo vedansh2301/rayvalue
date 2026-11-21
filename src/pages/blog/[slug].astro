@@ -10,6 +10,8 @@ import TableOfContents from '../../components/seo/TableOfContents.astro';
 import Cover from '../../components/content/Cover.astro';
 import { coverTopic, stateKey } from '../../lib/content/cards';
 import { publishedPosts } from '../../lib/blog';
+import OfferSlot from '../../components/OfferSlot.astro';
+import { offersForPage } from '../../lib/offers/load';
 import { pickRelated } from '../../lib/related';
 import { displayDate, showUpdated } from '../../lib/dates';
 
@@ -19,6 +21,7 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
 const path = `/blog/${post.id}`;
+const offers = await offersForPage({ kind: 'blog', id: post.id, tags: post.data.tags, topic: post.data.topic });
 const day = (d: Date) => d.toISOString().slice(0, 10);
 const related = pickRelated(
   { id: post.id, state: post.data.state, tags: post.data.tags, published: post.data.published },
@@ -61,6 +64,7 @@ const ld = articleJsonLd({
     <div class="prose-guide mt-4 space-y-4">
       <Content />
     </div>
+    <OfferSlot offers={offers} pagePath={path} />
     <GuideCalculatorLinks state={post.data.state ?? 'both'} kind="blog" slug={post.id} place="end" />
     <RelatedReading heading="Related reading" id="related-h" items={related} />
     {post.data.sources.length > 0 && (

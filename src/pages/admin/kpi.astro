@@ -5,6 +5,7 @@ import KpiTable from '../../components/admin/KpiTable.astro';
 import { TARGETS, completionState, pct, rate, returnState, usd } from '../../lib/kpi/report';
 import { NOINDEX_HEADERS, guardAdmin } from '../../lib/server/admin';
 import { clampWeeks, loadKpi } from '../../lib/server/kpi';
+import { loadAffiliateReport } from '../../lib/server/affiliate-admin';
 
 // Owner-only KPI report, server-rendered, same Basic auth as /admin/leads. Contains no personal data. Read-only.
 export const prerender = false;
@@ -17,6 +18,7 @@ for (const [k, v] of Object.entries(NOINDEX_HEADERS)) Astro.response.headers.set
 const weeks = clampWeeks(new URL(Astro.request.url).searchParams.get('weeks'));
 const data = await loadKpi(env, weeks);
 const r = data?.report;
+const affiliate = data ? await loadAffiliateReport(env, data.from) : null;
 const buyerRows = r?.buyers ?? [];
 const pctTarget = (n: number) => `${Math.round(n * 100)}%`;
 ---
@@ -104,6 +106,43 @@ const pctTarget = (n: number) => `${Math.round(n * 100)}%`;
                 </tbody>
               </table>
             </div>
+          )}
+        </section>
+
+        <section aria-labelledby="affiliate" class="mt-8">
+          <h2 id="affiliate" class="text-lg font-semibold text-stone-900">Affiliate clicks</h2>
+          {affiliate === null ? (
+            <p class="mt-2 text-stone-700">Could not read affiliate data. Apply migration 0032 first.</p>
+          ) : affiliate.byOffer.length === 0 ? (
+            <p class="mt-2 text-stone-700">No affiliate offers in the database yet.</p>
+          ) : (
+            <>
+              <p class="mt-1 text-sm text-stone-700">Clicks on /go/out/&lt;offer&gt; since {data.from}. Bots are counted separately. No personal data is stored. These are clicks, not sales: sales are in each network&rsquo;s own dashboard.</p>
+              <div class="mt-3 overflow-x-auto" tabindex="0" role="region" aria-label="Affiliate clicks by offer">
+                <table class="min-w-full text-left text-sm text-stone-900">
+                  <caption class="sr-only">Affiliate clicks by offer</caption>
+                  <thead><tr class="border-b border-stone-300"><th scope="col" class="px-2 py-2">Offer</th><th scope="col" class="px-2 py-2">Status</th><th scope="col" class="px-2 py-2">Clicks</th><th scope="col" class="px-2 py-2">Bot clicks</th></tr></thead>
+                  <tbody>
+                    {affiliate.byOffer.map((o) => (
+                      <tr class="border-b border-stone-200"><th scope="row" class="px-2 py-2 text-left font-medium">{o.brand} <span class="text-stone-700">({o.slug})</span></th><td class="px-2 py-2">{affiliate.active[o.offerId] ? 'active' : 'off'}</td><td class="px-2 py-2">{o.clicks}</td><td class="px-2 py-2">{o.botClicks}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {affiliate.byPage.length > 0 && (
+                <div class="mt-4 overflow-x-auto" tabindex="0" role="region" aria-label="Affiliate clicks by page">
+                  <table class="min-w-full text-left text-sm text-stone-900">
+                    <caption class="sr-only">Affiliate clicks by offer and page</caption>
+                    <thead><tr class="border-b border-stone-300"><th scope="col" class="px-2 py-2">Page</th><th scope="col" class="px-2 py-2">Offer</th><th scope="col" class="px-2 py-2">Clicks</th></tr></thead>
+                    <tbody>
+                      {affiliate.byPage.slice(0, 50).map((p) => (
+                        <tr class="border-b border-stone-200"><th scope="row" class="px-2 py-2 text-left font-medium">{p.page}</th><td class="px-2 py-2">{p.slug}</td><td class="px-2 py-2">{p.clicks}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
         </section>
 

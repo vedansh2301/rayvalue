@@ -1,0 +1,14 @@
+---
+// Inline affiliate link (plain anchor through the click redirect). Renders only a live offer passed in by the page.
+// RULE 6: the disclosure must appear ABOVE the first affiliate link on the page: render <OfferSlot> (which starts with
+// <Disclosure />) earlier in the page, or <Disclosure /> itself. src/lib/offers/disclosure-order.test.ts enforces this.
+import { outHref, type PublicOffer } from '../lib/offers/offers';
+
+interface Props {
+  offer: PublicOffer | null | undefined;
+  /** Path of the page the link is on (logged with the click). */
+  pagePath: string;
+}
+const { offer, pagePath } = Astro.props;
+---
+{offer && <a href={outHref(offer.slug, pagePath)} rel="sponsored nofollow noopener" target="_blank" class="font-medium text-sun-ink underline underline-offset-2 hover:text-stone-900"><slot>{offer.ctaText}</slot><span class="sr-only"> (affiliate link, opens in a new tab)</span></a>}

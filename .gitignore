@@ -13,3 +13,4 @@ dist/
 
 # Social generator dry-run output
 out/
+!src/pages/go/out/

@@ -1,0 +1,25 @@
+---
+// Small product/offer card. Shows only what the offers row holds: headline (else the brand), description, a price only if the row has a sourced one.
+// Do not render without a disclosure above it: use <OfferSlot>, which does that.
+import { outHref, type PublicOffer } from '../lib/offers/offers';
+
+interface Props {
+  offer: PublicOffer;
+  pagePath: string;
+}
+const { offer, pagePath } = Astro.props;
+---
+<div class="flex flex-col rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+  <p class="text-xs font-semibold uppercase tracking-wide text-stone-700">{offer.brand}</p>
+  {offer.headline && <p class="mt-1 font-semibold text-stone-900">{offer.headline}</p>}
+  {offer.description && <p class="mt-1 text-sm leading-6 text-stone-700">{offer.description}</p>}
+  {offer.priceText && <p class="mt-2 text-sm font-medium text-stone-900">{offer.priceText}</p>}
+  <a
+    href={outHref(offer.slug, pagePath)}
+    rel="sponsored nofollow noopener"
+    target="_blank"
+    class="mt-3 inline-flex min-h-11 items-center self-start rounded-lg bg-sun-400 px-4 py-2 text-sm font-semibold text-stone-900 hover:bg-sun-500"
+  >
+    {offer.ctaText}<span class="sr-only"> (affiliate link, opens in a new tab)</span>
+  </a>
+</div>

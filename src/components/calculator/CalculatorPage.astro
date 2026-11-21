@@ -9,6 +9,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AlertsSignup from '../AlertsSignup.astro';
 import Disclosure from '../Disclosure.astro';
 import OfferCTA from '../OfferCTA.astro';
+import OfferSlot from '../OfferSlot.astro';
+import { offersForPage } from '../../lib/offers/load';
 import Breadcrumbs from '../Breadcrumbs.astro';
 import FlBatteryNotes from '../FlBatteryNotes.astro';
 import StoryCards from '../stories/StoryCards.astro';
@@ -35,6 +37,8 @@ interface Props {
 }
 const { state, data } = Astro.props;
 const name = STATE_NAMES[state];
+// Affiliate battery offers (display only; never feeds the calculator). Empty when none are active.
+const affiliateOffers = await offersForPage({ kind: 'results', id: state });
 const otherState: State = state === 'FL' ? 'CA' : 'FL';
 
 const meta = PAGE_META[state === 'FL' ? 'calculator-florida' : 'calculator-california'];
@@ -131,6 +135,7 @@ const steps = [
     )}
 
     {state === 'FL' && <FlBatteryNotes />}
+    <OfferSlot offers={affiliateOffers} pagePath={CALCULATOR_PATHS[state]} />
 
     <section aria-labelledby="how-heading">
       <h2 id="how-heading" class="text-xl font-semibold text-stone-900">How we calculated this</h2>

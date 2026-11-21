@@ -1,0 +1,24 @@
+---
+// The one block pages use for affiliate offers: disclosure first, then the cards. No offers = renders nothing at all
+// (no heading, no placeholder). Pass the result of offersForPage() from src/lib/offers/load.ts.
+import Disclosure from './Disclosure.astro';
+import OfferCard from './OfferCard.astro';
+import type { PublicOffer } from '../lib/offers/offers';
+
+interface Props {
+  offers: readonly PublicOffer[];
+  pagePath: string;
+  heading?: string;
+}
+const { offers, pagePath, heading = 'If you want backup power now' } = Astro.props;
+const first = offers[0];
+---
+{first && (
+  <section aria-labelledby="offers-heading" class="mt-8 space-y-3">
+    <h2 id="offers-heading" class="text-lg font-semibold text-stone-900">{heading}</h2>
+    <Disclosure disclosureKey={first.disclosureKey} />
+    <div class="grid gap-3 sm:grid-cols-2">
+      {offers.map((o) => <OfferCard offer={o} pagePath={pagePath} />)}
+    </div>
+  </section>
+)}

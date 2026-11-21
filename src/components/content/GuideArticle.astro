@@ -9,6 +9,8 @@ import ArticleByline from '../seo/ArticleByline.astro';
 import TableOfContents from '../seo/TableOfContents.astro';
 import Cover from './Cover.astro';
 import Faq from '../Faq.astro';
+import OfferSlot from '../OfferSlot.astro';
+import { offersForPage } from '../../lib/offers/load';
 import { coverTopic, stateKey } from '../../lib/content/cards';
 import { articlePath } from '../../lib/content/paths';
 import { articleJsonLd, faqJsonLd } from '../../lib/seo/jsonld';
@@ -18,6 +20,7 @@ interface Props { guide: CollectionEntry<'guides'>; crumbs?: { label: string; hr
 const { guide, crumbs } = Astro.props;
 const { Content, headings } = await render(guide);
 const path = articlePath('guides', guide.id, guide.data.route);
+const offers = await offersForPage({ kind: 'guide', id: guide.id, topic: guide.data.topic });
 const day = (d: Date) => d.toISOString().slice(0, 10);
 const ld = articleJsonLd({
   headline: guide.data.title,
@@ -57,6 +60,7 @@ const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
     <div class="prose-guide mt-4 space-y-4">
       <Content />
     </div>
+    <OfferSlot offers={offers} pagePath={path} />
     {faq.length > 0 && <div class="mt-10"><Faq items={faq} id="guide-faq" /></div>}
     <GuideCalculatorLinks state={guide.data.state} kind="guide" slug={guide.id} place="end" />
     <section class="mt-8" aria-labelledby="sources">

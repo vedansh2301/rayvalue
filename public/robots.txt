@@ -5,6 +5,7 @@ Allow: /
 # Private areas
 Disallow: /api/
 Disallow: /admin/
+Disallow: /go/out/
 
 # Thank-you, form and paid-traffic pages (/go/) are NOT blocked here: they carry a noindex tag, and Google can
 # only see that tag on pages it is allowed to crawl.
