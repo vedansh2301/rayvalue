@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
+import { articlePath } from '../../lib/content/paths';
 import { OG_PAGES, type OgPageKey } from '../../lib/seo/og';
 import { UTILITY_PAGES, utilityPagePath } from '../../lib/utility/pages';
 
@@ -19,6 +20,8 @@ export const clampTitle = (t: string, max = 90) => (t.length > max ? `${t.slice(
 export const getStaticPaths: GetStaticPaths = async () => {
   const guides = (await getCollection('guides')).filter((g) => !g.data.draft);
   const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
+  // Non-US articles use /og/<cc-segment>/<collection>/<slug>.png (GB under /uk/).
+  const ogSlug = (c: 'guides' | 'blog', e: { id: string; data: { country: string } }) => (e.data.country === 'us' ? `${c}/${e.id}` : articlePath(c, e.id, undefined, e.data.country).slice(1));
   return [
     { params: { slug: 'default' }, props: { title: 'Solar + battery payback, without the guesswork', kicker: 'RayValue' } },
     ...(Object.keys(OG_PAGES) as OgPageKey[]).map((k) => ({ params: { slug: k }, props: OG_PAGES[k] as { title: string; kicker: string; subtitle: string } })),
@@ -26,8 +29,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
       params: { slug: utilityPagePath(u).replace(/^\//, '') },
       props: { title: `Solar payback with ${u.short}`, kicker: u.state === 'FL' ? 'Florida utility' : 'California utility', subtitle: 'No federal tax credit' },
     })),
-    ...guides.map((g) => ({ params: { slug: `guides/${g.id}` }, props: { title: g.data.title, kicker: 'RayValue guide' } })),
-    ...posts.map((p) => ({ params: { slug: `blog/${p.id}` }, props: { title: p.data.title, kicker: 'RayValue blog' } })),
+    ...guides.map((g) => ({ params: { slug: ogSlug('guides', g) }, props: { title: g.data.title, kicker: 'RayValue guide' } })),
+    ...posts.map((p) => ({ params: { slug: ogSlug('blog', p) }, props: { title: p.data.title, kicker: 'RayValue blog' } })),
   ];
 };
 

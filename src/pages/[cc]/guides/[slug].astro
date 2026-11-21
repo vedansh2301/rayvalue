@@ -1,0 +1,12 @@
+---
+import GuideArticle from '../../../components/content/GuideArticle.astro';
+import { publishedIntlGuides } from '../../../lib/guides';
+import { articleSlug, countrySegment } from '../../../lib/content/paths';
+
+// /<cc>/guides/<slug> for guides under src/content/guides/<cc>/ (GB under /uk/).
+export async function getStaticPaths() {
+  return (await publishedIntlGuides()).map((guide) => ({ params: { cc: countrySegment(guide.data.country), slug: articleSlug(guide.id, guide.data.country) }, props: { guide } }));
+}
+const { guide } = Astro.props;
+---
+<GuideArticle guide={guide} />

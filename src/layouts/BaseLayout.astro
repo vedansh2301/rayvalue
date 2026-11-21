@@ -25,16 +25,18 @@ interface Props {
   jsonLd?: object[];
   /** Paid-traffic landing pages: logo-only header and legal-links-only footer. */
   minimal?: boolean;
+  /** <html lang> (BCP47); defaults to "en". */
+  lang?: string;
 }
 
-const { title, description, path, noindex = false, ogImagePath = '/og/default.png', ogType = 'website', ogImageAlt, canonical: withCanonical = true, publishedTime, modifiedTime, jsonLd = [], minimal = false } = Astro.props;
+const { title, description, path, noindex = false, ogImagePath = '/og/default.png', ogType = 'website', ogImageAlt, canonical: withCanonical = true, publishedTime, modifiedTime, jsonLd = [], minimal = false, lang = 'en' } = Astro.props;
 // Policy: trailingSlash 'never' + build.format 'directory' => canonical has no trailing slash (except root).
 const canonical = new URL(path === '/' ? '/' : path.replace(/\/+$/, ''), Astro.site).href;
 const fullTitle = path === '/' ? title : `${title} | RayValue`;
 const gscToken = import.meta.env.PUBLIC_GSC_VERIFICATION;
 ---
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

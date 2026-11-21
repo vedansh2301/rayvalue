@@ -4,7 +4,7 @@ import GuideArticle from '../../components/content/GuideArticle.astro';
 
 // Guides with a keyword `route` render there instead (the old /guides/<id> path 301-redirects; see astro.config).
 export async function getStaticPaths() {
-  const guides = (await getCollection('guides')).filter((g) => !g.data.draft && !g.data.route);
+  const guides = (await getCollection('guides')).filter((g) => !g.data.draft && !g.data.route && g.data.country === 'us');
   return guides.map((guide) => ({ params: { slug: guide.id }, props: { guide } }));
 }
 const { guide } = Astro.props;

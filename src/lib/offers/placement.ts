@@ -12,6 +12,8 @@ export interface PlacementContext {
   id: string;
   tags?: readonly string[];
   topic?: string;
+  /** ISO2 lowercase country of the page (default 'us'); offers are filtered to this country. */
+  country?: string;
 }
 
 export interface Placement {

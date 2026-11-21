@@ -10,6 +10,13 @@ const coverFields = (image: SchemaContext['image']) => ({
 const needsAlt = (d: { cover?: unknown; coverAlt?: string }) => !d.cover || !!d.coverAlt;
 const altMessage = { message: 'coverAlt is required when cover is set', path: ['coverAlt'] };
 
+/** Non-US articles: ISO-3166 alpha-2, lowercase. Files live at src/content/<collection>/<cc>/<slug>.mdx and render at /<cc>/<collection>/<slug> (GB under /uk/). */
+const countryFields = {
+  country: z.string().regex(/^[a-z]{2}$/, 'country is ISO2 lowercase, e.g. "gb"').default('us'),
+  /** BCP47 language tag for <html lang>. */
+  lang: z.string().regex(/^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/, 'lang is BCP47, e.g. "en-GB"').default('en-US'),
+};
+
 const guides = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/guides' }),
   schema: ({ image }) => z.object({
@@ -20,7 +27,9 @@ const guides = defineCollection({
     /** First-publish date (from git history). Never backdated. */
     published: z.coerce.date().optional(),
     updated: z.coerce.date(),
-    state: z.enum(['FL', 'CA', 'both']),
+    /** Required for US guides (country 'us'); optional for non-US. */
+    state: z.enum(['FL', 'CA', 'both']).optional(),
+    ...countryFields,
     sources: z.array(z.object({ title: z.string(), url: z.string().url() })).min(1),
     /** Optional cover-graphic topic for the index cards; derived from tags/title when omitted. */
     topic: z.enum(['map', 'battery', 'bill', 'house', 'sun', 'scale', 'chart']).optional(),
@@ -34,7 +43,8 @@ const guides = defineCollection({
     /** Optional visible FAQ, rendered after the body; the same items feed the page's FAQPage JSON-LD. Plain text only. */
     faq: z.array(z.object({ question: z.string().min(1), answer: z.string().min(1) })).optional(),
     ...coverFields(image),
-  }).refine(needsAlt, altMessage),
+  }).refine(needsAlt, altMessage)
+    .refine((d) => d.country !== 'us' || !!d.state, { message: 'state is required for US guides', path: ['state'] }),
 });
 
 const blog = defineCollection({
@@ -46,6 +56,7 @@ const blog = defineCollection({
     published: z.coerce.date(),
     updated: z.coerce.date().optional(),
     state: z.enum(['FL', 'CA', 'both']).optional(),
+    ...countryFields,
     tags: z.array(z.string()).default([]),
     /** Any number or factual claim in a post must be backed by a source listed here (CLAUDE.md rule 1). */
     sources: z.array(z.object({ title: z.string(), url: z.string().url() })).default([]),

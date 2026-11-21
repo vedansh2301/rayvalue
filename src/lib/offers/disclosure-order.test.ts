@@ -48,7 +48,7 @@ describe('affiliate disclosure order', () => {
   });
 
   it('every page that renders an OfferSlot passes offers from the placement helper', () => {
-    for (const p of ['components/calculator/CalculatorPage.astro', 'components/content/GuideArticle.astro', 'pages/blog/[slug].astro']) {
+    for (const p of ['components/calculator/CalculatorPage.astro', 'components/content/GuideArticle.astro', 'components/content/BlogArticle.astro']) {
       const src = read(p);
       expect(src).toContain('offersForPage(');
       expect(src).toContain('<OfferSlot offers={');

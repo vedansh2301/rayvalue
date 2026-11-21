@@ -1,0 +1,14 @@
+---
+import IntlIndex from '../../../components/content/IntlIndex.astro';
+import { publishedIntlGuides } from '../../../lib/guides';
+import { countrySegment } from '../../../lib/content/paths';
+
+// Non-US countries only (GB is /uk/); the US index is /guides. Built only for countries with a non-draft guide.
+export async function getStaticPaths() {
+  const all = await publishedIntlGuides();
+  const segs = [...new Set(all.map((g) => countrySegment(g.data.country)))];
+  return segs.map((cc) => ({ params: { cc }, props: { country: all.find((g) => countrySegment(g.data.country) === cc)!.data.country, entries: all.filter((g) => countrySegment(g.data.country) === cc) } }));
+}
+const { country, entries } = Astro.props;
+---
+<IntlIndex collection="guides" country={country} entries={entries} />
