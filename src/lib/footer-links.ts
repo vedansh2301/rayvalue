@@ -9,6 +9,7 @@ import { countryName, US_SEGMENT } from './content/country-nav.ts';
 import { calcPath } from './paths.ts';
 import { PLACE_TEXT } from './places/i18n.ts';
 import { placeCountryBySegment } from './places/config.ts';
+import { byPriority } from './place-priority.ts';
 import type { IndexEntry } from './seo/site-index.ts';
 
 export interface FooterLink { href: string; label: string; lang?: string }
@@ -67,7 +68,7 @@ export function footerSeoGroups(i: FooterInput): FooterGroup[] {
     } else {
       const hl = placeCountryBySegment(segment)?.htmlLang;
       const lang = hl && !hl.startsWith('en') ? hl : undefined;
-      const ps = i.places.filter((e) => e.country === segment && e.type === 'places' && e.placeKind === 'place').sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+      const ps = byPriority(segment, i.places.filter((e) => e.country === segment && e.type === 'places' && e.placeKind === 'place'));
       for (const e of ps.slice(0, per)) links.push({ href: e.path, label: placeLabel(e), lang });
     }
     if (links.length > 0) groups.push({ segment, name, links });

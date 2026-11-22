@@ -1,0 +1,44 @@
+---
+/**
+ * A library photo as a responsive AVIF/WebP <Picture> that fills its (relative, fixed-ratio) parent with object-cover,
+ * so there is no layout shift. Lazy by default; the one LCP image per page passes `eager` (loading=eager,
+ * fetchpriority=high). `credit` adds the tiny visible credit CC BY / CC BY-SA require: as a link to /credits
+ * ("link"), as plain text where the whole card is already a link ("text"), or not at all ("none").
+ */
+import { Picture } from 'astro:assets';
+import { FOCUS_CLASS, creditLine, needsVisibleCredit } from '../../lib/images/library';
+import type { Photo } from '../../lib/images/place-images';
+
+interface Props {
+  photo: Photo;
+  sizes: string;
+  eager?: boolean;
+  widths?: number[];
+  credit?: 'link' | 'text' | 'none';
+  /** Where the credit sits inside the parent. */
+  creditAt?: 'bottom-right' | 'bottom-left' | 'top-right';
+  class?: string;
+  alt?: string;
+}
+const { photo, sizes, eager = false, widths = [480, 768, 1100, 1600, 2200], credit = 'text', creditAt = 'bottom-right', class: cls = '', alt } = Astro.props;
+const w = widths.filter((x) => x <= photo.src.width);
+const show = credit !== 'none' && needsVisibleCredit(photo);
+const pos = { 'bottom-right': 'bottom-1.5 right-1.5', 'bottom-left': 'bottom-1.5 left-1.5', 'top-right': 'top-1.5 right-1.5' }[creditAt];
+const pill = `absolute ${pos} z-20 max-w-[calc(100%-0.75rem)] truncate rounded bg-stone-950/75 px-1.5 py-0.5 text-[11px] leading-4 text-white`;
+---
+<Picture
+  src={photo.src}
+  alt={alt ?? photo.alt}
+  formats={['avif', 'webp']}
+  widths={w}
+  sizes={sizes}
+  width={1600}
+  height={Math.round((1600 * photo.src.height) / photo.src.width)}
+  loading={eager ? 'eager' : 'lazy'}
+  fetchpriority={eager ? 'high' : 'auto'}
+  decoding={eager ? 'sync' : 'async'}
+  class:list={['absolute inset-0 h-full w-full object-cover', FOCUS_CLASS[photo.focus], cls]}
+/>
+{show && (credit === 'link'
+  ? <a href={`/credits#${photo.id}`} class:list={[pill, 'no-underline hover:bg-stone-950 focus-visible:outline-2 focus-visible:outline-white']}>{creditLine(photo)}</a>
+  : <span class={pill}>{creditLine(photo)}</span>)}

@@ -1,8 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import placeCredits from '../data/images/credits.json';
+import { creditsTableOrder, licenseCounts, type PhotoCredit } from '../lib/images/library';
+import { countryName } from '../lib/content/country-nav';
 
 const path = '/credits';
+const places = creditsTableOrder(placeCredits as PhotoCredit[]);
+const counts = Object.entries(licenseCounts(places));
+const where = (p: PhotoCredit) => (p.country === 'world' ? 'Home page' : [countryName(p.country), p.place ? p.place.replace(/-/g, ' ') : null].filter(Boolean).join(' / '));
 const photos = [
   {
     use: 'Home page hero and the solar tax benefits guide',
@@ -335,6 +341,20 @@ const photos = [
           <strong>{p.use}.</strong> {p.desc} Photo by {p.credit}. {p.note}{' '}
           {p.licenseHref ? <a href={p.licenseHref} rel="license noopener noreferrer">{p.license}</a> : p.license}.{' '}
           <a href={p.href} rel="noopener noreferrer">Source</a>
+        </li>
+      ))}
+    </ul>
+    <h2 id="place-photos">Place photographs</h2>
+    <p>
+      Country, state and city photographs from Wikimedia Commons. {places.length} photographs: {counts.map(([l, n]) => `${n} ${l}`).join(', ')}.
+      Each was resized and cropped to fit; none is endorsed by its photographer. Photos under CC BY or CC BY-SA carry a credit line on the image.
+    </p>
+    <ul>
+      {places.map((p) => (
+        <li id={p.id}>
+          <strong>{where(p)}.</strong> {p.alt}. Photo by {p.author}.{' '}
+          {p.license_url ? <a href={p.license_url} rel="license noopener noreferrer">{p.license}</a> : p.license}.{' '}
+          <a href={p.source_url} rel="noopener noreferrer">Source</a>
         </li>
       ))}
     </ul>

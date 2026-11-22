@@ -1,0 +1,17 @@
+---
+/** <link rel="preload"> for the page's LCP photo (AVIF srcset + the same `sizes` the <Photo> uses). Put it in the layout's head slot. */
+import { getImage } from 'astro:assets';
+import type { Photo } from '../../lib/images/place-images';
+
+interface Props { photo: Photo; sizes: string; widths?: number[] }
+const { photo, sizes, widths = [480, 768, 1100, 1600, 2200] } = Astro.props;
+const img = await getImage({
+  src: photo.src,
+  format: 'avif',
+  widths: widths.filter((x) => x <= photo.src.width),
+  sizes,
+  width: 1600,
+  height: Math.round((1600 * photo.src.height) / photo.src.width),
+});
+---
+<link rel="preload" as="image" type="image/avif" imagesrcset={img.srcSet.attribute} imagesizes={sizes} fetchpriority="high" />
