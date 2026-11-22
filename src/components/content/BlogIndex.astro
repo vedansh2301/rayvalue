@@ -22,9 +22,15 @@ import { getArticleImage } from '../../lib/images/place-images';
 import { coverTopic, stateKey, type StateKey, type Topic } from '../../lib/content/cards';
 import { BLOG_TOPICS, BLOG_TOPIC_LABEL, blogTopic, countryChips, leadBadge, pickFeatured } from '../../lib/content/blog-index';
 import { calcPath } from '../../lib/paths';
+import EmailSignup from '../subscribe/EmailSignup';
+import { signupText, type SignupCountry } from '../../lib/i18n/signup';
 
 interface Props { country?: string }
 const { country } = Astro.props;
+// "Deadline alerts for your country": the calculator countries only (double opt-in through /api/subscribe). A country blog pre-selects its own.
+const alertText = signupText('en');
+const alertCountries: Record<SignupCountry, string> = { US: 'United States', GB: 'United Kingdom', DE: 'Germany', AU: 'Australia' };
+const alertDefault: SignupCountry | '' = ({ us: 'US', uk: 'GB', gb: 'GB', de: 'DE', au: 'AU' } as Record<string, SignupCountry>)[(country ?? '').toLowerCase()] ?? '';
 const now = new Date();
 const entries = await getCollection('blog', (e) => !e.data.draft && !e.data.noindex);
 const all = entries.map((e) => {
@@ -184,7 +190,22 @@ const chipBase = 'group/chip flex min-h-11 shrink-0 items-center gap-2 whitespac
         </div>
       </div>
     </section>
-    <div class="pb-16"></div>
+    <section class="shell pb-16 pt-14" aria-labelledby="alerts-heading">
+      <div class="grid items-start gap-6 rounded-3xl bg-sky-pastel-200 p-[clamp(1.5rem,4vw,2.5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+        <div class="flex items-center gap-4">
+          <span class="flex size-14 flex-none items-center justify-center rounded-2xl bg-white" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1c1917" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" fill="#fde68a"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+          </span>
+          <div>
+            <h2 id="alerts-heading" class="font-display-tight text-[1.625rem] leading-tight text-stone-900">{alertText.blog.heading}</h2>
+            <p class="mt-1 text-stone-800">{alertText.blog.sub}</p>
+          </div>
+        </div>
+        <div class="rounded-[18px] bg-white p-[18px]">
+          <EmailSignup client:visible id="blog-alerts" lang="en" mode="alerts" country={alertDefault} source={country ? `${country.toLowerCase()}-blog` : 'blog-index'} countryNames={alertCountries} />
+        </div>
+      </div>
+    </section>
   </div>
 </BaseLayout>
 

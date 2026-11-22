@@ -6,7 +6,7 @@ import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 
 const path = '/privacy';
 ---
-<BaseLayout title="Privacy" description="RayValue privacy policy: no cookies, privacy-friendly analytics, and what happens when you request installer quotes." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
+<BaseLayout title="Privacy" description="RayValue privacy policy: no cookies, privacy-friendly analytics, what happens when you request installer quotes, and how email reports and deadline alerts work." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
     {/* TODO: owner legal review */}
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Privacy' }]} />
@@ -36,9 +36,11 @@ const path = '/privacy';
       These companies store or process data on our behalf, only to run RayValue: Vercel hosts the site and provides
       the cookieless analytics described above (as with any website, it processes request data such as IP addresses
       to serve pages and protect the site from abuse), and Supabase hosts our database, where quote requests, privacy
-      requests, estimate-email requests and alert signups are stored. If you choose to confirm your phone number with a
-      text-message code, Twilio sends and checks that code. If you ask us to email you an estimate, an email delivery
-      service sends it. {/* OWNER: name the email provider here once chosen (RESEND_API_KEY / EMAIL_FROM). */}
+      requests, estimate-email requests and email sign-ups are stored. If you choose to confirm your phone number with a
+      text-message code, Twilio sends and checks that code. Resend delivers the emails we send you (confirmation
+      emails, estimate links and, once they start, deadline alerts) and processes your email address and the message
+      for that purpose only, on our behalf. These providers act as our processors: they may use your data only to
+      provide their service to us.
     </p>
 
     <h2>Quote requests</h2>
@@ -100,6 +102,48 @@ const path = '/privacy';
       emails.
     </p>
 
+    <h2>Email reports and deadline alerts (United States, United Kingdom, Germany, Australia)</h2>
+    <p>
+      On the calculators, the home page report and the blog you can ask us to email you your payback estimate
+      (&ldquo;Email me this estimate&rdquo;) and/or alerts when a deadline or rate change affects solar in your country. This is
+      email only: we have no installer partners in these countries, we do not offer or promise quotes, and your email
+      is not shared with installers.
+    </p>
+    <p>
+      <strong>What we collect.</strong> Your email address, your country, the topics you chose (estimate link, deadline
+      alerts), the wording you agreed to with its version and the time you agreed, the page language and the page you
+      signed up on. If you asked for your estimate, we also keep the answers behind it (for example your region, bill,
+      battery choice, roof direction and shade) so the link in your email can reopen the calculator with them filled in.
+      We do not put calculated figures in the email and we do not store your IP address with a sign-up; your IP address is
+      used only to limit repeated requests, and only a one-way hash of it is kept.
+    </p>
+    <p>
+      <strong>Why, and our legal basis.</strong> To send you what you asked for. The basis is your consent (for people in the
+      UK and EU, Article 6(1)(a) of the UK and EU GDPR, and the UK Privacy and Electronic Communications Regulations). You
+      give it by ticking the box next to the wording, and we then email you once to confirm your address (double
+      opt-in): nothing else is sent until you click the confirmation link. You can withdraw consent at any time, and
+      doing so does not affect what we did before.
+    </p>
+    <p>
+      <strong>How long we keep it.</strong> Until you unsubscribe or ask us to delete it. When you unsubscribe we stop all
+      emails to that address and keep the address on a suppression list so we never email it again; use the
+      <a href="/privacy/request">privacy request form</a> if you want the address removed from that list too. A sign-up
+      that you never confirm is not used for anything and stays until it is deleted on request.
+      {/* OWNER: no automatic purge of unconfirmed sign-ups exists yet; decide a period (e.g. 30 days) and add a job. */}
+    </p>
+    <p>
+      <strong>Unsubscribing and deleting.</strong> Every email has an unsubscribe link (and a one-click unsubscribe header
+      for your mail app). To see, correct or delete what we hold, or to complain about how we use it, use the
+      <a href="/privacy/request">privacy request form</a>. If you are in the UK or EU you can also complain to your data
+      protection authority (in the UK, the Information Commissioner&rsquo;s Office).
+    </p>
+    <p>
+      <strong>Who handles it.</strong> Supabase stores the sign-up and Resend sends the emails, both as our processors (see
+      Service providers above). They may process data outside your country. We use no cookies or tracking pixels in these
+      emails or on the sign-up forms.
+      {/* OWNER LEGAL REVIEW: international-transfer safeguards and the data-controller identity and postal address (also needed in email footers; set NURTURE_MAILING_ADDRESS). */}
+    </p>
+
     <h2>California residents</h2>
     <p>
       Because we may sell or share quote requests with installers, you can opt out at any time:
@@ -109,8 +153,9 @@ const path = '/privacy';
 
     <h2>Rate change alerts</h2>
     <p>
-      If you sign up for rate change alerts, we store your email address and your state in our database (hosted by
-      Supabase), only to send you those alerts. We do not sell or share it.
+      If you signed up for Florida or California rate change alerts, we store your email address and your state in our
+      database (hosted by Supabase), only to send you those alerts. We do not sell or share it. Alerts for the United
+      States, the United Kingdom, Germany and Australia are described in the section on email reports and deadline alerts above.
     </p>
 
     <h2>Deleting or seeing your data</h2>

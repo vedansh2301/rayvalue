@@ -35,6 +35,8 @@ import {
 import { btnSecondary, btnText } from '../ui/buttons';
 import { COMPASS_DEG, USAGE_SLIDER, answeredCount, progressPct, rateBarPct, regionDot, sliderPosition } from '../../lib/calculator/design';
 import SavingsChart from './SavingsChart';
+import EmailSignup from '../subscribe/EmailSignup';
+import { signupText, type SignupCountry } from '../../lib/i18n/signup';
 import { zeroVatDaysLeft, zeroVatEnd } from '../../lib/calculator/design';
 
 const loadEngine = () => import('../../lib/calculator/uk-engine');
@@ -49,6 +51,8 @@ interface Shown {
   battery: UkBattery;
   installLabel: string;
   sources: SourceRef[];
+  /** The answers behind this estimate (inputs only, no figures), for the "email me this estimate" link back. */
+  params: Record<string, string>;
   chart: ReturnType<typeof import('../../lib/calc/chart').buildSavingsChart>;
 }
 type Outcome = { kind: 'result'; shown: Shown } | { kind: 'no_production' } | { kind: 'error' };
@@ -100,12 +104,30 @@ export default function CalculatorIntl(props: CalculatorIslandProps) {
   const offer = offers.find((o) => o.id === offerId);
   const region = utilities.find((u) => u.id === regionId);
 
-  // ?bill= (monthly bill in the local currency) and ?battery=1 prefill the form (links from the home-page report).
+  // Query parameters prefill the form: ?bill= and ?battery=1 from the home-page report, and every answer (region, bill or kwh,
+  // battery, roof, shade, install, offer) from the "email me this estimate" link. A link with a complete, valid set of
+  // answers runs the estimate straight away. Unknown or stale values are ignored.
+  const autoRun = useRef(false);
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     const b = Number(q.get('bill'));
-    if (q.get('bill') && Number.isFinite(b) && b > 0 && b <= maxBill) { setMode('bill'); setUsageRaw(String(Math.round(b))); }
+    const hasBill = !!q.get('bill') && Number.isFinite(b) && b > 0 && b <= maxBill;
+    if (hasBill) { setMode('bill'); setUsageRaw(String(b % 1 === 0 ? Math.round(b) : b)); }
+    const kwh = Number(q.get('kwh'));
+    const hasKwh = !hasBill && !!q.get('kwh') && Number.isFinite(kwh) && kwh > 0 && kwh <= 1_000_000;
+    if (hasKwh) { setMode('kwh'); setUsageRaw(String(kwh)); }
     if (q.get('battery') === '1' && batteryOk) setBattery(1);
+    const r = utilities.find((u) => u.id === q.get('region'));
+    if (r) setRegionId(r.id);
+    const roof = s.orientations.find((o) => o.value === q.get('roof'));
+    if (roof) setOrientation(roof.value);
+    const shade = s.shadings.find((o) => o.value === q.get('shade'));
+    if (shade) setShading(shade.value);
+    const inst = periods.find((x) => x.id === q.get('install'));
+    if (inst) setInstallId(inst.id);
+    const o = exportOffers(props.exportPolicies, inst?.installDate ?? props.today).find((x) => x.id === q.get('offer') && x.pence !== null);
+    if (o) setOfferId(o.id);
+    autoRun.current = !!(r && (hasBill || hasKwh) && roof && shade && o && (periods.length === 0 || inst));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -184,6 +206,15 @@ export default function CalculatorIntl(props: CalculatorIslandProps) {
               battery,
               installLabel: installText,
               sources: runSources(props, runInput, install.installDate, battery, s.sources),
+              params: {
+                region: region.id,
+                ...(mode === 'bill' ? { bill: String(bill) } : { kwh: String(parseKwhInput(usageRaw, market.locale) ?? '') }),
+                battery: String(battery),
+                roof: orientation,
+                shade: shading,
+                ...(periods.length > 0 ? { install: install.id } : {}),
+                offer: offer.id,
+              },
               chart: result.ok && result.annualUsageKwh > 0 ? engine.buildSavingsChart(engine.chartSource(result), fmt.symbol, s.chart) : null,
             },
           };
@@ -217,6 +248,13 @@ export default function CalculatorIntl(props: CalculatorIslandProps) {
   const hasMap = market.code === 'GB' && !!props.mapOutline && utilities.every((u) => regionDot(s.regionName(u.name)) !== null);
   const progress = answeredCount({ region: !!region, usage: parsedUsage !== null, roof: !!orientation, shade: !!shading, install: periods.length > 0 ? !!install : null, offer: !!offer && offer.pence !== null });
   const ready = progress.done === progress.total;
+  useEffect(() => {
+    if (!autoRun.current || !ready) return;
+    autoRun.current = false;
+    const v = validate();
+    if (v) void run(v.bill);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
   const maxPence = Math.max(0, ...offers.map((o) => o.pence ?? 0));
   const orientationLabel = s.orientations.find((o) => o.value === orientation)?.label;
   const shadingLabel = s.shadings.find((o) => o.value === shading)?.label;
@@ -440,7 +478,7 @@ export default function CalculatorIntl(props: CalculatorIslandProps) {
           {outcome.kind === 'no_production' && <p class="mt-4 text-stone-700">{s.noProduction}</p>}
           {outcome.kind === 'error' && <p class="mt-4 text-stone-700">{s.error}</p>}
           {outcome.kind === 'result' && !outcome.shown.result.ok && <p class="mt-4 text-stone-700">{outcome.shown.result.reason === 'missing_data' ? s.missingData : s.checkAnswers}</p>}
-          {ok && ok.result.ok && <Results shown={ok} r={ok.result} fmt={fmt} s={s} locale={market.locale} />}
+          {ok && ok.result.ok && <Results shown={ok} r={ok.result} fmt={fmt} s={s} locale={market.locale} country={market.code as SignupCountry} px={px} />}
         </section>
       )}
     </div>
@@ -495,7 +533,7 @@ function Metric(p: { label: string; d: RangeDisplay; s: CalcStrings; note?: stri
   );
 }
 
-function Results(p: { shown: Shown; r: GlobalCalcSuccess; fmt: ReturnType<typeof moneyFormats>; s: CalcStrings; locale: string }) {
+function Results(p: { shown: Shown; r: GlobalCalcSuccess; fmt: ReturnType<typeof moneyFormats>; s: CalcStrings; locale: string; country: SignupCountry; px: string }) {
   const { shown, r, fmt, s, locale } = p;
   const noUsage = r.annualUsageKwh === 0;
   const hasIncentive = r.incentivesApplied.length > 0;
@@ -531,6 +569,12 @@ function Results(p: { shown: Shown; r: GlobalCalcSuccess; fmt: ReturnType<typeof
         <strong class="font-display-tight text-xl text-stone-900">{s.ui.nextTitle}</strong>
         <a href={s.ui.guidesHref} class="inline-flex min-h-11 items-center justify-center rounded-lg bg-stone-900 px-5 font-bold text-sun-100 no-underline hover:bg-stone-800 hover:text-sun-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="calc_next" data-track-target={s.ui.guidesHref}>{s.ui.nextCta} &rarr;</a>
       </div>
+
+      <section aria-labelledby={`${p.px}-email-heading`} class="mt-5 rounded-[18px] border border-sky-pastel-300 bg-white p-5">
+        <h3 id={`${p.px}-email-heading`} class="font-display-tight text-xl text-stone-900">{signupText(locale).estimateBox.heading}</h3>
+        <p class="mb-4 mt-1 max-w-[60ch] text-sm leading-6 text-stone-700">{signupText(locale).estimateBox.sub}</p>
+        <EmailSignup id={`${p.px}-email`} lang={locale} mode="estimate" country={p.country} source={`${p.px}-calculator`} region={shown.params.region} params={shown.params} />
+      </section>
 
       <details class="mt-6 rounded-lg border border-sky-pastel-300 bg-white">
         <summary class="min-h-11 cursor-pointer px-4 py-3 font-semibold text-stone-900">{s.assumptionsSummary(r.assumptions.length)}</summary>
