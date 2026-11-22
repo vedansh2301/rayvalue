@@ -10,5 +10,4 @@ export const UNREVIEWED_PAGES: ReadonlySet<string> = new Set([
   '/credits',
   // UK calculator: reachable from the /uk hub, guides and place pages, but out of the sitemap (and noindex while markets.published is
   // false) until the owner has reviewed the GB data and flips the market live.
-  '/uk/solar-calculator',
 ]);
