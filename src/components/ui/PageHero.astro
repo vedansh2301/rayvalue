@@ -1,0 +1,30 @@
+---
+// Shared hero band for every top-level page template: night-sky ink, a display-serif headline, the sun-path art and
+// optionally Ray (the mascot) in a pose that fits the page. Slots: `crumbs` (breadcrumbs, dark tone), default (intro
+// paragraph and extras), `actions` (buttons), `below` (full-width row under the actions) and `aside` (a picture beside
+// the text from the lg breakpoint; replaces Ray).
+import SunArc from './SunArc.astro';
+import Ray from '../brand/Ray.astro';
+import type { RayPose } from '../../lib/brand/ray';
+interface Props { title: string; size?: 'lg' | 'md'; titleId?: string; pose?: RayPose }
+const { title, size = 'md', titleId, pose } = Astro.props;
+const hasAside = Astro.slots.has('aside');
+const showRay = !!pose && !hasAside;
+---
+<section class="relative isolate overflow-hidden bg-ink-900 text-white" aria-labelledby={titleId}>
+  <SunArc />
+  {showRay && <Ray pose={pose} size={84} class="absolute right-4 top-5 -z-0 md:hidden" />}
+  <div class:list={['shell relative', size === 'lg' ? 'pb-14 pt-10 sm:pb-20 sm:pt-14' : 'pb-9 pt-7 sm:pb-12 sm:pt-9']}>
+    <div class:list={[(hasAside || showRay) && 'grid items-center gap-8', hasAside && 'lg:grid-cols-[3fr_2fr]', showRay && 'md:grid-cols-[1fr_16rem] lg:grid-cols-[1fr_20rem]']}>
+      <div>
+        <slot name="crumbs" />
+        <h1 id={titleId} class:list={['font-display-tight mt-4 max-w-3xl text-balance text-white', showRay && 'max-md:pr-16', size === 'lg' ? 'text-4xl leading-[1.08] sm:text-6xl' : 'text-3xl leading-tight sm:text-5xl']}>{title}</h1>
+        <div class="mt-4 max-w-2xl text-lg leading-8 text-ink-100"><slot /></div>
+        <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap"><slot name="actions" /></div>
+      </div>
+      {hasAside && <div class="mx-auto w-full max-w-md lg:max-w-none"><slot name="aside" /></div>}
+      {showRay && <div class="hidden justify-center md:flex"><Ray pose={pose} size={size === 'lg' ? 300 : 240} class="h-auto w-full max-w-[18rem]" /></div>}
+    </div>
+    <slot name="below" />
+  </div>
+</section>

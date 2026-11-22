@@ -1,18 +1,22 @@
 ---
 export const prerender = false;
 
-// Country home hub: /uk, /de, /au, /ie, /nl, /es, /it ... Built from what exists: place hubs by region, latest guides and
-// blog posts. noindex below HUB_MIN_ITEMS published items. No national figures: none are held with a source yet.
+// Country home hub: /uk, /de, /au, /ie, /nl, /es, /it ... Built from what exists: the calculator (when the country has
+// one), deadline guides, place hubs by region, latest guides and blog posts. noindex below HUB_MIN_ITEMS published
+// items. No national figures: none are held with a source yet, so none are shown.
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/ui/PageHero.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import CountryCalcCta from '../../components/seo/CountryCalcCta.astro';
 import { getCollection } from 'astro:content';
 import { articleIndexPath, articlePath, countrySegment } from '../../lib/content/paths';
 import { countryName, hubIndexable, hubItemCount } from '../../lib/content/country-nav';
+import { countryCalculator } from '../../lib/content/country-calc';
+import { deadlineLinks, REGION_BY_SEGMENT, type HomeArticle } from '../../lib/home/global-home';
 import { hubIntro, uiText } from '../../lib/i18n/ui';
 import { loadPlaceIndexEntries } from '../../lib/places/index-entries';
 import { DB_PAGE_CACHE_HEADERS } from '../../lib/db/repo';
 import { displayDate } from '../../lib/dates';
+import { btnPrimary } from '../../components/ui/buttons';
 
 const seg = Astro.params.cc ?? '';
 const live = async (c: 'guides' | 'blog') => (await getCollection(c, (e) => !e.data.draft && !e.data.noindex && e.data.country !== 'us' && countrySegment(e.data.country) === seg));
@@ -20,7 +24,9 @@ const newest = <T extends { data: { updated?: Date; published?: Date } }>(l: T[]
 const [guides, posts] = await Promise.all([live('guides').then(newest), live('blog').then(newest)]);
 
 const places = await loadPlaceIndexEntries();
-const hubs = places.ok ? places.value.filter((e) => e.country === seg && e.type === 'places' && e.placeKind === 'hub') : [];
+const placeEntries = places.ok ? places.value.filter((e) => e.country === seg && e.type === 'places') : [];
+const hubs = placeEntries.filter((e) => e.placeKind === 'hub');
+const placeCount = placeEntries.filter((e) => e.placeKind === 'place').length;
 
 if (guides.length + posts.length + hubs.length === 0) {
   Astro.response.status = 404;
@@ -35,59 +41,94 @@ const ui = uiText(lang);
 const name = countryName(seg, lang);
 // With the place lookup down the item count is incomplete, so stay noindex rather than flip-flop in search results.
 const indexable = places.ok && hubIndexable(hubItemCount({ guides: guides.length, blog: posts.length, placeHubs: hubs.length }));
-const regions = [...new Set(hubs.map((h) => h.region ?? ''))].sort();
-const cardList = 'mt-3 space-y-4';
+const calc = countryCalculator(seg);
+const asHome = (collection: 'guides' | 'blog', e: (typeof guides)[number]): HomeArticle => ({ collection, id: e.id, country: e.data.country, lang: e.data.lang, title: e.data.title, description: e.data.description, published: e.data.published, updated: e.data.updated, noindex: e.data.noindex });
+const deadlines = deadlineLinks([...guides.map((g) => asHome('guides', g)), ...posts.map((p) => asHome('blog', p))], seg);
+const regions = hubs
+  .map((h) => ({ href: h.path, name: h.region ?? '', places: placeEntries.filter((p) => p.placeKind === 'place' && p.region === h.region).length }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+const region = REGION_BY_SEGMENT[seg];
+const h2 = 'font-display-tight text-2xl text-stone-900 sm:text-3xl';
+const link = 'text-sun-ink underline underline-offset-4 hover:text-stone-900';
 ---
 {found ? (
   <BaseLayout title={`RayValue: ${name}`} description={hubIntro(lang, name)} path={`/${seg}`} noindex={!indexable} lang={lang}>
-    <div class="page">
-      <Breadcrumbs items={[{ label: ui.home, href: `/${seg}` }, { label: name }]} />
-      <h1 class="!mt-4">{name}</h1>
-      <p>{hubIntro(lang, name)}</p>
-      <CountryCalcCta country={seg} place="top" />
+    <PageHero title={name} titleId="hub-title" pose="wave">
+      <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'RayValue', href: '/' }, { label: name }]} />
+      {hubIntro(lang, name)}{calc && <> {calc.body}</>}
+      <Fragment slot="actions">
+        {calc && <a href={calc.href} class={btnPrimary} data-track="nav_click" data-track-placement="hub_hero" data-track-target={calc.href}>{calc.cta}</a>}
+      </Fragment>
+      <p slot="below" class="mt-6 text-sm text-ink-200" lang="en">
+        {region && <>{region}. </>}On RayValue: {guides.length > 0 && <>{guides.length} {guides.length === 1 ? 'guide' : 'guides'}</>}{guides.length > 0 && (posts.length > 0 || placeCount > 0) && ', '}{posts.length > 0 && <>{posts.length} {posts.length === 1 ? 'post' : 'posts'}</>}{posts.length > 0 && placeCount > 0 && ', '}{placeCount > 0 && <>{placeCount} {placeCount === 1 ? 'place page' : 'place pages'}</>}.
+      </p>
+    </PageHero>
 
-      {hubs.length > 0 && (
-        <section class="mt-10" aria-labelledby="hub-places">
-          <h2 id="hub-places" class="text-2xl font-semibold">{ui.placesHeading}</h2>
-          <ul class="mt-3 grid gap-2 sm:grid-cols-2">
-            {regions.map((r) => {
-              const h = hubs.find((x) => (x.region ?? '') === r)!;
-              return <li><a class="underline underline-offset-4" href={h.path}>{r}</a></li>;
-            })}
+    <div class="shell pb-16">
+      {deadlines.length > 0 && (
+        <section class="mt-12" aria-labelledby="hub-deadlines">
+          <h2 id="hub-deadlines" class={h2}>{ui.deadlines}</h2>
+          <ul class="mt-5 grid gap-5 md:grid-cols-2">
+            {deadlines.map((d) => (
+              <li class="border-l-4 border-sun-500 pl-4">
+                <a href={d.href} lang={d.lang} class="inline-block py-1 text-lg font-semibold leading-snug text-stone-900 underline-offset-4 hover:text-sun-ink hover:underline">{d.title}</a>
+                <p class="text-stone-700">{d.description}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {regions.length > 0 && (
+        <section class="mt-12" aria-labelledby="hub-places">
+          <h2 id="hub-places" class={h2}>{ui.placesHeading}</h2>
+          <ul class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {regions.map((r) => (
+              <li>
+                <a class="flex h-full min-h-11 items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 font-medium text-stone-900 no-underline hover:border-sun-500 hover:bg-sun-50" href={r.href}>
+                  <span>{r.name}</span>
+                  {r.places > 0 && <span class="text-sm font-normal text-stone-700 tabular-nums">{r.places}</span>}
+                </a>
+              </li>
+            ))}
           </ul>
         </section>
       )}
 
       {guides.length > 0 && (
-        <section class="mt-10" aria-labelledby="hub-guides">
-          <h2 id="hub-guides" class="text-2xl font-semibold">{ui.latestGuides}</h2>
-          <ul class={cardList}>
-            {guides.slice(0, 5).map((g) => (
-              <li>
-                <a class="font-medium underline underline-offset-4" href={articlePath('guides', g.id, undefined, g.data.country)}>{g.data.title}</a>
-                <p class="mt-1 text-stone-700">{g.data.description}</p>
+        <section class="mt-12" aria-labelledby="hub-guides">
+          <div class="flex flex-wrap items-end justify-between gap-x-6">
+            <h2 id="hub-guides" class={h2}>{ui.latestGuides}</h2>
+            <a class={`inline-flex min-h-11 items-center font-medium ${link}`} href={articleIndexPath('guides', seg)}>{ui.allGuides}</a>
+          </div>
+          <ul class="mt-4 divide-y divide-stone-200 border-y border-stone-200">
+            {guides.slice(0, 6).map((g) => (
+              <li class="py-3">
+                <a class="font-semibold text-stone-900 underline-offset-4 hover:text-sun-ink hover:underline" href={articlePath('guides', g.id, undefined, g.data.country)}>{g.data.title}</a>
+                <p class="mt-1 max-w-3xl text-stone-700">{g.data.description}</p>
               </li>
             ))}
           </ul>
-          <p class="mt-3"><a class="underline underline-offset-4" href={articleIndexPath('guides', seg)}>{ui.allGuides}</a></p>
         </section>
       )}
 
       {posts.length > 0 && (
-        <section class="mt-10" aria-labelledby="hub-blog">
-          <h2 id="hub-blog" class="text-2xl font-semibold">{ui.latestBlog}</h2>
-          <ul class={cardList}>
+        <section class="mt-12" aria-labelledby="hub-blog">
+          <div class="flex flex-wrap items-end justify-between gap-x-6">
+            <h2 id="hub-blog" class={h2}>{ui.latestBlog}</h2>
+            <a class={`inline-flex min-h-11 items-center font-medium ${link}`} href={articleIndexPath('blog', seg)}>{ui.allBlog}</a>
+          </div>
+          <ul class="mt-4 divide-y divide-stone-200 border-y border-stone-200">
             {posts.slice(0, 5).map((p) => {
               const d = p.data.updated ?? p.data.published;
               return (
-                <li>
-                  <a class="font-medium underline underline-offset-4" href={articlePath('blog', p.id, undefined, p.data.country)}>{p.data.title}</a>
+                <li class="py-3">
+                  <a class="font-semibold text-stone-900 underline-offset-4 hover:text-sun-ink hover:underline" href={articlePath('blog', p.id, undefined, p.data.country)}>{p.data.title}</a>
                   {d && <span class="ml-2 text-sm text-stone-700"><time datetime={d.toISOString().slice(0, 10)}>{displayDate(d)}</time></span>}
                 </li>
               );
             })}
           </ul>
-          <p class="mt-3"><a class="underline underline-offset-4" href={articleIndexPath('blog', seg)}>{ui.allBlog}</a></p>
         </section>
       )}
     </div>

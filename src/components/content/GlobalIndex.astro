@@ -1,0 +1,100 @@
+---
+/**
+ * Shared layout for the global /guides and /blog indexes: every country's live articles, grouped by country.
+ * Country chips are in-page anchors and each section links to that country's own index; no client JS.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../ui/PageHero.astro';
+import Breadcrumbs from '../Breadcrumbs.astro';
+import { PAGE_META } from '../../lib/seo/page-meta';
+import { displayDate } from '../../lib/dates';
+import { groupByCountry, type IndexArticle } from '../../lib/content/global-index';
+import { btnPrimary } from '../ui/buttons';
+
+interface Props { kind: 'guides' | 'blog' }
+const { kind } = Astro.props;
+const entries = await getCollection(kind, (e) => !e.data.draft && !e.data.noindex);
+const articles: IndexArticle[] = entries.map((e) => ({
+  id: e.id,
+  route: kind === 'guides' ? (e.data as { route?: string }).route : undefined,
+  country: e.data.country,
+  lang: e.data.lang,
+  title: e.data.title,
+  description: e.data.description,
+  published: e.data.published,
+  updated: e.data.updated,
+}));
+const groups = groupByCountry(kind, articles);
+const total = articles.length;
+const noun = kind === 'guides' ? 'guide' : 'post';
+const heading = kind === 'guides' ? 'Guides from every country' : 'Blog from every country';
+const intro = kind === 'guides'
+  ? 'Plain-language guides on what solar and home batteries cost, save and require, written for each country’s own rules. Every guide lists its sources.'
+  : 'Analysis of solar and battery costs, electricity rates and rebates, country by country. Every post lists its sources and the date we checked them.';
+const meta = PAGE_META[kind];
+const empty = total === 0;
+// Every country is listed; those with many articles show the newest few and link to their own full index. The US has no
+// per-country index page (this page is it), so it lists everything.
+const PREVIEW = 6;
+const shown = (g: (typeof groups)[number]) => (g.segment === 'us' ? g.items : g.items.slice(0, PREVIEW));
+const plural = (n: number) => `${n} ${n === 1 ? noun : `${noun}s`}`;
+---
+<BaseLayout title={meta.title} description={meta.description} ogImagePath={`/og/${kind}.png`} path={`/${kind}`} noindex={empty}>
+  <PageHero title={heading} titleId="index-title" pose={kind === 'guides' ? 'magnifier' : 'point'}>
+    <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'Home', href: '/' }, { label: kind === 'guides' ? 'Guides' : 'Blog' }]} />
+    {intro}
+    <nav slot="below" aria-label={`Jump to a country`} class="mt-8">
+      <p class="text-sm font-medium text-ink-200">Jump to a country</p>
+      <ul class="mt-2 flex flex-wrap gap-2">
+        {groups.map((g) => (
+          <li>
+            <a href={`#${g.anchor}`} class="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink-700 bg-ink-800/70 px-4 text-sm font-medium text-white no-underline hover:border-sun-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sun-300">
+              {g.name}<span class="text-ink-200 tabular-nums">{g.items.length}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </PageHero>
+
+  <div class="shell pb-16 pt-6">
+    {empty ? (
+      <p class="max-w-2xl leading-7 text-stone-700">Nothing is published here yet. Meanwhile, <a href="/#calculators" class="text-sun-ink underline underline-offset-2">run a calculator</a> or read the <a href="/methodology" class="text-sun-ink underline underline-offset-2">methodology</a>.</p>
+    ) : (
+      <>
+        <p class="max-w-2xl leading-7 text-stone-700">{plural(total)} from {groups.length} countries.</p>
+        {groups.map((g) => (
+          <section id={g.anchor} class="scroll-mt-4 pt-10" aria-labelledby={`${g.anchor}-h`}>
+            <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-1 border-b border-stone-300 pb-2">
+              <h2 id={`${g.anchor}-h`} class="font-display-tight text-2xl text-stone-900">{g.name}</h2>
+              <p class="flex flex-wrap items-center gap-x-4 text-sm text-stone-700">
+                <span>{plural(g.items.length)}</span>
+                <a href={g.segment === 'us' ? '/us' : `/${g.segment}`} class="inline-flex min-h-11 items-center font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">{g.name} overview</a>
+              </p>
+            </div>
+            <ul class="divide-y divide-stone-200">
+              {shown(g).map((i) => (
+                <li>
+                  <a href={i.href} lang={i.lang} class="group block min-h-11 py-3 no-underline" data-track="nav_click" data-track-placement={`${kind}_index`} data-track-target={i.href}>
+                    <span class="block font-semibold leading-snug text-stone-900 group-hover:text-sun-ink group-hover:underline underline-offset-4">{i.title}</span>
+                    <span class="mt-1 line-clamp-2 block max-w-3xl text-sm leading-6 text-stone-700">{i.description}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            {shown(g).length < g.items.length && (
+              <p class="mt-2"><a href={g.indexHref} class="inline-flex min-h-11 items-center font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900" data-track="nav_click" data-track-placement={`${kind}_index`} data-track-target={g.indexHref}>See all {plural(g.items.length)} for {g.name}</a></p>
+            )}
+          </section>
+        ))}
+      </>
+    )}
+
+    <section class="mt-16 rounded-2xl bg-sun-50 p-6 sm:p-8" aria-labelledby="idx-cta">
+      <h2 id="idx-cta" class="font-display-tight text-2xl text-stone-900">Turn the reading into your own numbers</h2>
+      <p class="mt-2 max-w-2xl leading-7 text-stone-800">The calculators give low, likely and high ranges for cost, savings and payback using your country&rsquo;s own rates.</p>
+      <a href="/#calculators" class={`mt-4 ${btnPrimary}`} data-track="nav_click" data-track-placement={`${kind}_index`} data-track-target="/#calculators">See the calculators</a>
+    </section>
+  </div>
+</BaseLayout>

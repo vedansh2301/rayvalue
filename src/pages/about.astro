@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { CONTACT_EMAIL } from '../lib/contact';
 import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
@@ -16,15 +17,13 @@ const PH = {
   vetting: '{{VETTING_CRITERIA}}',
 };
 ---
-<BaseLayout title="About" description="Who runs RayValue, why it exists and how it makes money." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
-  <div class="page">
-    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
-    <h1 class="!mt-4">About RayValue</h1>
-    <p>
-      RayValue is an independent solar and battery payback calculator for homeowners in Florida and California.
-      It is not affiliated with any utility, installer or government agency.
-    </p>
+<BaseLayout title="About RayValue" description="RayValue is an independent solar and battery payback site for homeowners worldwide: who it is for, how it is funded and how we keep it honest." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
+  <PageHero title="An independent solar payback site, country by country" titleId="about-title" pose="wave">
+    <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
+    RayValue helps homeowners work out what solar panels and home batteries are worth where they live, using their own country&rsquo;s tariffs, export rules and incentives. It is not affiliated with any utility, installer or government agency.
+  </PageHero>
 
+  <div class="page !pt-8">
     {!PH.name.startsWith('{{') && (
       <>
         <h2>Who runs RayValue</h2>
@@ -34,21 +33,40 @@ const PH = {
       </>
     )}
 
-    <h2>Why RayValue exists</h2>
+    <h2 class="!mt-0">Why RayValue exists</h2>
     <p>
-      The federal residential solar tax credit has ended for new installs, and many solar estimates online still
-      assume it. RayValue exists to show what rooftop solar and batteries are worth today, using your own
-      utility&rsquo;s published rates and the export rules in your state, as honest low, likely and high ranges
-      instead of a single hopeful number. Every rate, cost and assumption is listed with its source on the{" "}
+      Solar maths depends on rules that differ in every country and change often: price caps, export payments, net metering,
+      rebates, VAT and tax treatment. Many online estimates ignore that, or assume an incentive that has already ended. RayValue
+      exists to show what rooftop solar and batteries are worth <em>today</em>, in your country, as honest low, likely and high
+      ranges instead of one hopeful number.
+    </p>
+
+    <h2>What you will find here</h2>
+    <ul class="list-disc pl-6">
+      <li><strong>Calculators</strong> for the countries where we have enough verified data to build one. The list is on the <a href="/#calculators">home page</a> and grows as new countries are verified.</li>
+      <li><strong>Country guides and blog posts</strong> on tariffs, rebates, deadlines and costs, each listing its sources. Browse <a href="/guides">guides</a> and the <a href="/blog">blog</a> for every country, or pick a country on the <a href="/#countries">home page</a>.</li>
+      <li><strong>Local pages</strong> for cities, regions and utilities where we hold sourced local data.</li>
+    </ul>
+
+    <h2>How we keep it honest</h2>
+    <p>
+      Every rate, cost and statistic is stored with the URL of its source and the date we last checked it. Our own modelling
+      choices are labelled as assumptions with the reasoning behind them. If we cannot verify a number we leave it out. Sources
+      are re-read on a schedule, and a figure only counts as confirmed while the source still supports it. The details are on the{' '}
       <a href="/methodology">methodology</a> page.
+    </p>
+    <p>
+      Our editorial stance is to cover both sides. Articles explain the case for solar and the case against: when it pays
+      back, when it does not, what a battery adds and what it costs, and where the rules are changing in ways that count against
+      you. Offers and affiliate links never feed the calculator numbers.
     </p>
 
     <h2>How RayValue makes money</h2>
     <p>
-      The calculator is free to use and you do not need to sign up to see your results. If you ask for quotes,
-      installers pay RayValue for the introduction. Homeowners pay nothing. Some links on the site are affiliate
-      links, which can earn a commission at no extra cost to you; they are always marked. Neither changes the
-      numbers in your estimate. Details are on the <a href="/affiliate-disclosure">affiliate disclosure</a> page.
+      The calculators and guides are free and you do not need to sign up to see results. Some links on the site are affiliate
+      links, which can earn a commission at no extra cost to you; they are always marked. In the United States, installers
+      can pay RayValue for introductions to homeowners who ask to hear from them. Neither changes the numbers in an estimate.
+      Details are on the <a href="/affiliate-disclosure">affiliate disclosure</a> page.
     </p>
 
     {!PH.vetting.startsWith('{{') && (
@@ -58,8 +76,8 @@ const PH = {
       </>
     )}
     <p>
-      When you request quotes, your details are shared only with up to 3 installers serving your area, as described in the consent you agree to,
-      and you can ask us to delete them at any time. See the <a href="/privacy">privacy policy</a>.
+      When you request quotes (a US-only feature), your details are shared only with up to 3 installers serving your area, as
+      described in the consent you agree to, and you can ask us to delete them at any time. See the <a href="/privacy">privacy policy</a>.
     </p>
 
     <h2>Contact</h2>
