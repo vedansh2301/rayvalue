@@ -1,5 +1,5 @@
 ---
-import { headerLinks } from '../lib/nav';
+import { GLOBAL_HEADER_LINKS, headerLinks, isGlobalPath } from '../lib/nav';
 import { publishedGuides } from '../lib/guides';
 import { publishedPosts } from '../lib/blog';
 import { countryFromPath, countryNav } from '../lib/content/country-nav';
@@ -16,7 +16,11 @@ const counts = logoOnly ? new Map() : await loadCountryCounts();
 const seg = countryFromPath(path, [...counts.keys()]);
 const nav = seg ? countryNav({ segment: seg, lang, counts: counts.get(seg)!, countries: [...counts.keys()] }) : null;
 const ui = uiText(lang);
-const links = logoOnly ? [] : nav
+// Country-independent pages (/, /about, /methodology, ...) get the global header; US pages keep the US one.
+const global = !logoOnly && !nav && isGlobalPath(path);
+const links = logoOnly ? [] : global
+  ? GLOBAL_HEADER_LINKS.map((l) => ({ ...l, exact: true }))
+  : nav
   ? [{ ...nav.home, short: nav.home.label, exact: true }, ...nav.links.map((l) => ({ ...l, short: l.label, exact: false }))]
   : headerLinks({ guides: (await publishedGuides()).length, blog: (await publishedPosts()).length }).map((l) => ({ ...l, exact: false }));
 const homeHref = nav ? nav.home.href : '/';
@@ -63,7 +67,7 @@ const isCurrent = (href: string, exact = false) => path === href || (!exact && p
             </li>
           );
         })}
-        {!nav && <li class="shrink-0">
+        {!nav && !global && <li class="shrink-0">
           <a
             href="/quotes"
             data-track="nav_click"

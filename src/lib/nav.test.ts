@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { NAV_MIN_PUBLISHED, headerLinks, showInNav } from './nav';
+import { GLOBAL_HEADER_LINKS, NAV_MIN_PUBLISHED, headerLinks, isGlobalPath, showInNav } from './nav';
+
+describe('global header', () => {
+  it('treats country-independent pages as global and US pages as US', () => {
+    for (const p of ['/', '/about', '/methodology', '/contact', '/privacy', '/terms', '/affiliate-disclosure', '/404']) expect(isGlobalPath(p), p).toBe(true);
+    for (const p of ['/us', '/us/solar-payback/florida', '/quotes', '/guides/solar-lease-vs-buy', '/blog', '/stories', '/go/x']) expect(isGlobalPath(p), p).toBe(false);
+  });
+  it('has Countries, Calculators, Guides and no Get quotes', () => {
+    expect(GLOBAL_HEADER_LINKS.map((l) => l.label)).toEqual(['Countries', 'Calculators', 'Guides', 'Methodology']);
+    expect(GLOBAL_HEADER_LINKS.some((l) => /quote/i.test(l.label + l.href))).toBe(false);
+  });
+});
 
 describe('header nav', () => {
   it('hides a collection below the threshold and shows it at the threshold', () => {

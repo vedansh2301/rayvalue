@@ -5,13 +5,17 @@ import { utilityPagePath, utilityPagesForState } from '../lib/utility/pages';
 import FooterCountry from './FooterCountry.astro';
 import { countryFromPath, countryNav } from '../lib/content/country-nav';
 import { loadCountryCounts } from '../lib/country-nav-load';
+import { isGlobalPath } from '../lib/nav';
+import { liveCalculators } from '../lib/home/global-home';
 const { legalOnly = false, lang = 'en' } = Astro.props as { legalOnly?: boolean; lang?: string };
 // Non-US pages get FooterCountry (country links, localised, switcher) instead of the US footer.
 const counts = legalOnly ? new Map() : await loadCountryCounts();
 const seg = countryFromPath(Astro.url.pathname, [...counts.keys()]);
 const nav = seg ? countryNav({ segment: seg, lang, counts: counts.get(seg)!, countries: [...counts.keys()] }) : null;
+// Country-independent pages (/, /about, ...) get a global footer: every live calculator, the picker, no US "Get quotes".
+const global = !legalOnly && !nav && isGlobalPath(Astro.url.pathname);
 // Solar payback by state: calculator, utility pages and every published city page (the same list as the sitemap).
-const cityLinks = legalOnly || nav ? [] : await publishedCityLinks();
+const cityLinks = legalOnly || nav || global ? [] : await publishedCityLinks();
 const byState = (['FL', 'CA'] as const).map((st) => ({
   name: st === 'FL' ? 'Florida' : 'California',
   calc: calcPath(st),
@@ -21,11 +25,20 @@ const byState = (['FL', 'CA'] as const).map((st) => ({
 type Link = { href: string; label: string };
 const columns: { title: string; links: Link[] }[] = [
   { title: 'Calculators', links: [
-    { href: '/us/solar-payback/florida', label: 'Florida calculator' },
-    { href: '/us/solar-payback/california', label: 'California calculator' },
-    { href: '/quotes', label: 'Get installer quotes' },
+    ...(global
+      ? liveCalculators().map((c) => ({ href: c.href, label: `${c.label} calculator` }))
+      : [
+        { href: '/us/solar-payback/florida', label: 'Florida calculator' },
+        { href: '/us/solar-payback/california', label: 'California calculator' },
+        { href: '/quotes', label: 'Get installer quotes' },
+      ]),
   ] },
-  { title: 'Learn', links: [
+  { title: global ? 'Explore' : 'Learn', links: global ? [
+    { href: '/#countries', label: 'Countries' },
+    { href: '/#guides', label: 'Latest guides' },
+    { href: '/us', label: 'United States' },
+    { href: '/methodology', label: 'Methodology' },
+  ] : [
     { href: '/guides', label: 'Guides' },
     { href: '/blog', label: 'Blog' },
     { href: '/stories', label: 'Real stories' },
@@ -73,7 +86,7 @@ const linkClass = 'inline-block py-1.5 text-stone-700 hover:text-stone-900 hover
         ))}
       </nav>
     </div>
-    {!legalOnly && (
+    {!legalOnly && !global && (
       <nav aria-label="Solar payback by state, utility and city" class="mt-8 grid gap-6 border-t border-stone-200 pt-6 sm:grid-cols-2">
         {byState.map((st) => (
           <div>

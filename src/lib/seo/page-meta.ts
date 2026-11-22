@@ -5,8 +5,12 @@
  */
 export const PAGE_META = {
   home: {
-    title: 'RayValue | Solar payback for Florida and California homes',
-    description: 'Honest solar and battery payback estimates for Florida and California homeowners, as low, likely and high ranges, calculated without the federal tax credit.',
+    title: 'RayValue | Solar payback by country, from official data',
+    description: 'Independent solar and home-battery payback math from official tariffs, export rates and grants, country by country. Pick your country to start.',
+  },
+  us: {
+    title: 'Solar payback for Florida and California homes',
+    description: 'Honest solar and battery payback estimates for US homeowners in Florida and California, as low, likely and high ranges, with no federal tax credit.',
   },
   blog: {
     title: 'Solar and battery costs, rates and payback blog',
