@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { contentCountries, countryFromPath, countryName, countryNav, hubIndexable, hubItemCount, HUB_MIN_ITEMS } from './country-nav';
-import { uiText, hubIntro } from '../i18n/ui';
+import { uiText, hubIntro, resolveUiLang, SUPPORTED_UI_LANGS } from '../i18n/ui';
 import { countryHubEntries } from '../seo/country-hubs';
 import { renderSitemaps } from '../seo/sitemaps';
 import { renderCountryLlms } from '../seo/llms';
@@ -47,6 +47,20 @@ describe('countryNav', () => {
     expect(countryNav({ ...base, segment: 'de', lang: 'de-DE' }).home.label).toBe('Startseite');
     expect(uiText('es-ES').guides).toBe('Guías');
     expect(uiText('xx').home).toBe('Home');
+    // Full tag before primary subtag: Brazilian Portuguese is not the European one.
+    expect(uiText('pt-BR').contact).toBe('Contato');
+    expect(uiText('pt-PT').contact).toBe('Contacto');
+    expect(uiText('pt').contact).toBe('Contacto');
+    expect(resolveUiLang('PT_br')).toBe('pt-br');
+    expect(uiText('ja').home).toBe('ホーム');
+    expect(uiText('ja-JP').guides).toBe('ガイド');
+    expect(uiText('hi-IN').home).toBe('होम');
+    expect(hubIntro('pt-BR', 'Brasil')).toContain('energia solar');
+    expect(hubIntro('ja', '日本')).toContain('日本');
+    for (const l of SUPPORTED_UI_LANGS) {
+      const t = uiText(l);
+      for (const [k, v] of Object.entries(t)) expect(v, `${l}.${k}`).toBeTruthy();
+    }
     expect(uiText(undefined).guides).toBe('Guides');
     expect(hubIntro('de', 'Deutschland')).toContain('Deutschland');
   });
