@@ -144,9 +144,15 @@ const quotesHref = `/quotes?${quotesParams.toString()}`;
 
       <section aria-labelledby="cta-h" class="mt-10 rounded-lg border border-sun-300 bg-sun-50 p-5">
         <h2 id="cta-h" class="!mt-0">Get quotes or run your numbers</h2>
-        <p>Compare free quotes from up to 3 local installers, or enter your ZIP and monthly bill to get a payback range for your home.</p>
+        {state === 'FL' && slug === 'fort-lauderdale' ? (
+          <p>If your bill is from FPL, check <a href="/us/utility/florida/fpl">FPL solar rates and net metering</a> before comparing quotes. Ask whether the cash price covers the city permit, FPL interconnection and any battery backup work. See <a href="https://www.fortlauderdale.gov/Government/Departments/Parks-Recreation/Sustainability/Energy-Affordability/Solar-Power">Fort Lauderdale’s solar resources</a>.</p>
+        ) : state === 'CA' && slug === 'san-diego' ? (
+          <p>On <a href="/us/utility/california/sdge">SDG&amp;E’s Solar Billing Plan</a>, ask each installer how much solar your home would use, store and export. Compare the panels-only price with the battery price, and check who handles the <a href="https://www.sandiego.gov/development-services/permits/solar-photovoltaic-permit">city rooftop solar permit</a>.</p>
+        ) : (
+          <p>Check your ZIP code for local installer availability, or enter your monthly electricity bill to estimate payback for your home.</p>
+        )}
         <div class="not-prose mt-4 flex flex-wrap gap-3">
-          <a href={quotesHref} class={btnPrimary}>Get quotes in {city.name}<span aria-hidden="true">&rarr;</span></a>
+          <a href={quotesHref} class={btnPrimary}>Check installer availability<span aria-hidden="true">&rarr;</span></a>
           <a href={calcHref} class={btnSecondary}>Run my numbers</a>
         </div>
       </section>

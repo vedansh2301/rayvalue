@@ -5,12 +5,12 @@
  */
 export const PAGE_META = {
   home: {
-    title: 'RayValue | Solar payback by country, from official data',
-    description: 'Independent solar and home-battery payback math from official tariffs, export rates and grants, country by country. Pick your country to start.',
+    title: 'Solar & Battery Payback Calculators by Country | RayValue',
+    description: 'Use free solar and battery payback calculators to estimate installation costs and electricity bill savings. Explore local rates, export credits and grants.',
   },
   us: {
-    title: 'Solar payback for Florida and California homes',
-    description: 'Honest solar and battery payback estimates for US homeowners in Florida and California, as low, likely and high ranges, with no federal tax credit.',
+    title: 'Florida & California Solar and Battery Calculator',
+    description: 'Estimate solar costs, bill savings and battery payback using Florida or California utility rates. Check installer quote availability in your ZIP code.',
   },
   blog: {
     title: 'Solar and battery news and analysis, worldwide',
@@ -25,8 +25,8 @@ export const PAGE_META = {
     description: 'How RayValue estimates solar system size, installed cost, bill savings and payback, with every rate and assumption sourced, and why we show ranges.',
   },
   quotes: {
-    title: 'Get free solar quotes from local installers',
-    description: 'Request free, no-obligation solar quotes from up to 3 local installers in Florida or California. Takes about a minute, and you choose who contacts you.',
+    title: 'Free Solar Quotes in Florida and California',
+    description: 'Check your Florida or California ZIP code for local solar installers. Request free quotes where available, with no obligation to buy or choose a contractor.',
   },
   stories: {
     title: 'Real solar and battery stories from FL and CA',
@@ -34,11 +34,11 @@ export const PAGE_META = {
   },
   'calculator-florida': {
     title: 'Florida solar and battery payback calculator',
-    description: 'Estimate solar and battery cost, savings and payback for your Florida home as low, likely and high ranges, using utility rates and no federal tax credit.',
+    description: 'Estimate solar installation cost, electricity bill savings and battery payback in Florida using FPL, Duke Energy Florida or Tampa Electric rates and your bill.',
   },
   'calculator-california': {
     title: 'California solar and battery payback calculator',
-    description: 'Estimate solar and battery cost, savings and payback for your California home as low, likely and high ranges, using utility rates and no federal tax credit.',
+    description: 'Compare solar with and without storage in California. Estimate installation cost, electricity bill savings and payback on PG&E, SCE or SDG&E using your bill.',
   },
 } as const satisfies Record<string, { title: string; description: string }>;
 

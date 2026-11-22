@@ -24,14 +24,14 @@ const outlines = Object.fromEntries(quickSegs.filter((k) => COUNTRY_OUTLINES[k])
 const steps: { icon: IconName; title: string; body: string }[] = [
   { icon: 'home', title: 'Tell us about your home', body: 'Country, bill and what you\u2019re deciding on' },
   { icon: 'chart', title: 'Get low, likely and high ranges', body: 'Every assumption and source listed' },
-  { icon: 'users', title: 'Compare up to 3 real quotes (US homes)', body: 'Optional. Shared only with installers you choose' },
+  { icon: 'users', title: 'Request local installer quotes', body: 'Optional in covered Florida and California ZIP codes' },
 ];
 ---
 <section id="report" class="scroll-mt-16 bg-gradient-to-b from-sky-pastel-200 to-sky-pastel-100" aria-labelledby="report-title" data-report>
   <div class="shell grid items-start gap-x-[clamp(2rem,5vw,4rem)] gap-y-10 py-[clamp(3rem,6vw,5.5rem)] lg:grid-cols-2">
     <div class="flex flex-col gap-5">
       <h2 id="report-title" class="font-display-tight text-[clamp(2rem,4vw,3.125rem)] leading-[1.08] text-stone-900">Know your payback before an installer names a price.</h2>
-      <p class="max-w-[44ch] text-lg leading-relaxed text-stone-800">Three quick questions. You get a payback report built from your country&rsquo;s official rates, and, for US homes, you can also ask for up to 3 quotes from local installers to check against it.</p>
+      <p class="max-w-[44ch] text-lg leading-relaxed text-stone-800">Use your electricity bill to get a solar and battery payback estimate. Florida and California homeowners can also check whether local installers serve their ZIP code.</p>
       <ol class="flex flex-col gap-3.5">
         {steps.map((s) => (
           <li class="flex items-center gap-3.5">

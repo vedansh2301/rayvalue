@@ -53,16 +53,16 @@ const steps: { title: string; body: string; icon: IconName }[] = [
   ogImagePath={ogImagePath('us')}
   jsonLd={[faqJsonLd(faq)]}
 >
-  <PageHero title="See if solar pays off on your home, using your actual utility rates" size="lg" titleId="us-title">
+  <PageHero title="Solar and battery payback in Florida and California" size="lg" titleId="us-title">
     <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'RayValue', href: '/' }, { label: 'United States' }]} />
-    The federal tax credit is gone, so we show Florida and California homeowners honest cost, savings and payback ranges from their own utility&rsquo;s rates.
+    Use your monthly electric bill to estimate installation costs, bill savings and payback with or without a home battery. Each calculator uses local utility rates and shows a range.
     <div slot="actions" role="group" aria-labelledby="hero-state-label" class="flex w-full flex-col gap-2">
       <p id="hero-state-label" class="text-sm font-medium text-stone-700">Pick your state to start</p>
       <div class="flex flex-col gap-2 sm:flex-row">
         <a href="/us/solar-payback/florida" class={btnPrimary}>Check my payback<span class="font-normal">in Florida</span></a>
         <a href="/us/solar-payback/california" class={btnPrimary}>Check my payback<span class="font-normal">in California</span></a>
       </div>
-      <p class="mt-1"><a href="/quotes?source=home" class="inline-flex min-h-11 items-center font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">Get installer quotes</a></p>
+      <p class="mt-1"><a href="/quotes?source=home" class="inline-flex min-h-11 items-center font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">Check local installer availability</a></p>
     </div>
     <Picture
       slot="aside"

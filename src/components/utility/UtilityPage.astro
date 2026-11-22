@@ -24,7 +24,11 @@ const meta: UtilityPageMeta = data.kind === 'ok' ? data.vm.meta : data.meta;
 const stateName = meta.state === 'FL' ? 'Florida' : 'California';
 const stateSlug = STATE_SLUG[meta.state];
 const path = utilityPagePath(meta);
-const h1 = `Is solar worth it with ${meta.short} in 2026? (No federal tax credit)`;
+const utilityHeadlines: Record<string, string> = {
+  fpl: 'FPL solar rates, net metering and payback',
+  sdge: 'SDG&E Solar Billing Plan and battery payback',
+};
+const h1 = utilityHeadlines[meta.slug] ?? `Is solar worth it with ${meta.short} in 2026? (No federal tax credit)`;
 const vm = data.kind === 'ok' ? data.vm : null;
 const range = (a: number, b: number, f: (n: number) => string) => (a === b ? f(a) : `${f(a)}–${f(b)}`);
 // Typical home for the at-a-glance graphics: the solar-only worked example with the middle bill.
@@ -51,7 +55,7 @@ const paybackText = (r: { paybackYears: { low: number | null; likely: number | n
       <h1 class="!mt-4">{h1}</h1>
       <p>
         The federal residential solar credit has ended for 2026 installs, so payback on {vm.utility.name} rates depends on the rates themselves, how your home uses power and what an installer charges.
-        This page shows how {meta.short} bills and credits solar, and worked examples from the same engine as our <a href={calcPath(stateSlug)}>{stateName} calculator</a>.
+        Compare the worked examples with and without storage, then enter your own bill in the <a href={vm.calcHref}>{meta.short} solar payback calculator</a>.
       </p>
       <div class="not-prose mt-4 flex flex-wrap gap-3">
         <a href={vm.calcHref} class={btnPrimary}>Run my {meta.short} numbers<span aria-hidden="true">&rarr;</span></a>

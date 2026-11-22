@@ -1,0 +1,51 @@
+Priority,Area,Page or group,Content change,Status
+1,Live search preview,Homepage,Lead with free solar and battery payback calculators in the title and description,Applied
+2,Homepage copy,Homepage hero,Explain installation cost bill savings and payback in plain language,Applied
+3,Homepage copy,Homepage hero,Make the primary button say Estimate my payback,Applied
+4,Homepage copy,Homepage report,State which US markets can check installer availability,Applied
+5,US discovery,US hub,Put Florida and California calculator coverage in the title and description,Applied
+6,US discovery,US hub,Explain bill inputs local rates and battery scenarios in the hero,Applied
+7,US conversion,US hub,Use an availability-first label on the hero quote link,Applied
+8,State discovery,Florida calculator,Name FPL Duke Energy Florida and Tampa Electric in the search description,Applied
+9,State discovery,California calculator,Name PG&E SCE and SDG&E in the search description,Applied
+10,Utility discovery,FPL,Lead the title and description with solar rates net metering and payback,Applied
+11,Utility discovery,SDG&E,Lead the title and description with Solar Billing Plan and battery payback,Applied
+12,Utility page copy,FPL,Align the visible heading with the FPL solar rates topic,Applied
+13,Utility page copy,SDG&E,Align the visible heading with the Solar Billing Plan topic,Applied
+14,Internal links,US utility pages,Link from the utility introduction to the calculator with that utility selected,Applied
+15,Local buying intent,Fort Lauderdale,Explain how to compare FPL interconnection permit and backup costs and link to the city source,Applied
+16,Local buying intent,San Diego,Explain self-consumption storage and exports and link to the city permit guide,Applied
+17,Local conversion,US city pages,Label the quote action as a check for installer availability,Applied
+18,Calculator conversion,Florida and California calculators,Describe what a useful installer quote should include,Applied
+19,Quote discovery,Quote page,Put Florida and California in the title description and H1,Applied
+20,Quote conversion,Quote page,Explain ZIP coverage in the steps mobile intro and trust copy,Applied
+21,Quote conversion,Quote FAQ,Clarify who receives requests in covered and uncovered ZIP codes,Applied
+22,Internal links,Quote page,Link to the state calculators and solar quote comparison checklist,Applied
+23,Internal links,Quote comparison guide,Point Florida and California readers to ZIP availability,Applied
+24,Internal links,Florida hurricane battery guide,Connect Broward readers to the Fort Lauderdale estimates,Applied
+25,Internal links,California net billing battery guide,Connect San Diego readers to the city page and California quote flow,Applied
+26,Local search,Fort Lauderdale,Lead the search description with local solar cost and FPL payback without promising an installer,Next
+27,Local search,San Diego,Match the search description to solar cost battery economics and SDG&E rates,Next
+28,Local content,Fort Lauderdale,Explain the differences between solar-only storage for savings and backup-ready bids,Next
+29,Local content,San Diego,Add a sourced example of how export timing changes a solar and battery proposal,Next
+30,Local content,Hollywood Florida,Add verified city permit links and FPL quote checklist,Next
+31,Local content,Pembroke Pines,Add local permit lookup and roof and electrical questions for homeowners,Next
+32,Local content,Pompano Beach,Add official permit guidance and connect to the Broward solar cluster,Next
+33,Local content,Coral Springs,Add city-specific permitting and quote preparation details,Next
+34,Local content,Chula Vista,Add city permit details and link to SDG&E export timing,Next
+35,Local content,Oceanside,Add city permit details and connect to the San Diego County guide cluster,Next
+36,Local content,Carlsbad,Add a sourced city permit and battery installation checklist,Next
+37,Guide refresh,Florida net metering guide,Answer FPL carryover and year-end credit queries in the opening section,Next
+38,Guide refresh,Florida roof age and insurance guide,Add a before-you-quote checklist for roof life underwriting and installer scope,Next
+39,Guide refresh,California NEM 2 battery guide,Clarify the questions an existing solar owner should ask before changing a system,Next
+40,Guide refresh,California solar worth-it guide,Add a utility-based decision table for battery versus solar-only estimates,Next
+41,Utility discovery,Duke Energy Florida,Rewrite search copy around bill rules and net metering,Next
+42,Utility discovery,Tampa Electric,Rewrite search copy around TECO rates bills and solar credits,Next
+43,Utility discovery,PG&E,Rewrite search copy around export credits peak rates and batteries,Next
+44,Utility discovery,SCE,Rewrite search copy around Solar Billing Plan and time-of-use,Next
+45,Quote education,Quote comparison guide,Add a copyable comparison checklist for cash price loan price equipment and warranties,Next
+46,Quote follow-up,Quote thank-you page,Explain next steps for served and uncovered ZIPs in the existing text areas,Next
+47,Paid landing copy,Florida and California landing pages,Test plain-language copy for evaluating a solar quote before signing,Next
+48,International discovery,UK Australia and Ireland calculator content,Align snippets with local price units incentives and terminology after source checks,Next
+49,International discovery,Germany Spain France Netherlands and Switzerland hubs,Refresh one existing page per market around a real local homeowner question,Next
+50,Recurring editorial review,Existing high-impression pages,Use Search Console queries and quote-start data to choose the next titles descriptions and internal links,Next
