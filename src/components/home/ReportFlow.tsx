@@ -260,7 +260,7 @@ export default function ReportFlow({ countries, quick, outlines, initial = 'us' 
             ) : (
               <div class="rounded-xl border border-sun-200 bg-sun-50 p-3 text-sm leading-snug text-stone-900">
                 {dest?.kind === 'calc'
-                  ? `We open the ${name} calculator with your bill and battery choice filled in, and it shows your payback as a low, likely and high range. We have no installer partners in ${name}, so there are no quotes: just your numbers.`
+                  ? `We open the ${name} calculator with your bill and battery choice filled in, and it shows your payback as a low, likely and high range. We have no installer partners in ${signupCountry ? t.country[signupCountry].inName : name}, so there are no quotes: just your numbers.`
                   : `No sign-up and no personal details. We have no ${name} calculator yet, so this opens our ${name} guides, where you can check whether solar is worth it there.`}
               </div>
             )}
