@@ -95,6 +95,8 @@ const FORMATS: Readonly<Record<string, { kind: Kind; dataUnit?: boolean; showNot
   // Nordic / CEE (Eurostat Census 2021 by NUTS region).
   owner_occupied_share_pct: { kind: 'pct' },
   one_dwelling_share_pct: { kind: 'pct' },
+  // CH: ElCom 2027 household tariff (the stored unit is Rp./kWh).
+  electricity_price_h4_rp_per_kwh: { kind: 'dec2' },
 };
 
 /** Candidate facts to display: have a value, an http source and a check date, and are not "unverified". */

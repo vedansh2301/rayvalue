@@ -17,6 +17,7 @@
     "db:check": "node --env-file-if-exists=.env.local scripts/db-check.mjs",
     "places:fetch-yield": "tsx scripts/places/fetch-yield.ts",
     "places:fetch-local": "tsx scripts/places/fetch-local-fr-nl.ts",
+    "places:fetch-local-it-ch": "tsx scripts/places/fetch-local-it-ch.ts",
     "places:import": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.dev.vars scripts/places/import-pack.ts",
     "scrape:import": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.dev.vars scripts/scrape/import-packs.ts",
     "scrape:run": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.dev.vars scripts/scrape/run-due.ts",

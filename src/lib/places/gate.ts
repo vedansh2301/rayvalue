@@ -33,6 +33,20 @@ const COMMUNE_LEVEL: readonly { id: SectionId; keys: readonly string[] }[] = [
   { id: 'installs', keys: ['pv_installations_cumulative', 'pv_capacity_mw_cumulative'] },
 ];
 
+/** Italy (ISTAT permanent census by comune): yield plus ownership and building-size sections. */
+const IT_LEVEL: readonly { id: SectionId; keys: readonly string[] }[] = [
+  { id: 'yield', keys: ['solar_yield_kwh_per_kwp', 'solar_yield_monthly_kwh_per_kwp'] },
+  { id: 'ownership', keys: ['owner_occupied_share_pct'] },
+  { id: 'dwellings', keys: ['house_share_pct'] },
+];
+
+/** Switzerland: ElCom 2027 tariff of the Gemeinde and the BFE register of PV plants in the Gemeinde, next to the PVGIS yield. */
+const CH_LEVEL: readonly { id: SectionId; keys: readonly string[] }[] = [
+  { id: 'yield', keys: ['solar_yield_kwh_per_kwp', 'solar_yield_monthly_kwh_per_kwp'] },
+  { id: 'tariff', keys: ['electricity_price_h4_rp_per_kwh'] },
+  { id: 'installs', keys: ['pv_installations_cumulative', 'pv_capacity_mw_cumulative'] },
+];
+
 export const SECTION_KEYS: Readonly<Record<PlaceCountryCode, readonly { id: SectionId; keys: readonly string[] }[]>> = {
   GB: [
     { id: 'yield', keys: ['solar_yield_kwh_per_kwp', 'solar_yield_monthly_kwh_per_kwp'] },
@@ -71,7 +85,7 @@ export const SECTION_KEYS: Readonly<Record<PlaceCountryCode, readonly { id: Sect
   ],
   // Nordic and CEE: Eurostat Census 2021 by NUTS region (ownership: NUTS2, one-dwelling buildings: NUTS3), both shown with their area.
   SE: NORDIC_CEE, DK: NORDIC_CEE, NO: NORDIC_CEE, FI: NORDIC_CEE, PL: NORDIC_CEE, CZ: NORDIC_CEE, RO: NORDIC_CEE,
-  FR: COMMUNE_LEVEL, NL: COMMUNE_LEVEL,
+  FR: COMMUNE_LEVEL, NL: COMMUNE_LEVEL, IT: IT_LEVEL, CH: CH_LEVEL,
 };
 
 /** Label-only keys that are shown next to a section but never make a section count on their own. */

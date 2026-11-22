@@ -18,7 +18,7 @@ const pf = (over: Partial<PackFact>): PackFact => ({ key: 'x', region: 'r', valu
 
 describe('config: the new countries', () => {
   it('URL words, locales and article countries', () => {
-    expect(PLACE_COUNTRIES.map((c) => c.code).sort()).toEqual(['AU', 'CZ', 'DE', 'DK', 'ES', 'FI', 'FR', 'GB', 'IE', 'NL', 'NO', 'PL', 'RO', 'SE']);
+    expect(PLACE_COUNTRIES.map((c) => c.code).sort()).toEqual(['AU', 'CH', 'CZ', 'DE', 'DK', 'ES', 'FI', 'FR', 'GB', 'IE', 'IT', 'NL', 'NO', 'PL', 'RO', 'SE']);
     expect(placePath(placeCountryByCode('ES')!, 'andalucia', 'almeria')).toBe('/es/placas-solares/andalucia/almeria');
     expect(placePath(placeCountryByCode('SE')!, 'stockholms-lan', 'stockholm')).toBe('/se/solceller/stockholms-lan/stockholm');
     expect(placePath(placeCountryByCode('FI')!, 'uusimaa', 'helsinki')).toBe('/fi/aurinkopaneelit/uusimaa/helsinki');
