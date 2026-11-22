@@ -41,7 +41,8 @@ export function renderRootLlms(entries: readonly IndexEntry[], origin = SITE_ORI
     const cities = mine.filter((e) => e.type === 'cities').length;
     const utilities = mine.filter((e) => e.type === 'utilities').length;
     const articles = mine.filter((e) => e.path.split('/').length === 4 && (e.section === 'guides' || e.section === 'blog')).length;
-    const detail = cc === 'us' ? `${plural(cities, 'city page')}, ${plural(utilities, 'utility page')}` : plural(articles, 'article');
+    const places = mine.filter((e) => e.type === 'places' && e.placeKind === 'place').length;
+    const detail = cc === 'us' ? `${plural(cities, 'city page')}, ${plural(utilities, 'utility page')}` : places > 0 ? `${plural(articles, 'article')}, ${plural(places, 'place page')}` : plural(articles, 'article');
     lines.push(`- [${COUNTRY_NAMES(cc).name}](${origin}/${cc}/llms.txt): ${COUNTRY_NAMES(cc).blurb}; ${detail}.`);
   }
   for (const [heading, section] of [['Guides', 'guides'], ['Blog', 'blog'], ['About this site', 'about']] as const) {
@@ -52,9 +53,19 @@ export function renderRootLlms(entries: readonly IndexEntry[], origin = SITE_ORI
   return lines.join('\n') + '\n';
 }
 
-/** /<cc>/llms.txt for a non-US country: its guides and blog posts (indexable entries only). */
+/** /<cc>/llms.txt for a non-US country: its place pages (published, gated), guides and blog posts (indexable entries only). */
 function renderArticleCountryLlms(mine: readonly IndexEntry[], cc: string, origin: string): string {
   const lines = [`# RayValue: ${COUNTRY_NAMES(cc).name}`, '> Independent solar and home-battery articles for readers in this country. Sources are listed on each article.'];
+  const places = mine.filter((e) => e.type === 'places');
+  if (places.length) {
+    const regions = [...new Set(places.map((e) => e.region ?? ''))].sort();
+    const count = places.filter((e) => e.placeKind === 'place').length;
+    lines.push('', `Coverage (computed from the database): ${plural(count, 'place page')} in ${plural(regions.length, 'region')}; each figure on a place page names its source and check date.`);
+    for (const region of regions) {
+      const list = places.filter((e) => (e.region ?? '') === region).sort((a, b) => (a.placeKind === b.placeKind ? a.path.localeCompare(b.path) : a.placeKind === 'hub' ? -1 : 1));
+      lines.push('', `## Places: ${region}`, ...list.map((e) => link(e, origin)));
+    }
+  }
   for (const [heading, section] of [['Guides', 'guides'], ['Blog', 'blog']] as const) {
     const list = bySection(mine, section).sort((a, b) => a.path.localeCompare(b.path));
     if (list.length) lines.push('', `## ${heading}`, ...list.map((e) => link(e, origin)));

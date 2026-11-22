@@ -1,0 +1,100 @@
+---
+/**
+ * One shared page for every non-US place (GB, DE, AU). It only prints the view model built by lib/places/view.ts:
+ * no math, no typed-in numbers. Sections, lines and their sources all come from place_facts.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../Breadcrumbs.astro';
+import KeyNumbers from '../seo/KeyNumbers.astro';
+import ProductionChart from '../city/ProductionChart.astro';
+import type { PlaceView } from '../../lib/places/view';
+
+interface Props {
+  view: PlaceView;
+  /** Link to the region hub, or null while that hub does not exist (fewer than MIN_HUB_PLACES published places). */
+  hubHref: string | null;
+  others: { name: string; href: string }[];
+  articles: { title: string; href: string }[];
+  articlesIndexHref: string;
+}
+const { view, hubHref, others, articles, articlesIndexHref } = Astro.props;
+const t = view.text;
+const crumbs = [
+  { label: t.home, href: '/' },
+  ...(hubHref ? [{ label: view.regionName, href: hubHref }] : [{ label: view.regionName }]),
+  { label: view.name },
+];
+const kn = { source: t.source, ourData: t.sourceOurData, checked: t.checked, figuresChecked: t.figuresChecked };
+---
+<BaseLayout title={view.title} description={view.description} path={view.path} lang={view.lang}>
+  <div class="page">
+    <Breadcrumbs items={crumbs} />
+    <h1 class="!mt-4">{view.h1}</h1>
+    <p>{view.intro}</p>
+
+    <KeyNumbers id="key-numbers-h" heading={view.keyNumbersHeading} block={view.keyNumbers} labels={kn} />
+
+    {view.sections.map((s) => (
+      <>
+        {s.chart ? (
+          <ProductionChart
+            id={`sec-${s.id}-h`}
+            cityName={view.name}
+            monthly={s.chart.monthly}
+            annual={null}
+            labels={{
+              heading: s.heading,
+              intro: t.chart.intro(s.chart.annual),
+              title: t.chart.title(view.name),
+              pending: t.chart.pending,
+              monthHeader: t.chart.month,
+              kwhHeader: t.chart.kwh,
+              months: s.chart.months,
+              locale: view.country.locale,
+              method: s.chart.method ? `${t.chart.method}: ${s.chart.method}` : null,
+            }}
+          />
+        ) : (
+          <section aria-labelledby={`sec-${s.id}-h`}>
+            <h2 id={`sec-${s.id}-h`}>{s.heading}</h2>
+            {s.intro && <p>{s.intro}</p>}
+          </section>
+        )}
+        {s.lines.length > 0 && (
+          <dl class="not-prose mt-4 grid gap-3 sm:grid-cols-2" aria-label={s.heading}>
+            {s.lines.map((l) => (
+              <div class="rounded-lg border border-stone-200 bg-white p-4">
+                <dt class="text-sm text-stone-600">{l.label}</dt>
+                <dd class="mt-1 text-lg font-semibold text-stone-900">{l.value}</dd>
+                {l.note && <dd class="mt-1 text-sm text-stone-600">{l.note}</dd>}
+                <dd class="mt-1 text-sm text-stone-600">
+                  {l.source ? <>{t.source}: <a href={l.source.url} rel="noopener">{l.source.label}</a></> : t.sourceOurData}
+                  {l.checkedOn ? <>, {t.checked} {l.checkedOn}</> : null}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </>
+    ))}
+
+    <p class="mt-8 text-sm text-stone-700">{t.disclaimer} <a href="/methodology">{t.methodologyLink}</a>.</p>
+
+    {articles.length > 0 && (
+      <nav aria-labelledby="articles-h" class="mt-10">
+        <h2 id="articles-h">{t.articlesHeading}</h2>
+        <ul class="list-disc pl-5">
+          {articles.map((a) => <li><a href={a.href}>{a.title}</a></li>)}
+        </ul>
+        <p class="mt-2"><a href={articlesIndexHref}>{t.articlesIndex}</a></p>
+      </nav>
+    )}
+
+    {others.length > 0 && (
+      <nav aria-labelledby="others-h" class="mt-10">
+        <h2 id="others-h">{t.otherPlaces(view.regionName)}</h2>
+        <ul class="flex flex-wrap gap-x-4">{others.map((o) => <li><a href={o.href}>{o.name}</a></li>)}</ul>
+      </nav>
+    )}
+  </div>
+</BaseLayout>
