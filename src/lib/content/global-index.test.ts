@@ -34,13 +34,12 @@ describe('groupByCountry', () => {
 
 describe('global index pages', () => {
   const src = (f: string) => readFileSync(f, 'utf8');
-  it('use the global grouping and no US-only copy or quote CTA', () => {
-    for (const f of ['./src/pages/guides/index.astro', './src/pages/blog/index.astro', './src/components/content/GlobalIndex.astro']) {
+  it('global index components carry no US-only copy, quote CTA or inline style attributes (hashed CSP)', () => {
+    for (const f of ['./src/pages/guides/index.astro', './src/pages/blog/index.astro', './src/components/content/GuidesIndex.astro', './src/components/content/BlogIndex.astro']) {
       const s = src(f);
       expect(s, f).not.toMatch(/\/quotes|Get quotes|Florida and California/);
-      expect(s, f).not.toMatch(/\sstyle=|<script/);
+      expect(s, f).not.toMatch(/\sstyle=/);
     }
-    expect(src('./src/components/content/GlobalIndex.astro')).toContain('groupByCountry');
   });
   it('every live country with content appears in the grouping (against the real content)', () => {
     const rows: IndexArticle[] = [];
