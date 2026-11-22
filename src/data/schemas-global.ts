@@ -379,6 +379,8 @@ export const GlobalAssumptionsSchema = z
     battery_usable_kwh: assumed({ value: z.number().positive() }).optional(),
     /** Optional: output facing east/west or north as a share of south-facing output (applied to the yield by src/lib/calculator/uk.ts). */
     orientation_yield_factor: assumed({ east_west: ShRange, north: ShRange }).optional(),
+    /** Optional: last install date the calculator offers (ISO date). Absent = no limit (the GB calculator). Used where the sourced rates/incentives end on a known date (DE, AU). */
+    install_horizon: assumed({ until: IsoDate }).optional(),
   })
   .strict()
   .superRefine((a, ctx) => {

@@ -6,7 +6,7 @@ import type { ProductionInput } from '../calc/types';
 import { PVWATTS_TIMEOUT_MS, parsePvwattsBody } from './production';
 
 export { calculateGlobal } from '../calc/calculate-global';
-export { buildSavingsChart } from '../calc/chart';
+export { buildSavingsChart, chartSource } from '../calc/chart';
 
 /** Live yield for 1 kW DC from /api/pvgis, or null on any error, non-200, bad body, timeout or abort. Never throws. */
 export async function fetchLivePvgis(url: string, fetchImpl: typeof fetch = fetch, timeoutMs: number = PVWATTS_TIMEOUT_MS, signal?: AbortSignal): Promise<ProductionInput | null> {
