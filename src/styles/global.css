@@ -7,6 +7,7 @@
   --color-sun-500: #f59e0b;
   --color-sun-50: #fffbeb;
   --color-sun-100: #fef3c7;
+  --color-sun-200: #fde68a;
   --color-sun-ink: #92400e; /* accent text on light backgrounds, 7:1 on white */
   /* Pastel sky: surfaces for the header, hero bands and feature tiles. Text on these is stone-900 (>= 14:1) or
      stone-700 (>= 7:1); sun-ink links are >= 5.5:1 on pastel-200. -400/-600 are for art strokes and borders only. */
@@ -22,6 +23,23 @@
   --spacing-gutter: 1rem;
   --container-shell: 75rem; /* 1200px: page content and footer inner */
   --container-prose: 48rem; /* 768px: reading / calculator column */
+
+  /* Elevation from the home design: tinted blue shadows on pastel surfaces, stone ones on photos and forms. */
+  --shadow-search: 0 10px 30px -12px rgb(95 143 189 / 0.45);
+  --shadow-lift: 0 18px 36px -18px rgb(95 143 189 / 0.7);
+  --shadow-hero-card: 0 24px 50px -20px rgb(28 25 23 / 0.35);
+  --shadow-float: 0 12px 28px -12px rgb(28 25 23 / 0.35);
+  --shadow-badge: 0 8px 18px -10px rgb(28 25 23 / 0.4);
+  --shadow-form: 0 30px 60px -30px rgb(28 25 23 / 0.4);
+
+  --animate-sun-slow: sun-spin 90s linear infinite;
+  --animate-sun-slower: sun-spin 120s linear infinite;
+  --animate-float: float 5s ease-in-out infinite;
+  @keyframes sun-spin { to { transform: rotate(360deg); } }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
 
   --animate-fade-in: fade-in 150ms ease-out;
   @keyframes fade-in {

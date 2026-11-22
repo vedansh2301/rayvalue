@@ -25,7 +25,7 @@ describe('path classification', () => {
 
 describe('global header', () => {
   it('has Countries, Calculators, Guides, Methodology and no Get quotes', () => {
-    expect(GLOBAL_NAV.map((l) => l.label)).toEqual(['Countries', 'Calculators', 'Guides', 'Methodology']);
+    expect(GLOBAL_NAV.map((l) => l.label)).toEqual(['Countries', 'Calculators', 'Guides', 'Blog', 'Methodology']);
     expect(GLOBAL_NAV.some((l) => /quote/i.test(l.label + l.href))).toBe(false);
   });
 });

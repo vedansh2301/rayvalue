@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
-import { topCountries, siteTotals, DEADLINE_GUIDES, REGIONS, REGION_BY_SEGMENT, buildCountryCards, cardChips, cardCounts, deadlineLinks, groupByRegion, latestGuideLinks, liveCalculators, type HomeArticle } from './global-home';
+import { articleKind, daysLeft, homeDestinations, latestPostLinks, upcomingDeadlines, urgencyPct, topCountries, siteTotals, DEADLINE_GUIDES, REGIONS, REGION_BY_SEGMENT, buildCountryCards, cardChips, cardCounts, deadlineLinks, groupByRegion, latestGuideLinks, liveCalculators, type HomeArticle } from './global-home';
 
 const art = (o: Partial<HomeArticle> & { id: string; country: string }): HomeArticle => ({ collection: 'guides', lang: 'en', title: o.id, description: 'd', updated: new Date('2026-01-01'), noindex: false, ...o });
 const many = (cc: string, n: number, lang = 'en-GB'): HomeArticle[] => Array.from({ length: n }, (_, i) => art({ id: `${cc}/a${i}`, country: cc, lang }));
@@ -88,8 +88,13 @@ describe('global home page source', () => {
   const src = readFileSync('./src/pages/index.astro', 'utf8');
   it('has no US-only quote CTA, no inline style or script, no em dash', () => {
     expect(src).not.toMatch(/\/quotes|Get quotes|get installer quotes/i);
-    expect(src).not.toMatch(/\sstyle=|<script/);
-    expect(src).not.toMatch(/—|&mdash;/);
+    // Hashed CSP: no inline style attributes anywhere in the home markup. <script> blocks are Astro-bundled (hashed), but
+    // must be plain module scripts: no is:inline.
+    for (const f of ['src/pages/index.astro', ...readdirSync('./src/components/home').map((n) => `src/components/home/${n}`)]) {
+      const t = readFileSync(`./${f}`, 'utf8');
+      expect(t, f).not.toMatch(/\sstyle=|is:inline/);
+      expect(t, f).not.toMatch(/—|&mdash;/);
+    }
   });
   it('does not present the federal credit as available', () => {
     expect(src).not.toMatch(/25D|tax credit/i);
@@ -139,5 +144,60 @@ describe('cardChips', () => {
   it('adds the nearest live deadline guide', () => {
     const a = art({ id: 'gb/solar-panels-vat-deadline-2027', country: 'gb', title: 'VAT deadline' });
     expect(cardChips({ segment: 'uk', name: 'United Kingdom', guides: 1 }, [a]).some((c) => c.kind === 'deadline' && c.label === 'VAT deadline')).toBe(true);
+  });
+});
+
+describe('deadline helpers', () => {
+  const now = new Date('2026-11-22T15:30:00Z');
+  it('counts whole UTC days to the deadline, 0 on the day, null after', () => {
+    expect(daysLeft(new Date('2026-12-31'), now)).toBe(39);
+    expect(daysLeft(new Date('2026-11-22'), now)).toBe(0);
+    expect(daysLeft(new Date('2026-11-21'), now)).toBeNull();
+  });
+  it('urgency bar stays within 6..100 and grows as the date nears', () => {
+    expect(urgencyPct(0)).toBe(100);
+    expect(urgencyPct(900)).toBe(6);
+    expect(urgencyPct(39)).toBeGreaterThan(urgencyPct(120));
+  });
+  it('upcomingDeadlines drops undated and past guides and sorts soonest first', () => {
+    const arts = [
+      art({ id: 'gb/solar-panels-vat-deadline-2027', country: 'gb', deadline: new Date('2027-03-31') }),
+      art({ id: 'es/deduccion-irpf-placas-solares-antes-31-diciembre', country: 'es', deadline: new Date('2026-12-31') }),
+      art({ id: 'it/detrazione-fotovoltaico-2027', country: 'it' }),
+      art({ id: 'nl/einde-salderingsregeling-1-januari-2027', country: 'nl', deadline: new Date('2026-01-01') }),
+    ];
+    const up = upcomingDeadlines(deadlineLinks(arts), now);
+    expect(up.map((d) => d.country)).toEqual(['es', 'uk']);
+    expect(up[0]).toMatchObject({ days: 39, kind: 'deadline' });
+  });
+});
+
+describe('articleKind', () => {
+  it('tags deadline guides, battery guides and the rest', () => {
+    expect(articleKind(art({ id: 'au/battery-rebate-changes-2027', country: 'au', deadline: new Date('2027-01-01') }))).toBe('deadline');
+    expect(articleKind(art({ id: 'au/is-a-solar-battery-worth-it-australia', country: 'au', title: 'Is a solar battery worth it?' }))).toBe('battery');
+    expect(articleKind(art({ id: 'fr/x', country: 'fr', title: 'Panneaux solaires' }))).toBe('guide');
+  });
+});
+
+describe('homeDestinations', () => {
+  it('sends countries with a calculator there, others to their hub, and lists the US twice', () => {
+    const d = homeDestinations([
+      { segment: 'uk', name: 'United Kingdom', href: '/uk' },
+      { segment: 'fr', name: 'France', href: '/fr' },
+      { segment: 'us', name: 'United States', href: '/us' },
+    ]);
+    expect(d.map((x) => x.key)).toEqual(['fr', 'uk', 'us-ca', 'us-fl']);
+    expect(d.find((x) => x.key === 'fr')).toMatchObject({ kind: 'hub', href: '/fr' });
+    expect(d.find((x) => x.key === 'uk')).toMatchObject({ kind: 'calc', href: '/uk/solar-calculator' });
+    expect(d.find((x) => x.key === 'us-fl')!.href).toContain('florida');
+  });
+});
+
+describe('latestPostLinks', () => {
+  it('returns newest live posts, capped per country', () => {
+    const posts = [1, 2, 3].map((i) => art({ id: `gb/p${i}`, country: 'gb', collection: 'blog', updated: new Date(`2026-0${i}-01`) }));
+    const out = latestPostLinks([...posts, art({ id: 'de/p', country: 'de', collection: 'blog', updated: new Date('2025-01-01') })], 5, 2);
+    expect(out.map((l) => l.id)).toEqual(['gb/p3', 'gb/p2', 'de/p']);
   });
 });

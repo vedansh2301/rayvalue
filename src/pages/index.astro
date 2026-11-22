@@ -1,21 +1,29 @@
 ---
 // Global home. Everything here is computed from the content collections and the place index: no typed-in counts, rates or dates.
-// On demand (like the country hubs) because place counts come from the database; failure just hides the place counts.
+// On demand (like the country hubs) because place counts come from the database and "days left" depend on today;
+// failure just hides the place counts.
 export const prerender = false;
 
-import { getCollection } from 'astro:content';
+import type { ImageMetadata } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHero from '../components/ui/PageHero.astro';
-import Icon from '../components/icons/Icon';
+import HomeHero from '../components/home/HomeHero.astro';
+import CountryMap from '../components/home/CountryMap.astro';
 import CountryCard from '../components/home/CountryCard.astro';
 import CountryTile from '../components/home/CountryTile.astro';
+import ReportSection from '../components/home/ReportSection.astro';
+import DeadlineCard from '../components/home/DeadlineCard.astro';
+import ArticleCard from '../components/home/ArticleCard.astro';
+import CountryOutline from '../components/brand/CountryOutline.astro';
+import Cover from '../components/content/Cover.astro';
+import Icon from '../components/icons/Icon';
 import { PAGE_META } from '../lib/seo/page-meta';
 import { ogImagePath } from '../lib/seo/og';
-import { btnPrimary, btnOnDark } from '../components/ui/buttons';
 import { loadPlaceIndexEntries } from '../lib/places/index-entries';
 import { publishedCityLinks } from '../lib/seo/city-links';
 import { DB_PAGE_CACHE_HEADERS } from '../lib/db/repo';
-import { buildCountryCards, cardChips, deadlineLinks, groupByRegion, liveCalculators, siteTotals, topCountries, type HomeArticle, type PlaceCounts } from '../lib/home/global-home';
+import { coverTopic, stateKey, type StateKey, type Topic } from '../lib/content/cards';
+import { buildCountryCards, cardChips, deadlineLinks, groupByRegion, homeDestinations, latestGuideLinks, latestPostLinks, liveCalculators, siteTotals, topCountries, upcomingDeadlines, type ArticleLink, type HomeArticle, type PlaceCounts } from '../lib/home/global-home';
 
 const [guides, posts, places, cities] = await Promise.all([
   getCollection('guides', (e) => !e.data.draft),
@@ -23,10 +31,17 @@ const [guides, posts, places, cities] = await Promise.all([
   loadPlaceIndexEntries(),
   publishedCityLinks(),
 ]);
-const articles: HomeArticle[] = [
-  ...guides.map((e): HomeArticle => ({ collection: 'guides', id: e.id, route: e.data.route, country: e.data.country, lang: e.data.lang, title: e.data.title, description: e.data.description, published: e.data.published, updated: e.data.updated, noindex: e.data.noindex })),
-  ...posts.map((e): HomeArticle => ({ collection: 'blog', id: e.id, country: e.data.country, lang: e.data.lang, title: e.data.title, description: e.data.description, published: e.data.published, updated: e.data.updated, noindex: e.data.noindex })),
-];
+const toHome = (collection: 'guides' | 'blog', e: CollectionEntry<'guides'> | CollectionEntry<'blog'>): HomeArticle => ({
+  collection, id: e.id, route: (e.data as { route?: string }).route, country: e.data.country, lang: e.data.lang, title: e.data.title,
+  description: e.data.description, published: e.data.published, updated: e.data.updated, deadline: e.data.deadline, noindex: e.data.noindex,
+});
+const articles: HomeArticle[] = [...guides.map((e) => toHome('guides', e)), ...posts.map((e) => toHome('blog', e))];
+// Cover photo and topic for an article link: the frontmatter cover when there is one, else the generated topic cover.
+type CoverMeta = { cover?: ImageMetadata; coverAlt?: string; topic?: Topic; tags?: string[]; state?: StateKey };
+const coverProps = (l: ArticleLink) => {
+  const d = (l.collection === 'guides' ? guides : posts).find((e) => e.id === l.id)?.data as CoverMeta | undefined;
+  return { cover: d?.cover, coverAlt: d?.cover ? '' : undefined, topic: coverTopic({ topic: d?.topic, tags: d?.tags, title: l.title, state: d?.state }), state: stateKey(d?.state) };
+};
 const placeCounts: Record<string, PlaceCounts> = {};
 if (places.ok) {
   for (const e of places.value) {
@@ -38,15 +53,28 @@ if (places.ok) {
 } else {
   Astro.response.headers.set('Cache-Control', 'no-store');
 }
+const now = new Date();
 const cards = buildCountryCards(articles, placeCounts, { places: cities.length });
+const totals = siteTotals(cards);
 const featured = topCountries(cards, 6);
 const featuredSegs = new Set(featured.map((c) => c.segment));
 const more = groupByRegion(cards.filter((c) => !featuredSegs.has(c.segment))).flatMap((g) => g.cards);
-const totals = siteTotals(cards);
+const destinations = homeDestinations(cards);
+const destOf = (seg: string) => destinations.filter((d) => d.segment === seg).sort((a, b) => Number(b.kind === 'calc') - Number(a.kind === 'calc'))[0];
 const calculators = liveCalculators();
-const deadlines = deadlineLinks(articles).slice(0, 4);
-const link = 'text-sun-ink underline underline-offset-2 hover:text-stone-900';
-const h2 = 'font-display-tight text-3xl text-stone-900 sm:text-4xl';
+const deadlines = upcomingDeadlines(deadlineLinks(articles), now);
+const deadlineSegs = [...new Set(deadlines.map((d) => d.country))];
+const guideLinks = latestGuideLinks(articles, 9, 1);
+const guideKinds = (['deadline', 'battery'] as const).filter((k) => guideLinks.some((g) => g.kind === k));
+const kindLabel = { deadline: 'Deadline', battery: 'Battery', guide: 'Guide' } as const;
+const kindName = { deadline: 'Deadlines', battery: 'Batteries' } as const;
+const filters: [string, string][] = [['all', 'All'], ...guideKinds.map((k): [string, string] => [k, kindName[k]])];
+const short = (n: string) => n.replace('United States', 'US').replace('United Kingdom', 'UK');
+const postLinks = latestPostLinks(articles, 5, 2);
+const [lead, ...restPosts] = postLinks;
+const quick = ['us-fl', 'uk', 'de', 'au', 'es', 'fr'].filter((k) => destinations.some((d) => d.key === k));
+const h2 = 'font-display-tight text-[clamp(1.75rem,3.4vw,2.625rem)] leading-[1.1] text-stone-900';
+const eyebrow = 'text-sm font-semibold text-sun-ink';
 const method = [
   { title: 'Official sources first', body: 'Tariffs, export rates, grants and tax rules come from regulators, governments and utilities.' },
   { title: 'Every number shows its source', body: 'Each figure carries its source and the date we checked it. If we cannot verify it, we leave it out.' },
@@ -54,88 +82,187 @@ const method = [
 ];
 ---
 <BaseLayout title={PAGE_META.home.title} description={PAGE_META.home.description} path="/" ogImagePath={ogImagePath('home')}>
-  <PageHero title="Does solar pay off where you live?" size="lg">
-    Independent solar and battery payback math for homeowners worldwide, from each country&rsquo;s own tariffs, export rates and grants.
-    <Fragment slot="actions">
-      <a href="#countries" class={btnPrimary}>Choose your country</a>
-      <a href="#calculators" class={btnOnDark}>Run a calculator</a>
-    </Fragment>
-  </PageHero>
+  <HomeHero countries={totals.countries} destinations={destinations} featured={featured.map((card) => ({ card, dest: destOf(card.segment) }))} />
 
-  <section id="countries" class="shell scroll-mt-4 py-12" aria-labelledby="countries-heading">
-    <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
-      <h2 id="countries-heading" class={h2}>Pick your country</h2>
-      <p class="text-stone-700">{totals.countries} countries so far. Each has its own rules and local data.</p>
+  <section id="countries" class="scroll-mt-16 pt-[clamp(3rem,6vw,5rem)]" aria-labelledby="countries-heading">
+    <div class="shell">
+      <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+        <div class="flex flex-col gap-2">
+          <p class={eyebrow}>Pick your country</p>
+          <h2 id="countries-heading" class={h2}>{totals.countries} countries. {totals.countries} sets of rules.</h2>
+        </div>
+        <p class="max-w-[44ch] text-base text-stone-700">{totals.countries} countries so far. Each has its own rules and local data. Tap a country on the map.</p>
+      </div>
+      <CountryMap cards={cards} destinations={destinations} deadlineSegments={deadlineSegs} initial={featured[0]?.segment ?? ''} />
     </div>
-    <ul class="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-      {featured.map((c) => <CountryCard card={c} chips={cardChips(c, articles)} />)}
-    </ul>
-    <h3 id="all-countries" class="mt-10 text-sm font-semibold uppercase tracking-wide text-stone-700">All countries</h3>
-    <ul class="mt-3 grid grid-cols-1 gap-2 min-[30rem]:grid-cols-2 md:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))]" aria-labelledby="all-countries">
-      {more.map((c) => <CountryTile card={c} />)}
-    </ul>
   </section>
 
-  <section class="shell grid gap-4 pb-12 lg:grid-cols-[3fr_2fr]" aria-label="Calculators and deadlines">
-    <div id="calculators" class="scroll-mt-4 rounded-2xl border border-stone-200 bg-white p-5 sm:p-6" role="group" aria-labelledby="calculators-heading">
-      <div class="flex items-center gap-3">
-        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-pastel-200 text-stone-900"><Icon name="chart" size={24} /></span>
+  <section class="pb-[clamp(3rem,6vw,5rem)] pt-10" aria-label="Countries">
+    <div class="shell">
+      <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {featured.map((c) => <CountryCard card={c} chips={cardChips(c, articles)} deadlineDays={deadlines.find((d) => d.country === c.segment)?.days} />)}
+      </ul>
+      <h3 id="all-countries" class="mb-3.5 mt-11 text-sm font-semibold uppercase tracking-wide text-stone-700">All countries</h3>
+      <ul class="grid grid-cols-1 gap-2.5 min-[30rem]:grid-cols-2 md:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(13rem,1fr))]" aria-labelledby="all-countries">
+        {more.map((c) => <CountryTile card={c} />)}
+      </ul>
+    </div>
+  </section>
+
+  {deadlines.length > 0 && (
+    <section id="deadlines" class="scroll-mt-16 border-y border-sun-200 bg-sun-100" aria-labelledby="deadlines-heading">
+      <div class="shell py-[clamp(3rem,6vw,5rem)]">
+        <div class="mb-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <div class="flex items-center gap-3.5">
+            <span class="flex size-[3.25rem] shrink-0 items-center justify-center rounded-[14px] bg-sky-pastel-200 text-stone-900"><Icon name="calendar" size={26} /></span>
+            <h2 id="deadlines-heading" class={h2}>Dates that change the maths</h2>
+          </div>
+          <a href="#report" class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-stone-900 px-[1.125rem] font-semibold text-sun-100 no-underline hover:bg-stone-800 hover:text-sun-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900">Check before the deadline &rarr;</a>
+        </div>
+        <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(16.25rem,1fr))]">
+          {deadlines.slice(0, 6).map((d) => <DeadlineCard d={d} />)}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <ReportSection destinations={destinations} quick={quick} />
+
+  <section id="calculators" class="scroll-mt-16" aria-labelledby="calculators-heading">
+    <div class="shell py-[clamp(3rem,6vw,5rem)]">
+      <div class="mb-6 flex items-center gap-3.5">
+        <span class="flex size-[3.25rem] shrink-0 items-center justify-center rounded-[14px] bg-sky-pastel-200 text-stone-900"><Icon name="chart" size={26} /></span>
         <div>
-          <h2 id="calculators-heading" class="font-display-tight text-2xl text-stone-900 sm:text-3xl">Run your numbers</h2>
+          <h2 id="calculators-heading" class={h2}>Run your numbers</h2>
           <p class="mt-1 text-stone-700">Low, likely and high ranges from your country&rsquo;s own rates. No sign-up.</p>
         </div>
       </div>
-      <ul class="mt-4 divide-y divide-stone-200">
+      <ul class="grid grid-cols-1 gap-3.5 min-[30rem]:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(13rem,1fr))]">
         {calculators.map((c) => (
           <li>
-            <a href={c.href} class="group flex min-h-11 items-center justify-between gap-3 py-3 no-underline" data-track="nav_click" data-track-placement="home_calculators" data-track-target={c.href}>
-              <span>
-                <span class="block font-semibold text-stone-900 group-hover:text-sun-ink group-hover:underline underline-offset-4">{c.label}{c.label !== c.country && <span class="font-normal text-stone-700"> ({c.country})</span>}</span>
-                <span class="block text-sm text-stone-700">{c.fact}</span>
-              </span>
-              <span aria-hidden="true" class="text-sun-ink">&rarr;</span>
+            <a href={c.href} class="group flex h-full flex-col gap-3 rounded-2xl border border-sky-pastel-300 bg-white p-[18px] text-stone-900 no-underline hover:border-sun-500 hover:bg-sun-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_calculators" data-track-target={c.href}>
+              <CountryOutline segment={c.segment} class="h-[58px] w-auto max-w-[58px] self-start fill-sun-400 stroke-sun-ink" />
+              <div>
+                <strong class="block text-[17px]">{c.label}{c.label !== c.country && <span class="font-normal text-stone-700"> ({c.country})</span>}</strong>
+                <span class="mt-1 block text-sm leading-snug text-stone-700">{c.fact}</span>
+              </div>
+              <span class="mt-auto font-semibold text-sun-ink">Calculate &rarr;</span>
             </a>
           </li>
         ))}
       </ul>
     </div>
-
-    {deadlines.length > 0 && (
-      <div id="deadlines" class="scroll-mt-4 rounded-2xl bg-sun-100 p-5 sm:p-6" role="group" aria-labelledby="deadlines-heading">
-        <div class="flex items-center gap-3">
-          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-pastel-200 text-stone-900"><Icon name="calendar" size={24} /></span>
-          <h2 id="deadlines-heading" class="font-display-tight text-2xl text-stone-900 sm:text-3xl">Dates that change the maths</h2>
-        </div>
-        <ul class="mt-4 space-y-3">
-          {deadlines.map((d) => (
-            <li class="border-l-4 border-sun-500 pl-3">
-              <p class="text-sm font-medium text-sun-ink">{d.countryName}</p>
-              <a href={d.href} lang={d.lang} class="inline-block py-0.5 font-semibold leading-snug text-stone-900 underline-offset-4 hover:text-sun-ink hover:underline" data-track="nav_click" data-track-placement="home_deadlines" data-track-target={d.href}>{d.title}</a>
-            </li>
-          ))}
-        </ul>
-        <a href="/guides" class={`mt-3 inline-flex min-h-11 items-center font-medium ${link}`}>Guides from every country</a>
-      </div>
-    )}
   </section>
 
-  <section class="bg-sky-pastel-200 py-12 text-stone-900" aria-labelledby="method-heading">
-    <div class="shell grid items-center gap-8 lg:grid-cols-[auto_1fr]">
-      <div class="flex items-center gap-4">
-        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-pastel-200 text-stone-900"><Icon name="search" size={24} /></span>
-        <h2 id="method-heading" class="font-display-tight max-w-xs text-3xl text-stone-900">How we keep the numbers honest</h2>
-      </div>
-      <div>
-        <ul class="grid gap-6 sm:grid-cols-3">
-          {method.map((m) => (
-            <li class="border-t-2 border-sun-400 pt-3">
-              <h3 class="font-semibold text-stone-900">{m.title}</h3>
-              <p class="mt-1 leading-7 text-stone-800">{m.body}</p>
-            </li>
-          ))}
+  {guideLinks.length > 0 && (
+    <section id="guides" class="scroll-mt-16 border-y border-sky-pastel-200 bg-sky-pastel-50" aria-labelledby="guides-heading" data-guides>
+      <div class="shell py-[clamp(3rem,6vw,5rem)]">
+        <div class="mb-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <div class="flex flex-col gap-2">
+            <p class={eyebrow}>Country guides</p>
+            <h2 id="guides-heading" class={h2}>Is it worth it where you live?</h2>
+          </div>
+          {guideKinds.length > 0 && (
+            <div class="flex flex-wrap gap-1.5" role="group" aria-label="Filter guides">
+              {filters.map(([k, label], i) => (
+                <button type="button" data-filter={k} aria-pressed={i === 0 ? 'true' : 'false'} class="min-h-11 cursor-pointer rounded-full border border-sky-pastel-300 bg-white px-3.5 text-sm font-semibold text-stone-900 hover:border-sky-pastel-600 aria-pressed:border-sun-500 aria-pressed:bg-sun-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900">{label}</button>
+              ))}
+            </div>
+          )}
+        </div>
+        <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {guideLinks.map((g) => {
+            const dest = destOf(g.country);
+            return (
+              <li data-kind={g.kind} class="[&[hidden]]:hidden">
+                <ArticleCard
+                  href={g.href} title={g.title} description={g.description} lang={g.lang} segment={g.country} countryName={g.countryName}
+                  tag={kindLabel[g.kind]} tagTone={g.kind === 'deadline' ? 'sun' : 'white'} {...coverProps(g)}
+                  cta={dest ? { href: dest.href, label: dest.kind === 'calc' ? `Get my ${short(g.countryName)} payback` : `All ${short(g.countryName)} guides` } : undefined}
+                  placement="home_guides"
+                />
+              </li>
+            );
+          })}
         </ul>
-        <p class="mt-5 leading-7 text-stone-800">Read the <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>. RayValue is an independent site, not a utility or a government agency; the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a> explains how it is funded.</p>
+        <p class="mt-6"><a href="/guides" class="inline-flex min-h-11 items-center font-semibold text-sun-ink underline underline-offset-4 hover:text-stone-900">Guides from every country &rarr;</a></p>
       </div>
+    </section>
+  )}
+
+  {lead && (
+    <section id="blog" class="scroll-mt-16" aria-labelledby="blog-heading">
+      <div class="shell py-[clamp(3rem,6vw,5rem)]">
+        <div class="mb-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+          <div class="flex flex-col gap-2">
+            <p class={eyebrow}>From the blog</p>
+            <h2 id="blog-heading" class={h2}>Before you sign anything, read these.</h2>
+          </div>
+          <a href="/blog" class="inline-flex min-h-11 items-center font-semibold text-sun-ink underline underline-offset-4 hover:text-stone-900">All posts &rarr;</a>
+        </div>
+        <div class="grid gap-5 md:grid-cols-2">
+          <a href={lead.href} lang={lead.lang} class:list={['group relative flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-[20px] bg-stone-900 text-white no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900', restPosts.length > 1 && 'md:row-span-2']} data-track="nav_click" data-track-placement="home_blog_lead" data-track-target={lead.href}>
+            <div class="absolute inset-0"><Cover class="h-full w-full" {...coverProps(lead)} /></div>
+            <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-stone-900/0 from-30% to-stone-900/85"></div>
+            <div class="relative flex flex-col gap-2.5 p-6">
+              <span class="w-fit rounded-full bg-sun-400 px-2.5 py-1 text-xs font-bold text-stone-900">{lead.countryName}</span>
+              <span class="font-display-tight text-[clamp(1.625rem,2.6vw,2.125rem)] leading-[1.15]">{lead.title}</span>
+              <span class="max-w-[44ch] text-base leading-normal">{lead.description}</span>
+            </div>
+          </a>
+          {restPosts.map((p) => (
+            <a href={p.href} lang={p.lang} class="grid grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-4 rounded-2xl border border-sky-pastel-300 bg-white p-3 text-stone-900 no-underline hover:border-sky-pastel-600 hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_blog" data-track-target={p.href}>
+              <div class="relative aspect-square overflow-hidden rounded-xl bg-sky-pastel-100"><Cover class="h-full w-full" {...coverProps(p)} /></div>
+              <div class="flex flex-col gap-1.5">
+                <span class="text-xs font-bold uppercase tracking-wider text-sun-ink">{p.countryName}</span>
+                <strong class="font-display-tight text-[1.1875rem] leading-tight">{p.title}</strong>
+                <span class="line-clamp-2 text-sm leading-snug text-stone-700">{p.description}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="bg-sky-pastel-200 text-stone-900" aria-labelledby="method-heading">
+    <div class="shell grid items-start gap-8 pb-4 pt-[clamp(3rem,6vw,4.5rem)] lg:grid-cols-4">
+      <div class="flex items-center gap-3.5">
+        <span class="flex size-[3.25rem] shrink-0 items-center justify-center rounded-[14px] bg-white text-stone-900"><Icon name="search" size={26} /></span>
+        <h2 id="method-heading" class="font-display-tight text-[1.875rem] leading-tight text-stone-900">How we keep the numbers honest</h2>
+      </div>
+      {method.map((m) => (
+        <div class="border-t-[3px] border-sun-400 pt-3">
+          <h3 class="text-[17px] font-semibold text-stone-900">{m.title}</h3>
+          <p class="mt-1.5 leading-7 text-stone-800">{m.body}</p>
+        </div>
+      ))}
+    </div>
+    <p class="shell pb-10 pt-4 leading-7 text-stone-800">Read the <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>. RayValue is an independent site, not a utility or a government agency; the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a> explains how it is funded.</p>
+  </section>
+
+  <section class="relative isolate overflow-hidden bg-sun-400" aria-labelledby="cta-heading">
+    <svg viewBox="0 0 400 400" class="pointer-events-none absolute -bottom-52 -right-20 -z-10 size-[28.75rem] opacity-50 motion-safe:animate-sun-slower" aria-hidden="true" focusable="false">
+      <circle cx="200" cy="200" r="80" fill="#fcd34d"></circle>
+      <g stroke="#fde68a" stroke-width="12" stroke-linecap="round"><path d="M200 30v60M200 310v60M30 200h60M310 200h60M80 80l42 42M278 278l42 42M80 320l42-42M278 122l42-42"></path></g>
+    </svg>
+    <div class="shell flex flex-wrap items-center justify-between gap-6 py-[clamp(3rem,6vw,5rem)]">
+      <h2 id="cta-heading" class="font-display-tight max-w-[18ch] text-[clamp(1.875rem,4vw,3.125rem)] leading-[1.08] text-stone-900">Find out if solar pays on your roof.</h2>
+      <a href="#report" class="inline-flex min-h-14 items-center gap-2.5 rounded-[10px] bg-stone-900 px-[1.625rem] text-lg font-bold text-sun-100 no-underline hover:bg-stone-800 hover:text-sun-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_cta" data-track-target="/#report">Get my free payback report &rarr;</a>
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  // Guides filter: show only the chosen kind (All, Deadlines, Batteries). Without JS every guide is shown.
+  const root = document.querySelector<HTMLElement>('[data-guides]');
+  if (root) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const items = [...root.querySelectorAll<HTMLElement>('li[data-kind]')];
+    buttons.forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.filter;
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      items.forEach((li) => { li.hidden = k !== 'all' && li.dataset.kind !== k; });
+    }));
+  }
+</script>

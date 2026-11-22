@@ -27,6 +27,8 @@ const guides = defineCollection({
     /** First-publish date (from git history). Never backdated. */
     published: z.coerce.date().optional(),
     updated: z.coerce.date(),
+    /** Last day of a dated deadline the article is about (the date is stated in the article and its sources); drives the home "days left" cards. */
+    deadline: z.coerce.date().optional(),
     /** Required for US guides (country 'us'); optional for non-US. */
     state: z.enum(['FL', 'CA', 'both']).optional(),
     ...countryFields,
@@ -55,6 +57,8 @@ const blog = defineCollection({
     seoTitle: z.string().optional(),
     published: z.coerce.date(),
     updated: z.coerce.date().optional(),
+    /** As on guides: last day of a dated deadline the post is about. */
+    deadline: z.coerce.date().optional(),
     state: z.enum(['FL', 'CA', 'both']).optional(),
     ...countryFields,
     tags: z.array(z.string()).default([]),

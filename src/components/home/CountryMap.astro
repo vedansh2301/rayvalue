@@ -1,0 +1,88 @@
+---
+/**
+ * "Pick your country" world map. Each country with a live hub is its outline placed on a dotted map; hover or tap
+ * focuses it and the panel below shows its name, what RayValue has for it and a link to its calculator (or hub).
+ * Without JS the outlines are plain links to the country hubs. The map is a visual shortcut: the country list under
+ * it is the accessible, keyboard path (so the outlines are tabindex -1 and hidden from assistive tech).
+ */
+import { COUNTRY_OUTLINES } from '../../lib/brand/country-outlines';
+import { MAP_VIEWBOX, mapShape } from '../../lib/brand/country-map';
+import { cardCounts, type CountryCard, type Destination } from '../../lib/home/global-home';
+
+interface Props { cards: CountryCard[]; destinations: Destination[]; deadlineSegments: string[]; initial: string }
+const { cards, destinations, deadlineSegments, initial } = Astro.props;
+// Prefer the calculator destination (the first listed for the US), else the hub.
+const destFor = (seg: string) => destinations.filter((d) => d.segment === seg).sort((a, b) => Number(b.kind === 'calc') - Number(a.kind === 'calc'))[0];
+const shapes = cards.map((c) => ({ card: c, shape: mapShape(c.segment), dest: destFor(c.segment) })).filter((s): s is typeof s & { shape: NonNullable<typeof s.shape> } => !!s.shape);
+const pins = shapes.filter((s) => deadlineSegments.includes(s.card.segment));
+const start = shapes.find((s) => s.card.segment === initial) ?? shapes[0];
+const sub = (c: CountryCard) => cardCounts(c) || c.region || '';
+const O = (seg: string) => COUNTRY_OUTLINES[seg]!;
+---
+<div class="relative mt-7 overflow-hidden rounded-3xl border border-sky-pastel-300 bg-sky-pastel-100" data-map>
+  <svg viewBox={`0 0 ${MAP_VIEWBOX.w} ${MAP_VIEWBOX.h}`} class="block h-auto w-full" aria-hidden="true" focusable="false">
+    <defs><pattern id="rv-dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#bfd9f1"></circle></pattern></defs>
+    <rect width={MAP_VIEWBOX.w} height={MAP_VIEWBOX.h} fill="url(#rv-dots)"></rect>
+    <g stroke="#bfd9f1" stroke-width="1" fill="none" stroke-dasharray="3 5"><path d="M0 286H1000"></path><path d="M0 200H1000"></path><path d="M0 372H1000"></path><path d="M0 115H1000"></path></g>
+    {shapes.map(({ card, shape, dest }) => (
+      <a href={card.href} tabindex="-1" class="group cursor-pointer" data-country={card.segment} data-name={card.name} data-sub={sub(card)} data-href={dest?.href ?? card.href} data-cta={dest?.kind === 'calc' ? 'Open the calculator' : `See ${card.name} guides`} data-vb={`0 0 ${O(card.segment).w} ${O(card.segment).h}`} data-d={shape.d} data-on={card.segment === start?.card.segment ? 'true' : undefined}>
+        <g transform={shape.transform}>
+          <path d={shape.d} stroke-width="1.4" stroke-linejoin="round" vector-effect="non-scaling-stroke" class:list={['group-data-[on=true]:fill-sun-500 group-data-[on=true]:stroke-sun-ink', dest?.kind === 'calc' ? 'fill-sun-400 stroke-amber-600' : 'fill-white stroke-sky-pastel-600']}></path>
+        </g>
+      </a>
+    ))}
+    {pins.map(({ shape }) => (
+      <g transform={`translate(${shape.cx} ${shape.cy})`} class="pointer-events-none"><circle r="9" fill="#fbbf24" stroke="#ffffff" stroke-width="3"></circle><circle r="3" fill="#92400e"></circle></g>
+    ))}
+  </svg>
+  <ul class="flex flex-wrap gap-x-3.5 gap-y-2 border-t border-sky-pastel-300 bg-sky-pastel-50 px-4 py-2.5 text-[13px] text-stone-800">
+    <li class="flex items-center gap-1.5"><span class="size-3 rounded-[3px] bg-sun-400"></span>Calculator live</li>
+    <li class="flex items-center gap-1.5"><span class="size-3 rounded-[3px] border border-sky-pastel-600 bg-white"></span>Guides and local pages</li>
+    {pins.length > 0 && <li class="flex items-center gap-1.5"><span class="size-3 rounded-full border-2 border-white bg-sun-400 ring-1 ring-sun-500"></span>Deadline coming</li>}
+  </ul>
+  {start && (
+    <div class="flex flex-wrap items-center justify-between gap-4 border-t border-sky-pastel-300 bg-white p-4" aria-live="polite">
+      <div class="flex items-center gap-3">
+        <svg viewBox={`0 0 ${O(start.card.segment).w} ${O(start.card.segment).h}`} class="size-11 flex-none" data-focus-svg aria-hidden="true" focusable="false"><path d={start.shape.d} data-focus-path class="fill-sun-200 stroke-sun-ink" stroke-width="1.5" vector-effect="non-scaling-stroke"></path></svg>
+        <div>
+          <p class="font-display-tight text-[1.375rem] leading-tight text-stone-900" data-focus-name>{start.card.name}</p>
+          <p class="text-[13px] text-stone-700" data-focus-sub>{sub(start.card)}</p>
+        </div>
+      </div>
+      <a href={start.dest?.href ?? start.card.href} data-focus-link class="inline-flex min-h-11 items-center justify-between gap-3 rounded-lg bg-sun-400 px-3.5 font-semibold text-stone-900 no-underline hover:bg-sun-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_map" data-track-target={start.dest?.href ?? start.card.href}><span data-focus-cta>{start.dest?.kind === 'calc' ? 'Open the calculator' : `See ${start.card.name} guides`}</span><span aria-hidden="true">&rarr;</span></a>
+    </div>
+  )}
+</div>
+
+<script>
+  // Map: hover or tap focuses a country; the CTA below follows it. Tapping does not navigate (the CTA does).
+  const map = document.querySelector<HTMLElement>('[data-map]');
+  if (map) {
+    const shapes = [...map.querySelectorAll<SVGAElement>('[data-country]')];
+    const name = map.querySelector('[data-focus-name]');
+    const sub = map.querySelector('[data-focus-sub]');
+    const cta = map.querySelector('[data-focus-cta]');
+    const link = map.querySelector<HTMLAnchorElement>('[data-focus-link]');
+    const svg = map.querySelector('[data-focus-svg]');
+    const path = map.querySelector('[data-focus-path]');
+    const focus = (a: SVGAElement, pick = false) => {
+      shapes.forEach((s) => { if (s === a) s.setAttribute('data-on', 'true'); else s.removeAttribute('data-on'); });
+      if (name) name.textContent = a.dataset.name ?? '';
+      if (sub) sub.textContent = a.dataset.sub ?? '';
+      if (cta) cta.textContent = a.dataset.cta ?? '';
+      if (link) { link.href = a.dataset.href ?? '/'; link.setAttribute('data-track-target', a.dataset.href ?? '/'); }
+      if (svg && a.dataset.vb) svg.setAttribute('viewBox', a.dataset.vb);
+      if (path && a.dataset.d) path.setAttribute('d', a.dataset.d);
+      if (!pick) return;
+      const c = a.dataset.country ?? '';
+      for (const select of document.querySelectorAll<HTMLSelectElement>('[data-country-select]')) {
+        const o = [...select.options].find((x) => x.value === c || x.value.startsWith(`${c}-`));
+        if (o) { select.value = o.value; select.dispatchEvent(new Event('change')); }
+      }
+    };
+    shapes.forEach((a) => {
+      a.addEventListener('mouseenter', () => focus(a));
+      a.addEventListener('click', (e) => { e.preventDefault(); focus(a, true); });
+    });
+  }
+</script>

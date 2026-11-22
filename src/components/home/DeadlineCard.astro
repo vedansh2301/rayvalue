@@ -1,0 +1,17 @@
+---
+/** "Days left" card for a dated deadline guide: big count, urgency bar, country and date, guide title. One link. */
+import CountryOutline from '../brand/CountryOutline.astro';
+import type { DeadlineCard } from '../../lib/home/global-home';
+interface Props { d: DeadlineCard; placement?: string }
+const { d, placement = 'home_deadlines' } = Astro.props;
+const date = d.deadline!.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+---
+<li>
+  <a href={d.href} class="group relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border border-sun-200 bg-white p-5 text-stone-900 no-underline transition duration-150 hover:-translate-y-0.5 hover:border-sun-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement={placement} data-track-target={d.href}>
+    <CountryOutline segment={d.country} class="pointer-events-none absolute -bottom-3.5 -right-3.5 size-[7.5rem] fill-sun-50 stroke-sun-200 opacity-90" />
+    <p class="relative flex items-baseline gap-1.5"><span class="font-display-tight text-[3.375rem] leading-none tabular-nums text-stone-900">{d.days}</span><span class="text-sm font-semibold text-sun-ink">{d.days === 1 ? 'day left' : 'days left'}</span></p>
+    <svg viewBox="0 0 100 8" preserveAspectRatio="none" class="relative h-2 w-full" aria-hidden="true" focusable="false"><rect width="100" height="8" rx="4" fill="#fef3c7"></rect><rect width={d.pct} height="8" rx="4" fill="#f59e0b"></rect></svg>
+    <p class="relative text-sm font-semibold text-sun-ink">{d.countryName} &middot; <time datetime={d.deadline!.toISOString().slice(0, 10)}>{date}</time></p>
+    <p lang={d.lang} class="relative text-base font-semibold leading-snug">{d.title}</p>
+  </a>
+</li>

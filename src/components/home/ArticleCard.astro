@@ -1,0 +1,51 @@
+---
+/**
+ * Article card in the home-design guide style: cover (photo or generated topic cover) with a tag pill, country chip,
+ * serif title, hook and a two-link footer. Used for guides and posts on the home page, hubs and indexes. The cover and
+ * the title both link to the article. `cover` takes an ImageMetadata (frontmatter cover, or a licensed library image).
+ */
+import type { ImageMetadata } from 'astro';
+import Cover from '../content/Cover.astro';
+import CountryOutline from '../brand/CountryOutline.astro';
+import type { Topic, StateKey } from '../../lib/content/cards';
+
+interface Props {
+  href: string;
+  title: string;
+  description: string;
+  lang: string;
+  segment: string;
+  countryName: string;
+  tag: string;
+  tagTone?: 'white' | 'sun';
+  topic: Topic;
+  state?: StateKey;
+  cover?: ImageMetadata;
+  coverAlt?: string;
+  /** Second footer link (e.g. the country's calculator). Omit for a one-link footer. */
+  cta?: { href: string; label: string };
+  placement?: string;
+  /** Hide the footer links (dense lists); the card stays one link. */
+  compact?: boolean;
+  /** `data-kind` for the client-side filter on the home page. */
+  kind?: string;
+}
+const { href, title, description, lang, segment, countryName, tag, tagTone = 'white', topic, state = 'both', cover, coverAlt, cta, placement = 'article_card', compact = false, kind } = Astro.props;
+---
+<article class="group flex flex-col overflow-hidden rounded-2xl border border-sky-pastel-300 bg-white transition-shadow duration-150 hover:shadow-lift" data-kind={kind}>
+  <a href={href} tabindex="-1" aria-hidden="true" class="relative block aspect-video bg-sky-pastel-100" data-track="nav_click" data-track-placement={`${placement}_cover`} data-track-target={href}>
+    <div class="absolute inset-0"><Cover topic={topic} state={state} cover={cover} coverAlt={cover ? "" : coverAlt} class="h-full w-full" /></div>
+    <span class:list={['pointer-events-none absolute left-3 top-3 z-10 rounded-full px-2.5 py-1 text-xs font-bold text-stone-900', tagTone === 'sun' ? 'bg-sun-400' : 'bg-white/90']}>{tag}</span>
+  </a>
+  <div class="flex flex-1 flex-col gap-2.5 px-5 pb-5 pt-4">
+    <p class="flex items-center gap-2 text-[13px] font-semibold text-sun-ink"><CountryOutline segment={segment} class="size-[18px] fill-sun-400 stroke-sun-ink" />{countryName}</p>
+    <h3 class="font-display-tight text-[1.3125rem] leading-tight text-stone-900"><a href={href} lang={lang} class="no-underline hover:text-sun-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement={placement} data-track-target={href}>{title}</a></h3>
+    <p lang={lang} class="line-clamp-3 text-[15px] leading-relaxed text-stone-700">{description}</p>
+    {!compact && (
+      <div class="mt-auto flex flex-wrap justify-between gap-x-3 border-t border-stone-200 pt-3 text-sm font-semibold">
+        <a href={href} class="inline-flex min-h-8 items-center text-stone-900 no-underline hover:text-sun-ink" data-track="nav_click" data-track-placement={`${placement}_read`} data-track-target={href}>Read more<span class="sr-only">: {title}</span></a>
+        {cta && <a href={cta.href} class="inline-flex min-h-8 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900" data-track="nav_click" data-track-placement={`${placement}_cta`} data-track-target={cta.href}>{cta.label} &rarr;</a>}
+      </div>
+    )}
+  </div>
+</article>

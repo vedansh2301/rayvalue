@@ -36,7 +36,7 @@ const head = 'text-sm font-semibold uppercase tracking-wide text-stone-700';
 const track = (target: string) => ({ 'data-track': 'nav_click', 'data-track-placement': 'footer', 'data-track-target': target.split('?')[0] });
 const social = DEFAULT_SOCIAL_PROFILES;
 ---
-<footer class="mt-auto border-t border-sky-pastel-300 bg-sky-pastel-100 text-sm text-stone-800">
+<footer class="mt-auto border-t border-stone-200 bg-stone-50 text-sm text-stone-800">
   <div class="shell py-8">
     {legalOnly ? (
       <>
@@ -112,11 +112,11 @@ const social = DEFAULT_SOCIAL_PROFILES;
         </div>
 
         {seo.length > 0 && (
-          <nav aria-label="Solar by country and city" class="mt-8 border-t border-sky-pastel-300 pt-6">
+          <nav aria-label="Solar by country and city" class="mt-8 border-t border-stone-200 pt-6">
             <h2 class="font-display-tight text-xl text-stone-900">Solar by country and city</h2>
             <div class="mt-3 grid gap-x-6 gap-y-1 md:grid-cols-3 md:gap-y-5 lg:grid-cols-4">
               {seo.map((g) => (
-                <details class="seo-group border-b border-sky-pastel-300 py-1 md:border-0 md:py-0" open>
+                <details class="seo-group border-b border-stone-200 py-1 md:border-0 md:py-0" open>
                   <summary class="flex min-h-11 cursor-pointer items-center justify-between font-semibold text-stone-900 md:min-h-0 md:cursor-default md:pb-1">
                     <span>{g.name}</span>
                     <svg class="h-4 w-4 text-stone-700 md:hidden" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -131,8 +131,8 @@ const social = DEFAULT_SOCIAL_PROFILES;
           </nav>
         )}
 
-        <div class="mt-6 flex flex-col gap-2 border-t border-sky-pastel-300 pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} RayValue</p>
+        <div class="mt-6 flex flex-col gap-2 border-t border-stone-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p>&copy; {new Date().getFullYear()} RayValue &middot; Country outlines: <a href="/credits" class="underline underline-offset-4 hover:text-stone-900">Natural Earth</a></p>
           <nav aria-label="Legal"><ul class="flex flex-wrap gap-x-4">{legal.map((l) => <li><a href={l.href} class={linkClass} {...track(l.href)}>{l.label}</a></li>)}</ul></nav>
         </div>
       </>

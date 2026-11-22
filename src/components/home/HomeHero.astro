@@ -1,0 +1,129 @@
+---
+/**
+ * Home hero: headline, country picker with a "Show my payback" button (JS sends it to that country's calculator or
+ * hub; without JS it jumps to the report section), trust points, and a stack of featured-country cards that rotate.
+ * Every figure comes from the cards (real counts); the "three ways" widget is a drawing, not data.
+ */
+import type { ImageMetadata } from 'astro';
+import CountryOutline from '../brand/CountryOutline.astro';
+import CountryArt from './CountryArt.astro';
+import Icon from '../icons/Icon';
+import { cardCounts, type CountryCard, type Destination } from '../../lib/home/global-home';
+
+interface Props {
+  countries: number;
+  destinations: Destination[];
+  featured: { card: CountryCard; dest: Destination | undefined; image?: ImageMetadata; imageAlt?: string }[];
+}
+const { countries, destinations, featured } = Astro.props;
+const trust = [
+  { icon: 'shield', text: 'Official sources first' },
+  { icon: 'calendar', text: 'Every figure dated' },
+  { icon: 'chart', text: 'Low, likely and high ranges' },
+] as const;
+---
+<section id="top" class="relative isolate overflow-hidden border-b border-sky-pastel-300 bg-gradient-to-b from-sky-pastel-200 from-0% via-sky-pastel-100 via-70% to-sky-pastel-50" aria-labelledby="home-title" data-hero>
+  <svg viewBox="0 0 400 400" class="pointer-events-none absolute -right-36 -top-40 -z-10 size-[32.5rem] opacity-55 motion-safe:animate-sun-slow" aria-hidden="true" focusable="false">
+    <circle cx="200" cy="200" r="70" fill="#fcd34d"></circle>
+    <g stroke="#fbbf24" stroke-width="10" stroke-linecap="round"><path d="M200 40v50M200 310v50M40 200h50M310 200h50M87 87l35 35M278 278l35 35M87 313l35-35M278 122l35-35"></path></g>
+  </svg>
+  <div class="shell grid items-center gap-x-[clamp(2rem,5vw,4rem)] gap-y-10 pb-[clamp(3rem,6vw,5.5rem)] pt-[clamp(2.5rem,6vw,5rem)] lg:grid-cols-2">
+    <div class="flex flex-col gap-5">
+      <p class="inline-flex w-fit items-center gap-2 rounded-full border border-sky-pastel-300 bg-white py-1.5 pl-2 pr-3.5 text-sm font-medium text-stone-900">
+        <span class="rounded-full bg-sun-400 px-2 py-0.5 text-xs font-bold">{countries}</span>countries &middot; official tariffs &middot; no sign-up
+      </p>
+      <h1 id="home-title" class="font-display-tight text-balance text-[clamp(2.5rem,5.8vw,4.25rem)] leading-[1.05] text-stone-900">
+        Does solar pay off <span class="relative whitespace-nowrap">where you live?<svg viewBox="0 0 300 14" preserveAspectRatio="none" class="absolute inset-x-0 -bottom-2.5 h-3.5 w-full" aria-hidden="true" focusable="false"><path d="M3 10 C 80 2, 200 2, 297 8" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"></path></svg></span>
+      </h1>
+      <p class="max-w-[42ch] text-[1.1875rem] leading-relaxed text-stone-800">Independent solar and battery payback math for homeowners worldwide, from each country&rsquo;s own tariffs, export rates and grants.</p>
+
+      <div class="flex flex-wrap gap-2 rounded-2xl border border-sky-pastel-300 bg-white p-2 shadow-search">
+        <label class="flex min-w-0 flex-[1_1_13.75rem] items-center gap-2.5 rounded-[10px] bg-sky-pastel-50 px-3">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1917" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z" fill="#fde68a"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
+          <span class="sr-only">Your country</span>
+          <select id="hero-country" data-country-select class="min-h-[3.25rem] min-w-0 flex-1 cursor-pointer bg-transparent text-[1.0625rem] font-semibold text-stone-900" aria-label="Your country">
+            {destinations.map((d) => <option value={d.key} data-href={d.href} data-action={d.action} selected={d.key === featured[0]?.dest?.key}>{d.label}</option>)}
+          </select>
+        </label>
+        <a href="#report" data-payback-link class="inline-flex min-h-[3.25rem] items-center gap-2.5 rounded-[10px] bg-sun-400 px-5 text-[1.0625rem] font-bold text-stone-900 no-underline hover:bg-sun-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_hero" data-track-target="/#report">Show my payback<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+      </div>
+
+      <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm text-stone-700">
+        {trust.map((t) => <li class="flex items-center gap-2"><Icon name={t.icon} size={20} />{t.text}</li>)}
+      </ul>
+    </div>
+
+    <div class="relative pb-24 pl-3 pr-3 pt-8 sm:pl-6">
+      <div class="absolute inset-y-9 -right-1 left-12 rotate-[4deg] rounded-3xl bg-sky-pastel-300" aria-hidden="true"></div>
+      <div class="relative" data-slides aria-roledescription="carousel" aria-label="Featured countries">
+        {featured.map((f, i) => (
+          <a href={f.card.href} data-slide hidden={i !== 0 || undefined} class="relative block -rotate-[1.5deg] rounded-[22px] bg-white p-3 text-stone-900 no-underline shadow-hero-card transition-transform duration-200 hover:rotate-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 [&[hidden]]:hidden" data-track="nav_click" data-track-placement="home_hero_card" data-track-target={f.card.href}>
+            <div class="relative aspect-[4/3] overflow-hidden rounded-[14px] bg-sky-pastel-100">
+              <CountryArt segment={f.card.segment} image={f.image} alt={f.imageAlt} eager={i === 0} sizes="(min-width: 1024px) 520px, 100vw" />
+              {f.image && <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-b from-stone-900/0 to-stone-900/70"></div>}
+              <div class:list={['pointer-events-none absolute inset-x-4 bottom-4 flex items-end justify-between gap-3', f.image ? 'text-white' : 'text-stone-900']}>
+                <div>
+                  <p class="font-display-tight text-[2.125rem] leading-[1.05]">{f.card.name}</p>
+                </div>
+                {f.card.localName && <span lang={f.card.localLang ?? undefined} class="text-sm opacity-90">{f.card.localName}</span>}
+              </div>
+            </div>
+            <div class="flex items-center gap-3.5 px-1.5 pb-1 pt-3.5">
+              <div class="flex size-16 flex-none items-center justify-center rounded-2xl bg-sun-100"><CountryOutline segment={f.card.segment} class="h-[46px] w-[46px] fill-sun-400 stroke-sun-ink" /></div>
+              <div class="min-w-0 flex-1">
+                <p class="text-[13px] text-stone-700">{cardCounts(f.card)}</p>
+                <p class="mt-0.5 text-base font-bold">{f.dest?.action ?? `See ${f.card.name} guides`} &rarr;</p>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+      <div class="absolute bottom-0 right-0 flex w-[13.125rem] flex-col gap-2 rounded-[14px] bg-white px-3.5 py-3 shadow-float motion-safe:animate-float" aria-hidden="true">
+        <p class="text-xs font-semibold text-stone-700">Your estimate, three ways</p>
+        <div class="grid h-[46px] grid-cols-3 items-end gap-1"><div class="h-[45%] rounded-[5px] bg-sky-pastel-200"></div><div class="h-full rounded-[5px] bg-sun-400"></div><div class="h-[70%] rounded-[5px] bg-sky-pastel-400"></div></div>
+        <div class="grid grid-cols-3 text-[11px] text-stone-700"><span>Low</span><span class="font-bold text-stone-900">Likely</span><span>High</span></div>
+      </div>
+      <ul class="absolute right-0 top-0 flex gap-0.5" aria-label="Choose a featured country">
+        {featured.map((f, i) => (
+          <li>
+            <button type="button" data-dot aria-label={f.card.name} aria-current={i === 0 ? 'true' : undefined} class="group flex h-6 min-w-6 cursor-pointer items-center justify-center px-1 focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-stone-900">
+              <span class="h-2.5 w-2.5 rounded-full bg-sky-pastel-600 transition-all duration-200 group-aria-[current=true]:w-7 group-aria-[current=true]:bg-sun-500"></span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Hero: the country picker sends "Show my payback" to the chosen country's calculator (or hub), and the featured
+  // cards rotate every 4.5 s until a dot is used. No rotation under prefers-reduced-motion.
+  const root = document.querySelector<HTMLElement>('[data-hero]');
+  if (root) {
+    const select = root.querySelector<HTMLSelectElement>('[data-country-select]');
+    const link = root.querySelector<HTMLAnchorElement>('[data-payback-link]');
+    const sync = () => {
+      const o = select?.selectedOptions[0];
+      if (link && o?.dataset.href) link.href = o.dataset.href;
+    };
+    select?.addEventListener('change', sync);
+    sync();
+
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
+    const dots = [...root.querySelectorAll<HTMLElement>('[data-dot]')];
+    let cur = 0;
+    let timer: number | undefined;
+    const show = (i: number) => {
+      cur = i;
+      slides.forEach((s, j) => { s.hidden = j !== i; });
+      dots.forEach((d, j) => { if (j === i) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current'); });
+    };
+    const stop = () => { if (timer) { clearInterval(timer); timer = undefined; } };
+    dots.forEach((d, i) => d.addEventListener('click', () => { stop(); show(i); }));
+    if (slides.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      timer = window.setInterval(() => show((cur + 1) % slides.length), 4500);
+      root.addEventListener('focusin', stop);
+    }
+  }
+</script>

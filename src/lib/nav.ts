@@ -41,10 +41,11 @@ export function isGlobalPath(path: string): boolean {
 }
 
 /** Top-level links of the global header, in order. Countries is a menu in the header, so it is listed by label only. */
-export const GLOBAL_NAV: readonly (NavLink & { key: 'countries' | 'calculators' | 'guides' | 'methodology' })[] = [
+export const GLOBAL_NAV: readonly (NavLink & { key: 'countries' | 'calculators' | 'guides' | 'blog' | 'methodology' })[] = [
   { key: 'countries', href: '/#countries', label: 'Countries' },
   { key: 'calculators', href: '/#calculators', label: 'Calculators' },
   { key: 'guides', href: '/guides', label: 'Guides' },
+  { key: 'blog', href: '/blog', label: 'Blog' },
   { key: 'methodology', href: '/methodology', label: 'Methodology' },
 ];
 

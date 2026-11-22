@@ -31,6 +31,8 @@ export interface HomeArticle {
   description: string;
   published?: Date | null;
   updated?: Date | null;
+  /** Last day of a dated deadline the article is about (frontmatter `deadline`). */
+  deadline?: Date | null;
   draft?: boolean;
   noindex?: boolean;
 }
@@ -138,11 +140,24 @@ export const DEADLINE_GUIDES: readonly { collection: 'guides' | 'blog'; country:
   { collection: 'blog', country: 'gb', slug: 'eco4-ending-december-2026' },
 ];
 
-export interface ArticleLink { href: string; title: string; description: string; lang: string; country: string; countryName: string }
+export type ArticleKind = 'deadline' | 'battery' | 'guide';
+export interface ArticleLink {
+  href: string; title: string; description: string; lang: string; country: string; countryName: string;
+  collection: 'guides' | 'blog'; id: string; deadline: Date | null; kind: ArticleKind;
+}
+
+const BATTERY_RE = /batter|batería|bateria|akku|speicher|accu\b/i;
+const isDeadlineGuide = (a: HomeArticle): boolean => DEADLINE_GUIDES.some((d) => d.collection === a.collection && d.country === a.country.toLowerCase() && articleSlug(a.id, d.country) === d.slug);
+
+/** Tag for a card: dated-deadline guides, battery guides (by title or slug), everything else a plain guide. */
+export function articleKind(a: HomeArticle): ArticleKind {
+  if (a.deadline || isDeadlineGuide(a)) return 'deadline';
+  return BATTERY_RE.test(`${a.id} ${a.title}`) ? 'battery' : 'guide';
+}
 
 const toLink = (a: HomeArticle): ArticleLink => {
   const seg = segOf(a);
-  return { href: articlePath(a.collection, a.id, a.route, a.country), title: a.title, description: a.description, lang: a.lang, country: seg, countryName: countryName(seg, 'en') };
+  return { href: articlePath(a.collection, a.id, a.route, a.country), title: a.title, description: a.description, lang: a.lang, country: seg, countryName: countryName(seg, 'en'), collection: a.collection, id: a.id, deadline: a.deadline ?? null, kind: articleKind(a) };
 };
 
 /** The deadline guides that are live (published, indexable), in editorial order. Missing or noindex ones are skipped. */
@@ -172,13 +187,13 @@ export function latestGuideLinks(articles: readonly HomeArticle[], limit = 6, pe
   return out;
 }
 
-export interface HomeCalculator { href: string; country: string; label: string; fact: string }
+export interface HomeCalculator { href: string; country: string; segment: string; label: string; fact: string }
 
 /** Calculators that are live: the two US state calculators and every non-US country calculator that exists. */
 export function liveCalculators(): HomeCalculator[] {
   const out: HomeCalculator[] = [
-    { href: calcPath('FL'), country: 'United States', label: 'Florida', fact: 'Net metering and tiered utility rates' },
-    { href: calcPath('CA'), country: 'United States', label: 'California', fact: 'NEM 3.0 export rates and batteries' },
+    { href: calcPath('FL'), country: 'United States', segment: 'us', label: 'Florida', fact: 'Net metering and tiered utility rates' },
+    { href: calcPath('CA'), country: 'United States', segment: 'us', label: 'California', fact: 'NEM 3.0 export rates and batteries' },
   ];
   const intl: { code: string; country: string; fact: string }[] = [
     { code: 'uk', country: 'United Kingdom', fact: 'Price cap and Smart Export Guarantee' },
@@ -187,7 +202,7 @@ export function liveCalculators(): HomeCalculator[] {
   ];
   for (const c of intl) {
     const calc = countryCalculator(c.code);
-    if (calc) out.push({ href: calc.href, country: c.country, label: c.country, fact: c.fact });
+    if (calc) out.push({ href: calc.href, country: c.country, segment: c.code, label: c.country, fact: c.fact });
   }
   return out;
 }
@@ -210,5 +225,79 @@ export function cardChips(c: Pick<CountryCard, 'segment' | 'name' | 'guides'>, a
   const d = deadlineLinks(articles, c.segment)[0];
   if (d) out.push({ label: d.title, href: d.href, kind: 'deadline', lang: d.lang });
   if (c.guides > 0) out.push({ label: 'Guides', href: articleIndexPath('guides', c.segment === US_SEGMENT ? 'us' : c.segment), kind: 'guides', aria: `${c.name} guides` });
+  return out;
+}
+
+const DAY_MS = 86_400_000;
+const utcDay = (d: Date): number => Math.floor(d.getTime() / DAY_MS);
+
+/** Whole days from `now` to the deadline day (0 on the day itself); null once it has passed. */
+export function daysLeft(deadline: Date, now: Date): number | null {
+  const n = utcDay(deadline) - utcDay(now);
+  return n < 0 ? null : n;
+}
+
+/** Width (6..100) of the urgency bar: the share of the final 180 days already used up. A visual cue only, no claim. */
+export function urgencyPct(days: number): number {
+  return Math.round(Math.min(100, Math.max(6, 100 - days / 1.8)));
+}
+
+export interface DeadlineCard extends ArticleLink { days: number; pct: number }
+
+/** Deadline guides that have a stated, still-future date, soonest first. Guides with no date are left out of this view. */
+export function upcomingDeadlines(links: readonly ArticleLink[], now: Date): DeadlineCard[] {
+  const out: DeadlineCard[] = [];
+  for (const l of links) {
+    if (!l.deadline) continue;
+    const days = daysLeft(l.deadline, now);
+    if (days === null) continue;
+    out.push({ ...l, days, pct: urgencyPct(days) });
+  }
+  return out.sort((a, b) => a.days - b.days || a.country.localeCompare(b.country));
+}
+
+export interface Destination {
+  /** Select value: the country segment, or `us-fl` / `us-ca` for the two US calculators. */
+  key: string;
+  segment: string;
+  label: string;
+  href: string;
+  /** What the link does, for the button text. */
+  action: string;
+  kind: 'calc' | 'hub';
+}
+
+/**
+ * Where "show my payback" goes for each country: its calculator when one exists, otherwise its hub (guides and local
+ * pages). The US has two state calculators, so it appears twice. Sorted by label.
+ */
+export function homeDestinations(cards: readonly Pick<CountryCard, 'segment' | 'name' | 'href'>[]): Destination[] {
+  const out: Destination[] = [];
+  for (const c of cards) {
+    if (c.segment === US_SEGMENT) {
+      out.push({ key: 'us-fl', segment: 'us', label: 'United States: Florida', href: calcPath('FL'), action: 'Open the Florida calculator', kind: 'calc' });
+      out.push({ key: 'us-ca', segment: 'us', label: 'United States: California', href: calcPath('CA'), action: 'Open the California calculator', kind: 'calc' });
+      continue;
+    }
+    const calc = countryCalculator(c.segment);
+    out.push(calc
+      ? { key: c.segment, segment: c.segment, label: c.name, href: calc.href, action: `Open the ${c.name} calculator`, kind: 'calc' }
+      : { key: c.segment, segment: c.segment, label: c.name, href: c.href, action: `See ${c.name} guides`, kind: 'hub' });
+  }
+  return out.sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/** Newest live blog posts across countries, at most `perCountry` from any one country. */
+export function latestPostLinks(articles: readonly HomeArticle[], limit = 5, perCountry = 2): ArticleLink[] {
+  const sorted = articles.filter((a) => isLive(a) && a.collection === 'blog').sort((a, b) => stamp(b) - stamp(a) || a.id.localeCompare(b.id));
+  const used = new Map<string, number>();
+  const out: ArticleLink[] = [];
+  for (const a of sorted) {
+    const l = toLink(a);
+    if ((used.get(l.country) ?? 0) >= perCountry) continue;
+    used.set(l.country, (used.get(l.country) ?? 0) + 1);
+    out.push(l);
+    if (out.length >= limit) break;
+  }
   return out;
 }

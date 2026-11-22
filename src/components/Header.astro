@@ -1,115 +1,56 @@
 ---
-import { GLOBAL_NAV, countryMenu, navContext } from '../lib/nav';
-import { loadCountryCounts, loadMenuSegments } from '../lib/country-nav-load';
+import { GLOBAL_NAV, navContext } from '../lib/nav';
+import { loadCountryCounts } from '../lib/country-nav-load';
 import { uiText } from '../lib/i18n/ui';
 import SunMark from './SunMark.astro';
-import CountryOutline from './brand/CountryOutline.astro';
-import { countryCalculator } from '../lib/content/country-calc';
-import { countryName } from '../lib/content/country-nav';
-import { placeCountryBySegment } from '../lib/places/config';
-// One global header on every page: logo, Countries menu (<details>, no JS), Calculators, Guides, Methodology.
-// A second row gives the country context: that country's overview, calculator, guides and blog (non-US), or the US
-// overview, state calculators, guides, blog, stories and the US-only quote CTA. Global pages have no second row.
-// Mobile (<640px): the main nav sits on its own row with short labels; the Countries menu opens a full-width panel.
+// One global header on every page: sticky pastel glass bar with the logo, Countries / Calculators / Guides / Blog /
+// Methodology links and a "Check my payback" button. A second row gives the country context: that country's overview,
+// calculator, guides and blog (non-US), or the US overview, state calculators, guides, blog, stories and the US-only
+// quote CTA. Global pages have no second row. No JS: the links are plain anchors.
 const { logoOnly = false, lang = 'en' } = Astro.props as { logoOnly?: boolean; lang?: string };
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const counts = logoOnly ? new Map() : await loadCountryCounts();
-const segments = logoOnly ? [] : await loadMenuSegments();
 const ctx = navContext({ path, known: [...counts.keys()], counts, lang });
 const ui = uiText(lang);
-const menu = countryMenu(segments, ctx.segment);
-// Popular countries (editorial order) shown as cards; every other live country follows by region, with its local name.
-const POPULAR = ['us', 'uk', 'de', 'au', 'es', 'fr'];
-const all = menu.flatMap((g) => g.items.map((c) => ({ ...c, region: g.region })));
-const decorate = (c: (typeof all)[number]) => {
-  const base = placeCountryBySegment(c.segment)?.htmlLang.split('-')[0];
-  const local = base && base !== 'en' ? countryName(c.segment, base) : null;
-  return { ...c, calc: c.segment === 'us' || countryCalculator(c.segment) !== null, local: local && local !== c.name ? local : null, localLang: base };
-};
-const featuredItems = POPULAR.map((s) => all.find((c) => c.segment === s)).filter((c): c is (typeof all)[number] => !!c).map(decorate);
-const featuredSet = new Set(featuredItems.map((c) => c.segment));
-const restGroups = menu.map((g) => ({ region: g.region, items: g.items.filter((c) => !featuredSet.has(c.segment)).map((c) => decorate({ ...c, region: g.region })) })).filter((g) => g.items.length > 0);
-const label = { countries: ui.countries, calculators: ui.calculators, guides: ui.guides, methodology: ui.methodology } as const;
-const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
-const nav = GLOBAL_NAV.filter((l) => l.key !== 'countries');
-const linkBase = 'inline-flex min-h-11 items-center whitespace-nowrap rounded-md px-2 text-sm font-medium sm:px-2.5';
+const label = { countries: ui.countries, calculators: ui.calculators, guides: ui.guides, blog: ui.blog, methodology: ui.methodology } as const;
+const isCurrent = (href: string) => !href.includes('#') && (path === href || path.startsWith(`${href}/`));
+const linkBase = 'inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-2.5 text-[15px] font-medium text-stone-900 no-underline hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900';
+const wrap = 'mx-auto flex w-full max-w-[calc(var(--container-shell)+2*var(--spacing-gutter))] px-gutter';
 ---
-<header class="border-b border-sky-pastel-300 bg-sky-pastel-100 text-stone-900">
-  <div class="relative mx-auto flex w-full max-w-[calc(var(--container-shell)+2*var(--spacing-gutter))] flex-col gap-1 px-gutter pb-1 pt-3 sm:flex-row sm:items-center sm:justify-between sm:py-2">
+<header class="relative z-30 border-b border-sky-pastel-300 bg-sky-pastel-200/90 text-stone-900 backdrop-blur-sm sm:sticky sm:top-0">
+  <div class:list={[wrap, 'flex-wrap items-center gap-x-6 gap-y-0 py-2']}>
     <a href="/" class="flex min-h-11 w-fit items-center gap-2.5 text-stone-900 no-underline" aria-label="RayValue home" data-track="nav_click" data-track-placement="header" data-track-target="/">
-      <SunMark size={32} />
+      <SunMark size={34} />
       <span class="flex flex-col leading-tight">
-        <span class="font-display-tight text-xl">RayValue</span>
+        <span class="font-display-tight text-[21px]">RayValue</span>
         <span class="hidden text-xs text-stone-700 sm:block">{ui.tagline}</span>
       </span>
     </a>
     {!logoOnly && (
-      <nav aria-label="Main" class="-mx-1.5">
-        <ul class="flex flex-wrap items-center gap-x-0.5">
-          <li>
-            <details class="menu group" id="countries-menu">
-              <summary class:list={[linkBase, 'cursor-pointer select-none gap-1 text-stone-900 hover:bg-sky-pastel-200']} aria-controls="countries-panel" aria-haspopup="true">
-                {label.countries}
-                <svg class="chev h-3.5 w-3.5 transition-transform" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-              </summary>
-              <div id="countries-panel" class="absolute inset-x-0 top-full z-40 max-h-[75vh] overflow-y-auto overscroll-contain border-y border-sky-pastel-300 bg-white p-4 text-stone-900 shadow-xl sm:inset-x-auto sm:right-(--spacing-gutter) sm:mt-2 sm:w-[min(50rem,calc(100vw-3rem))] sm:rounded-2xl sm:border sm:p-5">
-                <p class="text-xs font-semibold uppercase tracking-wide text-stone-700">Popular</p>
-                <ul class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {featuredItems.map((c) => (
-                    <li>
-                      <a href={c.href} aria-current={c.current ? 'page' : undefined} class="flex min-h-14 items-center gap-2.5 rounded-xl border border-sky-pastel-300 bg-sky-pastel-50 px-2.5 py-2 no-underline hover:border-sky-pastel-600 hover:bg-sky-pastel-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="header_countries" data-track-target={c.href}>
-                        <CountryOutline segment={c.segment} soft class="h-9 w-9 shrink-0 rounded-md bg-white p-0.5" />
-                        <span class="min-w-0">
-                          <span class:list={['block leading-tight', c.current ? 'font-bold' : 'font-semibold']}>{c.name}</span>
-                          {c.calc && <span class="mt-0.5 inline-block rounded-full bg-sun-400 px-2 text-xs font-semibold text-stone-900">Calculator</span>}
-                        </span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-                {restGroups.map((g) => (
-                  <div role="group" aria-label={g.region} class="mt-4">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-stone-700">{g.region}</p>
-                    <ul class="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]">
-                      {g.items.map((c) => (
-                        <li>
-                          <a href={c.href} aria-current={c.current ? 'page' : undefined} class="flex min-h-10 items-center gap-2 rounded-lg px-1.5 no-underline hover:bg-sky-pastel-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="header_countries" data-track-target={c.href}>
-                            <CountryOutline segment={c.segment} soft class="h-6 w-6 shrink-0" />
-                            <span class="min-w-0 truncate"><span class:list={[c.current ? 'font-bold' : 'font-medium']}>{c.name}</span>{c.local && <span lang={c.localLang} class="ml-1.5 text-xs text-stone-700">{c.local}</span>}</span>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-                <p class="mt-4 flex flex-wrap gap-x-6 border-t border-sky-pastel-300 pt-2 text-sm font-medium">
-                  <a href="/#countries" class="inline-flex min-h-11 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="header_countries" data-track-target="/#countries">All countries &rarr;</a>
-                  <a href="/#calculators" class="inline-flex min-h-11 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="header_countries" data-track-target="/#calculators">Calculators &rarr;</a>
-                </p>
-              </div>
-            </details>
-          </li>
-          {nav.map((l) => (
-            <li>
-              <a
-                href={l.href}
-                data-track="nav_click"
-                data-track-placement="header"
-                data-track-target={l.href}
-                aria-current={!l.href.includes('#') && isCurrent(l.href) ? 'page' : undefined}
-                class:list={[linkBase, 'text-stone-800 underline-offset-4 hover:bg-sky-pastel-200 hover:text-stone-900']}
-              >
-                {label[l.key]}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <>
+        <nav aria-label="Main" class="order-last -mx-1.5 w-full sm:order-none sm:mx-0 sm:w-auto sm:flex-1">
+          <ul class="scrollbar-none flex flex-nowrap gap-x-0.5 overflow-x-auto sm:flex-wrap sm:overflow-visible">
+            {GLOBAL_NAV.map((l) => (
+              <li class="shrink-0">
+                <a
+                  href={l.href}
+                  data-track="nav_click"
+                  data-track-placement="header"
+                  data-track-target={l.href}
+                  aria-current={isCurrent(l.href) ? 'page' : undefined}
+                  class:list={[linkBase, isCurrent(l.href) && 'bg-white/70']}
+                >{label[l.key]}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <a href="/#report" class="ml-auto inline-flex min-h-11 items-center gap-2 rounded-lg bg-sun-400 px-4 font-semibold text-stone-900 no-underline hover:bg-sun-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 sm:ml-0" data-track="nav_click" data-track-placement="header_cta" data-track-target="/#report">Check my payback</a>
+      </>
     )}
   </div>
   {!logoOnly && ctx.kind !== 'global' && (
-    <div class="border-b border-sky-pastel-300 bg-sky-pastel-50">
-      <nav aria-label={ctx.name ?? undefined} class="mx-auto flex w-full max-w-[calc(var(--container-shell)+2*var(--spacing-gutter))] items-center gap-x-1 px-gutter">
+    <div class="border-t border-sky-pastel-300 bg-sky-pastel-50/90">
+      <nav aria-label={ctx.name ?? undefined} class:list={[wrap, 'items-center gap-x-1']}>
         <p class="shrink-0 pr-2 text-sm font-semibold text-stone-900">{ctx.name}</p>
         <ul class="scrollbar-none flex min-w-0 flex-1 flex-nowrap gap-x-0.5 overflow-x-auto p-1 text-sm">
           {ctx.links.map((l) => (
@@ -120,7 +61,7 @@ const linkBase = 'inline-flex min-h-11 items-center whitespace-nowrap rounded-md
                 data-track-placement="header_context"
                 data-track-target={l.href}
                 aria-current={path === l.href ? 'page' : undefined}
-                class:list={['inline-flex min-h-11 items-center whitespace-nowrap rounded-md px-2.5 underline-offset-4 hover:bg-stone-100 hover:text-stone-900', path === l.href ? 'font-semibold text-stone-900 underline decoration-sun-500 decoration-2' : 'text-stone-700']}
+                class:list={['inline-flex min-h-11 items-center whitespace-nowrap rounded-md px-2.5 underline-offset-4 hover:bg-white hover:text-stone-900', path === l.href ? 'font-semibold text-stone-900 underline decoration-sun-500 decoration-2' : 'text-stone-700']}
               >{l.label}</a>
             </li>
           ))}
@@ -134,16 +75,3 @@ const linkBase = 'inline-flex min-h-11 items-center whitespace-nowrap rounded-md
     </div>
   )}
 </header>
-<script>
-  // Close the Countries menu on Escape (returning focus to its button) and on a click outside it.
-  const menu = document.getElementById('countries-menu') as HTMLDetailsElement | null;
-  if (menu) {
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && menu.open) { menu.open = false; menu.querySelector('summary')?.focus(); }
-    });
-    document.addEventListener('click', (e) => {
-      if (menu.open && e.target instanceof Node && !menu.contains(e.target)) menu.open = false;
-    });
-    menu.addEventListener('toggle', () => menu.querySelector('summary')?.setAttribute('aria-expanded', String(menu.open)));
-  }
-</script>
