@@ -1,0 +1,95 @@
+---
+title: "When solar panels are not worth it in Ireland"
+seoTitle: "When solar panels aren't worth it in Ireland (2026 data)"
+description: "North-facing roofs, low daytime use, homes built since 2025, renting, and counting on export rates that have no minimum: the situations where Irish solar struggles, with PVGIS, CSO, SEAI and CRU data."
+country: ie
+lang: en-IE
+published: 2026-11-22
+updated: 2026-11-22
+topic: scale
+tags: [solar-payback, ireland, critical, clean-export-guarantee]
+draft: false
+noindex: true
+sources:
+  - title: "EU JRC PVGIS 5.3: Letterkenny, 1 kWp, optimal angles"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=54.9566&lon=-7.7204&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Waterford, 1 kWp, optimal angles"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=52.2583&lon=-7.119&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Dublin, 1 kWp, 35° tilt, south (aspect 0)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=53.3497&lon=-6.2603&peakpower=1&loss=14&angle=35&aspect=0&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Dublin, 1 kWp, 35° tilt, north (aspect 180)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=53.3497&lon=-6.2603&peakpower=1&loss=14&angle=35&aspect=180&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Dublin, 1 kWp, 35° tilt, east (aspect -90)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=53.3497&lon=-6.2603&peakpower=1&loss=14&angle=35&aspect=-90&outputformat=json"
+  - title: "SEAI: Battery Energy Storage System Grant, including FAQ (archived copy, 27 October 2026)"
+    url: "https://web.archive.org/web/20261027173349/https://www.seai.ie/grants/home-energy-grants/individual-grants/battery"
+  - title: "SEAI: Solar electricity grant (archived copy, 27 October 2026)"
+    url: "https://web.archive.org/web/20261027173348/https://www.seai.ie/grants/home-energy-grants/individual-grants/solar-electricity-grant"
+  - title: "CRU/21/131: Interim Clean Export Guarantee decision paper"
+    url: "https://www.cru.ie/wp-content/uploads/2021/12/CRU21131-Interim-Clean-Export-Guarantee-Decision-Paper.pdf"
+  - title: "Electric Ireland: Microgen"
+    url: "https://www.electricireland.ie/microgen"
+  - title: "CSO Census 2022: F2010 private households by tenure"
+    url: "https://ws.cso.ie/public/api.restful/PxStat.Data.Cube_API.ReadDataset/F2010/JSON-stat/2.0/en"
+  - title: "CSO Census 2022: F2067 private households by type of accommodation and solar panels"
+    url: "https://ws.cso.ie/public/api.restful/PxStat.Data.Cube_API.ReadDataset/F2067/JSON-stat/2.0/en"
+  - title: "Revenue: Tax and Duty Manual Part 07-01-44, microgeneration exemption"
+    url: "https://www.revenue.ie/en/tax-professionals/tdm/income-tax-capital-gains-tax-corporation-tax/part-07/07-01-44.pdf"
+---
+
+Solar is a good deal for many Irish homes, but not all. It struggles on north-facing roofs, in homes where nobody uses much power in the day, in homes built since 2025 that cannot get the SEAI grant, and for people who may move or who rent. It also struggles if the plan depends on today's export rate, which has no guaranteed minimum.
+
+## Key numbers
+
+- **849 vs 1,051 kWh per kWp a year**: PVGIS yield for Letterkenny and Waterford, a 19% gap (PVGIS 5.3, checked 22 Nov 2026).
+- **53%**: output of a north-facing panel in Dublin compared with south-facing, at a 35° pitch (PVGIS).
+- **€0.35 vs €0.18–€0.20**: SEAI's estimate of what a kWh is worth used at home vs exported (SEAI FAQ, archived 27 Oct 2026).
+- **0c**: the Clean Export Guarantee floor price; suppliers set rates competitively (CRU/21/131).
+- **65.9%** of private households were owner-occupied in Census 2022 (CSO).
+
+## Does a north-facing roof make solar not worth it?
+
+Usually, yes. PVGIS, the European Commission's solar model, gives these yields for 1 kWp at a 35° pitch in Dublin:
+
+| Direction | kWh per kWp a year | Share of south |
+|---|---|---|
+| South | 982 | 100% |
+| East | 773 | 79% |
+| West | 757 | 77% |
+| North | 516 | 53% |
+
+East and west roofs are still workable. A north-facing roof makes about half as much from the same panels at the same price, so each kWh costs nearly twice as much.
+
+## Does it matter where in Ireland I live?
+
+Yes, more than most people expect. PVGIS gives about 849 kWh per kWp a year in Letterkenny and 1,051 in Waterford city, with Dublin at 988. A system in Letterkenny makes about 19% less than the same system in Waterford, but costs about the same to install. North-west homes with an east or west roof combine two disadvantages.
+
+## What if I am out all day?
+
+This is the most common reason solar underperforms. SEAI's FAQ says each kWh you use from your panels saves "approximately €0.35", while exported power earns "about €0.18–€0.20". If nobody is home in the day and you cannot move washing, dishwashing or EV charging into daylight hours, much of the output is exported at about half the value.
+
+A battery can help, but it adds €3,500 to €5,500 installed, on SEAI's estimate. If you already have panels, SEAI warns that standard string inverters "are not compatible with battery storage so you may need a new (hybrid) inverter". See [the €600 battery grant](/ie/guides/seai-battery-grant-how-to-claim) before adding one.
+
+## Can export rates fall?
+
+Yes. Under the Clean Export Guarantee, the CRU decided to "retain the floor price of zero Euro cents/kWh" and let suppliers set export tariffs competitively. Electric Ireland's 19.5c, for example, is described as "variable and subject to change". Rates are high today, but a plan that only works at 19.5c for 20 years is fragile. Current rates are in our [export rate comparison](/ie/blog/best-export-rate-ireland).
+
+There is also a tax ceiling. Export profits above €400 a year per person named on the bill are taxable; see [the microgeneration tax exemption](/ie/guides/microgeneration-income-tax-free).
+
+## Was my home built in 2025 or later?
+
+Then you cannot get the SEAI grant yet. SEAI's solar and battery grants require the home to have been built and occupied before 2025. Without the €1,800 solar grant the upfront cost is higher; see [how much solar panels cost in Ireland](/ie/guides/solar-panel-cost-ireland).
+
+## Do I rent, or might I move soon?
+
+Census 2022 found 65.9% of private households were owner-occupied, so about a third are not. Tenants rarely control the roof. Owners who expect to move within a few years may not recover the cost before they sell. The SEAI grant is open to homeowners, including private landlords, so a landlord may install it, but the savings go to whoever pays the electricity bill.
+
+## Do I live in an apartment?
+
+Census 2022 found 86.9% of households live in houses. For the rest, the roof is usually shared. SEAI's battery grant lists owner management companies among eligible applicants, so a building can act through its OMC, but an individual flat owner may have no roof space of their own to use.
+
+## When does solar still make sense?
+
+If you own a house with a south, east or west roof, use a fair share of power in the daytime or evening, and qualify for the SEAI grant, the case is usually good. Our main guide, [are solar panels worth it in Ireland?](/ie/blog/are-solar-panels-worth-it-ireland), shows who it pays best for, and the [SEAI solar grant guide](/ie/guides/seai-solar-grant-2026) explains the steps.
+
+Data were checked on 22 November 2026. PVGIS figures are modelled averages with 14% system losses and no shading.

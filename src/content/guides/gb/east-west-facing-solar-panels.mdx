@@ -1,0 +1,104 @@
+---
+title: "East, west or north-facing roof: how much solar do you lose?"
+seoTitle: "East or west-facing solar panels UK: output data"
+description: "PVGIS data for London, Manchester, Edinburgh and Belfast: east and west-facing panels make about 77–81% of what south-facing ones do, south-east and south-west about 93–95%, north-facing only 52–56%."
+country: gb
+lang: en-GB
+updated: 2026-11-22
+topic: sun
+draft: false
+noindex: true
+sources:
+  - title: "EU JRC PVGIS 5.3: London, 1 kWp, 35° tilt, south (aspect 0)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&angle=35&aspect=0&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: London, 1 kWp, 35° tilt, east (aspect -90)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&angle=35&aspect=-90&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: London, 1 kWp, 35° tilt, west (aspect 90)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&angle=35&aspect=90&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: London, 1 kWp, 35° tilt, north (aspect 180)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&angle=35&aspect=180&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Manchester, 1 kWp, 35° tilt, east (aspect -90; other aspects via the same query)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=53.4794&lon=-2.2453&peakpower=1&loss=14&angle=35&aspect=-90&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Edinburgh, 1 kWp, 35° tilt, east (aspect -90; other aspects via the same query)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.9533&lon=-3.1892&peakpower=1&loss=14&angle=35&aspect=-90&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Belfast, 1 kWp, 35° tilt, east (aspect -90; other aspects via the same query)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=54.5973&lon=-5.9301&peakpower=1&loss=14&angle=35&aspect=-90&outputformat=json"
+  - title: "Ofgem: Changes to energy price cap between 1 October and 31 December 2026"
+    url: "https://www.ofgem.gov.uk/publications/changes-energy-price-cap-between-1-october-and-31-december-2026"
+todo:
+  - "All yields assume a 35° pitch, 14% system losses and no shading (PVGIS defaults). Real roofs vary; no source for typical UK roof pitch was used."
+faq:
+  - question: "Are solar panels worth it on an east-facing roof in the UK?"
+    answer: "Often, yes. PVGIS gives east-facing panels at a 35° pitch about 78–81% of the output of south-facing ones in London, Manchester, Edinburgh and Belfast. Morning generation can also match household use better than a midday peak."
+  - question: "Is west better than east for solar panels?"
+    answer: "They are very close. In the four cities we checked, west was under 1 to 3 percentage points below east on annual output. West-facing panels produce more in the late afternoon, which can suit households that are out in the morning."
+  - question: "Can you put solar panels on a north-facing roof?"
+    answer: "You can, but PVGIS gives a north-facing panel at 35° only 52–56% of the output of a south-facing one in the four UK cities checked. On a steep north roof the case is usually weak."
+  - question: "Should I split panels between east and west?"
+    answer: "On a roof with no south face, many homes use both sides. In London, 2 kW east plus 2 kW west gives about 3,210 kWh a year on PVGIS figures, against about 4,075 kWh for 4 kW facing south."
+---
+
+East and west-facing solar panels in the UK produce about 77–81% of what the same panels would make facing south, according to the EU's PVGIS model. South-east and south-west roofs lose only 5–7%. North-facing panels at a normal pitch make just over half. So an east or west roof is usually still a good roof for solar; a north one usually is not.
+
+## Key numbers
+
+- **1,019 kWh per kW a year**: south-facing panels at 35° in London (PVGIS 5.3, checked 22 Nov 2026).
+- **817 (east) and 787 (west)** kWh per kW in London, **80% and 77%** of south.
+- **93–95%** of south for south-east and south-west in all four cities checked.
+- **52–56%** of south for north-facing panels at 35°.
+- **26.32p per kWh**: average capped unit rate in Great Britain, Oct–Dec 2026, with no VAT (Ofgem).
+
+## How much output do you lose on an east or west-facing roof?
+
+We ran PVGIS, the European Commission's solar model, for a 1 kW system at a 35° pitch with standard losses, facing each direction. Figures are kWh per kW per year.
+
+| City | South | South-east | South-west | East | West | North |
+|---|---|---|---|---|---|---|
+| London | 1,019 | 968 | 947 | 817 | 787 | 541 |
+| Manchester | 886 | 842 | 830 | 717 | 702 | 494 |
+| Edinburgh | 903 | 848 | 843 | 704 | 700 | 472 |
+| Belfast | 919 | 866 | 862 | 728 | 722 | 498 |
+
+As a share of south-facing output:
+
+| City | SE | SW | East | West | North |
+|---|---|---|---|---|---|
+| London | 95% | 93% | 80% | 77% | 53% |
+| Manchester | 95% | 94% | 81% | 79% | 56% |
+| Edinburgh | 94% | 93% | 78% | 78% | 52% |
+| Belfast | 94% | 94% | 79% | 79% | 54% |
+
+The pattern is the same across the UK. Turning panels away from south costs little at first and a lot by the time you reach north.
+
+## Are solar panels worth it on an east-facing roof?
+
+Usually, if the rest of the case works. An east-facing system in Manchester makes about 717 kWh per kW a year, a little more than 700 for one in Edinburgh. Both are less than a south roof, but the cost of panels is the same, so each kWh costs roughly a quarter more to produce.
+
+Timing helps a little. East panels peak in the morning and west panels in the afternoon, when many households are using power. Every kWh you use yourself saves the full unit price, 26.32p on average under the Oct–Dec 2026 price cap, while exported power often earns far less. Check current export rates in our [SEG comparison](/uk/guides/best-seg-rates).
+
+## What about an east-west split?
+
+If your roof has no south face, many installers put panels on both sides. In London, PVGIS gives:
+
+- 4 kW facing south: about 4,075 kWh a year (4 × 1,019).
+- 2 kW east plus 2 kW west: about 3,210 kWh a year (2 × 817 + 2 × 787).
+
+That is about 21% less in total, but spread over a longer part of the day. If you have room for more panels on an east-west roof, adding capacity is a common way to make up the difference. Cost per kW falls as systems get bigger, as the official data in [how much solar panels cost in the UK](/uk/guides/how-much-do-solar-panels-cost-uk) shows.
+
+## Can you put solar panels on a north-facing roof?
+
+You can, but at a 35° pitch you get only 52–56% of south-facing output. In Edinburgh that is 472 kWh per kW a year. The same panels would cost the same as on a south roof, so each kWh costs nearly twice as much. Our [when solar panels don't pay in the UK](/uk/blog/when-solar-panels-dont-pay-uk) covers this in more detail. A shallow north roof or a flat roof with tilted frames can do better than these figures; ask the installer for a PVGIS or MCS estimate for your actual pitch.
+
+## Does orientation matter more in Scotland or the north?
+
+Not much on these figures. The east and west shares sit between 77% and 81% in all four cities, and the north shares between 52% and 56%, with no clear north-south trend. Location matters more for the absolute numbers: a west-facing roof in London (787 kWh per kW) beats an east-facing roof in Edinburgh (704).
+
+## How should I use this?
+
+1. Find which way your roof faces.
+2. Read the percentage for your direction from the table above.
+3. Ask your installer for an MCS performance estimate for your roof and compare. If it is far above PVGIS, ask why.
+
+Then look at the bigger picture in [are solar panels worth it in the UK?](/uk/guides/are-solar-panels-worth-it-uk). For winter output by month, see [do solar panels work in winter in the UK?](/uk/guides/solar-panels-winter-uk).
+
+PVGIS figures were retrieved on 22 November 2026 using PVGIS-SARAH3 data, 35° tilt and 14% system losses. They are modelled averages, not guarantees, and do not include shading from trees or nearby buildings.
