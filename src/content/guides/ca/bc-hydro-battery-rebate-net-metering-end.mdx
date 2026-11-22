@@ -1,0 +1,106 @@
+---
+title: "BC Hydro battery rebate and the end of net metering"
+seoTitle: "BC Hydro battery rebate and net metering's end (2026)"
+description: "BC Hydro closed net metering to new customers and moved new solar homes to a 10-cent self-generation rate. What the change means, the conflicting start dates, and how the battery rebate fits."
+country: ca
+lang: en-CA
+published: 2026-11-22
+updated: 2026-11-22
+topic: battery
+draft: false
+noindex: true
+sources:
+  - title: "BC Hydro: Self-generation (Rate Schedule 2289)"
+    url: "https://app.bchydro.com/accounts-billing/electrical-connections/self-generation.html"
+  - title: "BC Hydro: Solar and battery rebates"
+    url: "https://app.bchydro.com/accounts-billing/electrical-connections/customer-generation/solar-battery-rebates.html"
+  - title: "BC Hydro: Tiered residential rate"
+    url: "https://app.bchydro.com/accounts-billing/rates-energy-use/electricity-rates/residential-rates/tiered.html"
+  - title: "NREL PVWatts v8 API (Vancouver, 1 kW, fixed roof mount, 20 degree tilt, south, 14% losses; run 22 Nov 2026)"
+    url: "https://developer.nlr.gov/docs/solar/pvwatts/v8/"
+todo:
+  - "Start-date conflict: BC Hydro's page says RS 2289 applies from 1 July 2026; earlier material (pack note, BCUC G-64-26) cites 1 April 2026. The BCUC order page returned 403. Confirm the date in the BCUC order before publishing."
+  - "Confirm whether existing solar-rebate recipients were moved to RS 2289 on 1 July 2026 (reported in search results, not read on a BC Hydro page)."
+  - "BC Hydro tiered-rate page gives no effective date; confirm the 11.87/14.08 cent prices are current for Nov 2026."
+  - "Peak Saver programme terms (event frequency, payments) not opened."
+faq:
+  - question: "Does BC Hydro still offer net metering?"
+    answer: "Not to new customers. BC Hydro says it has closed the net metering service rate (Rate Schedule 1289) to new customers. New solar customers go on the self-generation rate, Rate Schedule 2289."
+  - question: "What does BC Hydro pay for excess solar power now?"
+    answer: "Under Rate Schedule 2289, a fixed 10 cents per kWh for excess electricity, credited each billing period against energy charges only, not the basic charge."
+  - question: "What happens to existing net metering customers?"
+    answer: "BC Hydro says they have 10 years from their initial net metering service start date to stay on Rate Schedule 1289, then move to Rate Schedule 2289."
+  - question: "How much is the BC Hydro battery rebate?"
+    answer: "$500 per kWh, up to 50% of installed cost. The cap is $1,500, or $5,000 if the battery is enrolled in Peak Saver. Battery-only systems qualify only for residential customers who enroll in Peak Saver."
+  - question: "When did the new self-generation rate start?"
+    answer: "BC Hydro's page says Rate Schedule 2289 applies effective July 1, 2026, following a BCUC decision. Some earlier material cites April 1, 2026. Check your own interconnection agreement for the date that applies to you."
+---
+
+BC Hydro no longer offers net metering to new customers. New solar homes go on a self-generation rate that pays a flat 10 cents per kWh for exports, credited each billing period. Since that is below what you pay for grid power, a home battery is now more useful, and BC Hydro pays up to $5,000 toward one if you enroll it in Peak Saver.
+
+## Key numbers
+
+- **Rate Schedule 1289 (net metering): closed** to new customers (BC Hydro, checked 22 Nov 2026).
+- **Rate Schedule 2289 (self-generation)**: applies "effective July 1, 2026" per BC Hydro. Some earlier material cites 1 April 2026 (see below).
+- **10¢ per kWh**: fixed price for excess generation under RS 2289, credited each billing period (BC Hydro).
+- **10 years** from the original start date: how long existing net metering customers can stay on RS 1289 (BC Hydro).
+- **11.87¢ / 14.08¢ per kWh**: BC Hydro residential Tier 1 and Tier 2 energy prices; basic charge 23.44¢ per day (BC Hydro, checked 22 Nov 2026).
+- **Battery rebate: $500 per kWh**, up to 50% of cost, cap **$1,500**, or **$5,000** with Peak Saver (BC Hydro).
+- **Solar rebate: $1,000 per kW DC**, up to 50% of cost, cap **$5,000** (BC Hydro).
+- **1,019 kWh per kW per year**: modelled output in Vancouver (NREL PVWatts v8).
+
+## Is BC Hydro net metering ending?
+
+For new customers, yes. BC Hydro's self-generation page says it "has closed the net metering service rate (Rate Schedule 1289) to new customers" and that a new self-generation service rate, Rate Schedule 2289, applies following a BCUC decision.
+
+Existing customers are not cut off right away. BC Hydro says customers on Rate Schedule 1289 "will have 10 years from the initial net metering service start date to remain on this rate", after which they move automatically to Rate Schedule 2289.
+
+## When did the change start: April or July 2026?
+
+Sources disagree. BC Hydro's own self-generation page, checked on 22 November 2026, says: "Effective July 1, 2026, a new self-generation service rate (Rate Schedule 2289) applies." Some earlier material, including references to the BCUC order G-64-26, gives 1 April 2026. We could not open the BCUC order to check.
+
+What to do: if your system was connected in the first half of 2026, ask BC Hydro which rate schedule is on your account. Your interconnection paperwork should name it.
+
+## How does the self-generation rate work?
+
+| Self-generation (RS 2289) | What BC Hydro says |
+|---|---|
+| Open to new customers | Yes (RS 1289 net metering is closed to them) |
+| Price for exports | Fixed 10¢ per kWh |
+| How often credited | Each billing period |
+| What credits offset | Energy charges only, not the basic charge |
+| Size limit | Up to 100 kW AC inverter capacity |
+
+Under RS 2289, BC Hydro uses net billing. You are compensated at "a fixed rate of 10 cents per kWh for the excess electricity you generate" for each billing period. Credits apply to energy charges only, not to other charges such as the basic charge.
+
+## What does that mean for the value of solar?
+
+Each kWh you use at home avoids buying it at 11.87¢ (Tier 1) or 14.08¢ (Tier 2). Each kWh you export earns 10¢. So power used at home is worth 1.87¢ to 4.08¢ more than power exported. The gap is modest, but it rewards using your own output.
+
+Output is lower on the coast than in much of Canada. PVWatts models about 1,019 kWh per kW per year in Vancouver, against 1,276 in Toronto. A 5 kW system in Vancouver would make about 5,090 kWh a year. At 10¢ to 14.08¢ per kWh, that is about $509 to $717 a year in value before any costs, depending on how much you use at home. This is simple arithmetic, not a payback estimate.
+
+## How much is the BC Hydro battery rebate?
+
+BC Hydro's solar and battery rebate page lists:
+
+| Measure | Rate | Cap |
+|---|---|---|
+| Solar panels | $1,000 per kW of DC capacity | 50% of installed cost, max $5,000 |
+| Battery, not in Peak Saver | $500 per kWh | 50% of cost, max $1,500 |
+| Battery enrolled in Peak Saver | $500 per kWh | 50% of cost, max $5,000 |
+
+Batteries must normally be installed with solar. BC Hydro says "battery-only systems are not eligible except for residential customers who enroll their battery in Peak Saver." To get the higher cap you need to enroll the battery in Peak Saver "within 14 days of interconnection approval". Rebates are first come, first served while funding lasts.
+
+From 1 June 2026, BC Hydro says solar and battery installations must be done by a Home Performance Contractor Network (HPCN) member to qualify for rebates.
+
+## Should I add a battery in BC now?
+
+A battery helps in two ways under RS 2289. It shifts midday surplus to the evening, turning a 10¢ export into a kWh you would otherwise buy at 11.87¢ to 14.08¢. And with Peak Saver enrollment, it qualifies for up to $5,000 back.
+
+The battery-only route is new. A homeowner without solar can get the Peak Saver battery rebate, which is mainly useful for backup and for taking part in BC Hydro's peak programs. The savings from shifting grid power are small because BC Hydro's residential rate is tiered, not time-of-use.
+
+## What should existing net metering customers do?
+
+Nothing urgent. You have 10 years from your original start date. If you plan to expand your system, ask BC Hydro whether the change would move you to RS 2289 sooner.
+
+For other provinces, see [is solar worth it in Canada in 2026](/ca/blog/is-solar-worth-it-canada-2026) and [when solar doesn't pay in Canada](/ca/blog/when-solar-doesnt-pay-canada).
