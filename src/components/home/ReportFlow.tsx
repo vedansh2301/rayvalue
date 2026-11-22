@@ -136,7 +136,7 @@ export default function ReportFlow({ countries, quick, outlines, initial = 'us' 
                   );
                 })}
               </div>
-              <select aria-label="Another country" value={country} onChange={(e) => setCountry(e.currentTarget.value)} class="min-h-11 rounded-[10px] border border-stone-300 bg-stone-50 px-3 text-[15px] text-stone-900">
+              <select aria-label="Another country" value={country} onChange={(e) => setCountry(e.currentTarget.value)} class="outline-none focus-visible:outline-none focus:border-sun-500 focus:ring-2 focus:ring-sun-400 min-h-11 rounded-[10px] border border-stone-300 bg-stone-50 px-3 text-[15px] text-stone-900">
                 {countries.map((c) => <option value={c.code} selected={c.code === country}>{c.name}</option>)}
               </select>
             </div>
