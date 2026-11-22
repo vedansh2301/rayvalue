@@ -1,0 +1,105 @@
+---
+title: "How many solar panels do I need? Size it from your monthly kWh"
+seoTitle: "How many solar panels do I need?"
+description: "Work out solar system size from your monthly kWh and local sunshine, using EIA usage and PVWatts output for Florida and California cities, with a quick table."
+published: 2026-11-22
+updated: 2026-11-22
+state: both
+topic: sun
+draft: false
+noindex: true
+sources:
+  - title: "EIA: 2024 Average Monthly Bill, Residential (Table 5A)"
+    url: "https://www.eia.gov/electricity/sales_revenue_price/pdf/table_5A.pdf"
+  - title: "EIA: How much electricity does an American home use? (FAQ)"
+    url: "https://www.eia.gov/tools/faqs/faq.php?id=97&t=3"
+  - title: "NLR (formerly NREL): PVWatts v8 API documentation (1 kW DC, 20° tilt, south-facing, 14% losses; fetched 2026-10-22 and stored in RayValue's database)"
+    url: "https://developer.nlr.gov/docs/solar/pvwatts/v8/"
+  - title: "Florida Administrative Code Rule 25-6.065 (net metering; tiers)"
+    url: "https://www.flrules.org/gateway/ruleNo.asp?id=25-6.065"
+  - title: "FPL: Net metering FAQ"
+    url: "https://www.fpl.com/clean-energy/net-metering/faq.html"
+  - title: "CPUC: Net Billing Tariff"
+    url: "https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/demand-side-management/customer-generation/nem-revisit/net-billing-tariff"
+  - title: "IRS: Residential Clean Energy Credit"
+    url: "https://www.irs.gov/credits-deductions/residential-clean-energy-credit"
+faq:
+  - question: "How many solar panels does the average Florida home need?"
+    answer: "EIA puts the average Florida home at 1,104 kWh a month (2024). With PVWatts estimates for Miami of about 1,450 to 1,560 kWh a year per kW of panels, covering that takes roughly 8.5 to 9.2 kW, or about 22 to 23 panels if each is 400 watts. Your own bill matters more than the average."
+  - question: "How many solar panels does the average California home need?"
+    answer: "EIA puts the average California home at 503 kWh a month (2024). At PVWatts estimates of about 1,560 to 1,640 kWh per kW a year for San Francisco, San Diego and Fresno, that is roughly 3.7 to 3.9 kW, or about 10 panels at 400 watts. Under California's net billing, covering 100% of use is not always the best target."
+  - question: "Should I make my system bigger to sell power back?"
+    answer: "Usually not. In Florida, unused net metering credits are paid out once a year at the utility's generation cost, not the retail rate. In California, exports under the Net Billing Tariff are credited at hourly avoided-cost values. Size to what you use."
+todo:
+  - "Panel wattage (400 W) is an illustrative example, not a sourced market figure. Replace with a sourced typical module wattage (e.g. LBNL Tracking the Sun) if available."
+  - "The CPUC Net Billing Tariff page returned no readable text to our fetch on 2026-11-22. The 'hourly avoided-cost values' wording matches RayValue's existing California export-rate guide; re-open the CPUC page to confirm."
+  - "Add Orlando, Jacksonville, Los Angeles and Sacramento once their PVWatts rows are in the database."
+---
+
+Divide the electricity you use in a year by how much 1 kW of panels makes where you live. That gives the system size in kW. Divide by the wattage of one panel to get the panel count. For an average Florida home (1,104 kWh a month in 2024), that works out to roughly 8.5 to 9 kW, or about 22 panels of 400 watts. An average California home (503 kWh a month) needs well under half that.
+
+## Key numbers
+
+- **Average monthly use (2024, EIA):** Florida **1,104 kWh**, California **503 kWh**, US **863 kWh**.
+- **Yearly output per kW of panels (PVWatts v8, south-facing, 20° tilt, 14% losses, fetched October 2026):** Miami **1,558 kWh**, Tampa **1,568 kWh**, San Francisco **1,561 kWh**, San Diego **1,599 kWh**, Fresno **1,639 kWh**. At 20% losses, Miami drops to **1,449 kWh**.
+- **Florida Tier 1 net metering limit:** **10 kW AC**, which is about **11.7 kW** of panels (DC × 0.85).
+- **Federal 25D credit:** **$0** for systems installed in 2026 or later.
+
+## How to work out how many solar panels you need
+
+1. **Find your yearly kWh.** Add up 12 months of usage from your bills. If you only have one bill, don't multiply a July bill by 12 in Florida; summer use is much higher.
+2. **Find your output per kW.** Use the figure for your city below, or run your address in our calculator.
+3. **Divide.** Yearly kWh ÷ output per kW = system size in kW (DC).
+4. **Convert to panels.** System size in watts ÷ panel wattage = panel count. Round up.
+
+Example: 12,000 kWh a year ÷ 1,558 kWh per kW (Miami) = 7.7 kW. With 400-watt panels, 7,700 ÷ 400 = 19.25, so 20 panels.
+
+The 400-watt figure is only an example. Use the wattage on your quote.
+
+## Solar panels needed by monthly electricity use
+
+This table uses Miami's PVWatts range (1,449 to 1,558 kWh per kW a year, for 20% and 14% losses). Tampa and the California cities produce slightly more per kW, so they need slightly less.
+
+| Monthly use | Yearly use | System size | Panels at 400 W |
+|---|---|---|---|
+| 500 kWh | 6,000 kWh | 3.9 to 4.1 kW | 10 to 11 |
+| 750 kWh | 9,000 kWh | 5.8 to 6.2 kW | 15 to 16 |
+| 1,000 kWh | 12,000 kWh | 7.7 to 8.3 kW | 20 to 21 |
+| 1,250 kWh | 15,000 kWh | 9.6 to 10.4 kW | 25 to 26 |
+| 1,500 kWh | 18,000 kWh | 11.6 to 12.4 kW | 29 to 32 |
+
+These sizes would cover 100% of yearly use on paper. Shade, roof direction and steeper or flatter roofs change output, which is why the table is a range.
+
+## How many solar panels does a Florida home need?
+
+At the EIA average of 1,104 kWh a month (13,248 kWh a year), the math is:
+
+- 13,248 ÷ 1,558 = **8.5 kW**, or about **22 panels** at 400 W (Miami, 14% losses)
+- 13,248 ÷ 1,449 = **9.1 kW**, or about **23 panels** (Miami, 20% losses)
+
+Two Florida rules shape the right size:
+
+- **Don't oversize.** Under [Rule 25-6.065](https://www.flrules.org/gateway/ruleNo.asp?id=25-6.065), excess credits roll forward for up to 12 months, and the leftover is paid once a year at the utility's as-available energy rate. FPL credits it on the December bill at its "average annual cost of generation". kWh beyond your yearly use earn far less than the rest. See [Florida net metering explained](/guides/florida-net-metering-explained).
+- **Watch the 10 kW line.** Tier 1 is 10 kW AC or less. With the rule's 0.85 conversion, that's about 11.7 kW of panels. Above that, FPL says you need proof of liability insurance and an application fee.
+
+## How many solar panels does a California home need?
+
+At the EIA average of 503 kWh a month (6,036 kWh a year):
+
+| City | kWh per kW a year | System size | Panels at 400 W |
+|---|---|---|---|
+| San Francisco | 1,561 | 3.9 kW | 10 |
+| San Diego | 1,599 | 3.8 kW | 10 |
+| Fresno | 1,639 | 3.7 kW | 10 |
+
+California's [Net Billing Tariff](https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/demand-side-management/customer-generation/nem-revisit/net-billing-tariff) credits exports at hourly avoided-cost values rather than the retail rate. Solar you use yourself, or store in a battery for the evening, is worth more than solar you send out at noon. Many homes on net billing do better sizing below 100% of use or pairing panels with a battery. See [California NEM 3.0 and batteries](/guides/california-nem-3-batteries) and [export rates by utility](/guides/california-solar-export-rates-by-utility).
+
+## Plan for an EV or a new heat pump
+
+If you expect to add an electric car, a pool pump or a heat pump, add that load before sizing. Our post on [sizing solar for an electric vehicle](/blog/solar-and-ev-charging) uses EPA labels to estimate how many kWh an EV adds per year.
+
+## Check a quote's size
+
+A good quote shows your yearly usage, the expected first-year production, and the share of your use it covers. Florida law requires the seller to state the estimated first-year production and yearly decline in its disclosure (see [Florida solar scams and red flags](/guides/florida-solar-scams)). If a quote covers far more than 100% of your use, ask why.
+
+Then check whether the size pays back without the federal credit: run the [Florida](/us/solar-payback/florida) or [California](/us/solar-payback/california) calculator with your own bill.
