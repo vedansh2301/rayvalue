@@ -8,7 +8,4 @@ export const UNREVIEWED_PAGES: ReadonlySet<string> = new Set([
   '/affiliate-disclosure',
   '/privacy',
   '/credits',
-  // German and Australian calculators: hidden until the owner reviews the DE / AU data and flips the market live.
-  '/de/photovoltaik-rechner',
-  '/au/solar-battery-calculator',
 ]);

@@ -118,6 +118,8 @@ export const STATIC_INDEX: Readonly<Record<string, { title: string; summary: str
   '/contact': { title: 'Contact RayValue', summary: 'Email RayValue about a solar or battery payback estimate, or use the privacy form to see or delete your data.', section: 'about' },
   '/guides': { title: PAGE_META.guides.title, summary: PAGE_META.guides.description, section: 'guides' },
   '/blog': { title: PAGE_META.blog.title, summary: PAGE_META.blog.description, section: 'blog' },
+  '/de/photovoltaik-rechner': { title: 'Photovoltaik-Rechner: Amortisation und Stromspeicher', summary: 'Kosten, Ersparnis und Amortisation einer Photovoltaikanlage mit oder ohne Speicher als niedrige, wahrscheinliche und hohe Spanne, aus Eurostat-Strompreis, EEG-Vergütung der Bundesnetzagentur und Angebotsauswertung der Verbraucherzentrale NRW.', section: 'calculators' },
+  '/au/solar-battery-calculator': { title: 'Australian solar and battery payback calculator', summary: 'Estimate solar and battery cost, savings and payback for an Australian home as low, likely and high ranges, using AER default market offer prices, state feed-in rates and the federal battery rebate that steps down on 1 January 2027.', section: 'calculators' },
   '/uk/solar-calculator': { title: 'UK solar and battery payback calculator', summary: 'Estimate solar panel and battery cost, savings and payback for a UK home as low, likely and high ranges, using Ofgem price-cap rates, Smart Export Guarantee tariffs and official MCS install costs.', section: 'calculators' },
 };
 
