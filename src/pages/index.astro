@@ -88,11 +88,11 @@ const method = [
             href={c.href}
             class:list={[
               'group relative flex h-full min-h-44 flex-col justify-end overflow-hidden rounded-2xl p-4 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900',
-              i === 0 ? 'min-h-56 bg-ink-900 text-white hover:bg-ink-800 sm:p-6' : 'border border-stone-200 bg-white text-stone-900 hover:border-sun-500 hover:bg-sun-50',
+              i === 0 ? 'min-h-56 bg-ink-900 text-white hover:bg-ink-800 sm:p-6' : 'border border-stone-200 bg-white pt-16 text-stone-900 hover:border-sun-500 hover:bg-sun-50 sm:pt-20',
             ]}
             data-track="nav_click" data-track-placement="home_bento" data-track-target={c.href}
           >
-            <CountryOutline segment={c.segment} class:list={['absolute right-3 top-3 w-auto transition-transform group-hover:scale-105', i === 0 ? 'h-32 text-sun-400 sm:h-48 lg:h-64' : 'h-14 text-sun-300 sm:h-16']} />
+            <CountryOutline segment={c.segment} class:list={['absolute right-3 top-3 w-auto transition-transform group-hover:scale-105', i === 0 ? 'h-32 text-sun-400 sm:h-48 lg:h-64' : 'h-11 max-w-[55%] text-sun-300 sm:h-16']} />
             {hasCalc(c.segment) && <span class:list={['mb-2 w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold', i === 0 ? 'bg-sun-400 text-stone-900' : 'bg-sun-100 text-sun-ink']}>Calculator</span>}
             <span class:list={['font-display-tight', i === 0 ? 'text-4xl sm:text-5xl' : 'text-2xl']}>{c.name}</span>
             {c.localName && <span lang={c.localLang ?? undefined} class:list={['text-sm', i === 0 ? 'text-ink-200' : 'text-stone-700']}>{c.localName}</span>}
