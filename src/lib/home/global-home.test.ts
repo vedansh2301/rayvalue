@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
-import { DEADLINE_GUIDES, REGIONS, REGION_BY_SEGMENT, buildCountryCards, cardCounts, deadlineLinks, groupByRegion, latestGuideLinks, liveCalculators, type HomeArticle } from './global-home';
+import { topCountries, siteTotals, DEADLINE_GUIDES, REGIONS, REGION_BY_SEGMENT, buildCountryCards, cardCounts, deadlineLinks, groupByRegion, latestGuideLinks, liveCalculators, type HomeArticle } from './global-home';
 
 const art = (o: Partial<HomeArticle> & { id: string; country: string }): HomeArticle => ({ collection: 'guides', lang: 'en', title: o.id, description: 'd', updated: new Date('2026-01-01'), noindex: false, ...o });
 const many = (cc: string, n: number, lang = 'en-GB'): HomeArticle[] => Array.from({ length: n }, (_, i) => art({ id: `${cc}/a${i}`, country: cc, lang }));
@@ -41,7 +41,22 @@ describe('groupByRegion and cardCounts', () => {
   });
   it('formats counts and omits zeros', () => {
     expect(cardCounts({ guides: 1, blog: 0, places: 0 })).toBe('1 guide');
-    expect(cardCounts({ guides: 12, blog: 2, places: 31 })).toBe('12 guides · 2 posts · 31 places');
+    expect(cardCounts({ guides: 12, blog: 2, places: 31 })).toBe('12 guides, 2 posts, 31 places');
+  });
+});
+
+describe('topCountries and siteTotals', () => {
+  const cards = buildCountryCards([...many('de', 5, 'de-DE'), ...many('au', 3, 'en-AU'), ...many('gb', 4)], { au: { places: 10, hubs: 1 } });
+  it('ranks by published content and limits', () => {
+    expect(topCountries(cards, 2).map((c) => c.segment)).toEqual(['au', 'de']);
+  });
+  it('sums totals from the cards', () => {
+    expect(siteTotals(cards)).toEqual({ countries: 3, guides: 12, posts: 0, places: 10 });
+  });
+  it('filters deadline guides by country (uk is gb)', () => {
+    const list = [art({ id: 'gb/solar-panels-vat-deadline-2027', country: 'gb' }), art({ id: 'au/battery-rebate-changes-2027', country: 'au' })];
+    expect(deadlineLinks(list, 'uk').map((d) => d.country)).toEqual(['uk']);
+    expect(deadlineLinks(list).length).toBe(2);
   });
 });
 

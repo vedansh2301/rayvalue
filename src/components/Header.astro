@@ -1,85 +1,108 @@
 ---
-import { GLOBAL_HEADER_LINKS, headerLinks, isGlobalPath } from '../lib/nav';
-import { publishedGuides } from '../lib/guides';
-import { publishedPosts } from '../lib/blog';
-import { countryFromPath, countryNav } from '../lib/content/country-nav';
-import { loadCountryCounts } from '../lib/country-nav-load';
+import { GLOBAL_NAV, countryMenu, navContext } from '../lib/nav';
+import { loadCountryCounts, loadMenuSegments } from '../lib/country-nav-load';
 import { uiText } from '../lib/i18n/ui';
-// Guides/Blog show only once each has >= NAV_MIN_PUBLISHED published items (src/lib/nav.ts).
-// Full-bleed header (owner decision): logo pinned to the left gutter, nav to the right gutter at any width.
-// Mobile (<640px): nav gets its own single row with short labels; the full name is in `title`.
-// Non-US pages (/uk, /de, ...) get a country nav: country home plus that country's Guides and Blog; never the US
-// calculators or the US-only "Get quotes" CTA.
+import SunMark from './SunMark.astro';
+// One global header on every page: logo, Countries menu (<details>, no JS), Calculators, Guides, Methodology.
+// A second row gives the country context: that country's overview, calculator, guides and blog (non-US), or the US
+// overview, state calculators, guides, blog, stories and the US-only quote CTA. Global pages have no second row.
+// Mobile (<640px): the main nav sits on its own row with short labels; the Countries menu opens a full-width panel.
 const { logoOnly = false, lang = 'en' } = Astro.props as { logoOnly?: boolean; lang?: string };
 const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const counts = logoOnly ? new Map() : await loadCountryCounts();
-const seg = countryFromPath(path, [...counts.keys()]);
-const nav = seg ? countryNav({ segment: seg, lang, counts: counts.get(seg)!, countries: [...counts.keys()] }) : null;
+const segments = logoOnly ? [] : await loadMenuSegments();
+const ctx = navContext({ path, known: [...counts.keys()], counts, lang });
 const ui = uiText(lang);
-// Country-independent pages (/, /about, /methodology, ...) get the global header; US pages keep the US one.
-const global = !logoOnly && !nav && isGlobalPath(path);
-const links = logoOnly ? [] : global
-  ? GLOBAL_HEADER_LINKS.map((l) => ({ ...l, exact: true }))
-  : nav
-  ? [{ ...nav.home, short: nav.home.label, exact: true }, ...nav.links.map((l) => ({ ...l, short: l.label, exact: false }))]
-  : headerLinks({ guides: (await publishedGuides()).length, blog: (await publishedPosts()).length }).map((l) => ({ ...l, exact: false }));
-const homeHref = nav ? nav.home.href : '/';
-const isCurrent = (href: string, exact = false) => path === href || (!exact && path.startsWith(`${href}/`));
+const menu = countryMenu(segments, ctx.segment);
+const label = { countries: ui.countries, calculators: ui.calculators, guides: ui.guides, methodology: ui.methodology } as const;
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
+const nav = GLOBAL_NAV.filter((l) => l.key !== 'countries');
+const linkBase = 'inline-flex min-h-11 items-center whitespace-nowrap rounded-md px-2 text-sm font-medium sm:px-2.5 focus-visible:outline-sun-300';
 ---
-<header class="border-b border-stone-200 bg-white">
-  <div class="flex w-full flex-col gap-1 px-gutter pb-1 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-3">
-    <a href={homeHref} class="flex min-h-11 w-fit items-center gap-2.5 text-stone-900 no-underline" data-track="nav_click" data-track-placement="header" data-track-target={homeHref}>
-      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-        <circle cx="16" cy="16" r="7" fill="#fbbf24"></circle>
-        <g stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round">
-          <path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M6.8 25.2l2.8-2.8M22.4 9.6l2.8-2.8"></path>
-        </g>
-      </svg>
+<header class="relative bg-ink-900 text-white">
+  <div class="mx-auto flex w-full max-w-[calc(var(--container-shell)+2*var(--spacing-gutter))] flex-col gap-1 px-gutter pb-1 pt-3 sm:flex-row sm:items-center sm:justify-between sm:py-2">
+    <a href="/" class="flex min-h-11 w-fit items-center gap-2.5 text-white no-underline focus-visible:outline-sun-300" aria-label="RayValue home" data-track="nav_click" data-track-placement="header" data-track-target="/">
+      <SunMark size={32} />
       <span class="flex flex-col leading-tight">
-        <span class="text-lg font-bold tracking-tight">RayValue</span>
-        <span class="text-xs text-stone-600">{ui.tagline}</span>
+        <span class="font-display-tight text-xl">RayValue</span>
+        <span class="hidden text-xs text-ink-200 sm:block">{ui.tagline}</span>
       </span>
     </a>
-    <!-- The ul's 4px padding (offset by the nav's negative margin) keeps focus outlines inside the mobile
-         scroll container, which would otherwise clip them. Desktop does not scroll, so nothing clips there. -->
-    {!logoOnly && <nav aria-label="Main" class="-mx-3 -my-1 min-w-0">
-      <ul class="scrollbar-none flex flex-nowrap gap-x-1 p-1 text-sm font-medium max-sm:overflow-x-auto sm:gap-x-3">
-        {links.map((l) => {
-          const current = isCurrent(l.href, l.exact);
-          return (
-            <li class="shrink-0">
+    {!logoOnly && (
+      <nav aria-label="Main" class="-mx-1.5">
+        <ul class="flex flex-wrap items-center gap-x-0.5">
+          <li>
+            <details class="menu group">
+              <summary class:list={[linkBase, 'cursor-pointer select-none gap-1 text-white hover:bg-ink-800']}>
+                {label.countries}
+                <svg class="chev h-3.5 w-3.5 transition-transform" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </summary>
+              <div class="absolute inset-x-0 top-full z-40 max-h-[75vh] overflow-y-auto border-b border-stone-200 bg-white text-stone-900 shadow-lg">
+                <div class="mx-auto grid w-full max-w-[calc(var(--container-shell)+2*var(--spacing-gutter))] gap-x-8 gap-y-5 px-gutter py-5 sm:grid-cols-2 lg:grid-cols-4">
+                  {menu.map((g) => (
+                    <div role="group" aria-label={g.region}>
+                      <p class="text-sm font-semibold text-stone-600">{g.region}</p>
+                      <ul class="mt-1">
+                        {g.items.map((c) => (
+                          <li>
+                            <a href={c.href} aria-current={c.current ? 'page' : undefined} class:list={['flex min-h-11 items-center rounded-md px-2 -mx-2 text-stone-900 no-underline hover:bg-sun-50 hover:text-sun-ink', c.current && 'font-semibold']} data-track="nav_click" data-track-placement="header_countries" data-track-target={c.href}>{c.name}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                <div class="border-t border-stone-200 bg-stone-50">
+                  <p class="mx-auto flex w-full max-w-[calc(var(--container-shell)+2*var(--spacing-gutter))] flex-wrap gap-x-6 px-gutter text-sm font-medium">
+                    <a href="/#countries" class="inline-flex min-h-11 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900" data-track="nav_click" data-track-placement="header_countries" data-track-target="/#countries">All countries</a>
+                    <a href="/guides" class="inline-flex min-h-11 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900" data-track="nav_click" data-track-placement="header_countries" data-track-target="/guides">Guides from every country</a>
+                  </p>
+                </div>
+              </div>
+            </details>
+          </li>
+          {nav.map((l) => (
+            <li>
               <a
                 href={l.href}
                 data-track="nav_click"
                 data-track-placement="header"
                 data-track-target={l.href}
-                title={l.short !== l.label ? l.label : undefined}
-                aria-current={current ? 'page' : undefined}
-                class:list={[
-                  'inline-flex min-h-11 items-center whitespace-nowrap px-2 underline-offset-4 hover:underline',
-                  current ? 'font-semibold text-stone-900' : 'text-stone-700 hover:text-stone-900',
-                ]}
+                aria-current={!l.href.includes('#') && isCurrent(l.href) ? 'page' : undefined}
+                class:list={[linkBase, 'text-ink-100 underline-offset-4 hover:bg-ink-800 hover:text-white']}
               >
-                {l.short !== l.label ? (
-                  <><span class="sm:hidden">{l.short}</span><span class="hidden sm:inline">{l.label}</span></>
-                ) : l.label}
+                {label[l.key]}
               </a>
             </li>
-          );
-        })}
-        {!nav && !global && <li class="shrink-0">
-          <a
-            href="/quotes"
-            data-track="nav_click"
-            data-track-placement="header"
-            data-track-target="/quotes"
-            aria-current={isCurrent('/quotes') ? 'page' : undefined}
-            class="group ml-1 inline-flex min-h-11 items-center whitespace-nowrap no-underline"
-          >
-            <span class="rounded-full bg-sun-400 px-3 py-1.5 font-semibold text-stone-900 group-hover:bg-sun-500">Get quotes</span>
-          </a>
-        </li>}
-      </ul>
-    </nav>}
+          ))}
+        </ul>
+      </nav>
+    )}
   </div>
+  {!logoOnly && ctx.kind !== 'global' && (
+    <div class="border-b border-stone-200 bg-white">
+      <nav aria-label={ctx.name ?? undefined} class="mx-auto flex w-full max-w-[calc(var(--container-shell)+2*var(--spacing-gutter))] items-center gap-x-1 px-gutter">
+        <p class="shrink-0 pr-2 text-sm font-semibold text-stone-900">{ctx.name}</p>
+        <ul class="scrollbar-none flex min-w-0 flex-1 flex-nowrap gap-x-0.5 overflow-x-auto p-1 text-sm">
+          {ctx.links.map((l) => (
+            <li class="shrink-0">
+              <a
+                href={l.href}
+                data-track="nav_click"
+                data-track-placement="header_context"
+                data-track-target={l.href}
+                aria-current={path === l.href ? 'page' : undefined}
+                class:list={['inline-flex min-h-11 items-center whitespace-nowrap rounded-md px-2.5 underline-offset-4 hover:bg-stone-100 hover:text-stone-900', path === l.href ? 'font-semibold text-stone-900 underline decoration-sun-500 decoration-2' : 'text-stone-700']}
+              >{l.label}</a>
+            </li>
+          ))}
+        </ul>
+        {ctx.cta && (
+          <a href={ctx.cta.href} data-track="nav_click" data-track-placement="header_context" data-track-target={ctx.cta.href} class="group ml-1 inline-flex min-h-11 shrink-0 items-center whitespace-nowrap no-underline">
+            <span class="rounded-full bg-sun-400 px-3 py-1.5 text-sm font-semibold text-stone-900 group-hover:bg-sun-500">{ctx.cta.label}</span>
+          </a>
+        )}
+      </nav>
+    </div>
+  )}
 </header>

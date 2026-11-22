@@ -1,0 +1,7 @@
+---
+// The RayValue logo mark: Ray's face. Decorative: the link around it carries the accessible name.
+import Ray from './brand/Ray.astro';
+interface Props { size?: number }
+const { size = 32 } = Astro.props;
+---
+<Ray pose="mark" size={size} />
