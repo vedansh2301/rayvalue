@@ -1,0 +1,241 @@
+---
+/**
+ * Blog index in the Claude Design layout: hero with search + country chips, a featured block (unfiltered), topic
+ * filters, the post grid, a "Got a quote already?" band. Used for /blog (every country) and /<cc>/blog (one country).
+ * The FULL list is server-rendered; the script below only filters/pages it (without JS every post is still listed and
+ * the country chips are plain links to each country's blog). Topic rules: src/lib/content/blog-index.ts.
+ */
+import { getCollection } from 'astro:content';
+import type { ImageMetadata } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../Breadcrumbs.astro';
+import ArticleCard from '../home/ArticleCard.astro';
+import CountryOutline from '../brand/CountryOutline.astro';
+import PlacePhoto from '../ui/PlacePhoto.astro';
+import Cover from './Cover.astro';
+import Icon, { type IconName } from '../icons/Icon';
+import { PAGE_META } from '../../lib/seo/page-meta';
+import { articleIndexPath, articlePath, countrySegment } from '../../lib/content/paths';
+import { countryName } from '../../lib/content/country-nav';
+import { countryCalculator } from '../../lib/content/country-calc';
+import { getArticleImage } from '../../lib/images/place-images';
+import { coverTopic, stateKey, type StateKey, type Topic } from '../../lib/content/cards';
+import { BLOG_TOPICS, BLOG_TOPIC_LABEL, blogTopic, countryChips, leadBadge, pickFeatured } from '../../lib/content/blog-index';
+import { calcPath } from '../../lib/paths';
+
+interface Props { country?: string }
+const { country } = Astro.props;
+const now = new Date();
+const entries = await getCollection('blog', (e) => !e.data.draft && !e.data.noindex);
+const all = entries.map((e) => {
+  const d = e.data;
+  const segment = countrySegment(d.country);
+  const topic = blogTopic({ id: e.id, title: d.title, tags: d.tags, deadline: d.deadline });
+  const img = getArticleImage({ id: e.id, data: { country: d.country, state: d.state, cover: d.cover, coverAlt: d.coverAlt } });
+  return {
+    id: e.id, segment, lang: d.lang, title: d.title, description: d.description, published: d.published, deadline: d.deadline ?? null,
+    href: articlePath('blog', e.id, undefined, d.country), name: segment === 'us' ? 'United States' : countryName(segment, 'en'),
+    topic, state: d.state as StateKey | undefined, cover: d.cover as ImageMetadata | undefined, tags: d.tags, photo: d.cover ? null : img?.photo ?? null,
+  };
+});
+const posts = (country ? all.filter((p) => p.segment === countrySegment(country)) : all)
+  .sort((a, b) => b.published.getTime() - a.published.getTime() || a.id.localeCompare(b.id));
+const chips = countryChips(all, (s) => (s === 'us' ? 'United States' : countryName(s, 'en')));
+const here = country ? countrySegment(country) : null;
+const hereName = here ? (here === 'us' ? 'United States' : countryName(here, 'en')) : null;
+const featured = pickFeatured(posts, now);
+const featuredIds = new Set(featured ? [featured.lead, ...featured.side].map((p) => p.id) : []);
+const badge = featured ? leadBadge(featured.lead, now) : null;
+const TOPIC_ICON: Record<string, IconName> = { worth: 'sun', nopay: 'chart', flags: 'shield', battery: 'battery', policy: 'calendar', costs: 'bill' };
+const topicList = BLOG_TOPICS.filter((t) => posts.some((p) => p.topic === t));
+const short = (n: string) => n.replace('United States', 'US').replace('United Kingdom', 'UK');
+// Card CTA: the country's calculator when one exists, else the home report flow (which routes non-US countries to their guides, never to a lead form).
+const cta = (p: (typeof posts)[number]) => {
+  const calc = countryCalculator(p.segment);
+  if (calc) return { href: calc.href, label: `Run the ${short(p.name)} calculator` };
+  if (p.segment === 'us' && p.state === 'FL') return { href: calcPath('FL'), label: 'Run the Florida calculator' };
+  if (p.segment === 'us' && p.state === 'CA') return { href: calcPath('CA'), label: 'Run the California calculator' };
+  return { href: '/#report', label: 'Get my payback' };
+};
+const coverProps = (p: (typeof posts)[number]) => ({ cover: p.cover, photo: p.photo, coverAlt: p.cover ? '' : undefined, topic: coverTopic({ tags: p.tags, title: p.title, state: p.state }) as Topic, state: stateKey(p.state) });
+const tagTone = (t: string) => (t === 'flags' || t === 'policy' ? 'sun' as const : 'white' as const);
+const quick = ['us', 'uk', 'de', 'au', 'es', 'fr'].map((s) => ({ seg: s, name: s === 'us' ? 'USA' : s === 'uk' ? 'UK' : countryName(s, 'en'), href: s === 'us' ? '/#calculators' : countryCalculator(s)?.href ?? '/#report' }));
+const meta = PAGE_META.blog;
+const path = articleIndexPath('blog', country ?? 'us');
+const empty = posts.length === 0;
+const nCountries = new Set(posts.map((p) => p.segment)).size;
+const h2 = 'font-display-tight text-[clamp(1.625rem,3vw,2.25rem)] leading-tight text-stone-900';
+const chipBase = 'group/chip flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-sky-pastel-300 bg-white py-0 pl-2 pr-3.5 text-sm font-semibold text-stone-900 no-underline hover:border-sky-pastel-600 aria-[current=true]:border-sun-500 aria-[current=true]:bg-sun-50 [&[aria-current=true]_svg]:fill-sun-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900';
+---
+<BaseLayout title={country ? `Solar blog: ${hereName}` : meta.title} description={country ? `Independent solar and home-battery posts for ${hereName}, each with its sources listed.` : meta.description} ogImagePath={country ? undefined : '/og/blog.png'} path={path} noindex={empty}>
+  <div data-blog data-mode={country ? 'links' : 'filter'} data-page-size="9">
+    <section class="relative isolate overflow-hidden border-b border-sky-pastel-300 bg-gradient-to-b from-sky-pastel-200 via-sky-pastel-100 to-sky-pastel-50" aria-labelledby="blog-title">
+      <svg viewBox="0 0 400 400" class="pointer-events-none absolute -right-28 -top-40 -z-10 size-[30rem] opacity-50 motion-safe:animate-sun-slower" aria-hidden="true" focusable="false">
+        <circle cx="200" cy="200" r="70" fill="#fcd34d"></circle>
+        <g stroke="#fbbf24" stroke-width="10" stroke-linecap="round"><path d="M200 40v50M200 310v50M40 200h50M310 200h50M87 87l35 35M278 278l35 35M87 313l35-35M278 122l35-35"></path></g>
+      </svg>
+      <div class="shell flex flex-col gap-5 pb-7 pt-[clamp(2.25rem,5vw,4rem)]">
+        <Breadcrumbs items={[{ label: 'Home', href: '/' }, ...(country ? [{ label: 'Blog', href: '/blog' }, { label: hereName! }] : [{ label: 'Blog' }])]} />
+        <h1 id="blog-title" class="font-display-tight max-w-[18ch] text-balance text-[clamp(2.375rem,5.4vw,4rem)] leading-[1.05] text-stone-900">Solar news, checked against the official numbers.</h1>
+        <p class="max-w-[56ch] text-lg leading-relaxed text-stone-800">Rule changes, red flags in quotes, and honest answers on when solar pays and when it doesn&rsquo;t. Written country by country, in the local language.</p>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2.5">
+          <label class="flex min-h-[3.25rem] max-w-[32.5rem] flex-[1_1_20rem] items-center gap-2.5 rounded-xl border border-sky-pastel-300 bg-white px-3.5 shadow-[0_10px_30px_-14px_rgba(95,143,189,0.5)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-stone-900">
+            <Icon name="search" size={20} />
+            <span class="sr-only">Search posts</span>
+            <input type="search" data-search placeholder="Search posts: battery, export rate, red flags…" autocomplete="off" class="min-w-0 flex-1 border-0 bg-transparent text-base text-stone-900 outline-none placeholder:text-stone-600" />
+          </label>
+          <span class="text-sm text-stone-700" data-count aria-live="polite">{posts.length} {posts.length === 1 ? 'post' : 'posts'} · {nCountries} {nCountries === 1 ? 'country' : 'countries'}</span>
+        </div>
+      </div>
+      {chips.length > 1 && (
+        <nav class="shell pb-6" aria-label="Posts by country">
+          <ul class="scrollbar-none flex gap-2 overflow-x-auto pb-2 pt-1">
+            <li class="shrink-0"><a href="/blog" data-country="all" aria-current={here ? undefined : 'true'} class={chipBase}>
+              <svg viewBox="0 0 24 24" class="size-[26px] fill-sky-pastel-200 stroke-sky-pastel-600" fill="none" stroke-width="1.4" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" fill="none"></path></svg>
+              All countries<span class="rounded-full bg-sky-pastel-50 px-[7px] py-px text-xs font-bold text-stone-700">{all.length}</span></a></li>
+            {chips.map((c) => (
+              <li class="shrink-0"><a href={c.segment === 'us' ? '/blog' : `/${c.segment}/blog`} data-country={c.segment} aria-current={here === c.segment ? 'true' : undefined} class={chipBase}>
+                <CountryOutline segment={c.segment} class="size-[26px] fill-sky-pastel-200 stroke-sky-pastel-600" />{c.name}<span class="rounded-full bg-sky-pastel-50 px-[7px] py-px text-xs font-bold text-stone-700">{c.n}</span></a></li>
+            ))}
+          </ul>
+        </nav>
+      )}
+    </section>
+
+    <div class="shell pt-9">
+      {empty ? (
+        <p class="max-w-2xl leading-7 text-stone-700">No posts are published here yet. Meanwhile, <a href="/#calculators" class="text-sun-ink underline underline-offset-2">run a calculator</a> or read the <a href="/methodology" class="text-sun-ink underline underline-offset-2">methodology</a>.</p>
+      ) : (
+        <>
+          {featured && (
+            <div data-featured class="mb-10 grid gap-5 md:grid-cols-2">
+              <a href={featured.lead.href} lang={featured.lead.lang} class="group relative flex min-h-[28.75rem] flex-col justify-end overflow-hidden rounded-[20px] bg-stone-900 text-white no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 md:row-span-2" data-track="nav_click" data-track-placement="blog_index_lead" data-track-target={featured.lead.href}>
+                <div class="absolute inset-0">{(() => { const c = coverProps(featured.lead); return c.photo ? <PlacePhoto photo={c.photo} sizes="(min-width: 768px) 50vw, 100vw" credit="text" eager /> : <Cover class="h-full w-full" cover={c.cover} coverAlt={c.coverAlt} topic={c.topic} state={c.state} eager />; })()}</div>
+                <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-stone-900/0 from-25% to-stone-900/90"></div>
+                <div class="relative flex flex-col gap-3 p-[1.625rem]">
+                  <div class="flex flex-wrap gap-2">
+                    <span class="rounded-full bg-sun-400 px-2.5 py-1 text-xs font-bold text-stone-900">{badge ?? BLOG_TOPIC_LABEL[featured.lead.topic]}</span>
+                    <span class="rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-stone-900">{featured.lead.name}</span>
+                  </div>
+                  <span class="font-display-tight text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.12]">{featured.lead.title}</span>
+                  <span class="line-clamp-3 max-w-[52ch] text-base leading-relaxed">{featured.lead.description}</span>
+                </div>
+              </a>
+              {featured.side.map((p) => {
+                const c = coverProps(p);
+                return (
+                  <a href={p.href} lang={p.lang} class="group flex flex-col overflow-hidden rounded-[20px] border border-sky-pastel-300 bg-white text-stone-900 no-underline hover:shadow-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="blog_index_side" data-track-target={p.href}>
+                    <div class="relative aspect-[21/9] bg-sky-pastel-100">
+                      <div class="absolute inset-0">{c.photo ? <PlacePhoto photo={c.photo} sizes="(min-width: 768px) 50vw, 100vw" credit="text" /> : <Cover class="h-full w-full" cover={c.cover} coverAlt={c.coverAlt} topic={c.topic} state={c.state} />}</div>
+                      <span class:list={['pointer-events-none absolute left-3 top-3 z-10 rounded-full px-2.5 py-1 text-xs font-bold text-stone-900', tagTone(p.topic) === 'sun' ? 'bg-sun-400' : 'bg-white']}>{BLOG_TOPIC_LABEL[p.topic]}</span>
+                    </div>
+                    <div class="flex flex-col gap-2 px-5 py-[1.125rem]">
+                      <span class="text-[13px] font-semibold text-sun-ink">{p.name}</span>
+                      <strong class="font-display-tight text-[1.375rem] leading-tight">{p.title}</strong>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
+
+          <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
+            <h2 class={h2} data-list-title>{featured ? 'Latest posts' : hereName ?? 'All posts'}</h2>
+            {topicList.length > 1 && (
+              <div class="flex flex-wrap gap-1.5" role="group" aria-label="Filter by topic">
+                <button type="button" data-topic="all" aria-pressed="true" class="topic-btn">All</button>
+                {topicList.map((t) => (
+                  <button type="button" data-topic={t} aria-pressed="false" class="topic-btn"><Icon name={TOPIC_ICON[t]} size={16} />{BLOG_TOPIC_LABEL[t]}</button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <ul class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,20.5rem),1fr))] gap-5" data-grid>
+            {posts.map((p) => {
+              const c = cta(p);
+              return (
+                <li data-post data-country={p.segment} data-topic={p.topic} data-featured={featuredIds.has(p.id) ? '' : undefined} data-name={p.name} data-search={`${p.title} ${p.description} ${p.name}`.toLowerCase()} hidden={featuredIds.has(p.id) || undefined} class="[&[hidden]]:hidden">
+                  <ArticleCard href={p.href} title={p.title} description={p.description} lang={p.lang} segment={p.segment} countryName={p.name} tag={BLOG_TOPIC_LABEL[p.topic]} tagTone={tagTone(p.topic)} {...coverProps(p)} cta={c} readLabel="Read post" placement="blog_index" />
+                </li>
+              );
+            })}
+          </ul>
+          <p data-empty hidden class="rounded-2xl border border-dashed border-sky-pastel-400 bg-sky-pastel-50 p-8 text-stone-800">No posts match. <button type="button" data-reset class="font-semibold text-sun-ink underline underline-offset-2">Clear filters</button></p>
+          <div class="mt-7 flex justify-center"><button type="button" data-more hidden class="min-h-12 rounded-lg border border-sky-pastel-400 bg-white px-6 font-semibold text-stone-900 hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900"></button></div>
+        </>
+      )}
+    </div>
+
+    <section class="shell pt-14" aria-labelledby="quote-heading">
+      <div class="relative grid items-center gap-7 overflow-hidden rounded-3xl border border-sun-200 bg-sun-100 p-[clamp(1.5rem,4vw,2.75rem)] lg:grid-cols-2">
+        <div class="flex flex-col gap-3">
+          <span class="w-fit rounded-full bg-white px-3 py-1 text-[13px] font-bold text-sun-ink">Got a quote already?</span>
+          <h2 id="quote-heading" class="font-display-tight text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.1] text-stone-900">Check it against official numbers before you sign.</h2>
+          <p class="max-w-[46ch] text-[17px] leading-relaxed text-stone-800">Run your country&rsquo;s calculator, then get a free payback report. US homes can also ask for up to 3 installer quotes to compare.</p>
+        </div>
+        <div class="flex flex-col gap-3 rounded-[18px] bg-white p-[18px] shadow-[0_20px_40px_-24px_rgba(146,64,14,0.45)]">
+          <ul class="grid grid-cols-3 gap-2">
+            {quick.map((q) => (
+              <li><a href={q.href} class="flex h-full flex-col items-start gap-1.5 rounded-xl border border-stone-300 bg-white p-2.5 text-sm font-semibold text-stone-900 no-underline hover:border-sun-500 hover:bg-sun-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="blog_index_quote" data-track-target={q.href}><CountryOutline segment={q.seg} soft class="size-7" />{q.name}</a></li>
+            ))}
+          </ul>
+          <a href="/#report" class="flex min-h-[3.125rem] items-center justify-center rounded-lg bg-sun-400 font-bold text-stone-900 no-underline hover:bg-sun-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="blog_index_quote" data-track-target="/#report">Get my free payback report &rarr;</a>
+        </div>
+      </div>
+    </section>
+    <div class="pb-16"></div>
+  </div>
+</BaseLayout>
+
+<script>
+  // Search, country and topic filters, and "Show more" paging over the server-rendered list. Without JS every post is listed.
+  const root = document.querySelector<HTMLElement>('[data-blog]');
+  if (root) {
+    const q = root.querySelector<HTMLInputElement>('[data-search]')!;
+    const posts = [...root.querySelectorAll<HTMLElement>('[data-post]')];
+    const featured = root.querySelector<HTMLElement>('[data-featured]');
+    const title = root.querySelector<HTMLElement>('[data-list-title]')!;
+    const count = root.querySelector<HTMLElement>('[data-count]')!;
+    const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+    const more = root.querySelector<HTMLButtonElement>('[data-more]')!;
+    const topics = [...root.querySelectorAll<HTMLButtonElement>('[data-topic]:is(button)')];
+    const chips = [...root.querySelectorAll<HTMLAnchorElement>('a[data-country]')];
+    const filterMode = root.dataset.mode === 'filter';
+    const size = Number(root.dataset.pageSize) || 9;
+    const baseTitle = title.textContent ?? '';
+    const baseCount = count.textContent ?? '';
+    let country = 'all', topic = 'all', shown = size;
+    const topicLabel = (t: string) => topics.find((b) => b.dataset.topic === t)?.textContent?.trim() ?? t;
+    const render = () => {
+      const needle = q.value.trim().toLowerCase();
+      const unfiltered = !needle && country === 'all' && topic === 'all';
+      const showFeatured = unfiltered && !!featured;
+      if (featured) featured.hidden = !showFeatured;
+      const match = posts.filter((p) => (!needle || p.dataset.search!.includes(needle)) && (country === 'all' || p.dataset.country === country) && (topic === 'all' || p.dataset.topic === topic) && !(showFeatured && p.hasAttribute('data-featured')));
+      posts.forEach((p) => { p.hidden = true; });
+      match.slice(0, shown).forEach((p) => { p.hidden = false; });
+      const left = match.length - shown;
+      more.hidden = left <= 0;
+      more.textContent = `Show more posts (${left} left)`;
+      empty.hidden = match.length > 0 || showFeatured;
+      if (unfiltered) { title.textContent = baseTitle; count.textContent = baseCount; }
+      else {
+        const parts: string[] = [];
+        if (country !== 'all') parts.push(posts.find((p) => p.dataset.country === country)?.dataset.name ?? country);
+        if (topic !== 'all') parts.push(topicLabel(topic));
+        title.textContent = parts.join(' · ') || 'Results';
+        const n = match.length;
+        count.textContent = `${n} ${n === 1 ? 'post matches' : 'posts match'}`;
+      }
+      topics.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.topic === topic)));
+      if (filterMode) chips.forEach((c) => { if (c.dataset.country === country) c.setAttribute('aria-current', 'true'); else c.removeAttribute('aria-current'); });
+    };
+    q.addEventListener('input', () => { shown = size; render(); });
+    topics.forEach((b) => b.addEventListener('click', () => { topic = b.dataset.topic!; shown = size; render(); }));
+    if (filterMode) chips.forEach((c) => c.addEventListener('click', (e) => { e.preventDefault(); country = country === c.dataset.country ? 'all' : c.dataset.country!; shown = size; render(); }));
+    more.addEventListener('click', () => { shown += size; render(); });
+    root.querySelector('[data-reset]')?.addEventListener('click', () => { q.value = ''; country = 'all'; topic = 'all'; shown = size; render(); });
+    render();
+  }
+</script>

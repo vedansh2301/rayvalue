@@ -109,3 +109,20 @@ details.menu[open] > summary .chev { transform: rotate(180deg); }
 .prose-guide table { @apply mt-6 block w-full overflow-x-auto text-sm border-collapse; }
 .prose-guide th { @apply text-left font-semibold text-stone-900 border-b border-stone-300 px-3 py-2 whitespace-nowrap; }
 .prose-guide td { @apply border-b border-stone-200 px-3 py-2 align-top tabular-nums; }
+
+/* Blog index topic filter buttons (BlogIndex.astro) */
+  .topic-btn { display: inline-flex; min-height: 2.5rem; align-items: center; gap: 0.375rem; border-radius: 9999px; border: 1px solid var(--color-sky-pastel-300); background: #fff; padding: 0 0.875rem; font-size: 0.875rem; font-weight: 600; color: var(--color-stone-900); cursor: pointer; }
+  .topic-btn:hover { border-color: var(--color-sky-pastel-600); }
+  .topic-btn[aria-pressed='true'] { border-color: var(--color-sun-500); background: var(--color-sun-400); }
+  .topic-btn:focus-visible { outline: 2px solid var(--color-stone-900); outline-offset: 2px; }
+
+/* Methodology page animations (decorative; off for prefers-reduced-motion) */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rv-dash { to { stroke-dashoffset: -24; } }
+  @keyframes rv-pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  @keyframes rv-spin { to { transform: rotate(360deg); } }
+  .rv-dash { animation: rv-dash 1.2s linear infinite; }
+  .rv-spin { transform-origin: 219px 115px; animation: rv-spin 6s linear infinite; }
+  .rv-pop { transform-origin: bottom; animation: rv-pop 3s ease-in-out infinite; }
+  .rv-pop-beam { transform-origin: 40px 14px; animation: rv-pop 4s ease-in-out infinite; }
+}
