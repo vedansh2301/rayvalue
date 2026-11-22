@@ -1,0 +1,90 @@
+---
+title: "Compensación de excedentes explicada, con un ejemplo mensual"
+seoTitle: "Compensación de excedentes: cómo funciona el tope mensual"
+description: "Cómo se valoran los excedentes de tus placas solares en la compensación simplificada del RD 244/2019, por qué nunca cobras más que la energía que compras y qué cambia entre PVPC y mercado libre."
+country: es
+lang: es-ES
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: bill
+sources:
+  - title: "BOE: Real Decreto 244/2019, de autoconsumo, texto consolidado (art. 4 y art. 14), última actualización 21/03/2026"
+    url: "https://www.boe.es/buscar/act.php?id=BOE-A-2019-5089"
+  - title: "Red Eléctrica, ESIOS: archivo 70, PVPC 2.0TD por horas (octubre de 2026)"
+    url: "https://api.esios.ree.es/archives/70/download_json?locale=es&date=2026-10-01"
+  - title: "EU JRC PVGIS 5.3: producción mensual por kWp, Madrid y Bilbao"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=40.4168&lon=-3.7038&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+faq:
+  - question: "¿Me pagan por los excedentes de mis placas solares?"
+    answer: "Con la compensación simplificada no te pagan dinero: los excedentes se descuentan del valor de la energía que compras a la red en esa misma factura. Lo que sobra no se cobra ni se acumula según el RD 244/2019."
+  - question: "¿Qué precio tienen los excedentes en el PVPC?"
+    answer: "En el PVPC cada hora de excedente se valora al precio medio horario del mercado (Pmh) menos el coste de los desvíos (CDSVh). En el mercado libre, al precio pactado con tu comercializadora."
+  - question: "¿Qué periodo usa el tope?"
+    answer: "El periodo de facturación, que no puede superar un mes."
+  - question: "¿Quién puede acogerse a la compensación?"
+    answer: "Instalaciones renovables con potencia total de producción de hasta 100 kW, entre otras condiciones del artículo 4 del RD 244/2019."
+todo:
+  - "Añadir precio medio mensual de excedentes PVPC (indicador ESIOS Pmh - CDSVh; requiere token)."
+  - "Comparativa de precios de compensación en mercado libre por comercializadora (pendiente de fuente con fecha)."
+---
+
+En España, si tus placas vierten a la red y te acoges a la compensación simplificada, los excedentes no se cobran: se restan del valor de la energía que compras a la red en el mismo periodo de facturación. La resta tiene un tope: el descuento nunca puede superar el valor de la energía consumida de la red en ese periodo, que dura como máximo un mes. Lo que sobra se pierde, según el artículo 14 del [Real Decreto 244/2019](https://www.boe.es/buscar/act.php?id=BOE-A-2019-5089).
+
+## Cifras clave
+
+- **≤ 1 mes**: periodo de facturación en el que se compensa (RD 244/2019, art. 14.3).
+- **100 kW**: potencia máxima de producción para acogerte a la compensación (art. 4).
+- **Pmh − CDSVh**: precio horario del excedente en el PVPC (art. 14.3.ii.b).
+- **96,1 €/MWh frente a 314,2 €/MWh**: término de energía PVPC medio entre las 11 y las 17 h frente a entre las 19 y las 23 h en octubre de 2026, sin impuestos (ESIOS, archivo 70, cálculo propio sobre 745 horas).
+
+## ¿Cómo funciona la compensación simplificada de excedentes?
+
+El RD 244/2019 la define como un "saldo en términos económicos" de la energía del periodo de facturación:
+
+| | Comercializadora libre | PVPC (comercializadora de referencia) |
+|---|---|---|
+| Energía que compras a la red | Precio horario pactado | Coste horario de la energía del PVPC (TCUh) |
+| Energía que viertes | Precio horario pactado | Pmh − CDSVh |
+| Tope | El valor del excedente no puede superar el valor de la energía consumida de la red en el periodo (máximo un mes) | Igual |
+
+Dos detalles importan. Primero, el tope se aplica al **valor de la energía consumida**, no a la factura entera: el término de potencia, el alquiler del contador y los impuestos siguen ahí. Segundo, si te acoges a la compensación no puedes vender esa energía por otra vía: "el productor no podrá participar de otro mecanismo de venta de energía".
+
+## ¿Qué precio tienen los excedentes?
+
+En el PVPC, el excedente de cada hora vale el precio medio horario del mercado diario e intradiario (Pmh) menos el coste de los desvíos (CDSVh). En el mercado libre vale lo que diga tu contrato. Por eso dos vecinos con la misma instalación pueden ver compensaciones distintas.
+
+Las horas en que vierten las placas suelen ser las más baratas. En octubre de 2026, el término de energía del PVPC (que incluye peajes y cargos, sin impuestos) promedió 199,21 €/MWh, pero entre las 11 y las 17 h bajó a 96,1 €/MWh, con alguna hora en negativo (mínimo de −13,14 €/MWh), mientras que entre las 19 y las 23 h subió a 314,2 €/MWh. Son datos de un solo mes, calculados por nosotros a partir del [archivo 70 de ESIOS](https://api.esios.ree.es/archives/70/download_json?locale=es&date=2026-10-01). El precio del excedente (Pmh − CDSVh) es otro indicador y aún no lo publicamos.
+
+## Ejemplo mensual: ¿qué pasa con el tope?
+
+Precios inventados y redondos, solo para ver la mecánica. Supón un excedente valorado a 0,05 €/kWh y energía de red a 0,15 €/kWh:
+
+| Mes | Compras a la red | Valor energía comprada | Excedentes | Valor excedentes | Descuento aplicado | Excedente perdido |
+|---|---|---|---|---|---|---|
+| Enero | 250 kWh | 37,50 € | 100 kWh | 5,00 € | 5,00 € | 0 € |
+| Abril | 150 kWh | 22,50 € | 300 kWh | 15,00 € | 15,00 € | 0 € |
+| Julio | 120 kWh | 18,00 € | 500 kWh | 25,00 € | 18,00 € | 7,00 € |
+
+En julio el excedente vale más que la energía comprada, así que el término de energía queda a cero y los 7 € restantes no se pagan ni pasan al mes siguiente. El término de potencia y los impuestos se pagan igual.
+
+## ¿Por qué hay meses en los que pierdes excedentes?
+
+Porque la producción solar se concentra en verano. Según [PVGIS](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=40.4168&lon=-3.7038&peakpower=1&loss=14&optimalangles=1&outputformat=json), 1 kWp con inclinación óptima produce en Madrid unos 167 kWh en julio y 102 kWh en noviembre. En Bilbao, 122 y 66 kWh. Si en verano consumes poco (vacaciones, segunda vivienda), el tope muerde justo cuando más produces.
+
+Formas de reducir la pérdida:
+
+- **Dimensionar con tu consumo**, no con el tejado. Más paneles de los que puedes aprovechar suelen acabar en excedente no compensado ([cuándo no compensan las placas](/es/blog/cuando-no-compensan-placas-solares)).
+- **Desplazar consumo a mediodía**: lavadora, lavavajillas, termo, carga del coche.
+- **Batería física**, que guarda el excedente para la tarde ([baterías solares: cuándo compensan](/es/guides/baterias-solares-cuando-compensan)).
+- **"Batería virtual"**: es un producto comercial de algunas comercializadoras que guarda en euros lo que la compensación no deja descontar. No está regulada en el RD 244/2019 y sus condiciones cambian según la empresa. Lee las cuotas antes de contratarla.
+
+## ¿Quién puede acogerse a la compensación?
+
+Según el artículo 4.2 del RD 244/2019, entre otras condiciones: la fuente tiene que ser renovable y la potencia total de producción no puede superar 100 kW. Además, las instalaciones de hasta 15 kW en suelo urbanizado con los servicios exigidos están exentas de los permisos de acceso y conexión. Para autoconsumo con excedentes hasta 100 kW en baja tensión, la distribuidora tiene como máximo dos meses para activarlo desde que recibe la documentación.
+
+## ¿PVPC o mercado libre con placas solares?
+
+Depende de tus horas de consumo y del precio de compensación de cada oferta. En el PVPC el excedente sigue el mercado hora a hora; en el libre puede ser un precio fijo. Compara siempre el precio de compra y el de compensación juntos: un precio de excedente alto con energía cara puede salir peor que lo contrario.
+
+Esta guía es un resumen independiente de la norma; RayValue no es un organismo oficial. Reglas de cálculo en la [metodología](/methodology).

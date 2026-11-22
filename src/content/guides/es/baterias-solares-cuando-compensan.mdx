@@ -1,0 +1,91 @@
+---
+title: "Baterías solares en España: cuándo compensan"
+seoTitle: "Batería para placas solares: cuándo compensa en España"
+description: "Una batería compensa cuando tus excedentes superan lo que la compensación mensual te deja descontar y consumes de tarde-noche, cuando la luz es más cara. Datos de PVPC, PVGIS y la deducción del IRPF de 2026, que también cubre baterías."
+country: es
+lang: es-ES
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: battery
+sources:
+  - title: "Red Eléctrica, ESIOS: archivo 70, PVPC 2.0TD por horas (octubre de 2026)"
+    url: "https://api.esios.ree.es/archives/70/download_json?locale=es&date=2026-10-01"
+  - title: "BOE: Real Decreto 244/2019, de autoconsumo (art. 14, compensación simplificada)"
+    url: "https://www.boe.es/buscar/act.php?id=BOE-A-2019-5089"
+  - title: "BOE: Ley 35/2006 del IRPF, DA 62.ª (incluye sistemas de almacenamiento), actualizada 18/11/2026"
+    url: "https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764"
+  - title: "EU JRC PVGIS 5.3: producción mensual por kWp (Madrid)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=40.4168&lon=-3.7038&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "Ayuntamiento de Madrid, transparencia: propuesta de ordenanza fiscal del IBI 2026 (dos años más con batería)"
+    url: "https://transparencia.madrid.es/UnidadWeb/UGNormativas/Normativa/HUELLANORMATIVA/Fiscales/2026/IBI/Ficheros/TextoInicialPropuestaNormativa20251009.pdf"
+faq:
+  - question: "¿Compensa poner batería en las placas solares?"
+    answer: "Compensa más cuanto más excedente pierdas por el tope mensual de la compensación y cuanto más consumas de tarde-noche. En octubre de 2026 el término de energía del PVPC costó de media 314,2 €/MWh entre las 19 y las 23 h y 96,1 €/MWh entre las 11 y las 17 h. Si casi no tienes excedentes o consumes de día, compensa poco."
+  - question: "¿La batería entra en la deducción del IRPF?"
+    answer: "Sí. La DA 62.ª de la Ley del IRPF dice que los sistemas de autoconsumo 'podrán incluir sistemas de almacenamiento'. Se aplica a lo pagado e instalado en 2026, con base máxima de 5.000 euros al año."
+  - question: "¿Es mejor batería física o batería virtual?"
+    answer: "La virtual es un producto comercial que guarda en euros el excedente no compensado; no está regulada en el RD 244/2019 y sus cuotas varían. La física evita comprar energía cara por la tarde. Compara cuotas y precios de cada oferta."
+todo:
+  - "Añadir rango de coste de baterías domésticas (€/kWh instalado) cuando haya una fuente española citable con fecha."
+  - "Añadir condiciones de batería virtual por comercializadora (cuotas y €/kWh, con fecha)."
+  - "Confirmar aprobación del +2 años de IBI con batería en Madrid (BOCM)."
+---
+
+Una batería solar compensa en España cuando cumples dos condiciones: tienes excedentes que la compensación mensual no te deja aprovechar y consumes bastante luz de tarde-noche, cuando la energía es más cara. En octubre de 2026 el término de energía del PVPC costó de media unas tres veces más entre las 19 y las 23 h que entre las 11 y las 17 h. Si apenas tienes excedentes o consumes sobre todo de día, la batería aporta poco.
+
+## Cifras clave
+
+- **96,1 €/MWh** (0,096 €/kWh): término de energía PVPC medio de 11 a 17 h, octubre de 2026, sin impuestos (ESIOS archivo 70, cálculo propio sobre 745 horas).
+- **314,2 €/MWh** (0,314 €/kWh): media de 19 a 23 h en el mismo mes.
+- **≤ 1 mes**: los excedentes solo se compensan dentro del periodo de facturación y nunca por encima del valor de la energía comprada (RD 244/2019, art. 14).
+- **10 % o 20 %** de deducción IRPF también para el almacenamiento, en instalaciones terminadas y pagadas en 2026 (DA 62.ª).
+- **167 frente a 102 kWh por kWp**: producción en julio frente a noviembre en Madrid (PVGIS 5.3, inclinación óptima, 14 % de pérdidas).
+
+## ¿Cuándo compensa una batería para placas solares?
+
+La batería gana dinero de dos formas: evita comprar energía de red por la tarde y rescata el excedente que la compensación no te pagaría. Cuantas más casillas marques, mejor:
+
+| Situación | Valor de la batería |
+|---|---|
+| Muchos meses con excedente por encima de la energía comprada | Alto: ese excedente hoy vale cero |
+| Consumo fuerte de 19 a 23 h (cocina, climatización, coche eléctrico) | Alto: desplazas energía de las horas caras |
+| Estás en PVPC, con excedentes valorados a precio de mercado de mediodía | Medio-alto: el excedente vale poco y la energía de la tarde mucho |
+| Consumo concentrado de día (teletrabajo, aire acondicionado de tarde temprana) | Bajo: ya usas tu producción directamente |
+| Instalación pequeña sin apenas excedentes | Bajo: la batería no tendría qué cargar |
+
+## ¿Por qué la diferencia de precio por horas importa tanto?
+
+Hemos promediado por horas los 31 días de octubre de 2026 del [archivo 70 de ESIOS](https://api.esios.ree.es/archives/70/download_json?locale=es&date=2026-10-01), que publica el término de energía del PVPC 2.0TD (incluye peajes y cargos, sin impuestos):
+
+| Franja | Media octubre 2026 |
+|---|---|
+| 11–17 h | 96,1 €/MWh |
+| 19–23 h | 314,2 €/MWh |
+| Todo el mes | 199,21 €/MWh |
+| Hora más barata | −13,14 €/MWh |
+| Hora más cara | 418,08 €/MWh |
+
+Cada kWh que guardas a mediodía y usas a las 21 h evita comprar a un precio alto, mientras que como excedente se habría valorado a un precio de mercado de mediodía (en el PVPC, Pmh − CDSVh). Es un solo mes: en invierno o verano el perfil cambia, y en el mercado libre depende de tu tarifa.
+
+## ¿Qué pasa con el excedente que no se compensa?
+
+El [artículo 14 del RD 244/2019](https://www.boe.es/buscar/act.php?id=BOE-A-2019-5089) dice que el valor del excedente "en ningún caso" puede superar el valor de la energía consumida de la red en el periodo de facturación, que no puede pasar de un mes. Según [PVGIS](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=40.4168&lon=-3.7038&peakpower=1&loss=14&optimalangles=1&outputformat=json), en Madrid 1 kWp produce unos 167 kWh en julio y 102 kWh en noviembre. En verano es fácil producir mucho más de lo que compras, y ese sobrante se pierde sin batería. El mecanismo lo explicamos con un ejemplo en [compensación de excedentes explicada](/es/guides/compensacion-excedentes-explicada).
+
+## ¿La batería tiene ventajas fiscales en 2026?
+
+- **IRPF estatal:** la [deducción de la DA 62.ª](/es/guides/deduccion-irpf-placas-solares-antes-31-diciembre) cubre sistemas de autoconsumo que "podrán incluir sistemas de almacenamiento". Si placas y batería se pagan y terminan en 2026, deduces el 10 % (o el 20 % en edificios residenciales) con base máxima de 5.000 € al año.
+- **IBI en Madrid:** el Ayuntamiento propuso para 2026 añadir dos años de bonificación del IBI (de cinco a siete) si la instalación incluye batería, aunque se ponga después. Era un texto inicial y no hemos confirmado su aprobación.
+
+## ¿Batería física o batería virtual?
+
+La "batería virtual" es un producto de algunas comercializadoras que convierte en saldo en euros el excedente que la compensación no deja descontar. No aparece en el RD 244/2019: sus reglas son las del contrato. Suele tener cuota mensual y el saldo puede quedar ligado a esa empresa. La batería física, en cambio, te ahorra energía cara de tarde. Si tus excedentes no compensados son pequeños, la virtual puede bastar; si tu consumo de noche es alto, la física aprovecha mejor la diferencia horaria. No tenemos aún precios de mercado de baterías con fuente fiable, así que no publicamos plazos de amortización.
+
+## Antes de pedir presupuesto de batería
+
+1. Mira en tus facturas de verano si el término de energía ya queda a cero (señal de excedente perdido).
+2. Revisa en la web de tu distribuidora tu consumo horario de las 19 a las 23 h.
+3. Pide que el presupuesto separe el precio de la batería del de las placas, con capacidad útil en kWh y garantía en ciclos o años.
+4. Si quieres la deducción de 2026, exige fecha de finalización y CIE antes del 31/12/2026, y paga por transferencia o tarjeta.
+
+Si tus números no salen, también es una respuesta válida: lee [cuándo no compensan las placas solares](/es/blog/cuando-no-compensan-placas-solares). Metodología en [/methodology](/methodology).
