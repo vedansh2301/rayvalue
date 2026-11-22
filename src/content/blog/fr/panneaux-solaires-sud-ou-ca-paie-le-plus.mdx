@@ -1,0 +1,111 @@
+---
+title: "Panneaux solaires dans le Sud : où ça paie le plus"
+seoTitle: "Panneaux solaires dans le Sud : rentabilité par région"
+description: "Selon PVGIS, 1 kWc bien orienté produit 1 627 kWh par an à Marseille, 1 513 à Montpellier, 1 393 à Valence et 1 275 à Bordeaux, contre 1 131 à Paris. En Provence-Alpes-Côte d'Azur, Occitanie, Auvergne-Rhône-Alpes et Nouvelle-Aquitaine, chaque panneau rapporte plus, à condition d'autoconsommer."
+country: fr
+lang: fr-FR
+published: 2026-11-22
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: map
+tags: [regions, PVGIS, Provence, Occitanie, Nouvelle-Aquitaine, Auvergne-Rhone-Alpes]
+sources:
+  - title: "EU JRC PVGIS 5.3 : outil de calcul de la production photovoltaïque (orientation optimale, 14 % de pertes)"
+    url: "https://re.jrc.ec.europa.eu/pvg_tools/fr/"
+  - title: "EU JRC PVGIS 5.3 : 1 kWc à Marseille"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=43.2965&lon=5.3698&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3 : 1 kWc à Montpellier"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=43.6108&lon=3.8767&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3 : 1 kWc à Toulouse"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=43.6047&lon=1.4442&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3 : 1 kWc à Lyon"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=45.764&lon=4.8357&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3 : 1 kWc à Bordeaux"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=44.8378&lon=-0.5792&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3 : 1 kWc à Paris"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=48.8566&lon=2.3522&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3 : 1 kWc à Lille"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=50.6292&lon=3.0573&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "CRE : délibération n° 2026-147, annexe B, barèmes des tarifs Bleus au 1er août 2026"
+    url: "https://www.cre.fr/fileadmin/Documents/Deliberations/2026/260715_2026-147_TRVE_Annexe_B.pdf"
+  - title: "CRE : communiqué de presse du 16 juillet 2026 sur les TRVE (ZNI)"
+    url: "https://www.cre.fr/fileadmin/Documents/Communiques_de_presse/2026/260716_CP_TRVE_Aout_2026.pdf"
+  - title: "AIDA (INERIS) : arrêté du 1er juin 2026 modifiant l'arrêté du 6 octobre 2021 (S21), texte reproduit"
+    url: "https://aida.ineris.fr/reglementation/arrete-010626-modifiant-larrete-6-octobre-2021-fixant-conditions-dachat-lelectricite"
+  - title: "CRE : délibération n° 2026-92 (champ de l'arrêté S21 : métropole continentale)"
+    url: "https://www.cre.fr/fileadmin/Documents/Deliberations/2026/290426_2026-92_Avis_S21.pdf"
+todo:
+  - "Les autres villes du tableau viennent du même appel PVGIS (lat/lon du centre-ville, orientation optimale, 14 % de pertes), conservé dans scratchpad/rvplan/countries/fr/raw/pvgis ; ajouter chaque URL si l'éditeur le souhaite."
+  - "Corse : vérifier les conditions d'achat et les tarifs spécifiques aux zones non interconnectées avant de traiter Ajaccio."
+  - "Ajouter des données régionales (part de maisons, installations existantes par commune via ODRÉ/Enedis) pour les pages régions."
+---
+
+Le Sud reste la meilleure zone de France pour les panneaux solaires en 2026. Selon PVGIS, l'outil de la Commission européenne, 1 kWc bien orienté produit environ 1 627 kWh par an à Marseille et 1 513 à Montpellier, contre 1 131 à Paris et 1 074 à Lille. Avec un kWh autoconsommé qui évite environ 20 c€ au tarif Base, chaque kWc installé en Provence peut éviter environ 100 € de plus par an qu'à Paris, si la production est consommée sur place.
+
+## Les chiffres clés
+
+- **1 627 kWh/kWc/an** à Marseille, la plus forte production de notre échantillon de 60 villes ([PVGIS](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=43.2965&lon=5.3698&peakpower=1&loss=14&optimalangles=1&outputformat=json)).
+- **1 131 kWh/kWc/an** à Paris et **1 074** à Lille, le minimum de l'échantillon ([PVGIS Paris](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=48.8566&lon=2.3522&peakpower=1&loss=14&optimalangles=1&outputformat=json)).
+- **Environ 20 c€ TTC** par kWh évité au tarif Bleu Base (13,61 c€ HT au 1er août 2026, plus accise et TVA) ([CRE](https://www.cre.fr/fileadmin/Documents/Deliberations/2026/260715_2026-147_TRVE_Annexe_B.pdf)).
+- **1,1 c€/kWh HT** pour le surplus vendu, partout en métropole continentale ([arrêté du 1er juin 2026](https://aida.ineris.fr/reglementation/arrete-010626-modifiant-larrete-6-octobre-2021-fixant-conditions-dachat-lelectricite)).
+
+## Panneaux solaires sud : la production ville par ville
+
+Production annuelle d'1 kWc en orientation optimale, 14 % de pertes système, d'après PVGIS 5.3 :
+
+| Région | Ville | kWh/kWc/an |
+|---|---|---|
+| Provence-Alpes-Côte d'Azur | Marseille | 1 627 |
+| Provence-Alpes-Côte d'Azur | Aix-en-Provence | 1 579 |
+| Provence-Alpes-Côte d'Azur | Avignon | 1 564 |
+| Provence-Alpes-Côte d'Azur | Toulon | 1 557 |
+| Provence-Alpes-Côte d'Azur | Nice | 1 536 |
+| Occitanie | Nîmes | 1 521 |
+| Occitanie | Montpellier | 1 513 |
+| Occitanie | Toulouse | 1 316 |
+| Auvergne-Rhône-Alpes | Valence | 1 393 |
+| Auvergne-Rhône-Alpes | Grenoble | 1 363 |
+| Auvergne-Rhône-Alpes | Lyon | 1 289 |
+| Nouvelle-Aquitaine | La Rochelle | 1 380 |
+| Nouvelle-Aquitaine | Bordeaux | 1 275 |
+| Nouvelle-Aquitaine | Pau | 1 242 |
+| Référence | Paris | 1 131 |
+| Référence | Lille | 1 074 |
+
+## Provence-Alpes-Côte d'Azur : le haut du classement
+
+Toutes les villes de Provence de notre échantillon dépassent 1 500 kWh/kWc, y compris Gap en zone alpine (1 544). C'est 35 % à 44 % de plus qu'à Paris. L'été chaud ajoute un atout : la climatisation consomme précisément aux heures de production, ce qui augmente l'autoconsommation.
+
+## Occitanie : une région à deux vitesses
+
+Le littoral méditerranéen (Nîmes, Béziers, Montpellier, autour de 1 515 kWh/kWc) produit presque autant que la Provence. Toulouse, Albi et Montauban sont plus proches de 1 300. Tout le territoire reste nettement au-dessus de Paris.
+
+## Auvergne-Rhône-Alpes : la vallée du Rhône et les Alpes
+
+Valence (1 393), Grenoble (1 363) et Chambéry (1 330) profitent d'un bon ensoleillement. Lyon et Annecy tournent autour de 1 285, Clermont-Ferrand à 1 250 et Saint-Étienne à 1 201. L'altitude et l'ombre des reliefs comptent : faites une simulation à votre adresse exacte.
+
+## Nouvelle-Aquitaine : le littoral en tête
+
+La Rochelle (1 380) devance Bordeaux (1 275), Niort (1 271), Angoulême (1 254), Pau (1 242) et Bayonne (1 227). Limoges (1 221) et Poitiers (1 226) ferment la marche, toujours au-dessus de Paris.
+
+## Combien ça change en euros ?
+
+Arithmétique simple, en supposant que toute la production supplémentaire est consommée sur place au tarif Base (environ 0,20 € le kWh) :
+
+| Ville | Écart de production avec Paris, par kWc | Valeur annuelle si autoconsommée |
+|---|---|---|
+| Marseille | +496 kWh | environ +99 € |
+| Montpellier | +382 kWh | environ +76 € |
+| Valence | +262 kWh | environ +52 € |
+| Bordeaux | +144 kWh | environ +29 € |
+
+Si ce surplus de production part sur le réseau, il ne rapporte que 1,1 c€ HT le kWh : 496 kWh valent alors environ 5,50 €. L'avantage du Sud ne se transforme en euros que si vous consommez la production. En pratique, une installation dans le Sud peut être un peu plus petite qu'à Paris pour couvrir les mêmes usages de journée. Voir [3, 6 ou 9 kWc : quelle puissance choisir](/fr/blog/prime-supprimee-quelle-puissance-choisir).
+
+## Le cas de la Corse
+
+Ajaccio produit 1 507 kWh/kWc selon PVGIS, mais la Corse est une zone non interconnectée. L'arrêté S21 analysé ici vise la métropole continentale, et la fiscalité de l'électricité diffère dans les ZNI selon la [CRE](https://www.cre.fr/fileadmin/Documents/Communiques_de_presse/2026/260716_CP_TRVE_Aout_2026.pdf). Nous ne chiffrons pas la Corse tant que nous n'avons pas vérifié ses conditions propres.
+
+## Ce que le soleil ne remplace pas
+
+Un toit plein sud à Marseille avec personne à la maison en journée sera moins rentable qu'un toit est-ouest à Lyon avec du télétravail et une voiture électrique. Commencez par votre profil de consommation, puis la production : [Panneaux solaires : rentables ou pas en 2026](/fr/guides/panneaux-solaires-rentables-ou-pas-2026) et [7 façons d'utiliser son surplus](/fr/blog/autoconsommation-utiliser-son-surplus).
