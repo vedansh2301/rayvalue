@@ -1,0 +1,104 @@
+---
+title: "Lav elafgift i 2026-27: sådan rammer den værdien af dine solceller"
+seoTitle: "Elafgift 2026 og solceller: hvorfor besparelsen er mindre"
+description: "Elafgiften er 0,8 øre pr. kWh i 2026 og 2027 mod 72,7 øre efter de almindelige regler. Godt for elregningen, men hver kWh fra dine solceller sparer dig nu for langt mindre. Her er regnestykket."
+country: dk
+lang: da-DK
+published: 2026-11-22
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: bill
+tags: [solceller, elafgift, egetforbrug, tilbagebetalingstid]
+sources:
+  - title: "Skattestyrelsen: Midlertidig nedsættelse af elafgiften i 2026 og 2027"
+    url: "https://skat.dk/erhverv/afgifter-paa-varer-og-ydelser-punktafgifter/nyhedsbrev-afgifter/midlertidig-nedsaettelse-af-elafgiften-i-2026-og-2027"
+  - title: "Skatteministeriet: Faktaark om lempelse af elafgift"
+    url: "https://skm.dk/media/fg2pvujk/faktaark-om-lempelse-af-elafgift.pdf"
+  - title: "Energistyrelsen: Fakta om flexafregning (13. december 2023)"
+    url: "https://ens.dk/media/1829/download"
+  - title: "Energi Data Service (Energinet): DayAheadPrices DK1, 1. januar–31. oktober 2026"
+    url: "https://api.energidataservice.dk/dataset/DayAheadPrices?start=2026-01-01&end=2026-11-01&filter=%7B%22PriceArea%22:%5B%22DK1%22%5D%7D&limit=0"
+  - title: "Eurostat nrg_pc_204: husholdningers elpris inkl. afgifter, Danmark, 2026 1. halvår (2.500–4.999 kWh)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=DK&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "EU JRC PVGIS 5.3: årsproduktion pr. kWp, Aarhus (optimal hældning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=56.1629&lon=10.2039&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+todo:
+  - "Hvad der sker med elafgiften fra 1. januar 2028: ikke lovgivet ifølge de kilder, vi har læst. Opdater, når Folketinget beslutter noget."
+  - "Momssats 25 % bruges kun indirekte (Skatteministeriets 3.600 kr. er inkl. moms). Tilføj primærkilde, hvis moms-beregninger udvides."
+---
+
+Den lave elafgift i 2026 og 2027 gør solceller mindre værd. Hver kWh, du selv producerer og bruger, sparer dig nu kun for 0,8 øre i elafgift ekskl. moms mod 72,7 øre efter de almindelige regler. Har du solceller, får du en lavere elregning som alle andre, men den del af besparelsen, der kom fra elafgiften, er stort set væk i to år.
+
+## Nøgletal
+
+- **0,8 øre pr. kWh** ekskl. moms: elafgiften fra 1. januar 2026 til 31. december 2027 (Skattestyrelsen, hentet 22. november 2026).
+- **72,7 øre pr. kWh** ekskl. moms: elafgiften efter de almindelige regler, 2026-niveau (Skatteministeriet).
+- **71,9 øre pr. kWh** ekskl. moms: lempelsen (Skatteministeriet).
+- **Ca. 3.600 kr. om året** inkl. moms: besparelsen for en husholdning med 4.000 kWh forbrug (Skatteministeriet).
+- **4.000 kWh**: husstande med elvarme og varmepumpe får kun lempelsen op til dette forbrug, fordi de i forvejen betaler minimumssatsen over 4.000 kWh (Skatteministeriet).
+- **1,77 kr. pr. kWh**: gennemsnitlig husholdningspris alt inklusive, 1. halvår 2026 (Eurostat).
+
+## Hvad er ændret i elafgiften i 2026?
+
+[Skattestyrelsen](https://skat.dk/erhverv/afgifter-paa-varer-og-ydelser-punktafgifter/nyhedsbrev-afgifter/midlertidig-nedsaettelse-af-elafgiften-i-2026-og-2027) skriver, at satsen for elafgiften i en 2-årig periode fra 1. januar 2026 til 31. december 2027 er sat ned til 0,8 øre pr. kWh. Det er EU's minimumssats for private.
+
+Ifølge [Skatteministeriets faktaark](https://skm.dk/media/fg2pvujk/faktaark-om-lempelse-af-elafgift.pdf) ville afgiften efter gældende regler have været 72,7 øre pr. kWh i 2026. Nedsættelsen er derfor 71,9 øre pr. kWh ekskl. moms. Ministeriet anslår, at en almindelig husholdning med et forbrug på 4.000 kWh om året sparer ca. 3.600 kr. inkl. moms.
+
+## Hvorfor gør lavere elafgift solceller mindre værd?
+
+Solceller sparer dig penge på to måder: strøm, du selv bruger, og strøm, du sælger. Elafgiften påvirker kun den første.
+
+Når du bruger strøm fra dit eget tag, køber du ikke den kWh fra nettet. Du slipper for selve strømmen, nettariffen, elafgiften og momsen. Når elafgiften falder med 71,9 øre, falder værdien af hver egen-brugt kWh med det samme beløb ekskl. moms.
+
+Regneeksempel med egne tal. Et anlæg på 6 kWp i Aarhus giver ifølge [PVGIS](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=56.1629&lon=10.2039&peakpower=1&loss=14&optimalangles=1&outputformat=json) ca. 974 kWh pr. kWp, altså ca. 5.800 kWh om året. Bruger husstanden 2.000 kWh af dem selv:
+
+| | Almindelig elafgift | Elafgift 2026-27 |
+|---|---|---|
+| Elafgift pr. kWh, ekskl. moms | 72,7 øre | 0,8 øre |
+| Sparet elafgift på 2.000 kWh egetforbrug, ekskl. moms | 1.454 kr. | 16 kr. |
+| Forskel om året, ekskl. moms | | 1.438 kr. |
+
+Anlægsstørrelse og egetforbrug er eksempler. Med moms oveni er forskellen større.
+
+Den strøm, du sælger, påvirkes ikke af elafgiften. Den får du spotprisen for, som ifølge Energinets [Energi Data Service](https://api.energidataservice.dk/dataset/DayAheadPrices?start=2026-01-01&end=2026-11-01&filter=%7B%22PriceArea%22:%5B%22DK1%22%5D%7D&limit=0) i gennemsnit var 0,30 kr. pr. kWh mellem kl. 11 og 15 i april-september 2026 i DK1 (vores beregning).
+
+## Hvad betyder det for tilbagebetalingstiden?
+
+I 2026 og 2027 bliver den årlige besparelse fra et solcelleanlæg mindre end med almindelig elafgift. Hvor meget afhænger af dit egetforbrug: jo mere du selv bruger, jo mere mister du i kroner, fordi det netop er egetforbruget, der sparer afgift.
+
+Men lempelsen gælder kun to år. Et anlæg holder typisk mange år længere. Hvad elafgiften bliver fra 2028, er ikke besluttet ifølge de kilder, vi har læst. Regn derfor med to scenarier:
+
+1. **Afgiften kommer tilbage i 2028.** Så rammer lempelsen kun to af anlæggets leveår.
+2. **Afgiften forbliver lav.** Så er egetforbruget mindre værd i hele anlæggets levetid, og tilbagebetalingstiden bliver tilsvarende længere.
+
+Sælgere, der regner med det gamle afgiftsniveau i hele levetiden, overvurderer besparelsen i 2026 og 2027. Sælgere, der regner med 0,8 øre for evigt, kan undervurdere den.
+
+## Hvad med ældre anlæg med årsbaseret nettoafregning?
+
+Ifølge Energistyrelsens [faktaark om flexafregning](https://ens.dk/media/1829/download) er elafgiften fortsat årsnettoafregnet for de ældre anlæg på årsbaseret nettoafregning. Det betød, at strøm sendt ud på nettet om sommeren kunne modregnes i afgiften på strøm købt om vinteren. Med en afgift på 0,8 øre er den modregning næsten intet værd i 2026 og 2027.
+
+## Hvem rammes mest, og hvem mindst?
+
+**Rammes mest:**
+- Husstande med højt egetforbrug, fordi hver selv-brugt kWh sparer mindre.
+- Ældre anlæg med årsbaseret nettoafregning af elafgiften.
+- Dem, der købte anlæg med en beregning bygget på den almindelige elafgift.
+
+**Rammes mindst:**
+- Husstande med elvarme eller varmepumpe, som ifølge Skatteministeriet kun får lempelse op til 4.000 kWh, fordi de allerede betaler minimumssatsen over den grænse. For dem var afgiftsbesparelsen fra solceller i forvejen lav på forbrug over 4.000 kWh.
+- Husstande, der sælger det meste af strømmen, fordi salget ikke påvirkes af afgiften.
+
+## Skal jeg vente med solceller til 2028?
+
+Ikke nødvendigvis. Den lavere afgift gør de første to år mindre værd, men den gør også din samlede elregning lavere. Hvis anlægget er billigt nok til at betale sig uden afgiftsbesparelsen, er det en god investering. Hvis det kun betaler sig med en afgift på 72,7 øre i hele levetiden, er det en risikabel investering. Læs [Kan solceller betale sig i 2026?](/dk/guides/kan-solceller-betale-sig-2026) og [DK1 og DK2: spotpriser og salg af solstrøm](/dk/guides/dk1-dk2-salg-af-solstrom).
+
+## Ofte stillede spørgsmål
+
+**Hvor længe gælder den lave elafgift?** Fra 1. januar 2026 til 31. december 2027, ifølge Skattestyrelsen.
+
+**Får varmepumpe-ejere samme lempelse?** Nej, ikke fuldt ud. Skatteministeriet skriver, at husstande med elvarme, herunder varmepumpe, i forvejen betaler 0,8 øre pr. kWh for forbrug over 4.000 kWh, og derfor kun får lempelsen op til 4.000 kWh.
+
+**Påvirker elafgiften prisen for strøm, jeg sælger?** Nej. Solgt strøm afregnes efter spotprisen og eventuelle vilkår i din aftale. Elafgiften betales kun af strøm, du køber.
+
+**Hvor meget sparer en almindelig husstand?** Skatteministeriet anslår ca. 3.600 kr. om året inkl. moms ved et forbrug på 4.000 kWh.

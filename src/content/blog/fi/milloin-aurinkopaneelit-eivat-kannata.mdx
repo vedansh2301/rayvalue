@@ -1,0 +1,118 @@
+---
+title: "Milloin aurinkopaneelit eivät kannata? Kuusi tilannetta"
+seoTitle: "Aurinkopaneelit ei kannata? Kuusi tilannetta lukuineen"
+description: "Aurinkopaneelit eivät ole kaikille hyvä kauppa. Kuusi tilannetta, joissa takaisinmaksu venyy liian pitkäksi, PVGIS-tuottolukujen, Eurostatin sähkön hinnan ja Verohallinnon sääntöjen valossa."
+country: fi
+lang: fi-FI
+published: 2026-11-22
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: scale
+tags: [aurinkopaneelit, kannattavuus, kotitalousvähennys, ylijäämäsähkö]
+sources:
+  - title: "EU JRC PVGIS 5.3: kuukausituotto per kWp, Helsinki (optimikallistus)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=60.1699&lon=24.9384&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: kuukausituotto per kWp, Tampere (optimikallistus)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=61.4978&lon=23.7610&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: kuukausituotto per kWp, Rovaniemi (optimikallistus)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=66.5039&lon=25.7294&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "Eurostat nrg_pc_204: kotitalouksien sähkön hinta veroineen, Suomi, 2026 1. puolivuosi (2 500–4 999 kWh)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=FI&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "Verohallinto: Kotitalousvähennys 2026–2027 (ohje, PDF)"
+    url: "https://www.vero.fi/globalassets/henkiloasiakkaat/kotitalousvahennys/ohje--kotitalousvahennys-2026-2027.pdf"
+  - title: "Verohallinto: Kotitalouden sähköntuotannon tuloverotus"
+    url: "https://www.vero.fi/syventavat-vero-ohjeet/ohje-hakusivu/48484/kotitalouden-sahkontuotannon-tuloverotus2/"
+todo:
+  - "Pörssisähkön kesäpäivien keskihinta Suomessa (ENTSO-E/Fingrid): ei haettu. Lisää luku kohtaan 3."
+  - "Asennushinnat per kW: ei virallista lähdettä."
+---
+
+Aurinkopaneelit eivät kannata, jos katto on varjoinen tai pohjoiseen, jos kesäpäivän kulutus on pieni, tai jos suurin osa tuotosta myydään halvalla verkkoon. Rovaniemellä vuosituotto on noin 17 % pienempi kuin Helsingissä, ja joulukuussa se on käytännössä nolla koko maassa. Kotitalousvähennys auttaa, mutta se koskee vain asennustyötä, ei paneeleja.
+
+## Tärkeimmät luvut
+
+- **974 kWh** per kWp vuodessa Helsingissä, **877 kWh** Tampereella ja **806 kWh** Rovaniemellä (PVGIS 5.3, optimikallistus, haettu 22.11.2026).
+- **0–11 kWh** per kWp joulukuussa Rovaniemeltä Helsinkiin (PVGIS 5.3).
+- **0,27 €/kWh** kotitalouksien keskihinta veroineen ja siirtoineen vuoden 2026 alkupuoliskolla (Eurostat).
+- **40 % työn osuudesta, enintään 2 100 €** kotitalousvähennystä henkilöä kohden vuosina 2026–2027, omavastuu 150 € (Verohallinto).
+- **Ansiotuloa**: ylijäämäsähkön myyntitulo verotetaan, oma käyttö on verovapaata (Verohallinto).
+
+## 1. Katto on varjoinen tai väärään suuntaan
+
+PVGIS-luvut olettavat optimikallistuksen ja varjottoman paikan. Puut, naapuritalot tai piippu leikkaavat tuottoa, ja itään tai länteen suunnattu katto tuottaa vähemmän kuin etelään suunnattu. Jos tarjouksen tuotto-oletus on lähellä PVGIS-lukua mutta kattosi on osittain varjossa, laskelma on liian optimistinen.
+
+## 2. Asut pohjoisessa ja kulutat sähköä talvella
+
+Vuosituotto vaihtelee Suomessa selvästi:
+
+| Paikkakunta | kWh/kWp vuodessa | Marraskuu | Joulukuu | Tammikuu |
+|---|---|---|---|---|
+| Helsinki | 974 | 16 | 11 | 16 |
+| Tampere | 877 | 13 | 7 | 14 |
+| Rovaniemi | 806 | 6 | 0 | 3 |
+
+Lähde: PVGIS 5.3, optimikallistus.
+
+Rovaniemellä vuosituotto on noin 17 % pienempi kuin Helsingissä. Suurempi ongelma on ajoitus: sähkölämmitteisessä talossa kulutus on suurimmillaan juuri marras-tammikuussa, jolloin paneelit eivät tuota juuri mitään. Paneelit eivät pienennä talven suurinta sähkölaskua.
+
+### Kuinka suuri osa tuotosta tulee kesällä?
+
+Helsingissä 1 kWp:n järjestelmä tuottaa PVGIS-mallin mukaan kuukausittain:
+
+| Kuukausi | kWh/kWp | Kuukausi | kWh/kWp |
+|---|---|---|---|
+| Tammikuu | 16 | Heinäkuu | 145 |
+| Helmikuu | 35 | Elokuu | 121 |
+| Maaliskuu | 89 | Syyskuu | 84 |
+| Huhtikuu | 119 | Lokakuu | 48 |
+| Toukokuu | 147 | Marraskuu | 16 |
+| Kesäkuu | 143 | Joulukuu | 11 |
+
+Lähde: [PVGIS 5.3, Helsinki](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=60.1699&lon=24.9384&peakpower=1&loss=14&optimalangles=1&outputformat=json).
+
+Huhti-syyskuu tuottaa 759 kWh eli noin 78 % vuoden 974 kilowattitunnista. Mitoita järjestelmä siis kesän kulutuksen, ei vuosikulutuksen mukaan.
+
+## 3. Kulutat kesäpäivisin vähän
+
+Itse käytetty sähkö säästää koko ostohinnan, jonka keskiarvo oli Eurostatin mukaan 0,2694 €/kWh vuoden 2026 alkupuoliskolla. Myyty ylijäämä tuottaa vain sopimuksen mukaisen korvauksen, joka on sidottu markkinahintaan juuri silloin, kun aurinko paistaa. Verohallinnon esimerkissä 1 000 kWh:sta maksettiin 40 euroa, eli 4 senttiä kilowattitunnilta. Se on esimerkki eikä hintatieto, mutta se havainnollistaa eron.
+
+Jos talo on kesällä tyhjillään päivisin, ei ole lämpöpumppua tai sähköautoa ja kulutus on pientä, suuri osa tuotosta päätyy myyntiin. Silloin takaisinmaksuaika venyy.
+
+## 4. Kotitalousvähennyksen katto on jo käytetty
+
+Kotitalousvähennys on vuosina 2026–2027 40 % työn osuudesta ja enintään 2 100 euroa henkilöä kohden vuodessa, Verohallinnon [ohjeen](https://www.vero.fi/globalassets/henkiloasiakkaat/kotitalousvahennys/ohje--kotitalousvahennys-2026-2027.pdf) mukaan. Sama katto koskee kaikkia saman vuoden kotitalous-, hoiva- ja remonttitöitä. Jos olet jo käyttänyt vähennyksen esimerkiksi kylpyhuoneremonttiin tai siivoukseen, paneeleista ei jää vähennettävää.
+
+Muista myös, että vähennys lasketaan vain työn osuudesta. Paneeleista, invertteristä ja muista tarvikkeista ei saa vähennystä, ja yrityksen täytyy kuulua ennakkoperintärekisteriin.
+
+## 5. Katto pitää uusia pian
+
+Jos katto on uusittava muutaman vuoden sisällä, paneelit joudutaan irrottamaan ja asentamaan uudelleen. Se on lisätyötä ja lisäkulua. Silloin on yleensä järkevämpää uusia katto ensin ja asentaa paneelit samalla kertaa.
+
+## 6. Laskelma olettaa, että myyty sähkö on yhtä arvokasta kuin ostettu
+
+Tämä on tarjouksissa yleinen virhe. Jos tarjous kertoo vuosisäästön kertomalla koko vuosituoton ostosähkön hinnalla, se olettaa, että käytät kaiken itse. Pyydä laskelma, jossa tuotto on jaettu omaan käyttöön ja myyntiin, ja kumpikin on hinnoiteltu erikseen.
+
+Muista lisäksi, että Verohallinnon mukaan myyntitulo on veronalaista ansiotuloa. Kulut ja poistot saa vähentää vain myyntitulon määrään asti, eikä tappiota vahvisteta. Lue lisää: [Ylijäämäsähkön myynti ja verotus](/fi/guides/ylijaamasahkon-myynti-verotus).
+
+## Milloin aurinkopaneelit sitten kannattavat?
+
+Kun katto on aurinkoinen ja etelään, talossa kulutetaan sähköä päivisin myös kesällä ja kotitalousvähennyksen katto on käyttämättä. Etelä-Suomessa vuosituotto on suurin. Lue myönteisempi puoli: [Kotitalousvähennys aurinkopaneeleista 2026–2027](/fi/guides/kotitalousvahennys-aurinkopaneelit-2026).
+
+## Nopea tarkistuslista ennen tarjouspyyntöä
+
+1. Onko katto varjoton ja suunnattu etelän puolelle?
+2. Kuinka paljon sähköä käytät kesäpäivisin?
+3. Paljonko kotitalousvähennyksen kattoa on tänä vuonna jäljellä?
+4. Pitääkö katto uusia seuraavan kymmenen vuoden aikana?
+5. Erotteleeko tarjous oman käytön ja myynnin?
+
+## Usein kysyttyä
+
+**Kannattaako aurinkopaneelit Lapissa?** Vuosituotto on Rovaniemellä PVGIS-mallin mukaan 806 kWh per kWp, noin 17 % vähemmän kuin Helsingissä. Kesän tuotto on hyvä, mutta marras-tammikuussa sitä ei käytännössä ole. Kannattavuus riippuu siitä, paljonko sähköä käytät kesällä.
+
+**Saako kotitalousvähennyksen myös mökin paneeleista?** Verohallinnon mukaan aurinkopaneelien asennus vapaa-ajan asuntoon oikeuttaa vähennykseen samoin ehdoin kuin kotona: vain työn osuudesta, ja yrityksen on oltava ennakkoperintärekisterissä.
+
+**Saako vähennystä, jos olen saanut avustusta?** Ei samasta työstä. Verohallinnon ohjeen mukaan vähennystä ei saa, jos samaan työhön on saatu esimerkiksi valtion avustusta.
+
+**Pitääkö myyntitulosta maksaa veroa?** Myyntitulo on veronalaista ansiotuloa, mutta myyntiin kohdistuvat kulut ja poistot saa vähentää. Verohallinnon mukaan kotitalouden myyntitulo on yleensä niin pieni, ettei verotettavaa jää.
