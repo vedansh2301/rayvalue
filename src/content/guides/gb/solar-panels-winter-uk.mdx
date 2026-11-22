@@ -1,0 +1,105 @@
+---
+title: "Do solar panels work in winter in the UK? Output by month"
+seoTitle: "Do solar panels work in winter in the UK? Monthly data"
+description: "Yes, but far less. PVGIS data: a London system makes about a third as much in December as in July, and November to February gives only 16–18% of the year's output across the UK. Monthly kWh and what it is worth."
+country: gb
+lang: en-GB
+updated: 2026-11-22
+topic: sun
+draft: false
+noindex: true
+sources:
+  - title: "EU JRC PVGIS 5.3: London, 1 kWp, optimal angles (monthly output)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=51.5072&lon=-0.1275&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Manchester, 1 kWp, optimal angles (monthly output)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=53.4794&lon=-2.2453&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Edinburgh, 1 kWp, optimal angles (monthly output)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.9533&lon=-3.1892&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Belfast, 1 kWp, optimal angles (monthly output)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=54.5973&lon=-5.9301&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "Ofgem: Changes to energy price cap between 1 October and 31 December 2026"
+    url: "https://www.ofgem.gov.uk/publications/changes-energy-price-cap-between-1-october-and-31-december-2026"
+todo:
+  - "Monthly £ values assume every kWh replaces bought electricity at 26.32p; this is an upper bound. No sourced UK self-consumption share was used."
+  - "The Jan–Mar 2027 price cap is announced on 25 Nov 2026; refresh the unit rate after that."
+faq:
+  - question: "Do solar panels work in winter in the UK?"
+    answer: "Yes. Panels generate from daylight, not heat, so they keep working on cold days. But days are short and the sun is low, so output is much lower. In London PVGIS gives about 38 kWh per kW in December against 121 in July."
+  - question: "How much do solar panels produce in December in the UK?"
+    answer: "On PVGIS averages for a well-angled system, about 24 to 38 kWh per kW in December, depending on location. A 4 kW system in London averages about 153 kWh in December."
+  - question: "How much do solar panels save per month in the UK?"
+    answer: "For a 4 kW system in London, the value of the electricity produced ranges from about £40 in December to about £127 in July at the Oct–Dec 2026 average capped unit rate of 26.32p, if every kWh is used at home. Exported power earns less, so real savings are lower."
+  - question: "Does snow stop solar panels working?"
+    answer: "Panels covered by snow produce little until it clears. PVGIS monthly averages include typical weather but not specific snow events."
+---
+
+Solar panels do work in a UK winter, but they make much less power. On PVGIS figures, a London system produces about a third as much in December as in July, and the four months from November to February deliver only 16–18% of the year's output. Solar is a spring-to-autumn earner; plan your expectations, and any loan repayments, around that.
+
+## Key numbers
+
+- **38 kWh per kW in December** vs **121 kWh per kW in July**: London, optimally angled panels (PVGIS 5.3, checked 22 Nov 2026).
+- **16–18%** of annual output falls in November to February, across London, Manchester, Edinburgh and Belfast (PVGIS).
+- **153 kWh**: average December output of a 4 kW system in London (PVGIS × 4).
+- **26.32p per kWh**: average capped electricity unit rate in Great Britain, Oct–Dec 2026, with 0% VAT (Ofgem).
+
+## Do solar panels work in winter in the UK?
+
+Yes. Panels turn daylight into electricity and do not need warmth. Cold, bright days can be productive. The problem is the amount of light: winter days are short, the sun is low and cloud is frequent. PVGIS, the European Commission's solar model, builds in typical weather from satellite data, so its monthly figures show what an average year looks like.
+
+## How much do solar panels produce each month?
+
+Output in kWh per kW of panels, for an optimally tilted, south-facing system with standard 14% losses:
+
+| Month | London | Manchester | Edinburgh | Belfast |
+|---|---|---|---|---|
+| Jan | 43 | 28 | 31 | 32 |
+| Feb | 55 | 46 | 49 | 50 |
+| Mar | 88 | 79 | 81 | 82 |
+| Apr | 115 | 105 | 106 | 108 |
+| May | 118 | 112 | 117 | 120 |
+| Jun | 120 | 109 | 108 | 113 |
+| Jul | 121 | 106 | 110 | 108 |
+| Aug | 110 | 96 | 101 | 100 |
+| Sep | 96 | 81 | 83 | 82 |
+| Oct | 70 | 58 | 58 | 60 |
+| Nov | 50 | 39 | 41 | 40 |
+| Dec | 38 | 30 | 24 | 28 |
+| **Year** | **1,023** | **888** | **908** | **922** |
+
+Edinburgh's December is the weakest month in the table at 24 kWh per kW, about a fifth of its best month (May, 117). London's December is about a third of its July.
+
+## How much is winter output worth?
+
+For a 4 kW system in London, multiplying the PVGIS monthly figures by 4 and by the Ofgem average unit rate of 26.32p gives the value of the electricity if you used every kWh at home:
+
+| Month | 4 kW output (kWh) | Value at 26.32p |
+|---|---|---|
+| December | 153 | about £40 |
+| January | 171 | about £45 |
+| March | 350 | about £92 |
+| July | 484 | about £127 |
+| Year | 4,092 | about £1,077 |
+
+That is an upper bound. In summer you will export part of the output, and export rates are usually far below 26.32p (see [SEG rates compared](/uk/guides/best-seg-rates)). In winter, almost everything a small system makes is used in the house, so the winter values are closer to the real saving, but they are small.
+
+## Should I still get solar if winter output is low?
+
+Winter output is already built into the annual figures used to judge solar. What matters is the whole year: in London, March to September produce about 75% of the total. Our guide [are solar panels worth it in the UK?](/uk/guides/are-solar-panels-worth-it-uk) works through the annual numbers.
+
+Where winter does matter:
+
+- **Loan repayments.** If you borrow through the [Warm Homes Loan](/uk/guides/warm-homes-loan-solar-battery), a fixed monthly repayment will exceed the saving in some winter months even if it is covered across the year.
+- **Heat pumps.** Winter is when a heat pump uses most electricity and solar makes least. Solar still helps, but it covers a smaller share of winter heating.
+- **Batteries.** In winter a battery has little spare solar to store. Its winter value comes from charging on cheap night rates instead; see [when home batteries pay with time-of-use tariffs](/uk/guides/solar-battery-worth-it-uk).
+
+## Does the direction of the roof matter more in winter?
+
+The table above assumes the best angle facing south. East, west and north roofs make less all year round; see [how much solar you lose on an east, west or north-facing roof](/uk/guides/east-west-facing-solar-panels).
+
+## How can I get more from solar in winter?
+
+- Keep panels clear of shading from trees that grow over summer.
+- Run dishwashers and washing machines around midday on bright days.
+- Check your generation meter or app against the monthly table; a big shortfall can show a fault.
+
+PVGIS monthly figures were retrieved on 22 November 2026 (PVGIS-SARAH3 data, optimal angles of 39–42°). The price cap rate covers 1 October to 31 December 2026.
