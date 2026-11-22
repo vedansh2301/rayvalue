@@ -1,0 +1,55 @@
+---
+// Header country switcher: a pill with the current country's outline and a chevron that opens a "Switch country" panel
+// with a grid of the published markets (current one highlighted) and a link to the country map. Without JS the pill is
+// a plain link to /#map and the panel stays hidden; the script (bundled, no inline code or styles) turns the pill into
+// a disclosure button. Closes on Escape, on an outside click and when focus leaves.
+import CountryOutline from './brand/CountryOutline.astro';
+import { switcherText } from '../lib/i18n/ui';
+import type { SwitcherItem } from '../lib/nav';
+interface Props { segment: string; name: string; items: SwitcherItem[]; lang?: string }
+const { segment, name, items, lang = 'en' } = Astro.props;
+const t = switcherText(lang);
+const seeAll = t.seeAll.replace('{n}', String(items.length));
+---
+<div class="relative shrink-0" data-switcher>
+  <a href="/#map" class="inline-flex min-h-11 items-center gap-2 rounded-full border border-sky-pastel-300 bg-white px-3 text-sm font-semibold text-stone-900 no-underline hover:border-sky-pastel-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-switcher-trigger aria-controls="country-switcher-panel" data-track="nav_click" data-track-placement="header_switcher" data-track-target="/#map">
+    <CountryOutline segment={segment} class="h-5 w-5 fill-sun-400 stroke-sun-ink" />
+    <span>{name}</span>
+    <svg viewBox="0 0 20 20" class="size-3.5 flex-none" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 7.5l5 5 5-5"></path></svg>
+  </a>
+  <div id="country-switcher-panel" role="group" aria-label={t.title} hidden class="absolute left-0 top-full z-40 mt-2 w-[min(23rem,calc(100vw-2rem))] rounded-2xl border border-sky-pastel-300 bg-white p-4 text-stone-900 shadow-lift" data-switcher-panel>
+    <p class="mb-3 font-display-tight text-lg">{t.title}</p>
+    <ul class="grid max-h-[min(60vh,24rem)] grid-cols-3 gap-2 overflow-y-auto p-0.5">
+      {items.map((i) => (
+        <li>
+          <a href={i.href} aria-current={i.current ? 'true' : undefined} data-track="nav_click" data-track-placement="header_switcher" data-track-target={i.href} class:list={['flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-xl border p-1.5 text-center text-xs font-semibold leading-tight no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900', i.current ? 'border-sun-500 bg-sun-100 text-stone-900' : 'border-sky-pastel-300 bg-sky-pastel-50 text-stone-800 hover:border-sky-pastel-600 hover:bg-white']}>
+            <CountryOutline segment={i.segment} class:list={['h-7 w-7', i.current ? 'fill-sun-400 stroke-sun-ink' : 'fill-white stroke-sky-pastel-600']} />
+            <span>{i.name}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <a href="/#map" class="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-sun-ink underline underline-offset-4 hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="header_switcher" data-track-target="/#map">{seeAll} &rarr;</a>
+  </div>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-switcher]').forEach((root) => {
+    const trigger = root.querySelector<HTMLAnchorElement>('[data-switcher-trigger]');
+    const panel = root.querySelector<HTMLElement>('[data-switcher-panel]');
+    if (!trigger || !panel) return;
+    trigger.setAttribute('role', 'button');
+    trigger.setAttribute('aria-haspopup', 'true');
+    trigger.setAttribute('aria-expanded', 'false');
+    const isOpen = (): boolean => !panel.hidden;
+    const set = (open: boolean, focusTrigger = false) => {
+      panel.hidden = !open;
+      trigger.setAttribute('aria-expanded', String(open));
+      if (!open && focusTrigger) trigger.focus();
+    };
+    trigger.addEventListener('click', (e) => { e.preventDefault(); set(!isOpen()); });
+    trigger.addEventListener('keydown', (e) => { if (e.key === ' ') { e.preventDefault(); set(!isOpen()); } });
+    root.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen()) { e.stopPropagation(); set(false, true); } });
+    root.addEventListener('focusout', (e) => { const to = (e as FocusEvent).relatedTarget as Node | null; if (to && !root.contains(to)) set(false); });
+    document.addEventListener('click', (e) => { if (isOpen() && !root.contains(e.target as Node)) set(false); });
+  });
+</script>

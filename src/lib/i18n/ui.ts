@@ -86,3 +86,23 @@ const HUB_INTRO: Readonly<Record<string, (country: string) => string>> = {
 
 /** One-line intro of a country home hub (no figures). */
 export const hubIntro = (lang: string | null | undefined, countryName: string): string => (HUB_INTRO[resolveUiLang(lang)] ?? HUB_INTRO.en!)(countryName);
+
+/** Texts of the header country switcher. `{n}` in `seeAll` is replaced by the number of countries. Falls back to English. */
+export interface SwitcherText { title: string; seeAll: string }
+const SWITCHER_EN: SwitcherText = { title: 'Switch country', seeAll: 'See all {n} countries on the map' };
+const SWITCHER: Readonly<Record<string, SwitcherText>> = {
+  en: SWITCHER_EN,
+  de: { title: 'Land wechseln', seeAll: 'Alle {n} Länder auf der Karte ansehen' },
+  nl: { title: 'Land wisselen', seeAll: 'Bekijk alle {n} landen op de kaart' },
+  es: { title: 'Cambiar de país', seeAll: 'Ver los {n} países en el mapa' },
+  it: { title: 'Cambia paese', seeAll: 'Vedi tutti i {n} paesi sulla mappa' },
+  fr: { title: 'Changer de pays', seeAll: 'Voir les {n} pays sur la carte' },
+  pt: { title: 'Mudar de país', seeAll: 'Ver os {n} países no mapa' },
+  'pt-br': { title: 'Mudar de país', seeAll: 'Ver os {n} países no mapa' },
+  pl: { title: 'Zmień kraj', seeAll: 'Zobacz wszystkie kraje ({n}) na mapie' },
+  cs: { title: 'Změnit zemi', seeAll: 'Zobrazit všech {n} zemí na mapě' },
+  ro: { title: 'Schimbă țara', seeAll: 'Vezi toate cele {n} țări pe hartă' },
+  ja: { title: '国を切り替える', seeAll: '{n}か国すべてを地図で見る' },
+  hi: { title: 'देश बदलें', seeAll: 'मानचित्र पर सभी {n} देश देखें' },
+};
+export const switcherText = (lang?: string | null): SwitcherText => SWITCHER[resolveUiLang(lang)] ?? SWITCHER_EN;

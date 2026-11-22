@@ -1,8 +1,9 @@
 ---
-import { GLOBAL_NAV, navContext } from '../lib/nav';
-import { loadCountryCounts } from '../lib/country-nav-load';
+import { GLOBAL_NAV, navContext, switcherItems } from '../lib/nav';
+import { loadCountryCounts, loadMenuSegments } from '../lib/country-nav-load';
 import { uiText } from '../lib/i18n/ui';
 import SunMark from './SunMark.astro';
+import CountrySwitcher from './CountrySwitcher.astro';
 // One global header on every page: sticky pastel glass bar with the logo, Countries / Calculators / Guides / Blog /
 // Methodology links and a "Check my payback" button. A second row gives the country context: that country's overview,
 // calculator, guides and blog (non-US), or the US overview, state calculators, guides, blog, stories and the US-only
@@ -12,6 +13,7 @@ const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const counts = logoOnly ? new Map() : await loadCountryCounts();
 const ctx = navContext({ path, known: [...counts.keys()], counts, lang });
 const ui = uiText(lang);
+const switcher = ctx.kind !== 'global' && ctx.segment ? switcherItems(await loadMenuSegments(), ctx.segment) : [];
 const label = { countries: ui.countries, calculators: ui.calculators, guides: ui.guides, blog: ui.blog, methodology: ui.methodology } as const;
 const isCurrent = (href: string) => !href.includes('#') && (path === href || path.startsWith(`${href}/`));
 const linkBase = 'inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-2.5 text-[15px] font-medium text-stone-900 no-underline hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900';
@@ -51,7 +53,7 @@ const wrap = 'mx-auto flex w-full max-w-[calc(var(--container-shell)+2*var(--spa
   {!logoOnly && ctx.kind !== 'global' && (
     <div class="border-t border-sky-pastel-300 bg-sky-pastel-50/90">
       <nav aria-label={ctx.name ?? undefined} class:list={[wrap, 'items-center gap-x-1']}>
-        <p class="shrink-0 pr-2 text-sm font-semibold text-stone-900">{ctx.name}</p>
+        {ctx.segment && ctx.name ? <div class="py-1 pr-2"><CountrySwitcher segment={ctx.segment} name={ctx.name} items={switcher} lang={lang} /></div> : <p class="shrink-0 pr-2 text-sm font-semibold text-stone-900">{ctx.name}</p>}
         <ul class="scrollbar-none flex min-w-0 flex-1 flex-nowrap gap-x-0.5 overflow-x-auto p-1 text-sm">
           {ctx.links.map((l) => (
             <li class="shrink-0">

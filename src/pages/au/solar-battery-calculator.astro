@@ -33,7 +33,7 @@ const steps = [
   'We show low, likely and high results, with every assumption and source listed.',
 ];
 const nRegions = data.ok ? data.props.utilities.length : null;
-const rebateDays = data.ok ? rebateStepDownDays(data.props.incentives, data.props.today) : null;
+const rebateDays = data.ok ? rebateStepDownDays(data.props.incentives ?? [], data.props.today) : null;
 const reads = [
   { collection: 'guides', id: 'au/battery-rebate-changes-2027' },
   { collection: 'guides', id: 'au/battery-rebate-scams' },

@@ -87,6 +87,18 @@ export function countryMenu(segments: readonly string[], current: string | null 
   }));
 }
 
+export interface SwitcherItem { segment: string; name: string; href: string; current: boolean }
+
+/**
+ * Countries for the header country switcher: the published hubs (`segments`, the US included) plus the current one, each
+ * with its hub link, sorted by English name. The current country is flagged so the menu can highlight it.
+ */
+export function switcherItems(segments: readonly string[], current: string | null): SwitcherItem[] {
+  return [...new Set(current ? [...segments, current] : segments)]
+    .map((segment) => ({ segment, name: countryName(segment, 'en'), href: hubPath(segment), current: segment === current }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 /** What the header's second row shows for a path. */
 export function navContext(i: NavContextInput): NavContext {
   const path = norm(i.path);

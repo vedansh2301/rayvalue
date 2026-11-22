@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { GLOBAL_NAV, countryMenu, isGlobalPath, isUsPath, navContext } from './nav';
+import { GLOBAL_NAV, countryMenu, switcherItems, isGlobalPath, isUsPath, navContext } from './nav';
 
 const known = ['au', 'de', 'ie', 'uk'];
 const counts = new Map([
@@ -101,5 +101,18 @@ describe('template sources', () => {
   it('the tagline is global', () => {
     expect(read('./src/lib/i18n/ui.ts')).not.toMatch(/Solar math for your home/);
     expect(read('./src/lib/i18n/ui.ts')).toContain('Solar payback, country by country');
+  });
+});
+
+describe('switcherItems', () => {
+  it('lists the published countries by name with hub links and flags the current one', () => {
+    const items = switcherItems(['us', 'uk', 'de'], 'de');
+    expect(items.map((i) => i.segment)).toEqual(['de', 'uk', 'us']);
+    expect(items.find((i) => i.segment === 'de')).toMatchObject({ current: true, href: '/de' });
+    expect(items.filter((i) => i.current)).toHaveLength(1);
+  });
+  it('adds the current country when it has no published hub, once', () => {
+    expect(switcherItems(['us', 'uk'], 'au').map((i) => i.segment).sort()).toEqual(['au', 'uk', 'us']);
+    expect(switcherItems(['us', 'uk'], 'uk')).toHaveLength(2);
   });
 });
