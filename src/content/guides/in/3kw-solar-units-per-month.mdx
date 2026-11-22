@@ -1,0 +1,112 @@
+---
+title: "How many units does a 3 kW solar system generate in India? City by city"
+seoTitle: "3 kW solar units per month in India: 15 cities (PVGIS)"
+description: "A 3 kW rooftop system makes about 330 to 420 units a month on average across Indian cities, according to EU JRC PVGIS. Monsoon months can drop to around 210. City table, the government's 300-unit figure, and what cuts output."
+country: in
+lang: en-IN
+updated: 2026-11-22
+topic: sun
+draft: false
+noindex: true
+sources:
+  - title: "EU JRC PVGIS 5.3 PVcalc API (1 kWp, c-Si, 14% loss, optimal angles, PVGIS-ERA5 2005–2023), queried for 45 Indian cities"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=28.61&lon=77.21&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Mumbai, 1 kWp, optimal angles"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=19.08&lon=72.88&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Jodhpur, 1 kWp, optimal angles"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=26.24&lon=73.02&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Guwahati, 1 kWp, optimal angles"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=26.14&lon=91.74&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "PIB factsheet: PM Surya Ghar crosses 10 lakh installations (13 March 2025)"
+    url: "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/mar/doc2025313520001.pdf"
+  - title: "MNRE: CFA structure leaflet for PM Surya Ghar (hosted by JBVNL)"
+    url: "https://jbvnl.co.in/SOLAR/CFA_structure%20for%20PM%20Suryaghar.pdf"
+  - title: "MNRE: Operational Guidelines for PM-Surya Ghar: Muft Bijli Yojana (7 June 2024, copy hosted by JBVNL)"
+    url: "https://jbvnl.co.in/SOLAR/Operational%20Guidelines%20to%20PM%20Suryaghar%207%20June%2024.pdf"
+  - title: "KERC generic tariff order for DSPV plants, 25 August 2026 (CUF assumption)"
+    url: "https://kerc.karnataka.gov.in/uploads/48561787653428.pdf"
+todo:
+  - "PVGIS robots.txt disallows crawling; the API is documented for programmatic use. Owner to confirm this use is acceptable (see country pack)."
+  - "Add the remaining 30 cities from raw/pvgis to a fuller table or the calculator once city pages are live."
+faq:
+  - question: "How many units does a 3 kW solar system generate per month in India?"
+    answer: "PVGIS gives an average of about 330 to 420 units a month for a well-tilted, unshaded 3 kW system, from Guwahati and Kochi at the low end to Jodhpur at the high end. Delhi is about 405 and Mumbai about 380."
+  - question: "Is the 300 units a month claim for 3 kW true?"
+    answer: "As an annual average it is conservative for most cities in PVGIS's data, which give 330–420. But monsoon months in many cities fall below 300. Mumbai's July is about 207 units and Ahmedabad's about 228."
+  - question: "How many units does 1 kW of solar generate per day in India?"
+    answer: "On PVGIS's annual figures, about 3.6 to 4.6 units a day per kW on average (1,329–1,677 kWh a year), more in March and less in the monsoon."
+---
+
+A 3 kW rooftop system in India makes roughly **330 to 420 units a month on average**, according to the European Commission's PVGIS model. That assumes the panels face south at a good tilt with no shade. Delhi comes out at about **405** units and Mumbai about **380**. Output swings with the season. March is usually the best month, while monsoon months can fall to **around 210–300** in western and central cities.
+
+## Key numbers
+
+- **3,986 to 5,030 kWh a year** for 3 kW: PVGIS range across 15 major cities, Guwahati to Jodhpur (EU JRC PVGIS 5.3, retrieved 22 Nov 2026).
+- **1,329 to 1,677 kWh per kW per year** across all 45 cities we queried.
+- **Over 300 units a month**: the government's figure for a 3 kW system (PIB factsheet, 13 Mar 2025).
+- **19%**: capacity utilisation factor KERC assumes for home solar in its 2026 tariff order. That works out to about 1,664 kWh per kW per year.
+- **14%**: system losses assumed in the PVGIS figures below.
+
+## How many units does a 3 kW system generate in my city?
+
+PVGIS figures for a 3 kW crystalline silicon system at optimal tilt, multiplied up from 1 kW results:
+
+| City | Units per year | Average per month | Lowest month | Highest month |
+|---|---|---|---|---|
+| Jodhpur | 5,030 | 419 | Aug, 281 | Mar, 492 |
+| Jaipur | 4,919 | 410 | Aug, 287 | Mar, 485 |
+| Delhi | 4,869 | 406 | Jul, 297 | Mar, 477 |
+| Lucknow | 4,743 | 395 | Jul, 262 | Mar, 483 |
+| Ahmedabad | 4,739 | 395 | Jul, 228 | Mar, 486 |
+| Patna | 4,592 | 383 | Jul, 262 | Mar, 478 |
+| Mumbai | 4,575 | 381 | Jul, 207 | Mar, 488 |
+| Bengaluru | 4,557 | 380 | Jul, 289 | Mar, 477 |
+| Pune | 4,541 | 378 | Jul, 226 | Jan, 476 |
+| Hyderabad | 4,525 | 377 | Jul, 258 | Mar, 462 |
+| Chennai | 4,483 | 374 | Nov, 315 | Mar, 461 |
+| Bhubaneswar | 4,307 | 359 | Jul, 252 | Mar, 444 |
+| Kolkata | 4,252 | 354 | Jul, 245 | Mar, 446 |
+| Kochi | 4,007 | 334 | Jun, 228 | Jan, 446 |
+| Guwahati | 3,986 | 332 | Jun, 236 | Mar, 416 |
+
+PVGIS uses satellite and reanalysis weather data (ERA5) for 2005–2023, so these figures are long-run averages, not a forecast for any one year. Chennai's weakest month is November because of the north-east monsoon.
+
+## Is the "300 units a month" figure right?
+
+PIB's PM Surya Ghar factsheet says "a 3-kW system can generate over 300 units per month on average". The scheme's "up to 300 units free" message is built on it.
+
+On PVGIS's numbers, it is a **fair, slightly cautious annual average** for every city in the table. But it is not true every month. In Mumbai, Pune, Ahmedabad and Kolkata, July output for a 3 kW system is well under 300 units. If your bill is highest in summer, this works in your favour. If you plan around a steady 300 units, expect monsoon bills to rise.
+
+KERC's own assumption for Karnataka home solar is a **19% capacity utilisation factor**. That works out to 0.19 × 8,760 hours ≈ 1,664 units per kW per year, a little above PVGIS's 1,519 for Bengaluru.
+
+## How many units per day?
+
+Divide the annual figure by 365. A 3 kW system in Delhi averages about 13 units a day, and one in Kolkata about 12. Per kW, Indian cities average roughly **3.6 to 4.6 units a day** across the year.
+
+## What reduces output on a real roof?
+
+PVGIS assumes an ideal setup. Real systems lose output to:
+
+- **Shade** from water tanks, parapets, trees and taller buildings. Even partial shade on one panel can cut a string's output.
+- **Orientation and tilt.** Flat-mounted or north-leaning panels produce less. Many Indian roofs use a fixed tilt that is not optimal.
+- **Dust.** Panels in dry, dusty areas need regular cleaning. MNRE requires vendors to provide five years of free maintenance.
+- **Heat.** Panels lose efficiency in high temperatures. PVGIS includes a temperature model, but rooftop ventilation matters.
+- **Inverter sizing and outages.** On-grid systems switch off during power cuts. See [On-grid vs hybrid vs off-grid](/in/guides/on-grid-vs-hybrid-vs-off-grid).
+
+Ask your vendor for a generation estimate, and compare it with the table above. A quote far above PVGIS for your city deserves a hard question.
+
+## How should I size my system?
+
+MNRE's leaflet suggests 1–2 kW for 0–150 units a month, 2–3 kW for 150–300, and above 3 kW for higher use. Using the table:
+
+1. Find your **average monthly units** from a year of bills.
+2. Divide by your city's **per-kW monthly average**, which is the 3 kW figure divided by 3. In Delhi that is about 135 units per kW.
+3. Round to a sensible size. Don't go far above your use, because surplus is often bought cheaply or, in Tamil Nadu under net metering, lapses on 31 March. See [Net metering by state](/in/guides/net-metering-by-state).
+
+The PM Surya Ghar subsidy stops growing at 3 kW (₹78,000). See [PM Surya Ghar subsidy 2026](/in/guides/pm-surya-ghar-subsidy-2026).
+
+## What are those units worth?
+
+That depends entirely on your tariff slab. In Maharashtra a unit used can save over ₹19 at the top slab. On subsidised low slabs it may save under ₹3. See [Is rooftop solar worth it in India in 2026?](/in/guides/is-rooftop-solar-worth-it-india) and [MSEDCL tariff 2026-27](/in/guides/msedcl-tariff-2026-27-solar).
+
+Generation figures from EU JRC PVGIS 5.3, retrieved 22 November 2026.
