@@ -3,13 +3,13 @@
  * proxy (src/lib/server/pvgis.ts): equator-facing (north in the southern hemisphere) at PVGIS's optimal tilt, 1 kWp,
  * v5_3 pinned. This replaces the pack's own yield rows, which for AU were fetched with a flat / wrong azimuth.
  *
- *   npm run places:fetch-yield -- --dir <packs dir> [--country gb|de|au|es|ie|se|dk|no|fi|pl|cz|ro ...] [--losses 14] [--dry-run]
+ *   npm run places:fetch-yield -- --dir <packs dir> [--country gb|de|au|es|ie|se|dk|no|fi|pl|cz|ro|fr|nl ...] [--losses 14] [--dry-run]
  *
  * Writes <dir>/<cc>/places_coords.csv and <dir>/<cc>/places_yield.csv (facts.csv format) for scripts/places/import-pack.ts.
  * No keys needed (PVGIS and Wikidata are open). Sequential, ~8 requests per second, well under PVGIS's 30 per second.
  * Coordinates: AU from the pack's wiki_places.json; GB from the pack's own PVGIS rows (source matched in coords.json,
  * else Wikidata by GSS code); DE from Wikidata by municipality key (AGS, property P439).
- * ES, IE, SE, DK, NO, FI, PL, CZ, RO: the packs carry no coordinate source, so the coordinates the pack itself used for PVGIS
+ * ES, IE, SE, DK, NO, FI, PL, CZ, RO, FR, NL: the packs carry no coordinate source, so the coordinates the pack itself used for PVGIS
  * (raw/cities.csv, else the lat/lon in its own PVGIS request URL) are reused and stored WITHOUT a source: the place row then
  * has no coordinates (the table requires a source for any), while the yield fact cites the exact PVGIS request URL.
  */
@@ -108,7 +108,7 @@ async function pvgis(q: PvgisQuery): Promise<{ url: string; result: ReturnType<t
   return null;
 }
 
-const COUNTRIES: Record<string, PlaceCountryCode> = { gb: 'GB', de: 'DE', au: 'AU', es: 'ES', ie: 'IE', se: 'SE', dk: 'DK', no: 'NO', fi: 'FI', pl: 'PL', cz: 'CZ', ro: 'RO' };
+const COUNTRIES: Record<string, PlaceCountryCode> = { gb: 'GB', de: 'DE', au: 'AU', es: 'ES', ie: 'IE', se: 'SE', dk: 'DK', no: 'NO', fi: 'FI', pl: 'PL', cz: 'CZ', ro: 'RO', fr: 'FR', nl: 'NL' };
 for (const [dirName, cc] of Object.entries(COUNTRIES)) {
   if (only.size && !only.has(dirName)) continue;
   const root = join(dir, dirName);

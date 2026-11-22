@@ -11,11 +11,12 @@
  *   NO  /no/solceller/<fylke>/<by>                 FI  /fi/aurinkopaneelit/<maakunta>/<kaupunki>
  *   PL  /pl/fotovoltaika/<wojewodztwo>/<miasto>    CZ  /cz/fotovoltaika/<kraj>/<mesto>
  *   RO  /ro/panouri-fotovoltaice/<judet>/<oras>
+ *   FR  /fr/panneaux-solaires/<region>/<ville>     NL  /nl/zonnepanelen/<provincie>/<gemeente>
  *
  * Ireland also has a page per county at the hub URL (/ie/solar-payback/<county>): a place whose slug equals its region
  * slug (see `countyPages`). Such a page replaces the hub list at that URL.
  */
-export type PlaceCountryCode = 'GB' | 'DE' | 'AU' | 'ES' | 'IE' | 'SE' | 'DK' | 'NO' | 'FI' | 'PL' | 'CZ' | 'RO';
+export type PlaceCountryCode = 'GB' | 'DE' | 'AU' | 'ES' | 'IE' | 'SE' | 'DK' | 'NO' | 'FI' | 'PL' | 'CZ' | 'RO' | 'FR' | 'NL';
 
 export interface PlaceCountry {
   code: PlaceCountryCode;
@@ -49,6 +50,8 @@ export const PLACE_COUNTRIES: readonly PlaceCountry[] = [
   { code: 'PL', segment: 'pl', topic: 'fotovoltaika', locale: 'pl-PL', htmlLang: 'pl', currency: 'PLN', facing: 'south', articleCountry: 'pl' },
   { code: 'CZ', segment: 'cz', topic: 'fotovoltaika', locale: 'cs-CZ', htmlLang: 'cs', currency: 'CZK', facing: 'south', articleCountry: 'cz' },
   { code: 'RO', segment: 'ro', topic: 'panouri-fotovoltaice', locale: 'ro-RO', htmlLang: 'ro', currency: 'RON', facing: 'south', articleCountry: 'ro' },
+  { code: 'FR', segment: 'fr', topic: 'panneaux-solaires', locale: 'fr-FR', htmlLang: 'fr', currency: 'EUR', facing: 'south', articleCountry: 'fr' },
+  { code: 'NL', segment: 'nl', topic: 'zonnepanelen', locale: 'nl-NL', htmlLang: 'nl', currency: 'EUR', facing: 'south', articleCountry: 'nl' },
 ];
 
 export const placeCountryBySegment = (segment: string): PlaceCountry | null => PLACE_COUNTRIES.find((c) => c.segment === segment) ?? null;

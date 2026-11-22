@@ -25,6 +25,14 @@ const NORDIC_CEE: readonly { id: SectionId; keys: readonly string[] }[] = [
   { id: 'dwellings', keys: ['one_dwelling_share_pct'] },
 ];
 
+/** France (INSEE RP 2023 by commune, ODRE register) and the Netherlands (CBS StatLine by gemeente): the figure is the place's own. */
+const COMMUNE_LEVEL: readonly { id: SectionId; keys: readonly string[] }[] = [
+  { id: 'yield', keys: ['solar_yield_kwh_per_kwp', 'solar_yield_monthly_kwh_per_kwp'] },
+  { id: 'ownership', keys: ['owner_occupied_share_pct'] },
+  { id: 'dwellings', keys: ['house_share_pct'] },
+  { id: 'installs', keys: ['pv_installations_cumulative', 'pv_capacity_mw_cumulative'] },
+];
+
 export const SECTION_KEYS: Readonly<Record<PlaceCountryCode, readonly { id: SectionId; keys: readonly string[] }[]>> = {
   GB: [
     { id: 'yield', keys: ['solar_yield_kwh_per_kwp', 'solar_yield_monthly_kwh_per_kwp'] },
@@ -63,6 +71,7 @@ export const SECTION_KEYS: Readonly<Record<PlaceCountryCode, readonly { id: Sect
   ],
   // Nordic and CEE: Eurostat Census 2021 by NUTS region (ownership: NUTS2, one-dwelling buildings: NUTS3), both shown with their area.
   SE: NORDIC_CEE, DK: NORDIC_CEE, NO: NORDIC_CEE, FI: NORDIC_CEE, PL: NORDIC_CEE, CZ: NORDIC_CEE, RO: NORDIC_CEE,
+  FR: COMMUNE_LEVEL, NL: COMMUNE_LEVEL,
 };
 
 /** Label-only keys that are shown next to a section but never make a section count on their own. */

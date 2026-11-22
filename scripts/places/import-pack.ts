@@ -6,7 +6,10 @@
  *
  *   npm run places:import -- --dir <packs dir> --dry-run     # plan + 3-section gate report, no network, no env
  *   npm run places:import -- --dir <packs dir>               # needs SUPABASE_URL + SUPABASE_SECRET_KEY
- *   options: --country gb|de|au|es|ie|se|dk|no|fi|pl|cz|ro (repeatable)
+ *   options: --country gb|de|au|es|ie|se|dk|no|fi|pl|cz|ro|fr|nl (repeatable)
+ *
+ * FR and NL: `npm run places:fetch-local` writes <dir>/<cc>/places_local.csv (INSEE / ODRE / CBS figures per place, facts.csv format),
+ * which is read together with facts.csv.
  *
  * Optional pack files written by `npm run places:fetch-yield`: <dir>/<cc>/places_coords.csv, places_yield.csv. Their PVGIS
  * rows replace the pack's own yield rows. Run the fetch first (the dry run then reports the real gate numbers).
@@ -23,7 +26,7 @@ const dir = arg('dir')[0] ?? process.env.RVPLAN_COUNTRIES_DIR;
 const dry = process.argv.includes('--dry-run');
 const only = new Set(arg('country'));
 if (!dir || !existsSync(dir)) {
-  console.error('usage: import-pack --dir <countries dir> [--dry-run] [--country gb|de|au|es|ie|se|dk|no|fi|pl|cz|ro]');
+  console.error('usage: import-pack --dir <countries dir> [--dry-run] [--country gb|de|au|es|ie|se|dk|no|fi|pl|cz|ro|fr|nl]');
   process.exit(2);
 }
 
@@ -36,14 +39,14 @@ if (!dry && (!env.SUPABASE_URL || !env.SUPABASE_SECRET_KEY)) {
 // Regions: from the database on a real run, from the migration seed on a dry run (no network).
 let regions: { country: string; code: string; name: string; slug: string }[];
 if (dry) {
-  regions = ['0033_places.sql', '0034_places_europe.sql'].flatMap((f) => regionsFromMigration(readFileSync(new URL(`../../supabase/migrations/${f}`, import.meta.url), 'utf8')));
+  regions = ['0033_places.sql', '0034_places_europe.sql', '0036_places_fr_nl.sql'].flatMap((f) => regionsFromMigration(readFileSync(new URL(`../../supabase/migrations/${f}`, import.meta.url), 'utf8')));
 } else {
   const rows = await selectAll<{ country: string; code: string; name: string; slug: string }>(env as never, 'regions', { select: 'country,code,name,slug', order: 'country,code' }, fetch, 5);
   if (!rows) throw new Error('could not read regions (are migrations 0033 and 0034 applied?)');
   regions = rows;
 }
 
-const COUNTRIES: Record<string, PlaceCountryCode> = { gb: 'GB', de: 'DE', au: 'AU', es: 'ES', ie: 'IE', se: 'SE', dk: 'DK', no: 'NO', fi: 'FI', pl: 'PL', cz: 'CZ', ro: 'RO' };
+const COUNTRIES: Record<string, PlaceCountryCode> = { gb: 'GB', de: 'DE', au: 'AU', es: 'ES', ie: 'IE', se: 'SE', dk: 'DK', no: 'NO', fi: 'FI', pl: 'PL', cz: 'CZ', ro: 'RO', fr: 'FR', nl: 'NL' };
 const plans: CountryPlan[] = [];
 for (const [d, cc] of Object.entries(COUNTRIES)) {
   if (only.size && !only.has(d)) continue;
@@ -51,11 +54,12 @@ for (const [d, cc] of Object.entries(COUNTRIES)) {
   const read = (f: string): string | null => (existsSync(join(root, f)) ? readFileSync(join(root, f), 'utf8') : null);
   const pages = read('pages.csv');
   const facts = read('facts.csv');
+  const local = read('places_local.csv');
   if (!pages || !facts) { console.warn(`skip ${cc}: pages.csv / facts.csv missing in ${root}`); continue; }
   const yieldCsv = read('places_yield.csv');
   const coordsCsv = read('places_coords.csv');
   if (!yieldCsv) console.warn(`${cc}: no places_yield.csv; using the pack's own yield rows (run places:fetch-yield for PVGIS monthly data and the chart)`);
-  plans.push(planCountry(cc, parsePackPlaces(cc, pages), regions, packFactsFromCsv(facts), yieldCsv ? packFactsFromCsv(yieldCsv) : [], coordsCsv ? coordsFromCsv(coordsCsv) : []));
+  plans.push(planCountry(cc, parsePackPlaces(cc, pages), regions, [...packFactsFromCsv(facts), ...(local ? packFactsFromCsv(local) : [])], yieldCsv ? packFactsFromCsv(yieldCsv) : [], coordsCsv ? coordsFromCsv(coordsCsv) : []));
 }
 
 console.log(dry ? 'DRY RUN (no database access)' : 'IMPORT');
