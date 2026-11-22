@@ -112,6 +112,7 @@ export const absoluteUrl = (path: string, origin = SITE_ORIGIN): string => `${or
 /** Curated entries for the static, indexable pages that are not content-collection articles. */
 export const STATIC_INDEX: Readonly<Record<string, { title: string; summary: string; section: Section }>> = {
   '/': { title: 'RayValue', summary: PAGE_META.home.description, section: 'home' },
+  '/us': { title: 'RayValue: United States', summary: PAGE_META.us.description, section: 'home' },
   '/quotes': { title: PAGE_META.quotes.title, summary: PAGE_META.quotes.description, section: 'about' },
   '/methodology': { title: PAGE_META.methodology.title, summary: PAGE_META.methodology.description, section: 'about' },
   '/stories': { title: PAGE_META.stories.title, summary: PAGE_META.stories.description, section: 'about' },

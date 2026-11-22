@@ -98,7 +98,9 @@ describe('static entries', () => {
 describe('sitemaps', () => {
   it('splits into <cc>-<type> files and an index listing only non-empty ones', async () => {
     const { index, files } = renderSitemaps(await build());
-    expect([...files.keys()]).toEqual(['sitemap-global-pages.xml', 'sitemap-us-articles.xml', 'sitemap-us-calculators.xml', 'sitemap-us-cities.xml', 'sitemap-us-utilities.xml']);
+    expect([...files.keys()]).toEqual(['sitemap-global-pages.xml', 'sitemap-us-articles.xml', 'sitemap-us-calculators.xml', 'sitemap-us-cities.xml', 'sitemap-us-pages.xml', 'sitemap-us-utilities.xml']);
+    expect(files.get('sitemap-global-pages.xml')).toContain('<loc>https://rayvalue.com/</loc>');
+    expect(files.get('sitemap-us-pages.xml')).toContain('<loc>https://rayvalue.com/us</loc>');
     for (const name of files.keys()) expect(index).toContain(`<loc>https://rayvalue.com/${name}</loc>`);
     expect(files.get('sitemap-us-cities.xml')).toContain('<lastmod>2026-10-20</lastmod>');
     expect(files.get('sitemap-us-cities.xml')).not.toContain('draftville');

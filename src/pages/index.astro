@@ -1,74 +1,62 @@
 ---
-import { PAGE_META } from '../lib/seo/page-meta';
+// Global home. Everything here is computed from the content collections and the place index: no typed-in counts, rates or dates.
+// On demand (like the country hubs) because place counts come from the database; failure just hides the place counts.
+export const prerender = false;
+
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { PAGE_META } from '../lib/seo/page-meta';
 import { ogImagePath } from '../lib/seo/og';
-import { btnPrimary, btnText } from '../components/ui/buttons';
-import UtilityLinks from '../components/utility/UtilityLinks.astro';
-import Icon, { type IconName } from '../components/icons/Icon';
-import { Picture } from 'astro:assets';
-import heroPhoto from '../assets/photos/ca-home-tile-roof-solar.jpg';
-import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
-import StoryCards from '../components/stories/StoryCards.astro';
-import Faq from '../components/Faq.astro';
-import { HOME_FAQ_IDS, faqItems } from '../lib/content/faq';
-import { faqJsonLd } from '../lib/seo/jsonld';
-import { publishedGuides } from '../lib/guides';
-import { CONTACT_EMAIL } from '../lib/contact';
-import { articlePath } from '../lib/content/paths';
+import { btnPrimary, btnSecondary } from '../components/ui/buttons';
+import { loadPlaceIndexEntries } from '../lib/places/index-entries';
+import { publishedCityLinks } from '../lib/seo/city-links';
+import { DB_PAGE_CACHE_HEADERS } from '../lib/db/repo';
+import { buildCountryCards, cardCounts, deadlineLinks, groupByRegion, latestGuideLinks, liveCalculators, type HomeArticle, type PlaceCounts } from '../lib/home/global-home';
 
-import { countryName, hubIndexable, hubItemCount, hubPath } from '../lib/content/country-nav';
-import { loadCountryCounts } from '../lib/country-nav-load';
-
-const faq = faqItems(HOME_FAQ_IDS);
-// Country hubs that are indexable from published articles alone (the hub page may add place hubs on top).
-const countries = [...(await loadCountryCounts()).entries()]
-  .filter(([, c]) => hubIndexable(hubItemCount(c)))
-  .map(([seg]) => ({ href: hubPath(seg), name: countryName(seg) }))
-  .sort((a, b) => a.name.localeCompare(b.name));
-const guides = (await publishedGuides()).sort((a, b) => b.data.updated.getTime() - a.data.updated.getTime()).slice(0, 5);
+const [guides, posts, places, cities] = await Promise.all([
+  getCollection('guides', (e) => !e.data.draft),
+  getCollection('blog', (e) => !e.data.draft),
+  loadPlaceIndexEntries(),
+  publishedCityLinks(),
+]);
+const articles: HomeArticle[] = [
+  ...guides.map((e): HomeArticle => ({ collection: 'guides', id: e.id, route: e.data.route, country: e.data.country, lang: e.data.lang, title: e.data.title, description: e.data.description, published: e.data.published, updated: e.data.updated, noindex: e.data.noindex })),
+  ...posts.map((e): HomeArticle => ({ collection: 'blog', id: e.id, country: e.data.country, lang: e.data.lang, title: e.data.title, description: e.data.description, published: e.data.published, updated: e.data.updated, noindex: e.data.noindex })),
+];
+const placeCounts: Record<string, PlaceCounts> = {};
+if (places.ok) {
+  for (const e of places.value) {
+    if (e.type !== 'places') continue;
+    const c = (placeCounts[e.country] ??= { places: 0, hubs: 0 });
+    if (e.placeKind === 'hub') c.hubs += 1; else c.places += 1;
+  }
+  for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
+} else {
+  Astro.response.headers.set('Cache-Control', 'no-store');
+}
+const groups = groupByRegion(buildCountryCards(articles, placeCounts, { places: cities.length }));
+const calculators = liveCalculators();
+const deadlines = deadlineLinks(articles);
+const latest = latestGuideLinks(articles, 6, 1);
 const link = 'text-sun-ink underline underline-offset-2 hover:text-stone-900';
-const trust = ['Free', 'No sign-up for the calculator', 'Every assumption shown', 'Independent, not a utility'];
-const forYou = [
-  { title: 'Free for homeowners', body: 'The calculator and quote requests cost you nothing, and you are never obligated to buy.' },
-  { title: 'Installers pay to be introduced', body: 'Installers pay RayValue for introductions to homeowners who ask to hear from them. That is how the site is funded.' },
-  { title: 'You choose who contacts you', body: 'You decide whether to request quotes at all. If you do, the consent wording names the installers who may contact you, and you can opt out at any time.' },
-];
-
-const states = [
-  { name: 'Florida', code: 'FL', icon: 'florida' as IconName, fact: 'Net metering \u00b7 tiered rates', href: '/us/solar-payback/florida', blurb: 'Florida utilities credit the solar you send to the grid through net metering, and we price it through your utility\u2019s own tiered rates. See what rooftop solar and a battery are worth on FPL, Duke Energy Florida or TECO.' },
-  { name: 'California', code: 'CA', icon: 'california' as IconName, fact: 'NEM 3.0 \u00b7 batteries matter', href: '/us/solar-payback/california', blurb: 'Export credits and self-consumption shape the math here. See how solar and a battery affect payback on PG&E, SCE or SDG&E.' },
-];
-const steps: { title: string; body: string; icon: IconName }[] = [
-  { icon: 'clipboard', title: 'Tell us about your home', body: 'Pick your state and utility, then enter your average monthly bill and whether you want a battery.' },
-  { icon: 'chart', title: 'We run the numbers', body: 'We size a system to your usage, estimate local sun, and apply your utility’s actual rate and export rules.' },
-  { icon: 'scale', title: 'See a realistic range', body: 'Get low, likely and high estimates for cost, savings and payback, with every assumption listed.' },
+const h2 = 'text-2xl font-bold tracking-tight text-stone-900';
+const trust = ['Free to use', 'No sign-up for the calculators', 'Every assumption shown', 'Independent, not a utility'];
+const method = [
+  { title: 'Official sources', body: 'Tariffs, export rates, grants and tax rules come from regulators, governments and utilities.' },
+  { title: 'Every number links to its source', body: 'Each figure shows where it came from and the date we last checked it. If we cannot verify a number, we leave it out.' },
+  { title: 'Ranges, not promises', body: 'Results are low, likely and high estimates, with the assumptions behind them listed in full.' },
 ];
 ---
-<BaseLayout
-  title={PAGE_META.home.title}
-  description={PAGE_META.home.description}
-  path="/"
-  ogImagePath={ogImagePath('home')}
-  jsonLd={[faqJsonLd(faq)]}
->
+<BaseLayout title={PAGE_META.home.title} description={PAGE_META.home.description} path="/" ogImagePath={ogImagePath('home')}>
   <section class="bg-gradient-to-b from-sun-100 to-stone-50">
-    <div class="shell grid items-center gap-8 pb-7 pt-14 sm:pb-10 sm:pt-20 lg:grid-cols-[3fr_2fr]">
-     <div>
-      <h1 class="max-w-(--container-prose) text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
-        See if solar pays off on your home &mdash; using your actual utility rates
-      </h1>
+    <div class="shell pb-10 pt-14 sm:pb-14 sm:pt-20">
+      <h1 class="max-w-(--container-prose) text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">Does solar pay off where you live?</h1>
       <p class="mt-5 max-w-(--container-prose) text-lg leading-8 text-stone-700">
-        The federal tax credit is gone, so we show Florida and California homeowners honest cost, savings and payback ranges from their own utility&rsquo;s rates.
+        Independent payback math from official tariffs, export rates and grants, country by country. Pick your country to see what changes, what it costs and what to do before a deadline.
       </p>
-      <div class="mt-6">
-        <div role="group" aria-labelledby="hero-state-label" class="flex flex-col gap-2">
-          <p id="hero-state-label" class="text-sm font-medium text-stone-700">Pick your state to start</p>
-          <div class="flex flex-col gap-2 sm:flex-row">
-            <a href="/us/solar-payback/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
-            <a href="/us/solar-payback/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
-          </div>
-        </div>
-        <p class="mt-2"><a href="/quotes?source=home" class={btnText}>Get installer quotes <span aria-hidden="true">&rarr;</span></a></p>
+      <div class="mt-6 flex flex-col gap-2 sm:flex-row">
+        <a href="#countries" class={btnPrimary}>Choose your country<span aria-hidden="true">&darr;</span></a>
+        <a href="#calculators" class={btnSecondary}>See the calculators</a>
       </div>
       <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-stone-800" aria-label="Why use RayValue">
         {trust.map((t) => (
@@ -80,132 +68,92 @@ const steps: { title: string; body: string; icon: IconName }[] = [
           </li>
         ))}
       </ul>
-     </div>
-     <div class="mx-auto w-full max-w-md lg:max-w-none">
-       <Picture
-         src={heroPhoto}
-         formats={['avif', 'webp']}
-         widths={[480, 768, 1100]}
-         sizes="(min-width: 1024px) 440px, (min-width: 480px) 448px, calc(100vw - 2rem)"
-         alt="Aerial view of a California home with dark solar panels on its red tile roof, palm trees and a backyard pool"
-         width={1100}
-         height={825}
-         loading="eager"
-         fetchpriority="high"
-         decoding="async"
-         class="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-md"
-       />
-     </div>
     </div>
   </section>
 
-  <section class="shell py-12" aria-labelledby="pick-state">
-    <h2 id="pick-state" class="text-2xl font-bold tracking-tight text-stone-900">Choose your state</h2>
-    <ul class="mt-6 grid gap-5 sm:grid-cols-2">
-      {states.map((s) => (
-        <li class="flex flex-col rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
-          <div class="flex items-center gap-3">
-            <Icon name={s.icon} size={32} class="text-stone-900" />
-            <div>
-              <h3 class="text-xl font-semibold text-stone-900">{s.name}</h3>
-              <p class="text-sm font-medium text-sun-ink">{s.fact}</p>
-            </div>
-          </div>
-          <p class="mt-2 flex-1 leading-7 text-stone-700">{s.blurb}</p>
-          <div class="mt-4"><UtilityLinks state={s.code as 'FL' | 'CA'} chips /></div>
-          <a href={s.href} class={`mt-3 w-fit ${btnPrimary}`}>
-            {s.name} calculator<span aria-hidden="true">&rarr;</span>
-          </a>
-          <a href={`/quotes?state=${s.code}&source=home`} class="mt-2 inline-flex min-h-11 w-fit items-center font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">
-            Get quotes in {s.name}<span aria-hidden="true" class="ml-1">&rarr;</span>
-          </a>
+  <section id="countries" class="shell scroll-mt-4 py-12" aria-labelledby="countries-heading">
+    <h2 id="countries-heading" class={h2}>Choose your country</h2>
+    <p class="mt-2 max-w-(--container-prose) text-stone-700">Each country has its own rules, rates and deadlines, so each has its own guides and local data. Counts below are what is published today.</p>
+    {groups.map((g, i) => (
+      <div class="mt-8" role="group" aria-labelledby={`region-${i}`}>
+        <h3 id={`region-${i}`} class="text-sm font-semibold uppercase tracking-wide text-stone-600">{g.region}</h3>
+        <ul class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {g.cards.map((c) => (
+            <li>
+              <a href={c.href} class="flex h-full min-h-11 flex-col rounded-xl border border-stone-200 bg-white p-4 no-underline shadow-sm transition-colors hover:border-sun-400 hover:bg-sun-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_countries" data-track-target={c.href}>
+                <span class="flex items-baseline justify-between gap-3">
+                  <span class="text-lg font-semibold text-stone-900">{c.name}</span>
+                  <span aria-hidden="true" class="text-sun-ink">&rarr;</span>
+                </span>
+                {c.localName && <span lang={c.localLang ?? undefined} class="text-sm text-stone-700">{c.localName}</span>}
+                <span class="mt-2 text-sm text-stone-700">{cardCounts(c)}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </section>
+
+  <section id="calculators" class="shell scroll-mt-4 pb-14" aria-labelledby="calculators-heading">
+    <h2 id="calculators-heading" class={h2}>Calculators</h2>
+    <p class="mt-2 max-w-(--container-prose) text-stone-700">Cost, savings and payback as low, likely and high ranges, using local rates. More countries are being added.</p>
+    <ul class="mt-6 grid gap-4 sm:grid-cols-3">
+      {calculators.map((c) => (
+        <li class="flex flex-col rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+          <p class="text-sm font-medium text-sun-ink">{c.country}</p>
+          <h3 class="mt-1 text-xl font-semibold text-stone-900">{c.label}</h3>
+          <p class="mt-1 flex-1 leading-7 text-stone-700">{c.fact}</p>
+          <a href={c.href} class={`mt-4 w-fit ${btnPrimary}`} data-track="nav_click" data-track-placement="home_calculators" data-track-target={c.href}>Open calculator<span aria-hidden="true">&rarr;</span></a>
         </li>
       ))}
     </ul>
   </section>
 
-  <section class="shell pb-16" aria-labelledby="how-it-works">
-    <h2 id="how-it-works" class="text-2xl font-bold tracking-tight text-stone-900">How it works</h2>
-    <ol class="mt-6 grid gap-5 sm:grid-cols-3">
-      {steps.map((s, i) => (
-        <li class="rounded-xl border border-stone-200 bg-white p-6">
-          <div class="flex items-center gap-3">
-            <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-sun-100 text-stone-900"><Icon name={s.icon} /></span>
-            <span class="text-sm font-bold text-sun-ink">Step {i + 1}</span>
-          </div>
-          <h3 class="mt-3 font-semibold text-stone-900">{s.title}</h3>
-          <p class="mt-2 leading-7 text-stone-700">{s.body}</p>
-        </li>
-      ))}
-    </ol>
-    <p class="mt-6 max-w-(--container-prose) text-stone-700">Curious about the details? Read our <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>.</p>
-  </section>
-
-  <section class="shell pb-16" aria-labelledby="for-you">
-    <h2 id="for-you" class="text-2xl font-bold tracking-tight text-stone-900">How RayValue works for you</h2>
-    <ul class="mt-6 grid gap-5 sm:grid-cols-3">
-      {forYou.map((c) => (
-        <li class="rounded-xl border border-stone-200 bg-white p-6">
-          <h3 class="font-semibold text-stone-900">{c.title}</h3>
-          <p class="mt-2 leading-7 text-stone-700">{c.body}</p>
-        </li>
-      ))}
-    </ul>
-    <p class="mt-6 max-w-(--container-prose) text-stone-700">See the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a>{!UNREVIEWED_PAGES.has('/about') && <> and <a href="/about" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">about RayValue</a></>}.</p>
-  </section>
-
-  {countries.length > 0 && (
-    <section aria-labelledby="countries-heading" class="shell pb-16">
-      <h2 id="countries-heading" class="text-2xl font-bold tracking-tight text-stone-900">Guides outside the United States</h2>
-      <ul class="mt-4 flex flex-wrap gap-x-6">
-        {countries.map((c) => <li><a href={c.href} class={`inline-flex min-h-11 items-center font-medium ${link}`}>{c.name}</a></li>)}
+  {deadlines.length > 0 && (
+    <section id="deadlines" class="shell scroll-mt-4 pb-14" aria-labelledby="deadlines-heading">
+      <h2 id="deadlines-heading" class={h2}>Deadlines that matter</h2>
+      <p class="mt-2 max-w-(--container-prose) text-stone-700">Rebates, tax treatment and net metering rules change on fixed dates. These guides explain what the date means for you.</p>
+      <ul class="mt-6 grid gap-4 sm:grid-cols-2">
+        {deadlines.map((d) => (
+          <li class="rounded-xl border border-stone-200 bg-white p-5">
+            <p class="text-sm font-medium text-sun-ink">{d.countryName}</p>
+            <a href={d.href} lang={d.lang} class="mt-1 inline-block text-lg font-semibold leading-snug text-stone-900 underline-offset-4 hover:text-sun-ink hover:underline" data-track="nav_click" data-track-placement="home_deadlines" data-track-target={d.href}>{d.title}</a>
+          </li>
+        ))}
       </ul>
     </section>
   )}
 
-  <section aria-labelledby="stories-heading" class="shell pb-16">
-    <h2 id="stories-heading" class="text-2xl font-bold tracking-tight text-stone-900">What&rsquo;s happened with solar in Florida and California</h2>
-    <p class="mt-2 mb-6 max-w-(--container-prose) text-stone-700">Publicly reported events, each linked to the original reporting.</p>
-    <StoryCards compact />
-    <p class="mt-5"><a href="/stories" class="font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">See all stories <span aria-hidden="true">&rarr;</span></a></p>
-  </section>
+  {latest.length > 0 && (
+    <section id="guides" class="shell scroll-mt-4 pb-14" aria-labelledby="guides-heading">
+      <h2 id="guides-heading" class={h2}>Latest guides</h2>
+      <ul class="mt-4 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+        {latest.map((g) => (
+          <li>
+            <a href={g.href} lang={g.lang} class="flex min-h-11 flex-col gap-0.5 px-4 py-3 text-stone-900 no-underline hover:bg-sun-50 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4" data-track="nav_click" data-track-placement="home_latest" data-track-target={g.href}>
+              <span class="font-medium">{g.title}</span>
+              <span lang="en" class="shrink-0 text-sm text-stone-700">{g.countryName}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="mt-3 text-stone-700">Every country has its own guide list: pick a country above.</p>
+    </section>
+  )}
 
-  <div class="shell grid gap-8 pb-16 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
-    <div>
-      <Faq items={faq} id="home-faq" />
-      <p class="mt-4 max-w-(--container-prose) text-stone-700">More questions? See the <a href="/quotes#quotes-faq" class={link}>questions about quotes and your contact details</a>, or read <a href="/guides/solar-lease-vs-buy" class={link}>solar lease vs buy</a>.</p>
-    </div>
-    <aside aria-label="Guides and help" class="flex flex-col gap-5 lg:sticky lg:top-6 lg:mt-14 lg:self-start">
-      {guides.length > 0 && (
-        <section aria-labelledby="faq-guides" class="rounded-xl border border-stone-200 bg-white p-5">
-          <h3 id="faq-guides" class="font-semibold text-stone-900">Read the guides</h3>
-          <ul class="mt-3 divide-y divide-stone-100">
-            {guides.map((g) => (
-              <li><a href={articlePath('guides', g.id, g.data.route)} class="flex min-h-11 items-center justify-between gap-3 py-2 text-stone-800 hover:text-sun-ink">{g.data.title}<span aria-hidden="true" class="text-sun-ink">&rarr;</span></a></li>
-            ))}
-          </ul>
-          <a href="/guides" class={`mt-2 inline-flex min-h-11 items-center font-medium ${link}`}>All guides</a>
-        </section>
-      )}
-      <section aria-labelledby="faq-help" class="rounded-xl border border-sun-300 bg-sun-50 p-5">
-        <h3 id="faq-help" class="font-semibold text-stone-900">Still have a question?</h3>
-        <p class="mt-2 leading-7 text-stone-700">Every rate, cost and assumption the calculator uses is listed on the <a href="/methodology" class={link}>methodology page</a>.</p>
-        {CONTACT_EMAIL
-          ? <p class="mt-2 leading-7 text-stone-700">Or email us at <a href={`mailto:${CONTACT_EMAIL}`} class={`break-all ${link}`}>{CONTACT_EMAIL}</a>.</p>
-          : <p class="mt-2 leading-7 text-stone-700">Or <a href="/contact" class={link}>contact us</a>.</p>}
-      </section>
-    </aside>
-  </div>
-
-  <section aria-labelledby="closing-cta" class="shell pb-16">
+  <section class="shell pb-16" aria-labelledby="method-heading">
     <div class="rounded-2xl border border-sun-300 bg-sun-50 p-6 sm:p-8">
-      <h2 id="closing-cta" class="text-2xl font-bold tracking-tight text-stone-900">Ready to see your numbers?</h2>
-      <p class="mt-2 max-w-(--container-prose) text-stone-800">It takes about a minute, it&rsquo;s free, and no federal tax credit is assumed.</p>
-      <div class="mt-5 flex flex-col gap-2 sm:flex-row">
-        <a href="/us/solar-payback/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
-        <a href="/us/solar-payback/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
-      </div>
-      <p class="mt-3"><a href="/quotes?source=home" class={btnText}>or get installer quotes</a></p>
+      <h2 id="method-heading" class={h2}>How we keep the numbers honest</h2>
+      <ul class="mt-5 grid gap-5 sm:grid-cols-3">
+        {method.map((m) => (
+          <li>
+            <h3 class="font-semibold text-stone-900">{m.title}</h3>
+            <p class="mt-1 leading-7 text-stone-800">{m.body}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="mt-5 text-stone-800">Read the <a href="/methodology" class={link}>methodology</a>. RayValue is an independent site, not a utility or a government agency. See the <a href="/affiliate-disclosure" class={link}>affiliate disclosure</a> for how the site is funded.</p>
     </div>
   </section>
 </BaseLayout>

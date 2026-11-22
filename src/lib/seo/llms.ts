@@ -24,8 +24,8 @@ const bySection = (entries: readonly IndexEntry[], section: IndexEntry['section'
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 const INTRO = [
-  '> RayValue publishes independent solar and home-battery payback calculators for homeowners in Florida and California.',
-  '> Results are low / likely / high ranges, not single numbers. The federal residential solar credit (25D) is $0 for 2026+ installs and is never applied.',
+  '> RayValue publishes independent solar and home-battery payback calculators and guides for homeowners worldwide, country by country: the United States (Florida and California), the United Kingdom and many other countries.',
+  '> Results are low / likely / high ranges, not single numbers. Rates, tariffs, grants and tax rules come from regulators, public agencies and utilities. In the US the federal residential solar credit (25D) is $0 for 2026+ installs and is never applied.',
   `> Every rate, cost and assumption is listed with its source and check date on ${SITE_ORIGIN}/methodology.`,
 ];
 
@@ -89,6 +89,8 @@ export function renderCountryLlms(entries: readonly IndexEntry[], cc: Country, o
     '',
     `Coverage (computed from the database): ${plural(states.length, 'state')}, ${plural(utilities.length, 'utility page')}, ${plural(cities.length, 'city page')}${newest ? `; newest data check ${newest}` : ''}.`,
   ];
+  const homeUs = bySection(mine, 'home');
+  if (homeUs.length) lines.push('', '## Country home', ...homeUs.map((e) => link(e, origin)));
   const calcs = bySection(mine, 'calculators');
   if (calcs.length) lines.push('', '## Calculators', ...calcs.map((e) => link(e, origin)));
   if (utilities.length) {
