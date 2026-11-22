@@ -8,6 +8,7 @@ export const UNREVIEWED_PAGES: ReadonlySet<string> = new Set([
   '/affiliate-disclosure',
   '/privacy',
   '/credits',
-  // UK calculator: reachable from the /uk hub, guides and place pages, but out of the sitemap (and noindex while markets.published is
-  // false) until the owner has reviewed the GB data and flips the market live.
+  // German and Australian calculators: hidden until the owner reviews the DE / AU data and flips the market live.
+  '/de/photovoltaik-rechner',
+  '/au/solar-battery-calculator',
 ]);
