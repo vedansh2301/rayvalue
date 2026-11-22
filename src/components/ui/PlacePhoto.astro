@@ -16,14 +16,14 @@ interface Props {
   widths?: number[];
   credit?: 'link' | 'text' | 'none';
   /** Where the credit sits inside the parent. */
-  creditAt?: 'bottom-right' | 'bottom-left' | 'top-right';
+  creditAt?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
   class?: string;
   alt?: string;
 }
 const { photo, sizes, eager = false, widths = [480, 768, 1100, 1600, 2200], credit = 'text', creditAt = 'bottom-right', class: cls = '', alt } = Astro.props;
 const w = widths.filter((x) => x <= photo.src.width);
 const show = credit !== 'none' && needsVisibleCredit(photo);
-const pos = { 'bottom-right': 'bottom-1.5 right-1.5', 'bottom-left': 'bottom-1.5 left-1.5', 'top-right': 'top-1.5 right-1.5' }[creditAt];
+const pos = { 'bottom-right': 'bottom-1.5 right-1.5', 'bottom-left': 'bottom-1.5 left-1.5', 'top-right': 'top-1.5 right-1.5', 'top-left': 'top-1.5 left-1.5' }[creditAt];
 const pill = `absolute ${pos} z-20 max-w-[calc(100%-0.75rem)] truncate rounded bg-stone-950/75 px-1.5 py-0.5 text-[11px] leading-4 text-white`;
 ---
 <Picture
