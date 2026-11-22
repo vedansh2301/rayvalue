@@ -21,8 +21,8 @@ export interface UtilityPageMeta {
 export const UTILITY_PAGES: readonly UtilityPageMeta[] = [
   {
     slug: 'fpl', utilityId: 'fpl', state: 'FL', short: 'FPL',
-    title: 'Solar payback with FPL in 2026: no tax credit',
-    description: 'How rooftop solar and a battery pay back on FPL rates in 2026 with no federal tax credit: rate rules, net metering and worked examples for three bill sizes.',
+    title: 'FPL Solar Payback, Rates and Net Metering',
+    description: 'See how Florida Power & Light rates, bill charges and net metering affect rooftop solar savings. Compare examples with and without a battery for your home.',
   },
   {
     slug: 'duke-energy-florida', utilityId: 'duke-fl', state: 'FL', short: 'Duke Energy Florida',
@@ -46,8 +46,8 @@ export const UTILITY_PAGES: readonly UtilityPageMeta[] = [
   },
   {
     slug: 'sdge', utilityId: 'sdge', state: 'CA', short: 'SDG&E',
-    title: 'Solar payback with SDG&E in 2026: no tax credit',
-    description: 'How rooftop solar and a battery pay back on SDG&E rates in 2026 with no federal tax credit: time-of-use rates, NEM 3.0 export credits and worked examples.',
+    title: 'SDG&E Solar Billing Plan and Battery Payback',
+    description: 'See how SDG&E’s Solar Billing Plan values exports and charges for electricity. Compare rooftop solar and battery payback under San Diego time-of-use rates.',
   },
 ];
 

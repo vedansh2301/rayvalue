@@ -15,12 +15,12 @@ const faq = faqItems(QUOTES_FAQ_IDS);
 // Static shell; the form is a small island. ?state=FL|CA, ?zip= and ?source= prefill it (read in the browser).
 const trust: { icon: IconName; text: string }[] = [
   { icon: 'shield', text: 'No obligation' },
-  { icon: 'users', text: 'Up to 3 local installers' },
+  { icon: 'users', text: 'Availability depends on your ZIP code' },
   { icon: 'lock', text: 'Shared only with the installers you agree to hear from' },
 ];
 const steps: { icon: IconName; short: string; long: string }[] = [
   { icon: 'home', short: 'Tell us about your home', long: 'Tell us about your home' },
-  { icon: 'users', short: 'Up to 3 installers reach out', long: 'Up to 3 local installers reach out' },
+  { icon: 'users', short: 'Check local availability', long: 'See which installers serve your ZIP code' },
   { icon: 'scale', short: 'Compare and choose', long: 'Compare and choose' },
 ];
 ---
@@ -33,8 +33,8 @@ const steps: { icon: IconName; short: string; long: string }[] = [
 >
   <div class="shell pb-16 pt-8 sm:pt-10">
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Get quotes' }]} />
-    <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">Get free solar quotes</h1>
-    <p class="mt-2 text-lg text-stone-700 sm:hidden">Takes about a minute. Free, no obligation.</p>
+    <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">Free solar quotes in Florida and California</h1>
+    <p class="mt-2 text-lg text-stone-700 sm:hidden">Enter your ZIP code to check local availability. Free, with no obligation to buy.</p>
     <div class="mt-6 grid gap-6 lg:grid-cols-[2fr_3fr] lg:items-start lg:gap-10">
       <aside aria-label="How quotes work" class="order-last lg:order-none lg:sticky lg:top-6">
         <div class="hidden lg:block">
@@ -72,8 +72,8 @@ const steps: { icon: IconName; short: string; long: string }[] = [
     </div>
     <div class="max-w-(--container-prose)">
       <p class="mt-6 text-stone-700">
-        Want a number first? Try the <a href="/us/solar-payback/florida" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">Florida</a> or{" "}
-        <a href="/us/solar-payback/california" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">California</a> payback calculator.
+        Estimate your costs and bill savings first with the <a href="/us/solar-payback/florida" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">Florida solar calculator</a> or the{" "}
+        <a href="/us/solar-payback/california" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">California solar calculator</a>. Use our <a href="/guides/how-to-compare-solar-quotes" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">solar quote checklist</a> to compare equipment, cash prices and warranties.
       </p>
       <div class="mt-12">
         <Faq items={faq} id="quotes-faq" />
