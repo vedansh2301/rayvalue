@@ -23,7 +23,7 @@ const seeAll = t.seeAll.replace('{n}', String(items.length));
       {items.map((i) => (
         <li>
           <a href={i.href} aria-current={i.current ? 'true' : undefined} data-track="nav_click" data-track-placement="header_switcher" data-track-target={i.href} class:list={['flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-xl border p-1.5 text-center text-xs font-semibold leading-tight no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900', i.current ? 'border-sun-500 bg-sun-100 text-stone-900' : 'border-sky-pastel-300 bg-sky-pastel-50 text-stone-800 hover:border-sky-pastel-600 hover:bg-white']}>
-            <CountryOutline segment={i.segment} class:list={['h-7 w-7', i.current ? 'fill-sun-400 stroke-sun-ink' : 'fill-white stroke-sky-pastel-600']} />
+            <CountryOutline segment={i.segment} class:list={['h-7 w-7', i.current ? 'fill-sun-400 stroke-sun-ink' : 'fill-sky-pastel-200 stroke-sky-pastel-600']} />
             <span>{i.name}</span>
           </a>
         </li>
