@@ -11,6 +11,10 @@ import { PAGE_META } from '../../lib/seo/page-meta';
 import { displayDate } from '../../lib/dates';
 import { groupByCountry, type IndexArticle } from '../../lib/content/global-index';
 import { btnPrimary } from '../ui/buttons';
+import ArticleCard from '../home/ArticleCard.astro';
+import { articlePath } from '../../lib/content/paths';
+import type { ImageMetadata } from 'astro';
+import { coverTopic, stateKey, type StateKey, type Topic } from '../../lib/content/cards';
 
 interface Props { kind: 'guides' | 'blog' }
 const { kind } = Astro.props;
@@ -26,6 +30,12 @@ const articles: IndexArticle[] = entries.map((e) => ({
   updated: e.data.updated,
 }));
 const groups = groupByCountry(kind, articles);
+// Cover photo (frontmatter) and topic per article, keyed by its URL, so cards show real covers where they exist.
+const coverByHref = new Map(entries.map((e) => {
+  const d = e.data as { route?: string; cover?: ImageMetadata; coverAlt?: string; topic?: Topic; tags?: string[]; state?: StateKey; title: string; country: string };
+  return [articlePath(kind, e.id, d.route, d.country), { cover: d.cover, coverAlt: d.cover ? '' : undefined, topic: coverTopic({ topic: d.topic, tags: d.tags, title: d.title, state: d.state }), state: stateKey(d.state) }] as const;
+}));
+const tag = kind === 'guides' ? 'Guide' : 'Post';
 const total = articles.length;
 const noun = kind === 'guides' ? 'guide' : 'post';
 const heading = kind === 'guides' ? 'Guides from every country' : 'Blog from every country';
@@ -73,13 +83,10 @@ const plural = (n: number) => `${n} ${n === 1 ? noun : `${noun}s`}`;
                 <a href={g.segment === 'us' ? '/us' : `/${g.segment}`} class="inline-flex min-h-11 items-center font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">{g.name} overview</a>
               </p>
             </div>
-            <ul class="divide-y divide-stone-200">
+            <ul class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {shown(g).map((i) => (
                 <li>
-                  <a href={i.href} lang={i.lang} class="group block min-h-11 py-3 no-underline" data-track="nav_click" data-track-placement={`${kind}_index`} data-track-target={i.href}>
-                    <span class="block font-semibold leading-snug text-stone-900 group-hover:text-sun-ink group-hover:underline underline-offset-4">{i.title}</span>
-                    <span class="mt-1 line-clamp-2 block max-w-3xl text-sm leading-6 text-stone-700">{i.description}</span>
-                  </a>
+                  <ArticleCard href={i.href} title={i.title} description={i.description} lang={i.lang} segment={g.segment} countryName={g.name} tag={tag} compact placement={`${kind}_index`} {...coverByHref.get(i.href)!} />
                 </li>
               ))}
             </ul>
