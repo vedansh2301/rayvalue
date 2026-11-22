@@ -1,0 +1,94 @@
+---
+title: "Is solar worth it in Jamaica in 2026?"
+seoTitle: "Is solar worth it in Jamaica in 2026? Real numbers"
+description: "For most Jamaican homes that use power during the day, yes. Electricity is expensive, the sun is strong (about 1,620 to 1,660 kWh per kWp a year) and every solar kWh you use yourself avoids JPS charges worth far more than the net billing export rate."
+country: jm
+lang: en-JM
+published: 2026-11-22
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: sun
+sources:
+  - title: "JPS Annual Report 2025 (statistics, operational performance, Hurricane Melissa)"
+    url: "https://cdn.jamstockex.com/pd/2026/05/JPS-ar-2025-WEB-2.pdf"
+  - title: "OUR public notice 2026/ELE/001.PUN.001: validated net billing energy rates, 2025 September to December"
+    url: "https://our.org.jm/wp-content/uploads/2026/02/Net-Billing.pdf"
+  - title: "EU JRC PVGIS 5.3: annual output per kWp, Kingston"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=17.971&lon=-76.793&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: annual output per kWp, Mandeville"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=18.042&lon=-77.507&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+faq:
+  - question: "Is solar worth it in Jamaica?"
+    answer: "For most homes that use power during the day, yes. JPS earned about US$0.37 per kWh from residential customers in 2025, about J$59 at its average billing exchange rate, and 1 kWp of panels produces about 1,658 kWh a year in Kingston according to PVGIS. Exports earn less, so size the system to your daytime use."
+  - question: "How much solar do I need for an average Jamaican home?"
+    answer: "The average JPS residential customer used 1,817 kWh in 2025. At about 1,658 kWh per kWp a year in Kingston, a system of roughly 1 to 1.5 kWp would match that on paper. Homes with air conditioning or pumps use more and need more."
+  - question: "Does solar help during outages in Jamaica?"
+    answer: "A grid-tied system without a battery shuts off during an outage for safety. To keep power during outages like those after Hurricane Melissa, you need a battery and a hybrid inverter."
+todo:
+  - "Add installed cost per kWp in Jamaica from a dated, citable source to give a payback range."
+  - "Add current JPS Rate 10 tariff blocks and fuel charge from the OUR tariff schedule."
+  - "Check GCT and import duty treatment of PV equipment with Jamaica Customs."
+  - "Refetch PVGIS Montego Bay (connection reset on 2026-11-22)."
+---
+
+For most Jamaican homes that use electricity during the day, solar is worth it in 2026. Power from JPS is expensive: in 2025 it earned an average of US$0.37 per kWh from residential customers, about J$59 at its average billing exchange rate. The sun is strong, with 1 kWp of panels producing about 1,658 kWh a year in Kingston according to PVGIS. The best results come from sizing the system to what you use while the sun is up, because power you export is bought back at a much lower rate.
+
+## Key numbers
+
+- **US$0.37 per kWh**: JPS average revenue per kWh from residential customers in 2025, about J$59 at the J$159.64 average billing exchange rate (JPS Annual Report 2025).
+- **1,817 kWh**: average annual use per residential customer in 2025, across about 635,000 residential customers.
+- **1,658 kWh per kWp a year** in Kingston and **1,624** in Mandeville (PVGIS 5.3, ERA5 database, retrieved 2026-11-22).
+- **J$19.17 to J$29.23 per kWh**: what JPS paid for exported solar under net billing across 2025 (OUR).
+- **26.6%**: JPS system losses as a share of net generation in 2025.
+
+## Why is solar attractive in Jamaica?
+
+Three reasons stand out.
+
+**Expensive grid power.** The [JPS 2025 annual report](https://cdn.jamstockex.com/pd/2026/05/JPS-ar-2025-WEB-2.pdf) puts average residential revenue at US$0.37 per kWh, up from US$0.36 in 2024. About 30% of generation still came from oil-based fuel and 59.9% from natural gas, so bills track fuel prices.
+
+**Strong, steady sun.** PVGIS shows little seasonal swing:
+
+| Location | kWh per kWp a year | Lowest month | Highest month |
+|---|---|---|---|
+| Kingston | 1,658 | 127 | 155 |
+| Mandeville | 1,624 | 123 | 148 |
+
+Data from [PVGIS 5.3](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=17.971&lon=-76.793&peakpower=1&loss=14&optimalangles=1&outputformat=json) with 14% system losses and the optimal tilt (about 18 to 19 degrees). ERA5 is a climate reanalysis: good for comparing places, not a guarantee for your roof.
+
+**Self-consumption saves the full price.** Every solar kWh you use yourself is a kWh you do not buy from JPS.
+
+## What about the power you export?
+
+Exports are paid under net billing at JPS's short-term avoided cost plus 15%, validated monthly by the OUR. The [latest notice](https://our.org.jm/wp-content/uploads/2026/02/Net-Billing.pdf) shows 2025 rates from J$19.171 (June) to J$29.233 (November). Compared with about J$59 for an average residential kWh, a kWh you use is worth two to three times a kWh you export. We explain the rules in [JPS net billing explained](/jm/guides/jps-net-billing-explained).
+
+## How big should your system be?
+
+| Household | Rough guide |
+|---|---|
+| Average JPS home (1,817 kWh a year) | About 1 to 1.5 kWp covers annual use on paper |
+| Home with air conditioning or a water pump | Check your bills: size to daytime use, often several kWp |
+| Mostly empty during the day | Smaller system, or plan for a battery |
+
+The simple check: divide the kWh you use during daylight in a year by about 1,650 (Kingston) to get the kWp you can use without exporting much. Your JPS bills show monthly kWh; your daytime share depends on your routine.
+
+## Is a battery worth adding?
+
+A grid-tied system without a battery switches off during an outage for safety. Hurricane Melissa, which made landfall on October 28, 2025, left only about 23% of JPS customers with power immediately after the storm, according to JPS. If backup matters to you, a battery with a hybrid inverter keeps essentials running. On savings alone, a battery lets you use midday solar in the evening instead of exporting it for about J$22 and buying back at around J$59, but we do not yet have a sourced Jamaican battery price to show whether that pays.
+
+## When is solar not worth it?
+
+- **Very low use**: if you use little power, fixed charges remain and savings are small.
+- **Heavy shade** or a roof that needs replacing soon.
+- **Renting** without the owner's agreement.
+- **Oversized systems**: extra panels mostly earn the lower export rate.
+
+## Before you get quotes
+
+1. Collect 12 months of JPS bills and add up your kWh.
+2. Ask installers for kWp, panel and inverter models, and estimated annual output; compare it with the PVGIS numbers above.
+3. Confirm the quote includes the JPS interconnection and bi-directional meter.
+4. Ask for the price with and without a battery.
+
+We do not publish a payback period for Jamaica yet because we lack a sourced installed cost per kWp. See our [methodology](/methodology).

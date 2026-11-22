@@ -1,0 +1,76 @@
+---
+title: "Paneles solares en Perú: por qué nadie te paga los excedentes (todavía)"
+seoTitle: "Paneles solares en Perú: excedentes sin pago en 2026"
+description: "En Perú todavía no hay un reglamento de generación distribuida aprobado que obligue a pagar o acreditar la energía que tus paneles inyectan a la red. Qué significa para dimensionar un sistema y qué promesas de vendedores conviene descartar."
+country: pe
+lang: es-PE
+published: 2026-11-22
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: scale
+tags: ["regulación", "excedentes", "señales de alerta"]
+sources:
+  - title: "Energiminas: 'Proyecto de reglamento de generación distribuida se aprobaría en dos meses' (7 de mayo de 2025)"
+    url: "https://energiminas.com/2025/05/07/minem-proyecto-de-reglamento-de-generacion-distribuida-se-aprobaria-en-dos-meses"
+  - title: "Osinergmin: pliego tarifario Pluz Energía Perú, Lima Norte, vigente desde el 4 de noviembre de 2026"
+    url: "https://www.osinergmin.gob.pe/Tarifas/Electricidad/PliegoTarifario.aspx?Id=150000"
+  - title: "Osinergmin: pliego tarifario SEAL, Arequipa, vigente desde el 4 de noviembre de 2026"
+    url: "https://www.osinergmin.gob.pe/Tarifas/Electricidad/PliegoTarifario.aspx?Id=040000"
+  - title: "Energiminas: Osinergmin, tarifas domiciliarias bajan en noviembre de 2026"
+    url: "https://energiminas.com/?p=53787"
+  - title: "EU JRC PVGIS 5.3: producción anual por kWp, Lima"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=-12.06&lon=-77.037&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+---
+
+Si instalas paneles solares en Perú en 2026, la energía que no consumes y sale a la red no te la paga nadie. El reglamento de generación distribuida que lo regularía salió a consulta en noviembre de 2024, y en mayo de 2025 el Ministerio de Energía y Minas dijo que se aprobaría "en un par de meses", según [Energiminas](https://energiminas.com/2025/05/07/minem-proyecto-de-reglamento-de-generacion-distribuida-se-aprobaria-en-dos-meses). Al 22 de noviembre de 2026 no encontramos un decreto supremo publicado que lo apruebe. Hasta que exista, cada kWh que inyectas es un kWh regalado, y eso cambia cómo hay que dimensionar.
+
+## Cifras clave
+
+- **Noviembre de 2024**: el MINEM publicó el proyecto de reglamento de generación distribuida para consulta.
+- **42 empresas e instituciones** enviaron **312** consultas y aportes al proyecto (MINEM, citado por Energiminas, mayo de 2025).
+- **0 soles por kWh**: lo que se reconoce hoy por la energía inyectada a la red, en ausencia de un reglamento aprobado.
+- **64,57 céntimos de sol por kWh** (sin IGV): cargo por energía BT5B residencial de más de 140 kWh al mes de Pluz Energía en Lima Norte, vigente desde el 4/11/2026 (Osinergmin).
+- **69,01 céntimos por kWh** (sin IGV): mismo cargo en SEAL, Arequipa, en la misma fecha.
+
+## ¿Por qué no hay pago por excedentes en Perú?
+
+Según la exposición del director de Normativa de Electricidad del MINEM recogida por [Energiminas](https://energiminas.com/2025/05/07/minem-proyecto-de-reglamento-de-generacion-distribuida-se-aprobaria-en-dos-meses), el reglamento debe definir, entre otras cosas, "los aspectos comerciales de las inyecciones de las instalaciones a las redes de distribución" y "la compensación por el uso de la red". El funcionario reconoció dificultades: la Ley 28832, el D.L. 1002 y el D.L. 1221 tienen enfoques distintos sobre la generación distribuida. Sin ese reglamento no hay una regla que diga a qué precio se valoriza un kWh inyectado ni cómo se descuenta del recibo.
+
+Lo que te queda es el autoconsumo: la energía que produces y usas al mismo tiempo reduce lo que compras a la distribuidora.
+
+## ¿Cuánto vale entonces cada kWh solar?
+
+Vale lo que te ahorras de comprar, solo si lo consumes. Los pliegos de [Osinergmin](https://www.osinergmin.gob.pe/Tarifas/Electricidad/PliegoTarifario.aspx?Id=150000) vigentes desde el 4 de noviembre de 2026 muestran la tarifa residencial BT5B:
+
+| Tramo de consumo (BT5B residencial) | Pluz, Lima Norte | SEAL, Arequipa |
+|---|---|---|
+| 0 a 30 kWh al mes | 44,23 ctm. S/ por kWh | 47,26 ctm. S/ por kWh |
+| 31 a 140 kWh: exceso de 30 kWh | 63,18 ctm. S/ por kWh | 67,52 ctm. S/ por kWh |
+| Más de 140 kWh al mes (sin descuento FOSE) | 64,57 ctm. S/ por kWh | 69,01 ctm. S/ por kWh |
+| Cargo fijo, más de 140 kWh | S/ 2,18 al mes | S/ 3,82 al mes |
+
+Valores sin IGV. Los hogares que consumen poco pagan tramos más bajos, con descuento del FOSE, así que cada kWh que dejan de comprar vale menos. Según Osinergmin, citado por [Energiminas](https://energiminas.com/?p=53787), las tarifas de usuarios residenciales del sistema interconectado bajaron en promedio un 2,99 % desde el 4 de noviembre de 2026.
+
+## ¿Qué significa para dimensionar tu sistema?
+
+La regla es simple: **instala solo lo que consumes de día**. Un sistema que produce mucho más de lo que tu casa usa a mediodía inyecta el resto gratis. En Lima, según [PVGIS](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=-12.06&lon=-77.037&peakpower=1&loss=14&optimalangles=1&outputformat=json), 1 kWp produciría unos 1.766 kWh al año, pero ese dato usa la base ERA5 y probablemente sobrestima la producción bajo la neblina invernal de la costa. Toma la cifra como techo.
+
+| Situación | Qué pasa con tus excedentes |
+|---|---|
+| Consumo diurno alto (negocio en casa, bombas, refrigeración) | Casi todo se autoconsume: buen caso |
+| Casa vacía de día, consumo de noche | Gran parte se inyecta sin pago: mal caso sin batería |
+| Sistema "para el futuro", más grande que tu consumo | Pagas paneles cuya energía regalas |
+| Inversor con inyección cero | No exportas nada; la producción que no usas simplemente no se genera |
+
+## Señales de alerta en una cotización
+
+- **"La distribuidora te va a pagar lo que sobra"**: hoy no hay reglamento que lo obligue. Pide que lo pongan por escrito con la norma.
+- **"Tu medidor va a girar al revés"**: sin un esquema de compensación aprobado, no cuentes con eso.
+- **Ahorro calculado sobre toda la producción**: si la cotización multiplica todos los kWh producidos por tu tarifa, está contando también los que vas a regalar.
+- **Sistema dimensionado por el área del techo**, no por tu consumo diurno.
+- **Ahorros en recibos de bajo consumo**: si consumes menos de 140 kWh al mes, pagas tarifas con FOSE y el ahorro por kWh es menor.
+
+## ¿Entonces no conviene?
+
+Puede convenir, pero en otro tipo de casa. En el sur, con más sol y tarifas algo más altas, los números mejoran; lo explicamos en [¿cuándo conviene en Arequipa y el sur?](/pe/guides/paneles-solares-arequipa-sur). Y si el reglamento se aprueba, actualizaremos este artículo con las reglas de compensación. Ver la [metodología](/methodology).
