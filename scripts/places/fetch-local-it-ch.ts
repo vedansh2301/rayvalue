@@ -194,10 +194,11 @@ async function fetchCh(root: string): Promise<void> {
 
   // ElCom 2027, category H4, standard product, via LINDAS (SPARQL).
   const codes = [...bfs.values()].map((p) => p.code);
-  const q = `PREFIX cube: <https://cube.link/> PREFIX s: <https://energy.ld.admin.ch/elcom/electricityprice/dimension/>
+  const elQuery = (ids: string[]): string => `PREFIX cube: <https://cube.link/> PREFIX s: <https://energy.ld.admin.ch/elcom/electricityprice/dimension/>
 SELECT ?bfs ?total ?energy ?grid ?operator WHERE { GRAPH <https://lindas.admin.ch/elcom/electricityprice> {
-  VALUES ?m { ${codes.map((k) => `<https://ld.admin.ch/municipality/${k}>`).join(' ')} }
+  VALUES ?m { ${ids.map((k) => `<https://ld.admin.ch/municipality/${k}>`).join(' ')} }
   ?o a cube:Observation ; s:municipality ?m ; s:period "2027"^^<http://www.w3.org/2001/XMLSchema#gYear> ; s:category <https://energy.ld.admin.ch/elcom/electricityprice/category/H4> ; s:product <https://energy.ld.admin.ch/elcom/electricityprice/product/standard> ; s:total ?total ; s:energy ?energy ; s:gridusage ?grid ; s:operator ?operator . BIND(STRAFTER(STR(?m), "municipality/") AS ?bfs) } }`;
+  const q = elQuery(codes);
   const elUrl = `https://lindas.admin.ch/query`;
   const res = await get(elUrl, { Accept: 'text/csv', 'Content-Type': 'application/x-www-form-urlencoded' }, { method: 'POST', body: new URLSearchParams({ query: q }).toString() });
   const el = res ? parseCsvObjects(await res.text()) : [];
@@ -240,7 +241,7 @@ SELECT ?bfs ?total ?energy ?grid ?operator WHERE { GRAPH <https://lindas.admin.c
       const total = Number(e[0]!.total), energy = Number(e[0]!.energy), grid = Number(e[0]!.grid);
       const ok = total >= 15 && total <= 45;
       sanity.push({ place: c.slug, metric: 'electricity_price_h4_rp_per_kwh', value: total, national: 30, delta: round(total - 30, 1), verdict: ok ? 'ok' : 'flag' });
-      if (ok) out.push(row('electricity_price_h4_rp_per_kwh', loc, total, 'Rp./kWh', '2027-01-01', '2027-12-31', `https://lindas.admin.ch/query (ElCom cube electricityprice, municipality ${p.code}, period 2027, category H4, product standard)`, 'ElCom (Eidgenoessische Elektrizitaetskommission)', `${c.name} (BFS ${p.code}): total ${total} Rp./kWh in 2027 for category H4, standard product (energy ${energy}, grid usage ${grid}, remainder charges and levies); operator ${e[0]!.operator!.split('/').pop()}.`));
+      if (ok) out.push(row('electricity_price_h4_rp_per_kwh', loc, total, 'Rp./kWh', '2027-01-01', '2027-12-31', `https://lindas.admin.ch/query?query=${encodeURIComponent(elQuery([p.code]))}`, 'ElCom (Eidgenoessische Elektrizitaetskommission)', `${c.name} (BFS ${p.code}): total ${total} Rp./kWh in 2027 for category H4, standard product (energy ${energy}, grid usage ${grid}, remainder charges and levies); operator ${e[0]!.operator!.split('/').pop()}.`));
       else console.warn(`FLAG CH ${c.slug}: tariff ${total} outside 15-45 Rp./kWh; not published`);
     } else console.warn(`CH ${c.slug}: ${e.length} ElCom observations for BFS ${p.code} (need exactly one operator): tariff skipped`);
     const s = sums.get(c.slug)!;
