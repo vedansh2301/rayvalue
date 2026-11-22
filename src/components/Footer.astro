@@ -1,14 +1,14 @@
 ---
-import { publishedCityLinks } from '../lib/seo/city-links';
-import { calcPath } from '../lib/paths';
-import { utilityPagePath, utilityPagesForState } from '../lib/utility/pages';
 import { loadCountryCounts, loadMenuSegments } from '../lib/country-nav-load';
 import { countryMenu, navContext } from '../lib/nav';
 import { liveCalculators } from '../lib/home/global-home';
+import { loadFooterGroups } from '../lib/footer-load';
+import { DEFAULT_SOCIAL_PROFILES, SUPPORT_EMAIL } from '../lib/social';
 import { uiText } from '../lib/i18n/ui';
 import SunMark from './SunMark.astro';
-// One footer everywhere: countries grouped by region, calculators, company and legal. US pages add the per-state
-// utility and city links (SEO internal links); the US-only "Do Not Sell" link stays off other countries' pages.
+// One footer everywhere: brand block, dense link columns (calculators, countries, reading, company) and a big
+// "Solar by country and city" block of real, indexable pages. Groups in that block are <details>: open on desktop,
+// closed on small screens (a tiny script below; without JS they simply stay open).
 const { legalOnly = false, lang = 'en' } = Astro.props as { legalOnly?: boolean; lang?: string };
 const ui = uiText(lang);
 const counts = legalOnly ? new Map() : await loadCountryCounts();
@@ -16,96 +16,130 @@ const segments = legalOnly ? [] : await loadMenuSegments();
 const ctx = navContext({ path: Astro.url.pathname, known: [...counts.keys()], counts, lang });
 const menu = countryMenu(segments, ctx.segment);
 const calculators = liveCalculators();
-const showUs = !legalOnly && ctx.kind === 'us';
-const cityLinks = showUs ? await publishedCityLinks() : [];
-const byState = (['FL', 'CA'] as const).map((st) => ({
-  name: st === 'FL' ? 'Florida' : 'California',
-  calc: calcPath(st),
-  utilities: utilityPagesForState(st).map((p) => ({ href: utilityPagePath(p), label: p.short })),
-  cities: cityLinks.filter((c) => c.state === st).map((c) => ({ href: c.href, label: c.name })),
-}));
+const hubSegs = new Set(segments);
+const seo = legalOnly ? [] : await loadFooterGroups();
 type Link = { href: string; label: string };
 const company: Link[] = [
   { href: '/methodology', label: ui.methodology },
   { href: '/about', label: ui.about },
   { href: '/contact', label: ui.contact },
+  { href: '/credits', label: 'Photo credits' },
+];
+const legal: Link[] = [
   { href: '/affiliate-disclosure', label: 'Affiliate Disclosure' },
   { href: '/privacy', label: ui.privacy },
   { href: '/terms', label: ui.terms },
   ...(ctx.kind === 'country' ? [] : [{ href: '/privacy/request?type=do_not_sell', label: 'Do Not Sell or Share My Personal Information' }]),
-  { href: '/credits', label: 'Photo credits' },
 ];
-const LEGAL = new Set(['/affiliate-disclosure', '/privacy', '/terms', '/privacy/request?type=do_not_sell']);
-const legal = company.filter((l) => LEGAL.has(l.href));
-const linkClass = 'inline-block py-1.5 text-stone-700 hover:text-stone-900 hover:underline underline-offset-4';
-const head = 'font-semibold text-stone-900';
+const linkClass = 'inline-flex min-h-8 items-center text-stone-800 no-underline hover:text-stone-900 hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900';
+const head = 'text-sm font-semibold uppercase tracking-wide text-stone-700';
 const track = (target: string) => ({ 'data-track': 'nav_click', 'data-track-placement': 'footer', 'data-track-target': target.split('?')[0] });
+const social = DEFAULT_SOCIAL_PROFILES;
 ---
-<footer class="mt-auto border-t border-stone-200 bg-white">
-  <div class="shell py-10 text-sm text-stone-600">
-    <div class="max-w-xl">
-      <a href="/" class="inline-flex items-center gap-2.5 py-1.5 text-stone-900 no-underline" aria-label="RayValue home" {...track('/')}>
-        <SunMark size={28} />
-        <span class="font-display-tight text-xl">RayValue</span>
-      </a>
-      <p class="mt-1 text-base text-stone-800">{ui.tagline}</p>
-      <p class="mt-2 leading-6">{ui.independent}</p>
-    </div>
-
+<footer class="mt-auto border-t border-sky-pastel-300 bg-sky-pastel-100 text-sm text-stone-800">
+  <div class="shell py-8">
     {legalOnly ? (
-      <nav aria-label="Legal" class="mt-8">
-        <ul class="flex flex-wrap gap-x-5">{legal.map((l) => <li><a href={l.href} class={linkClass} {...track(l.href)}>{l.label}</a></li>)}</ul>
-      </nav>
+      <>
+        <a href="/" class="inline-flex min-h-11 items-center gap-2.5 text-stone-900 no-underline" aria-label="RayValue home" {...track('/')}><SunMark size={28} /><span class="font-display-tight text-xl">RayValue</span></a>
+        <nav aria-label="Legal" class="mt-3"><ul class="flex flex-wrap gap-x-5">{legal.map((l) => <li><a href={l.href} class={linkClass} {...track(l.href)}>{l.label}</a></li>)}</ul></nav>
+      </>
     ) : (
       <>
-        <nav aria-label={ui.countries} class="mt-8 grid gap-x-8 gap-y-6 border-t border-stone-200 pt-8 lg:grid-cols-[2fr_1.2fr_1fr_1fr]">
-          {menu.map((g) => (
-            <div>
-              <p class={head}>{g.region}</p>
-              <ul class="mt-1 flex flex-wrap gap-x-4">
-                {g.items.map((c) => <li><a href={c.href} aria-current={c.current ? 'page' : undefined} class={linkClass} {...track(c.href)}>{c.name}</a></li>)}
-              </ul>
-            </div>
-          ))}
-        </nav>
-        <div class="mt-8 grid gap-8 border-t border-stone-200 pt-8 sm:grid-cols-2 lg:grid-cols-3">
-          <nav aria-label="Calculators">
+        <div class="grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-12">
+          <div class="sm:col-span-2 lg:col-span-3">
+            <a href="/" class="inline-flex min-h-11 items-center gap-2.5 text-stone-900 no-underline" aria-label="RayValue home" {...track('/')}>
+              <SunMark size={32} />
+              <span class="font-display-tight text-2xl">RayValue</span>
+            </a>
+            <p class="font-medium text-stone-900">{ui.tagline}</p>
+            <p class="mt-1 max-w-sm leading-6 text-stone-700">{ui.independent}</p>
+            <p class="mt-2"><a href={`mailto:${SUPPORT_EMAIL}`} class={linkClass}>{SUPPORT_EMAIL}</a></p>
+            <ul class="mt-1 flex gap-2" aria-label="RayValue on social media">
+              {social.map((s) => (
+                <li>
+                  <a href={s.url} rel="me noopener" target="_blank" aria-label={`RayValue on ${s.name} (opens in a new tab)`} class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-sky-pastel-400 bg-white text-stone-900 hover:border-sky-pastel-600 hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900">
+                    {s.name === 'Instagram' ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.2" cy="6.8" r="0.8" fill="currentColor" stroke="none"></circle></svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H7.9v3h2.6V21z"></path></svg>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <nav aria-label="Calculators" class="lg:col-span-2">
             <p class={head}>{ui.calculators}</p>
             <ul class="mt-1">
-              {calculators.map((c) => <li><a href={c.href} class={linkClass} {...track(c.href)}>{c.country === 'United States' ? `${c.label}, United States` : c.country}</a></li>)}
+              {calculators.map((c) => <li><a href={c.href} class={linkClass} {...track(c.href)}>{c.country === 'United States' ? `${c.label} (US)` : c.country}</a></li>)}
             </ul>
           </nav>
-          <nav aria-label="Read">
-            <p class={head}>Read</p>
+
+          <nav aria-label={ui.countries} class="sm:col-span-2 lg:col-span-3">
+            <p class={head}>{ui.countries}</p>
+            <div class="mt-1 space-y-1.5">
+              {menu.map((g) => (
+                <p class="leading-6">
+                  <span class="mr-2 text-xs font-semibold uppercase tracking-wide text-stone-700">{g.region}</span>
+                  {g.items.map((c, i) => (
+                    <>
+                      <a href={c.href} aria-current={c.current ? 'page' : undefined} class="inline-block py-1 text-stone-800 no-underline hover:text-stone-900 hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" {...track(c.href)}>{c.name}</a>{i < g.items.length - 1 && <span class="mx-1.5 text-stone-500" aria-hidden="true">&middot;</span>}
+                    </>
+                  ))}
+                </p>
+              ))}
+            </div>
+          </nav>
+
+          <nav aria-label="Read" class="lg:col-span-2">
+            <p class={head}>Guides</p>
             <ul class="mt-1">
-              <li><a href="/guides" class={linkClass} {...track('/guides')}>Guides from every country</a></li>
-              <li><a href="/blog" class={linkClass} {...track('/blog')}>Blog from every country</a></li>
+              <li><a href="/guides" class={linkClass} {...track('/guides')}>All guides</a></li>
+              <li><a href="/blog" class={linkClass} {...track('/blog')}>Blog</a></li>
+              <li><a href="/methodology" class={linkClass} {...track('/methodology')}>{ui.methodology}</a></li>
               {ctx.kind === 'us' && <li><a href="/stories" class={linkClass} {...track('/stories')}>Real stories</a></li>}
               {ctx.kind === 'us' && <li><a href="/quotes" class={linkClass} {...track('/quotes')}>Get installer quotes</a></li>}
             </ul>
           </nav>
-          <nav aria-label={ui.footerCompany}>
+
+          <nav aria-label={ui.footerCompany} class="lg:col-span-2">
             <p class={head}>{ui.footerCompany}</p>
             <ul class="mt-1">
-              {company.map((l) => <li><a href={l.href} class={linkClass} {...track(l.href)}>{l.label}</a></li>)}
+              {company.filter((l) => l.href !== '/methodology').map((l) => <li><a href={l.href} class={linkClass} {...track(l.href)}>{l.label}</a></li>)}
             </ul>
           </nav>
         </div>
-        {showUs && (
-          <nav aria-label="Solar payback by state, utility and city" class="mt-8 grid gap-6 border-t border-stone-200 pt-8 sm:grid-cols-2">
-            {byState.map((st) => (
-              <div>
-                <p class={head}><a href={st.calc} class="hover:underline underline-offset-4" {...track(st.calc)}>Solar payback in {st.name}</a></p>
-                <p class="mt-2 font-medium text-stone-700">By utility</p>
-                <ul class="flex flex-wrap gap-x-4">{st.utilities.map((l) => <li><a href={l.href} class={linkClass} {...track(l.href)}>{l.label}</a></li>)}</ul>
-                {st.cities.length > 0 && <p class="mt-2 font-medium text-stone-700">By city</p>}
-                <ul class="flex flex-wrap gap-x-4">{st.cities.map((l) => <li><a href={l.href} class={linkClass} {...track(l.href)}>{l.label}</a></li>)}</ul>
-              </div>
-            ))}
+
+        {seo.length > 0 && (
+          <nav aria-label="Solar by country and city" class="mt-8 border-t border-sky-pastel-300 pt-6">
+            <h2 class="font-display-tight text-xl text-stone-900">Solar by country and city</h2>
+            <div class="mt-3 grid gap-x-6 gap-y-1 md:grid-cols-3 md:gap-y-5 lg:grid-cols-4">
+              {seo.map((g) => (
+                <details class="seo-group border-b border-sky-pastel-300 py-1 md:border-0 md:py-0" open>
+                  <summary class="flex min-h-11 cursor-pointer items-center justify-between font-semibold text-stone-900 md:min-h-0 md:cursor-default md:pb-1">
+                    <span>{g.name}</span>
+                    <svg class="h-4 w-4 text-stone-700 md:hidden" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </summary>
+                  <ul class="pb-2">
+                    {hubSegs.has(g.segment) && <li><a href={g.segment === 'us' ? '/us' : `/${g.segment}`} class="inline-flex min-h-8 items-center leading-5 text-stone-800 no-underline hover:text-stone-900 hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" {...track(g.segment === 'us' ? '/us' : `/${g.segment}`)}>{g.name} solar overview</a></li>}
+                    {g.links.map((l) => <li><a href={l.href} lang={l.lang} class="inline-flex min-h-8 items-center leading-5 text-stone-800 no-underline hover:text-stone-900 hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" {...track(l.href)}>{l.label}</a></li>)}
+                  </ul>
+                </details>
+              ))}
+            </div>
           </nav>
         )}
+
+        <div class="mt-6 flex flex-col gap-2 border-t border-sky-pastel-300 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p>&copy; {new Date().getFullYear()} RayValue</p>
+          <nav aria-label="Legal"><ul class="flex flex-wrap gap-x-4">{legal.map((l) => <li><a href={l.href} class={linkClass} {...track(l.href)}>{l.label}</a></li>)}</ul></nav>
+        </div>
       </>
     )}
-    <p class="mt-8">&copy; {new Date().getFullYear()} RayValue</p>
   </div>
 </footer>
+<script>
+  // Footer "Solar by country and city" groups: open on desktop, collapsed on small screens.
+  if (window.matchMedia('(max-width: 47.99rem)').matches) document.querySelectorAll('details.seo-group').forEach((d) => d.removeAttribute('open'));
+</script>

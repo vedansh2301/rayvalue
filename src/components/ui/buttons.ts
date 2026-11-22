@@ -5,6 +5,6 @@ export const btnSecondary =
   'inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-5 py-2.5 font-semibold text-stone-800 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white';
 export const btnText =
   'inline-flex min-h-11 items-center px-2 font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-60';
-/** Secondary button for ink (dark) bands such as the hero. */
+/** Secondary button for pastel bands such as the hero. */
 export const btnOnDark =
-  'inline-flex min-h-11 items-center justify-center rounded-lg border border-ink-200/50 px-5 py-2.5 font-semibold text-white no-underline hover:bg-ink-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sun-300';
+  'inline-flex min-h-11 items-center justify-center rounded-lg border border-sky-pastel-600 bg-white/70 px-5 py-2.5 font-semibold text-stone-900 no-underline hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900';

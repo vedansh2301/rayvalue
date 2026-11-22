@@ -1,6 +1,7 @@
 ---
 import { organizationJsonLd, websiteJsonLd, safeJsonLd } from '../../lib/seo/jsonld';
 import { CONTACT_EMAIL } from '../../lib/contact';
+import { SOCIAL_PROFILES } from '../../lib/social';
 interface Props {
   title: string;
   description: string;
@@ -15,7 +16,7 @@ interface Props {
   jsonLd?: object[];
 }
 const { title, description, canonical, image, type = 'website', imageAlt, publishedTime, modifiedTime, jsonLd = [] } = Astro.props;
-const all = [organizationJsonLd(Astro.site?.href, CONTACT_EMAIL), websiteJsonLd(Astro.site?.href), ...jsonLd];
+const all = [organizationJsonLd(Astro.site?.href, CONTACT_EMAIL, SOCIAL_PROFILES), websiteJsonLd(Astro.site?.href), ...jsonLd];
 ---
 <meta property="og:site_name" content="RayValue" />
 <meta property="og:title" content={title} />

@@ -4,7 +4,7 @@
  * from those inputs; nothing numeric is typed here (CLAUDE.md rule 1). The only hand-written data is structural: which
  * world region a country segment belongs to, and which published guides are the "deadline" guides.
  */
-import { articlePath, articleSlug, countrySegment } from '../content/paths.ts';
+import { articleIndexPath, articlePath, articleSlug, countrySegment } from '../content/paths.ts';
 import { countryName, hubIndexable, hubItemCount, hubPath, US_SEGMENT } from '../content/country-nav.ts';
 import { countryCalculator } from '../content/country-calc.ts';
 import { calcPath } from '../paths.ts';
@@ -189,5 +189,26 @@ export function liveCalculators(): HomeCalculator[] {
     const calc = countryCalculator(c.code);
     if (calc) out.push({ href: calc.href, country: c.country, label: c.country, fact: c.fact });
   }
+  return out;
+}
+
+export interface CardChip { label: string; href: string; kind: 'calc' | 'deadline' | 'guides'; aria?: string; lang?: string }
+
+/**
+ * Shortcut chips for a country card: its calculator(s) when they exist, the nearest deadline guide (first in editorial
+ * order) and its guides index (only when the country has guides).
+ */
+export function cardChips(c: Pick<CountryCard, 'segment' | 'name' | 'guides'>, articles: readonly HomeArticle[]): CardChip[] {
+  const out: CardChip[] = [];
+  if (c.segment === US_SEGMENT) {
+    out.push({ label: 'Florida', href: calcPath('FL'), kind: 'calc', aria: 'Florida solar calculator' });
+    out.push({ label: 'California', href: calcPath('CA'), kind: 'calc', aria: 'California solar calculator' });
+  } else {
+    const calc = countryCalculator(c.segment);
+    if (calc) out.push({ label: 'Calculator', href: calc.href, kind: 'calc', aria: `${c.name} solar calculator` });
+  }
+  const d = deadlineLinks(articles, c.segment)[0];
+  if (d) out.push({ label: d.title, href: d.href, kind: 'deadline', lang: d.lang });
+  if (c.guides > 0) out.push({ label: 'Guides', href: articleIndexPath('guides', c.segment === US_SEGMENT ? 'us' : c.segment), kind: 'guides', aria: `${c.name} guides` });
   return out;
 }

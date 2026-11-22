@@ -8,13 +8,14 @@
   --color-sun-50: #fffbeb;
   --color-sun-100: #fef3c7;
   --color-sun-ink: #92400e; /* accent text on light backgrounds, 7:1 on white */
-  /* "Night sky" ink for hero bands and the countries menu: sun-400 on ink-900 is 9:1, ink-100 on ink-900 is 12:1. */
-  --color-ink-950: #0c1626;
-  --color-ink-900: #13233a;
-  --color-ink-800: #1b3250;
-  --color-ink-700: #2c4a73;
-  --color-ink-200: #c9d6e8;
-  --color-ink-100: #e6edf7;
+  /* Pastel sky: surfaces for the header, hero bands and feature tiles. Text on these is stone-900 (>= 14:1) or
+     stone-700 (>= 7:1); sun-ink links are >= 5.5:1 on pastel-200. -400/-600 are for art strokes and borders only. */
+  --color-sky-pastel-50: #f3f9fe;
+  --color-sky-pastel-100: #e6f1fb;
+  --color-sky-pastel-200: #d6e8f8;
+  --color-sky-pastel-300: #bfd9f1;
+  --color-sky-pastel-400: #9ec5e8;
+  --color-sky-pastel-600: #5f8fbd;
   --font-display: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
 
   /* Page grid. The gutter is redefined per breakpoint below and must match the header padding. */

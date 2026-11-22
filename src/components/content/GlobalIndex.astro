@@ -41,16 +41,16 @@ const shown = (g: (typeof groups)[number]) => (g.segment === 'us' ? g.items : g.
 const plural = (n: number) => `${n} ${n === 1 ? noun : `${noun}s`}`;
 ---
 <BaseLayout title={meta.title} description={meta.description} ogImagePath={`/og/${kind}.png`} path={`/${kind}`} noindex={empty}>
-  <PageHero title={heading} titleId="index-title" pose={kind === 'guides' ? 'magnifier' : 'point'}>
+  <PageHero title={heading} titleId="index-title">
     <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'Home', href: '/' }, { label: kind === 'guides' ? 'Guides' : 'Blog' }]} />
     {intro}
     <nav slot="below" aria-label={`Jump to a country`} class="mt-8">
-      <p class="text-sm font-medium text-ink-200">Jump to a country</p>
+      <p class="text-sm font-medium text-stone-700">Jump to a country</p>
       <ul class="mt-2 flex flex-wrap gap-2">
         {groups.map((g) => (
           <li>
-            <a href={`#${g.anchor}`} class="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink-700 bg-ink-800/70 px-4 text-sm font-medium text-white no-underline hover:border-sun-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sun-300">
-              {g.name}<span class="text-ink-200 tabular-nums">{g.items.length}</span>
+            <a href={`#${g.anchor}`} class="inline-flex min-h-11 items-center gap-2 rounded-full border border-sky-pastel-400 bg-white/70 px-4 text-sm font-medium text-stone-900 no-underline hover:border-sky-pastel-600 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900">
+              {g.name}<span class="text-stone-700 tabular-nums">{g.items.length}</span>
             </a>
           </li>
         ))}

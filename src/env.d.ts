@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly PUBLIC_GSC_VERIFICATION?: string;
   /** Public contact address; unset = contact page links the privacy request form and there is no rate-alert signup (src/lib/contact.ts). */
   readonly PUBLIC_CONTACT_EMAIL?: string;
+  readonly PUBLIC_SOCIAL_PROFILES?: string;
 }
 
 interface ImportMetaEnv {

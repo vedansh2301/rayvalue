@@ -7,8 +7,8 @@ import { Resvg } from '@resvg/resvg-js';
 import { articlePath } from '../../lib/content/paths';
 import { OG_PAGES, type OgPageKey } from '../../lib/seo/og';
 import { UTILITY_PAGES, utilityPagePath } from '../../lib/utility/pages';
-import { rayMarkSvg } from '../../lib/brand/ray';
 
+const SUN_MARK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="7" fill="#fbbf24"/><g stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"><path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M6.8 25.2l2.8-2.8M22.4 9.6l2.8-2.8"/></g></svg>';
 const require = createRequire(import.meta.url);
 const readFont = (w: 400 | 700) =>
   readFileSync(require.resolve(`@fontsource/inter/files/inter-latin-${w}-normal.woff`));
@@ -40,10 +40,9 @@ export const GET: APIRoute = async ({ props }) => {
   const el = {
     type: 'div',
     props: {
-      style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', width: 1200, height: 630, boxSizing: 'border-box', background: '#fffbeb', padding: 72, fontFamily: 'Inter' },
+      style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', width: 1200, height: 630, boxSizing: 'border-box', background: '#e6f1fb', padding: 72, fontFamily: 'Inter' },
       children: [
-        { type: 'img', props: { src: `data:image/svg+xml;utf8,${encodeURIComponent(rayMarkSvg())}`, width: 190, height: 190, style: { position: 'absolute', right: 64, top: 48 } } },
-        { type: 'div', props: { style: { display: 'flex', fontSize: 36, fontWeight: 700, color: '#78350f' }, children: kicker } },
+        { type: 'div', props: { style: { display: 'flex', alignItems: 'center', gap: 16 }, children: [{ type: 'img', props: { src: `data:image/svg+xml;utf8,${encodeURIComponent(SUN_MARK_SVG)}`, width: 64, height: 64 } }, { type: 'div', props: { style: { display: 'flex', fontSize: 36, fontWeight: 700, color: '#92400e' }, children: kicker } }] } },
         { type: 'div', props: { style: { display: 'flex', fontSize: 68, fontWeight: 700, color: '#1c1917', lineHeight: 1.15, maxWidth: 1056 }, children: clampTitle(title) } },
         { type: 'div', props: { style: { display: 'flex', fontSize: 30, color: '#57534e' }, children: subtitle ? `${subtitle}  \u00b7  rayvalue.com` : 'rayvalue.com' } },
       ],

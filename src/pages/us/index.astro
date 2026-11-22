@@ -2,7 +2,6 @@
 import { PAGE_META } from '../../lib/seo/page-meta';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/ui/PageHero.astro';
-import Ray from '../../components/brand/Ray.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { ogImagePath } from '../../lib/seo/og';
 import { btnPrimary, btnText } from '../../components/ui/buttons';
@@ -58,12 +57,12 @@ const steps: { title: string; body: string; icon: IconName }[] = [
     <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'RayValue', href: '/' }, { label: 'United States' }]} />
     The federal tax credit is gone, so we show Florida and California homeowners honest cost, savings and payback ranges from their own utility&rsquo;s rates.
     <div slot="actions" role="group" aria-labelledby="hero-state-label" class="flex w-full flex-col gap-2">
-      <p id="hero-state-label" class="text-sm font-medium text-ink-200">Pick your state to start</p>
+      <p id="hero-state-label" class="text-sm font-medium text-stone-700">Pick your state to start</p>
       <div class="flex flex-col gap-2 sm:flex-row">
         <a href="/us/solar-payback/florida" class={btnPrimary}>Check my payback<span class="font-normal">in Florida</span></a>
         <a href="/us/solar-payback/california" class={btnPrimary}>Check my payback<span class="font-normal">in California</span></a>
       </div>
-      <p class="mt-1"><a href="/quotes?source=home" class="inline-flex min-h-11 items-center font-medium text-sun-300 underline underline-offset-4 hover:text-white focus-visible:outline-sun-300">Get installer quotes</a></p>
+      <p class="mt-1"><a href="/quotes?source=home" class="inline-flex min-h-11 items-center font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">Get installer quotes</a></p>
     </div>
     <Picture
       slot="aside"
@@ -77,12 +76,12 @@ const steps: { title: string; body: string; icon: IconName }[] = [
       loading="eager"
       fetchpriority="high"
       decoding="async"
-      class="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-lg ring-1 ring-ink-700"
+      class="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-lg ring-1 ring-sky-pastel-400"
     />
-    <ul slot="below" class="mt-8 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-ink-100" aria-label="Why use RayValue">
+    <ul slot="below" class="mt-8 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-stone-800" aria-label="Why use RayValue">
       {trust.map((t) => (
         <li class="flex items-center gap-2">
-          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class="shrink-0 text-sun-300">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class="shrink-0 text-sun-ink">
             <path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
           </svg>
           {t}
@@ -92,7 +91,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
   </PageHero>
 
   <section class="shell py-14" aria-labelledby="pick-state">
-    <div class="flex items-center gap-3"><Ray pose="point" size={84} class="shrink-0" /><h2 id="pick-state" class="font-display-tight text-3xl text-stone-900">Choose your state</h2></div>
+    <div class="flex items-center gap-3"><span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-pastel-200 text-stone-900"><Icon name="map" size={24} /></span><h2 id="pick-state" class="font-display-tight text-3xl text-stone-900">Choose your state</h2></div>
     <ul class="mt-6 grid gap-5 sm:grid-cols-2">
       {states.map((s) => (
         <li class="flex flex-col rounded-xl border border-stone-200 bg-white p-6 shadow-sm">

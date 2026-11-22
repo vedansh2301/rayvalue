@@ -6,22 +6,16 @@ export const prerender = false;
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/ui/PageHero.astro';
-import Ray from '../components/brand/Ray.astro';
-import CountryOutline from '../components/brand/CountryOutline.astro';
-import { Image } from 'astro:assets';
-import { countryCalculator } from '../lib/content/country-calc';
-import photoHome from '../assets/photos/ca-home-tile-roof-solar.jpg';
-import photoInstall from '../assets/photos/ca-rooftop-solar-install.jpg';
-import photoCommunity from '../assets/photos/covers/community-solar-florida-california.jpg';
-import photoPrices from '../assets/photos/covers/residential-solar-prices-2026.jpg';
-import photoFarm from '../assets/photos/covers/rooftop-vs-utility-solar-costs-bcg-lazard.jpg';
+import Icon from '../components/icons/Icon';
+import CountryCard from '../components/home/CountryCard.astro';
+import CountryTile from '../components/home/CountryTile.astro';
 import { PAGE_META } from '../lib/seo/page-meta';
 import { ogImagePath } from '../lib/seo/og';
 import { btnPrimary, btnOnDark } from '../components/ui/buttons';
 import { loadPlaceIndexEntries } from '../lib/places/index-entries';
 import { publishedCityLinks } from '../lib/seo/city-links';
 import { DB_PAGE_CACHE_HEADERS } from '../lib/db/repo';
-import { buildCountryCards, cardCounts, deadlineLinks, groupByRegion, liveCalculators, siteTotals, topCountries, type HomeArticle, type PlaceCounts } from '../lib/home/global-home';
+import { buildCountryCards, cardChips, deadlineLinks, groupByRegion, liveCalculators, siteTotals, topCountries, type HomeArticle, type PlaceCounts } from '../lib/home/global-home';
 
 const [guides, posts, places, cities] = await Promise.all([
   getCollection('guides', (e) => !e.data.draft),
@@ -45,22 +39,14 @@ if (places.ok) {
   Astro.response.headers.set('Cache-Control', 'no-store');
 }
 const cards = buildCountryCards(articles, placeCounts, { places: cities.length });
-const featured = topCountries(cards, 5);
+const featured = topCountries(cards, 6);
 const featuredSegs = new Set(featured.map((c) => c.segment));
-const more = groupByRegion(cards.filter((c) => !featuredSegs.has(c.segment)));
+const more = groupByRegion(cards.filter((c) => !featuredSegs.has(c.segment))).flatMap((g) => g.cards);
 const totals = siteTotals(cards);
 const calculators = liveCalculators();
 const deadlines = deadlineLinks(articles).slice(0, 4);
-const hasCalc = (seg: string) => seg === 'us' || countryCalculator(seg) !== null;
 const link = 'text-sun-ink underline underline-offset-2 hover:text-stone-900';
 const h2 = 'font-display-tight text-3xl text-stone-900 sm:text-4xl';
-const photos = [
-  { src: photoHome, alt: 'Aerial view of a home with dark solar panels on a red tile roof', credit: 'Residential rooftop array, California. U.S. Department of Energy' },
-  { src: photoInstall, alt: 'Installers lifting a solar panel into place on a tile roof', credit: 'Rooftop installation. U.S. Department of Energy' },
-  { src: photoCommunity, alt: 'Aerial view of a community solar array in a wooded clearing', credit: 'Community solar array, Massachusetts. U.S. Department of Energy' },
-  { src: photoPrices, alt: 'An installer fixing mounting rails to a tile roof', credit: 'Installing mounting rails. U.S. Department of Energy' },
-  { src: photoFarm, alt: 'Aerial view of a large ground-mounted solar farm', credit: 'Solar farm at Kennedy Space Center, Florida. NASA' },
-];
 const method = [
   { title: 'Official sources first', body: 'Tariffs, export rates, grants and tax rules come from regulators, governments and utilities.' },
   { title: 'Every number shows its source', body: 'Each figure carries its source and the date we checked it. If we cannot verify it, we leave it out.' },
@@ -68,7 +54,7 @@ const method = [
 ];
 ---
 <BaseLayout title={PAGE_META.home.title} description={PAGE_META.home.description} path="/" ogImagePath={ogImagePath('home')}>
-  <PageHero title="Does solar pay off where you live?" size="lg" pose="wave">
+  <PageHero title="Does solar pay off where you live?" size="lg">
     Independent solar and battery payback math for homeowners worldwide, from each country&rsquo;s own tariffs, export rates and grants.
     <Fragment slot="actions">
       <a href="#countries" class={btnPrimary}>Choose your country</a>
@@ -81,44 +67,19 @@ const method = [
       <h2 id="countries-heading" class={h2}>Pick your country</h2>
       <p class="text-stone-700">{totals.countries} countries so far. Each has its own rules and local data.</p>
     </div>
-    <ul class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:grid-rows-2">
-      {featured.map((c, i) => (
-        <li class:list={['relative', i === 0 && 'col-span-2 lg:row-span-2']}>
-          <a
-            href={c.href}
-            class:list={[
-              'group relative flex h-full min-h-44 flex-col justify-end overflow-hidden rounded-2xl p-4 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900',
-              i === 0 ? 'min-h-56 bg-ink-900 text-white hover:bg-ink-800 sm:p-6' : 'border border-stone-200 bg-white pt-16 text-stone-900 hover:border-sun-500 hover:bg-sun-50 sm:pt-20',
-            ]}
-            data-track="nav_click" data-track-placement="home_bento" data-track-target={c.href}
-          >
-            <CountryOutline segment={c.segment} class:list={['absolute right-3 top-3 w-auto transition-transform group-hover:scale-105', i === 0 ? 'h-32 text-sun-400 sm:h-48 lg:h-64' : 'h-11 max-w-[55%] text-sun-300 sm:h-16']} />
-            {hasCalc(c.segment) && <span class:list={['mb-2 w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold', i === 0 ? 'bg-sun-400 text-stone-900' : 'bg-sun-100 text-sun-ink']}>Calculator</span>}
-            <span class:list={['font-display-tight', i === 0 ? 'text-4xl sm:text-5xl' : 'text-2xl']}>{c.name}</span>
-            {c.localName && <span lang={c.localLang ?? undefined} class:list={['text-sm', i === 0 ? 'text-ink-200' : 'text-stone-700']}>{c.localName}</span>}
-            <span class:list={['mt-1 text-sm', i === 0 ? 'text-ink-100' : 'text-stone-700']}>{cardCounts(c)}</span>
-          </a>
-        </li>
-      ))}
+    <ul class="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+      {featured.map((c) => <CountryCard card={c} chips={cardChips(c, articles)} />)}
     </ul>
-    <div class="mt-6 grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-      {more.map((g, i) => (
-        <div role="group" aria-labelledby={`more-${i}`}>
-          <p id={`more-${i}`} class="text-sm font-semibold text-stone-700">Also in {g.region}</p>
-          <ul class="mt-1 flex flex-wrap gap-x-1">
-            {g.cards.map((c) => (
-              <li><a href={c.href} class="inline-flex min-h-11 items-center rounded-md px-2 font-medium text-sun-ink underline-offset-4 hover:bg-sun-50 hover:underline" data-track="nav_click" data-track-placement="home_more" data-track-target={c.href}>{c.name}</a></li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
+    <h3 id="all-countries" class="mt-10 text-sm font-semibold uppercase tracking-wide text-stone-700">All countries</h3>
+    <ul class="mt-3 grid grid-cols-1 gap-2 min-[30rem]:grid-cols-2 md:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))]" aria-labelledby="all-countries">
+      {more.map((c) => <CountryTile card={c} />)}
+    </ul>
   </section>
 
   <section class="shell grid gap-4 pb-12 lg:grid-cols-[3fr_2fr]" aria-label="Calculators and deadlines">
     <div id="calculators" class="scroll-mt-4 rounded-2xl border border-stone-200 bg-white p-5 sm:p-6" role="group" aria-labelledby="calculators-heading">
       <div class="flex items-center gap-3">
-        <Ray pose="point" size={88} class="shrink-0" />
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-pastel-200 text-stone-900"><Icon name="chart" size={24} /></span>
         <div>
           <h2 id="calculators-heading" class="font-display-tight text-2xl text-stone-900 sm:text-3xl">Run your numbers</h2>
           <p class="mt-1 text-stone-700">Low, likely and high ranges from your country&rsquo;s own rates. No sign-up.</p>
@@ -142,7 +103,7 @@ const method = [
     {deadlines.length > 0 && (
       <div id="deadlines" class="scroll-mt-4 rounded-2xl bg-sun-100 p-5 sm:p-6" role="group" aria-labelledby="deadlines-heading">
         <div class="flex items-center gap-3">
-          <Ray pose="calendar" size={88} class="shrink-0" />
+          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-pastel-200 text-stone-900"><Icon name="calendar" size={24} /></span>
           <h2 id="deadlines-heading" class="font-display-tight text-2xl text-stone-900 sm:text-3xl">Dates that change the maths</h2>
         </div>
         <ul class="mt-4 space-y-3">
@@ -158,37 +119,22 @@ const method = [
     )}
   </section>
 
-  <section class="pb-12" aria-labelledby="photos-heading">
-    <div class="shell"><h2 id="photos-heading" class="font-display-tight text-2xl text-stone-900 sm:text-3xl">Solar in the real world</h2></div>
-    <div class="shell"><ul class="scrollbar-none mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2" tabindex="0" aria-label="Photos of solar installations, scroll sideways">
-      {photos.map((ph) => (
-        <li class="w-64 shrink-0 snap-start sm:w-80">
-          <figure>
-            <Image src={ph.src} alt={ph.alt} widths={[320, 640]} sizes="(min-width: 640px) 320px, 256px" width={640} height={420} loading="lazy" decoding="async" class="aspect-[4/3] w-full rounded-xl object-cover" />
-            <figcaption class="mt-1.5 text-xs text-stone-700">{ph.credit}</figcaption>
-          </figure>
-        </li>
-      ))}
-    </ul></div>
-    <p class="shell mt-2 text-xs text-stone-700">Photo sources are listed on the <a href="/credits" class={link}>credits page</a>.</p>
-  </section>
-
-  <section class="bg-ink-900 py-12 text-white" aria-labelledby="method-heading">
+  <section class="bg-sky-pastel-200 py-12 text-stone-900" aria-labelledby="method-heading">
     <div class="shell grid items-center gap-8 lg:grid-cols-[auto_1fr]">
       <div class="flex items-center gap-4">
-        <Ray pose="magnifier" size={120} class="shrink-0" />
-        <h2 id="method-heading" class="font-display-tight max-w-xs text-3xl text-white">How we keep the numbers honest</h2>
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-pastel-200 text-stone-900"><Icon name="search" size={24} /></span>
+        <h2 id="method-heading" class="font-display-tight max-w-xs text-3xl text-stone-900">How we keep the numbers honest</h2>
       </div>
       <div>
         <ul class="grid gap-6 sm:grid-cols-3">
           {method.map((m) => (
             <li class="border-t-2 border-sun-400 pt-3">
-              <h3 class="font-semibold text-white">{m.title}</h3>
-              <p class="mt-1 leading-7 text-ink-100">{m.body}</p>
+              <h3 class="font-semibold text-stone-900">{m.title}</h3>
+              <p class="mt-1 leading-7 text-stone-800">{m.body}</p>
             </li>
           ))}
         </ul>
-        <p class="mt-5 leading-7 text-ink-100">Read the <a href="/methodology" class="text-sun-300 underline underline-offset-2 hover:text-white focus-visible:outline-sun-300">methodology</a>. RayValue is an independent site, not a utility or a government agency; the <a href="/affiliate-disclosure" class="text-sun-300 underline underline-offset-2 hover:text-white focus-visible:outline-sun-300">affiliate disclosure</a> explains how it is funded.</p>
+        <p class="mt-5 leading-7 text-stone-800">Read the <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>. RayValue is an independent site, not a utility or a government agency; the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a> explains how it is funded.</p>
       </div>
     </div>
   </section>

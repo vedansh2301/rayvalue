@@ -1,0 +1,16 @@
+---
+// Compact country tile for the "All countries" grid: mini pastel outline, name, local name and a muted region and size line.
+import CountryOutline from '../brand/CountryOutline.astro';
+import { cardWeight, type CountryCard } from '../../lib/home/global-home';
+interface Props { card: CountryCard; placement?: string }
+const { card: c, placement = 'home_more' } = Astro.props;
+---
+<li>
+  <a href={c.href} class="group flex min-h-14 items-center gap-3 rounded-xl border border-sky-pastel-300 bg-white px-3 py-2 no-underline transition duration-150 hover:border-sky-pastel-600 hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement={placement} data-track-target={c.href}>
+    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-pastel-100"><CountryOutline segment={c.segment} soft class="max-h-7 max-w-7 w-auto" /></span>
+    <span class="min-w-0">
+      <span class="block truncate font-semibold leading-tight text-stone-900">{c.name}{c.localName && <span lang={c.localLang ?? undefined} class="ml-1.5 text-sm font-normal text-stone-700">{c.localName}</span>}</span>
+      <span class="block truncate text-xs text-stone-700">{c.region ?? 'Other'} &middot; {cardWeight(c)} pages</span>
+    </span>
+  </a>
+</li>

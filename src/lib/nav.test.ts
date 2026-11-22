@@ -93,9 +93,9 @@ describe('template sources', () => {
     // The only "Get quotes" label in the nav model is the US context CTA.
     expect(read('./src/lib/nav.ts').match(/label: 'Get quotes'/g)).toHaveLength(1);
   });
-  it('the header menu is CSP-safe: no inline style or script', () => {
-    for (const f of ['./src/components/Header.astro', './src/components/Footer.astro', './src/components/ui/PageHero.astro', './src/components/ui/SunArc.astro', './src/pages/index.astro']) {
-      expect(read(f), f).not.toMatch(/\sstyle=|<script(?![^>]*ld\+json)/);
+  it('the header menu is CSP-safe: no inline style or inline script (bundled scripts are hashed by the CSP)', () => {
+    for (const f of ['./src/components/Header.astro', './src/components/Footer.astro', './src/components/ui/PageHero.astro', './src/pages/index.astro']) {
+      expect(read(f), f).not.toMatch(/\sstyle=|<script[^>]*is:inline/);
     }
   });
   it('the tagline is global', () => {

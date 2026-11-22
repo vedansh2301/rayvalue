@@ -12,7 +12,6 @@ import OfferCTA from '../OfferCTA.astro';
 import OfferSlot from '../OfferSlot.astro';
 import { offersForPage } from '../../lib/offers/load';
 import Breadcrumbs from '../Breadcrumbs.astro';
-import Ray from '../brand/Ray.astro';
 import FlBatteryNotes from '../FlBatteryNotes.astro';
 import StoryCards from '../stories/StoryCards.astro';
 import UtilityLinks from '../utility/UtilityLinks.astro';
@@ -79,7 +78,6 @@ const steps = [
         <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">{name} solar payback calculator</h1>
         <p class="mt-2 text-lg text-stone-700">Four quick questions. Low, likely and high ranges from your utility&rsquo;s rates. No federal tax credit assumed.</p>
       </div>
-      <Ray pose="point" size={104} class="hidden shrink-0 sm:block" />
     </div>
     <p class="mt-1 text-sm text-stone-700">
       In {STATE_NAMES[otherState]}? Use the <a href={CALCULATOR_PATHS[otherState]} class="text-sun-ink underline underline-offset-2 hover:text-stone-900">{STATE_NAMES[otherState]} calculator</a>.

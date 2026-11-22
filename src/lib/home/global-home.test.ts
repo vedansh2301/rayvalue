@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
-import { topCountries, siteTotals, DEADLINE_GUIDES, REGIONS, REGION_BY_SEGMENT, buildCountryCards, cardCounts, deadlineLinks, groupByRegion, latestGuideLinks, liveCalculators, type HomeArticle } from './global-home';
+import { topCountries, siteTotals, DEADLINE_GUIDES, REGIONS, REGION_BY_SEGMENT, buildCountryCards, cardChips, cardCounts, deadlineLinks, groupByRegion, latestGuideLinks, liveCalculators, type HomeArticle } from './global-home';
 
 const art = (o: Partial<HomeArticle> & { id: string; country: string }): HomeArticle => ({ collection: 'guides', lang: 'en', title: o.id, description: 'd', updated: new Date('2026-01-01'), noindex: false, ...o });
 const many = (cc: string, n: number, lang = 'en-GB'): HomeArticle[] => Array.from({ length: n }, (_, i) => art({ id: `${cc}/a${i}`, country: cc, lang }));
@@ -124,5 +124,20 @@ describe('against the real content', () => {
       expect(c.guides, c.segment).toBe(mine.filter((a) => a.collection === 'guides').length);
       expect(c.blog, c.segment).toBe(mine.filter((a) => a.collection === 'blog').length);
     }
+  });
+});
+
+describe('cardChips', () => {
+  it('US gets both state calculators; countries without a calculator get none; guides chip needs guides', () => {
+    const us = cardChips({ segment: 'us', name: 'United States', guides: 3 }, []);
+    expect(us.filter((c) => c.kind === 'calc').map((c) => c.href)).toEqual(['/us/solar-payback/florida', '/us/solar-payback/california']);
+    expect(us.at(-1)).toMatchObject({ kind: 'guides', href: '/guides' });
+    const fr = cardChips({ segment: 'fr', name: 'France', guides: 0 }, []);
+    expect(fr).toEqual([]);
+    expect(cardChips({ segment: 'uk', name: 'United Kingdom', guides: 2 }, [])[0]).toMatchObject({ kind: 'calc', href: '/uk/solar-calculator' });
+  });
+  it('adds the nearest live deadline guide', () => {
+    const a = art({ id: 'gb/solar-panels-vat-deadline-2027', country: 'gb', title: 'VAT deadline' });
+    expect(cardChips({ segment: 'uk', name: 'United Kingdom', guides: 1 }, [a]).some((c) => c.kind === 'deadline' && c.label === 'VAT deadline')).toBe(true);
   });
 });

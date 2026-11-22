@@ -12,6 +12,7 @@ export const SITE_URL = 'https://rayvalue.com';
 export const SITE_NAME = 'RayValue';
 
 import { calcPath } from '../paths';
+import { DEFAULT_SOCIAL_PROFILES } from '../social';
 export type State = 'FL' | 'CA';
 export type Crumb = { label: string; href?: string };
 
@@ -34,7 +35,7 @@ export const logoImageObject = (site: string = SITE_URL) => ({
   height: LOGO_SIZE,
 });
 
-export function organizationJsonLd(site: string = SITE_URL, contactEmail: string | null = null) {
+export function organizationJsonLd(site: string = SITE_URL, contactEmail: string | null = null, sameAs: readonly string[] = DEFAULT_SOCIAL_PROFILES.map((p) => p.url)) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -42,6 +43,7 @@ export function organizationJsonLd(site: string = SITE_URL, contactEmail: string
     name: SITE_NAME,
     url: absoluteUrl('/', site),
     logo: logoImageObject(site),
+    ...(sameAs.length > 0 ? { sameAs: [...sameAs] } : {}),
     ...(contactEmail ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: contactEmail } } : {}),
   };
 }

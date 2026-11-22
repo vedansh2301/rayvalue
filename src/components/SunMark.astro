@@ -1,7 +1,12 @@
 ---
-// The RayValue logo mark: Ray's face. Decorative: the link around it carries the accessible name.
-import Ray from './brand/Ray.astro';
+// The RayValue logo mark: the plain sun icon (same drawing as public/favicon.svg). Decorative: the link around it
+// carries the accessible name.
 interface Props { size?: number }
 const { size = 32 } = Astro.props;
 ---
-<Ray pose="mark" size={size} />
+<svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <circle cx="16" cy="16" r="7" fill="#fbbf24"></circle>
+  <g stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round">
+    <path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M6.8 25.2l2.8-2.8M22.4 9.6l2.8-2.8"></path>
+  </g>
+</svg>

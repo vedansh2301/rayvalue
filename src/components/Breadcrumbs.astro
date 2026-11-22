@@ -1,17 +1,16 @@
 ---
 import { breadcrumbJsonLd, safeJsonLd, type Crumb } from '../lib/seo/jsonld';
 interface Props { items: Crumb[]; tone?: 'light' | 'dark' }
-const { items, tone = 'light' } = Astro.props;
-const dark = tone === 'dark';
+const { items } = Astro.props;
 const ld = safeJsonLd(breadcrumbJsonLd(items, Astro.site?.href));
 ---
-<nav aria-label="Breadcrumb" class:list={['not-prose text-sm', dark ? 'text-ink-200' : 'text-stone-700']}>
+<nav aria-label="Breadcrumb" class:list={['not-prose text-sm', 'text-stone-700']}>
   <ol class="flex flex-wrap gap-x-2 gap-y-1">
     {items.map((item, i) => (
       <li class="flex items-center gap-2">
         {item.href && i < items.length - 1
-          ? <a href={item.href} class:list={['underline underline-offset-4', dark ? 'text-ink-100 hover:text-white focus-visible:outline-sun-300' : 'text-stone-700 hover:text-stone-900']}>{item.label}</a>
-          : <span aria-current={i === items.length - 1 ? 'page' : undefined} class:list={[i === items.length - 1 && (dark ? 'font-medium text-white' : 'font-medium text-stone-900')]}>{item.label}</span>}
+          ? <a href={item.href} class:list={['underline underline-offset-4', 'text-stone-700 hover:text-stone-900']}>{item.label}</a>
+          : <span aria-current={i === items.length - 1 ? 'page' : undefined} class:list={[i === items.length - 1 && 'font-medium text-stone-900']}>{item.label}</span>}
         {i < items.length - 1 && <span aria-hidden="true">/</span>}
       </li>
     ))}

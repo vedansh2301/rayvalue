@@ -53,13 +53,13 @@ const link = 'text-sun-ink underline underline-offset-4 hover:text-stone-900';
 ---
 {found ? (
   <BaseLayout title={`RayValue: ${name}`} description={hubIntro(lang, name)} path={`/${seg}`} noindex={!indexable} lang={lang}>
-    <PageHero title={name} titleId="hub-title" pose="wave">
+    <PageHero title={name} titleId="hub-title">
       <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'RayValue', href: '/' }, { label: name }]} />
       {hubIntro(lang, name)}{calc && <> {calc.body}</>}
       <Fragment slot="actions">
         {calc && <a href={calc.href} class={btnPrimary} data-track="nav_click" data-track-placement="hub_hero" data-track-target={calc.href}>{calc.cta}</a>}
       </Fragment>
-      <p slot="below" class="mt-6 text-sm text-ink-200" lang="en">
+      <p slot="below" class="mt-6 text-sm text-stone-700" lang="en">
         {region && <>{region}. </>}On RayValue: {guides.length > 0 && <>{guides.length} {guides.length === 1 ? 'guide' : 'guides'}</>}{guides.length > 0 && (posts.length > 0 || placeCount > 0) && ', '}{posts.length > 0 && <>{posts.length} {posts.length === 1 ? 'post' : 'posts'}</>}{posts.length > 0 && placeCount > 0 && ', '}{placeCount > 0 && <>{placeCount} {placeCount === 1 ? 'place page' : 'place pages'}</>}.
       </p>
     </PageHero>
