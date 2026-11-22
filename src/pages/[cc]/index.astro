@@ -1,0 +1,97 @@
+---
+export const prerender = false;
+
+// Country home hub: /uk, /de, /au, /ie, /nl, /es, /it ... Built from what exists: place hubs by region, latest guides and
+// blog posts. noindex below HUB_MIN_ITEMS published items. No national figures: none are held with a source yet.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getCollection } from 'astro:content';
+import { articleIndexPath, articlePath, countrySegment } from '../../lib/content/paths';
+import { countryName, hubIndexable, hubItemCount } from '../../lib/content/country-nav';
+import { hubIntro, uiText } from '../../lib/i18n/ui';
+import { loadPlaceIndexEntries } from '../../lib/places/index-entries';
+import { DB_PAGE_CACHE_HEADERS } from '../../lib/db/repo';
+import { displayDate } from '../../lib/dates';
+
+const seg = Astro.params.cc ?? '';
+const live = async (c: 'guides' | 'blog') => (await getCollection(c, (e) => !e.data.draft && !e.data.noindex && e.data.country !== 'us' && countrySegment(e.data.country) === seg));
+const newest = <T extends { data: { updated?: Date; published?: Date } }>(l: T[]) => l.sort((a, b) => (b.data.updated ?? b.data.published ?? new Date(0)).getTime() - (a.data.updated ?? a.data.published ?? new Date(0)).getTime());
+const [guides, posts] = await Promise.all([live('guides').then(newest), live('blog').then(newest)]);
+
+const places = await loadPlaceIndexEntries();
+const hubs = places.ok ? places.value.filter((e) => e.country === seg && e.type === 'places' && e.placeKind === 'hub') : [];
+
+if (guides.length + posts.length + hubs.length === 0) {
+  Astro.response.status = 404;
+} else if (!places.ok) {
+  Astro.response.headers.set('Cache-Control', 'no-store');
+} else {
+  for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
+}
+const found = guides.length + posts.length + hubs.length > 0;
+const lang = guides[0]?.data.lang ?? posts[0]?.data.lang ?? 'en';
+const ui = uiText(lang);
+const name = countryName(seg, lang);
+// With the place lookup down the item count is incomplete, so stay noindex rather than flip-flop in search results.
+const indexable = places.ok && hubIndexable(hubItemCount({ guides: guides.length, blog: posts.length, placeHubs: hubs.length }));
+const regions = [...new Set(hubs.map((h) => h.region ?? ''))].sort();
+const cardList = 'mt-3 space-y-4';
+---
+{found ? (
+  <BaseLayout title={`RayValue: ${name}`} description={hubIntro(lang, name)} path={`/${seg}`} noindex={!indexable} lang={lang}>
+    <div class="page">
+      <Breadcrumbs items={[{ label: ui.home, href: `/${seg}` }, { label: name }]} />
+      <h1 class="!mt-4">{name}</h1>
+      <p>{hubIntro(lang, name)}</p>
+
+      {hubs.length > 0 && (
+        <section class="mt-10" aria-labelledby="hub-places">
+          <h2 id="hub-places" class="text-2xl font-semibold">{ui.placesHeading}</h2>
+          <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+            {regions.map((r) => {
+              const h = hubs.find((x) => (x.region ?? '') === r)!;
+              return <li><a class="underline underline-offset-4" href={h.path}>{r}</a></li>;
+            })}
+          </ul>
+        </section>
+      )}
+
+      {guides.length > 0 && (
+        <section class="mt-10" aria-labelledby="hub-guides">
+          <h2 id="hub-guides" class="text-2xl font-semibold">{ui.latestGuides}</h2>
+          <ul class={cardList}>
+            {guides.slice(0, 5).map((g) => (
+              <li>
+                <a class="font-medium underline underline-offset-4" href={articlePath('guides', g.id, undefined, g.data.country)}>{g.data.title}</a>
+                <p class="mt-1 text-stone-700">{g.data.description}</p>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-3"><a class="underline underline-offset-4" href={articleIndexPath('guides', seg)}>{ui.allGuides}</a></p>
+        </section>
+      )}
+
+      {posts.length > 0 && (
+        <section class="mt-10" aria-labelledby="hub-blog">
+          <h2 id="hub-blog" class="text-2xl font-semibold">{ui.latestBlog}</h2>
+          <ul class={cardList}>
+            {posts.slice(0, 5).map((p) => {
+              const d = p.data.updated ?? p.data.published;
+              return (
+                <li>
+                  <a class="font-medium underline underline-offset-4" href={articlePath('blog', p.id, undefined, p.data.country)}>{p.data.title}</a>
+                  {d && <span class="ml-2 text-sm text-stone-700"><time datetime={d.toISOString().slice(0, 10)}>{displayDate(d)}</time></span>}
+                </li>
+              );
+            })}
+          </ul>
+          <p class="mt-3"><a class="underline underline-offset-4" href={articleIndexPath('blog', seg)}>{ui.allBlog}</a></p>
+        </section>
+      )}
+    </div>
+  </BaseLayout>
+) : (
+  <BaseLayout title="Page not found" description="Page not found" path={Astro.url.pathname} noindex canonical={false}>
+    <div class="page"><h1>Page not found</h1><p><a class="underline underline-offset-4" href="/">RayValue</a></p></div>
+  </BaseLayout>
+)}

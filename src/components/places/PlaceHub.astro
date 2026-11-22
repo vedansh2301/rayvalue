@@ -9,7 +9,7 @@ const { hub } = Astro.props;
 ---
 <BaseLayout title={hub.title} description={hub.description} path={hub.path} lang={hub.lang}>
   <div class="page">
-    <Breadcrumbs items={[{ label: hub.text.home, href: '/' }, { label: hub.regionName }]} />
+    <Breadcrumbs items={[{ label: hub.text.home, href: `/${hub.path.split('/')[1]}` }, { label: hub.regionName }]} />
     <h1 class="!mt-4">{hub.h1}</h1>
     <p>{hub.intro}</p>
     <ul class="mt-6 grid gap-2 sm:grid-cols-2">

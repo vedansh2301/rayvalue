@@ -10,7 +10,8 @@ import TableOfContents from '../../components/seo/TableOfContents.astro';
 import Cover from '../../components/content/Cover.astro';
 import { coverTopic, stateKey } from '../../lib/content/cards';
 import { publishedPosts, publishedPostsFor } from '../../lib/blog';
-import { articleIndexPath, articlePath } from '../../lib/content/paths';
+import { articleIndexPath, articlePath, countrySegment } from '../../lib/content/paths';
+import { uiText } from '../../lib/i18n/ui';
 import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 import OfferSlot from '../../components/OfferSlot.astro';
@@ -46,7 +47,7 @@ const ld = articleJsonLd({
   <article class="page">
     <div class="max-w-none lg:grid lg:grid-cols-[minmax(0,var(--container-prose))_minmax(0,1fr)] lg:gap-12 xl:gap-16">
     <div>
-    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Blog', href: articleIndexPath('blog', country) }, { label: post.data.title }]} />
+    <Breadcrumbs items={[{ label: uiText(post.data.lang).home, href: isUs ? '/' : `/${countrySegment(country)}` }, { label: uiText(post.data.lang).blog, href: articleIndexPath('blog', country) }, { label: post.data.title }]} />
     <h1>{post.data.title}</h1>
     <p class="text-sm text-stone-700">
       Published <time datetime={day(post.data.published)}>{displayDate(post.data.published)}</time>

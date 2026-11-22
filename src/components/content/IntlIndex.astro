@@ -3,20 +3,22 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../Breadcrumbs.astro';
 import { displayDate } from '../../lib/dates';
-import { articleIndexPath, articlePath } from '../../lib/content/paths';
+import { articleIndexPath, articlePath, countrySegment } from '../../lib/content/paths';
+import { uiText } from '../../lib/i18n/ui';
 
 interface Entry { id: string; data: { title: string; description: string; updated?: Date; published?: Date; country: string; lang: string; noindex: boolean } }
 interface Props { collection: 'guides' | 'blog'; country: string; entries: Entry[] }
 const { collection, country, entries } = Astro.props;
 // Only indexable entries are listed; with none, the page is noindex (drafts are never passed in).
 const listed = entries.filter((e) => !e.data.noindex).sort((a, b) => (b.data.updated ?? b.data.published ?? new Date(0)).getTime() - (a.data.updated ?? a.data.published ?? new Date(0)).getTime());
-const heading = collection === 'guides' ? 'Guides' : 'Blog';
-const path = articleIndexPath(collection, country);
 const lang = entries[0]?.data.lang ?? 'en';
+const ui = uiText(lang);
+const heading = collection === 'guides' ? ui.guides : ui.blog;
+const path = articleIndexPath(collection, country);
 ---
 <BaseLayout title={heading} description={`RayValue ${heading.toLowerCase()}: independent solar and home-battery articles, each with its sources listed.`} path={path} noindex={listed.length === 0} lang={lang}>
   <div class="page">
-    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: heading }]} />
+    <Breadcrumbs items={[{ label: ui.home, href: `/${countrySegment(country)}` }, { label: heading }]} />
     <h1>{heading}</h1>
     {listed.length === 0 ? <p>No articles are published here yet.</p> : (
       <ul class="mt-6 space-y-6">

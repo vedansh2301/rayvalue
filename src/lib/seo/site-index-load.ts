@@ -6,6 +6,7 @@ import { getCollection } from 'astro:content';
 import { ok, err, type Result } from '../db/client';
 import { loadDbIndexEntries } from './sitemap-db';
 import { loadPlaceIndexEntries } from '../places/index-entries';
+import { countryHubEntries } from './country-hubs';
 import { articleEntries, staticEntries, type ArticleInput } from './static-entries';
 import type { IndexEntry } from './site-index';
 
@@ -21,7 +22,7 @@ async function load(): Promise<Result<IndexEntry[]>> {
   const [db, places] = await Promise.all([loadDbIndexEntries(), loadPlaceIndexEntries()]);
   if (!db.ok) return err(db.error.kind, db.error.message);
   if (!places.ok) return err(places.error.kind, places.error.message);
-  return ok([...staticEntries(articles), ...articleEntries(articles), ...db.value, ...places.value]);
+  return ok([...staticEntries(articles), ...articleEntries(articles), ...countryHubEntries(articles, places.value), ...db.value, ...places.value]);
 }
 
 export function getSiteIndex(now = Date.now()): Promise<Result<IndexEntry[]>> {

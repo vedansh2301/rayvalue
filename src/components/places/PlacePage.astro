@@ -20,7 +20,7 @@ interface Props {
 const { view, hubHref, others, articles, articlesIndexHref } = Astro.props;
 const t = view.text;
 const crumbs = [
-  { label: t.home, href: '/' },
+  { label: t.home, href: `/${view.path.split('/')[1]}` },
   ...(hubHref ? [{ label: view.regionName, href: hubHref }] : [{ label: view.regionName }]),
   { label: view.name },
 ];

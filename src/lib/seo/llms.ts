@@ -57,6 +57,8 @@ export function renderRootLlms(entries: readonly IndexEntry[], origin = SITE_ORI
 function renderArticleCountryLlms(mine: readonly IndexEntry[], cc: string, origin: string): string {
   const lines = [`# RayValue: ${COUNTRY_NAMES(cc).name}`, '> Independent solar and home-battery articles for readers in this country. Sources are listed on each article.'];
   const places = mine.filter((e) => e.type === 'places');
+  const home = bySection(mine, 'home');
+  if (home.length) lines.push('', '## Country home', ...home.map((e) => link(e, origin)));
   if (places.length) {
     const regions = [...new Set(places.map((e) => e.region ?? ''))].sort();
     const count = places.filter((e) => e.placeKind === 'place').length;

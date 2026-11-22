@@ -12,7 +12,8 @@ import Faq from '../Faq.astro';
 import OfferSlot from '../OfferSlot.astro';
 import { offersForPage } from '../../lib/offers/load';
 import { coverTopic, stateKey } from '../../lib/content/cards';
-import { articleIndexPath, articlePath } from '../../lib/content/paths';
+import { articleIndexPath, articlePath, countrySegment } from '../../lib/content/paths';
+import { uiText } from '../../lib/i18n/ui';
 import { articleJsonLd, faqJsonLd } from '../../lib/seo/jsonld';
 import { displayDate, showUpdated } from '../../lib/dates';
 
@@ -40,7 +41,7 @@ const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
   <article class="page">
     <div class="max-w-none lg:grid lg:grid-cols-[minmax(0,var(--container-prose))_minmax(0,1fr)] lg:gap-12 xl:gap-16">
     <div>
-    <Breadcrumbs items={crumbs ?? [{ label: 'Home', href: '/' }, { label: 'Guides', href: articleIndexPath('guides', country) }, { label: guide.data.title }]} />
+    <Breadcrumbs items={crumbs ?? [{ label: uiText(guide.data.lang).home, href: isUs ? '/' : `/${countrySegment(country)}` }, { label: uiText(guide.data.lang).guides, href: articleIndexPath('guides', country) }, { label: guide.data.title }]} />
     <h1>{guide.data.title}</h1>
     <p class="text-sm text-stone-700">
       {guide.data.published && <>Published <time datetime={day(guide.data.published)}>{displayDate(guide.data.published)}</time></>}
