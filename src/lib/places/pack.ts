@@ -70,7 +70,12 @@ const TITLE_NAME: Record<PlaceCountryCode, RegExp> = {
   RO: /^Panouri fotovoltaice (.+?) [–-] /,
   FR: /^Panneaux solaires a (.+?) : /,
   NL: /^Zonnepanelen (.+?): /,
+  IT: /^Fotovoltaico a (.+?): /,
+  CH: /^Photovoltaik in (.+?)$/,
 };
+
+/** The CH pack writes names without umlauts and full stops; these are the place names as the municipalities spell them. */
+const NAME_FIX: Readonly<Record<string, string>> = { Zuerich: 'Zürich', 'St Gallen': 'St. Gallen' };
 
 /** Countries whose per-place data is Eurostat Census 2021 by NUTS region (ownership at NUTS2, one-dwelling buildings at NUTS3). */
 export const NUTS_COUNTRIES: ReadonlySet<PlaceCountryCode> = new Set<PlaceCountryCode>(['SE', 'DK', 'NO', 'FI', 'PL', 'CZ', 'RO']);
@@ -96,6 +101,7 @@ export function parsePackPlaces(country: PlaceCountryCode, pagesCsv: string): Pa
     if (seen.has(k) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(regionSlug)) continue;
     seen.add(k);
     let name = TITLE_NAME[country].exec(r.title ?? '')?.[1]?.trim() || titleCase(slug);
+    if (country === 'CH') name = NAME_FIX[name] ?? name;
     if (country === 'IE') name = name.replace(/ city$/, ' City');
     const nuts3 = /one_dwelling_share_pct ([A-Z0-9]{3,6})/.exec(r.unique_data_sections ?? '')?.[1];
     const nuts2 = /owner_occupied_share_pct ([A-Z0-9]{3,6})/.exec(r.unique_data_sections ?? '')?.[1];
