@@ -1,4 +1,6 @@
 ---
+import PlacePhoto from '../ui/PlacePhoto.astro';
+import { getArticleImage } from '../../lib/images/place-images';
 /** Guide article page body (layout, cover, TOC, FAQ, sources). Used by /guides/[slug] and by keyword routes. */
 import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
@@ -37,6 +39,7 @@ const ld = articleJsonLd({
 }, Astro.site?.href);
 const faq = (guide.data.faq ?? []).map((f, i) => ({ id: `faq-${i}`, ...f }));
 const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
+const libraryPhoto = guide.data.cover ? null : (getArticleImage(guide)?.photo ?? null);
 ---
 <BaseLayout title={guide.data.seoTitle ?? guide.data.title} ogImageAlt={`${guide.data.title} (RayValue guide)`} publishedTime={guide.data.published} modifiedTime={guide.data.updated} description={guide.data.description} path={path} ogImagePath={`/og${isUs ? `/guides/${guide.id}` : path}.png`} lang={guide.data.lang} ogType="article" noindex={guide.data.noindex} jsonLd={jsonLd}>
   <article class="page">
@@ -49,6 +52,9 @@ const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
       {showUpdated(guide.data.published, guide.data.updated) && <>{guide.data.published ? ' · ' : ''}Updated <time datetime={day(guide.data.updated)}>{displayDate(guide.data.updated)}</time></>}
     </p>
     <ArticleByline />
+    {!guide.data.cover && libraryPhoto && (
+      <div class="relative mt-6 aspect-video overflow-hidden rounded-2xl"><PlacePhoto photo={libraryPhoto} sizes="(min-width: 832px) 768px, calc(100vw - 2rem)" eager credit="text" creditAt="bottom-right" /></div>
+    )}
     {guide.data.cover && (
       <Cover
         topic={coverTopic({ topic: guide.data.topic, title: guide.data.title, state: guide.data.state })}

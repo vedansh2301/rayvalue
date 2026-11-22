@@ -6,7 +6,7 @@
  */
 import type { ImageMetadata } from 'astro';
 import PlacePhoto from '../ui/PlacePhoto.astro';
-import type { Photo } from '../../lib/images/place-images';
+import { getPlaceImage, type Photo } from '../../lib/images/place-images';
 import Cover from '../content/Cover.astro';
 import CountryOutline from '../brand/CountryOutline.astro';
 import type { Topic, StateKey } from '../../lib/content/cards';
@@ -35,7 +35,9 @@ interface Props {
   kind?: string;
   readLabel?: string;
 }
-const { href, title, description, lang, segment, countryName, tag, tagTone = 'white', topic, state = 'both', cover, photo, coverAlt, cta, placement = 'article_card', compact = false, kind, readLabel = 'Read guide' } = Astro.props;
+const { href, title, description, lang, segment, countryName, tag, tagTone = 'white', topic, state = 'both', cover, photo: photoProp, coverAlt, cta, placement = 'article_card', compact = false, kind, readLabel = 'Read guide' } = Astro.props;
+// No cover of its own and no photo passed: use the licensed library photo for its US state or country (never the generated icon cover when a photo exists).
+const photo = photoProp ?? (cover ? null : getPlaceImage(segment, segment === 'us' && state !== 'both' ? (state === 'FL' ? 'florida' : 'california') : undefined));
 ---
 <article class="group flex flex-col overflow-hidden rounded-2xl border border-sky-pastel-300 bg-white transition-shadow duration-150 hover:shadow-lift" data-kind={kind}>
   <a href={href} tabindex="-1" aria-hidden="true" class="relative block aspect-video bg-sky-pastel-100" data-track="nav_click" data-track-placement={`${placement}_cover`} data-track-target={href}>
