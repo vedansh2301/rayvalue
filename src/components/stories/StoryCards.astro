@@ -33,7 +33,7 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month:
       return (
       <li class="flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
         {s.data.image && (
-          <Picture quality={72}
+          <Picture
             src={s.data.image}
             alt={s.data.imageAlt ?? ''}
             formats={['avif', 'webp']}

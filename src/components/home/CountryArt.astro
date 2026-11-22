@@ -28,7 +28,7 @@ const widths = image ? [400, 640, 960].filter((w) => w <= image.width) : [];
 {photo ? (
   <PlacePhoto photo={photo} sizes={sizes} eager={eager} credit="text" class={cls} />
 ) : image ? (
-  <Picture quality={72} src={image} alt={alt} formats={['avif', 'webp']} widths={widths.length ? widths : [image.width]} sizes={sizes} width={960} height={Math.round((960 * image.height) / image.width)} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" class:list={['absolute inset-0 h-full w-full object-cover', cls]} />
+  <Picture src={image} alt={alt} formats={['avif', 'webp']} widths={widths.length ? widths : [image.width]} sizes={sizes} width={960} height={Math.round((960 * image.height) / image.width)} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" class:list={['absolute inset-0 h-full w-full object-cover', cls]} />
 ) : (
   <div class:list={['absolute inset-0 flex items-center justify-center overflow-hidden bg-sky-pastel-100', cls]} aria-hidden="true">
     <svg viewBox="0 0 160 90" class="absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false">
