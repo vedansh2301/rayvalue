@@ -27,7 +27,7 @@ const WIDTHS = [400, 640, 960, 1280].filter((w) => !cover || w <= cover.width);
 ---
 {cover ? (
   <div class={`relative overflow-hidden bg-stone-200 ${cls}`}>
-    <Picture
+    <Picture quality={72}
       src={cover}
       alt={coverAlt ?? ''}
       formats={['avif', 'webp']}

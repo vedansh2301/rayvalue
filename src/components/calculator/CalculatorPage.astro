@@ -89,7 +89,7 @@ const steps = [
     <section aria-label="Calculator">
       {data.ok ? (
         <Calculator client:visible {...data.props} alertsEnabled={ALERTS_ENABLED}>
-          <Picture
+          <Picture quality={72}
             src={photo.src}
             formats={['avif', 'webp']}
             widths={[480, 800]}
