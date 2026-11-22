@@ -1,0 +1,290 @@
+---
+/**
+ * Guides index in the Claude Design layout, for /guides (every country) and /<cc>/guides (one country, with its hub band
+ * shown). The FULL list is server-rendered, grouped by topic; the script at the bottom only filters it (without JS every
+ * guide is listed and the country cards are plain links). Topic rules: src/lib/content/guides-index.ts. The deadline
+ * strip lists guides whose frontmatter `deadline` is still ahead; the day counts are recomputed in the browser.
+ */
+import { getCollection } from 'astro:content';
+import type { ImageMetadata } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../Breadcrumbs.astro';
+import CountryOutline from '../brand/CountryOutline.astro';
+import PlacePhoto from '../ui/PlacePhoto.astro';
+import Cover from './Cover.astro';
+import Icon, { type IconName } from '../icons/Icon';
+import { PAGE_META } from '../../lib/seo/page-meta';
+import { articleIndexPath, articlePath, articleSlug, countrySegment } from '../../lib/content/paths';
+import { countryName } from '../../lib/content/country-nav';
+import { countryCalculator } from '../../lib/content/country-calc';
+import { getArticleImage, getCountryImage } from '../../lib/images/place-images';
+import { coverTopic } from '../../lib/content/cards';
+import { GUIDE_TOPICS, GUIDE_TOPIC_LABEL, guideCountries, guideTopic, roundRobin } from '../../lib/content/guides-index';
+import { daysLeft } from '../../lib/home/global-home';
+
+interface Props { country?: string }
+const { country } = Astro.props;
+const now = new Date();
+const entries = await getCollection('guides', (e) => !e.data.draft && !e.data.noindex);
+const nameOf = (s: string) => (s === 'us' ? 'United States' : countryName(s, 'en'));
+const stamp = (e: (typeof entries)[number]) => (e.data.updated ?? e.data.published ?? new Date(0)).getTime();
+const all = entries.sort((a, b) => stamp(b) - stamp(a) || a.id.localeCompare(b.id)).map((e) => {
+  const d = e.data;
+  const segment = countrySegment(d.country);
+  return {
+    id: e.id, segment, name: nameOf(segment), lang: d.lang, title: d.title, deadline: d.deadline ?? null,
+    href: articlePath('guides', e.id, d.route, d.country), topic: guideTopic({ slug: articleSlug(e.id, d.country), title: d.title }),
+    cover: d.cover as ImageMetadata | undefined, coverAlt: d.coverAlt, state: d.state, country: d.country,
+  };
+});
+const here = country ? countrySegment(country) : null;
+const countries = guideCountries(all, nameOf);
+const pool = here ? all.filter((g) => g.segment === here) : all;
+// First two guides of each country get the country's library photo (a different one each); the rest the dotted outline art.
+const seen = new Map<string, number>();
+const cards = all.map((g) => {
+  const n = seen.get(g.segment) ?? 0; seen.set(g.segment, n + 1);
+  const img = g.cover || n < 2 ? getArticleImage({ id: g.id, data: { country: g.country, state: g.state, cover: g.cover, coverAlt: g.coverAlt } }) : null;
+  return { ...g, photo: g.cover ? null : img?.photo ?? null };
+});
+const byId = new Map(cards.map((c) => [c.id, c]));
+const TOPIC_ICON: Record<string, IconName> = { all: 'map', worth: 'chart', money: 'bill', export: 'bolt', battery: 'battery', costs: 'scale', scams: 'shield', how: 'search' };
+const topicN = (t: string) => (t === 'all' ? pool.length : pool.filter((g) => g.topic === t).length);
+const groups = GUIDE_TOPICS.map((t) => ({ topic: t, items: roundRobin(all.filter((g) => g.topic === t), (g) => g.segment).map((g) => byId.get(g.id)!) })).filter((g) => g.items.length > 0);
+const deadlines = all.filter((g) => g.deadline && daysLeft(g.deadline, now) !== null).sort((a, b) => a.deadline!.getTime() - b.deadline!.getTime());
+const CALC_LABEL: Record<string, string> = { uk: 'Run the UK calculator', de: 'Photovoltaik-Rechner', au: 'Run the solar + battery calculator' };
+const hub = (seg: string) => {
+  const lang = all.find((g) => g.segment === seg)?.lang ?? 'en';
+  const native = (() => { try { return new Intl.DisplayNames([lang], { type: 'region' }).of((seg === 'uk' ? 'gb' : seg).toUpperCase()) ?? ''; } catch { return ''; } })();
+  const calc = countryCalculator(seg);
+  const n = all.filter((g) => g.segment === seg).length;
+  return {
+    seg, name: nameOf(seg), n, native: native && native !== nameOf(seg) ? native : 'Country guides',
+    cta: seg === 'us' ? { href: '/#calculators', label: 'Florida & California calculators' } : calc ? { href: calc.href, label: CALC_LABEL[seg] ?? 'Run the calculator' } : { href: '/#report', label: 'Get my payback report' },
+  };
+};
+const meta = PAGE_META.guides;
+const path = articleIndexPath('guides', country ?? 'us');
+const empty = pool.length === 0;
+const hereName = here ? nameOf(here) : null;
+const chipBase = 'rounded-full bg-white px-3 py-1';
+---
+<BaseLayout title={here ? `${hereName} solar guides` : meta.title} description={here ? `Independent solar and home-battery guides for ${hereName}, each with its sources listed.` : meta.description} ogImagePath={here ? undefined : '/og/guides.png'} path={path} noindex={empty}>
+  <svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false"><defs><pattern id="rv-dots" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="0.9" fill="#bfd9f1"></circle></pattern></defs></svg>
+  <div data-guides data-mode={here ? 'fixed' : 'filter'} data-fixed={here ?? undefined}>
+    <section class="relative isolate overflow-hidden border-b border-sky-pastel-300 bg-gradient-to-b from-sky-pastel-200 via-sky-pastel-100 to-sky-pastel-50" aria-labelledby="guides-title">
+      <svg viewBox="0 0 400 400" class="pointer-events-none absolute -right-28 -top-40 -z-10 size-[30rem] opacity-50 motion-safe:animate-sun-slower" aria-hidden="true" focusable="false">
+        <circle cx="200" cy="200" r="70" fill="#fcd34d"></circle>
+        <g stroke="#fbbf24" stroke-width="10" stroke-linecap="round"><path d="M200 40v50M200 310v50M40 200h50M310 200h50M87 87l35 35M278 278l35 35M87 313l35-35M278 122l35-35"></path></g>
+      </svg>
+      <div class="shell flex flex-col gap-[22px] pb-8 pt-[clamp(2rem,5vw,3.75rem)]">
+        <Breadcrumbs items={[{ label: 'Home', href: '/' }, ...(here ? [{ label: 'Guides', href: '/guides' }, { label: hereName! }] : [{ label: 'Guides' }])]} />
+        <div class="grid items-end gap-x-12 gap-y-6 lg:grid-cols-2">
+          <h1 id="guides-title" class="font-display-tight text-balance text-[clamp(2.375rem,5.4vw,4rem)] leading-[1.05] text-stone-900">{here ? `${hereName}: guides` : 'Guides from every country'}</h1>
+          <p class="max-w-[48ch] text-lg leading-relaxed text-stone-800">Grants, export payments, tax rules and costs, explained for the country you live in and checked against the official source.</p>
+        </div>
+        {!empty && (
+          <div class="flex flex-col gap-2.5">
+            <p class="text-sm font-semibold text-stone-900" id="topics-label">What do you want to know?</p>
+            <div role="group" aria-labelledby="topics-label" class="grid grid-cols-[repeat(auto-fill,minmax(9.375rem,1fr))] gap-2.5">
+              {(['all', ...GUIDE_TOPICS] as const).map((t) => (
+                <button type="button" data-topic={t} aria-pressed={t === 'all' ? 'true' : 'false'} class="topic-tile">
+                  <span class="flex size-10 items-center justify-center rounded-xl bg-sky-pastel-100 text-stone-900"><Icon name={TOPIC_ICON[t]} size={24} /></span>
+                  <span class="flex flex-col gap-0.5"><strong class="text-[15px]">{t === 'all' ? 'All guides' : GUIDE_TOPIC_LABEL[t]}</strong><span class="text-xs text-stone-700"><span data-topic-n={t}>{topicN(t)}</span> guides</span></span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+
+    {empty ? (
+      <div class="shell py-10"><p class="max-w-2xl leading-7 text-stone-700">No guides are published here yet. Meanwhile, <a href="/#calculators" class="text-sun-ink underline underline-offset-2">run a calculator</a> or read the <a href="/methodology" class="text-sun-ink underline underline-offset-2">methodology</a>.</p></div>
+    ) : (
+      <>
+        <section class="shell pt-8" aria-labelledby="start-h">
+          <div class="mb-3.5 flex flex-wrap items-center justify-between gap-3">
+            <h2 id="start-h" class="font-display-tight text-[1.625rem] text-stone-900">Start with your country</h2>
+            <span class="text-sm text-stone-700" data-total aria-live="polite">{pool.length} {pool.length === 1 ? 'guide' : 'guides'} · {new Set(pool.map((g) => g.segment)).size} {new Set(pool.map((g) => g.segment)).size === 1 ? 'country' : 'countries'}</span>
+          </div>
+          <ul class="scrollbar-none -mx-0.5 flex gap-3 overflow-x-auto px-0.5 pb-3.5 pt-1">
+            {countries.map((c) => {
+              const photo = getCountryImage(c.segment);
+              const selected = here === c.segment;
+              return (
+                <li class="shrink-0">
+                  <a href={here === c.segment ? '/guides' : c.segment === 'us' ? '/guides' : `/${c.segment}/guides`} data-country={c.segment} aria-current={selected ? 'true' : undefined} class={`group/c relative block h-[170px] w-[150px] overflow-hidden rounded-[18px] border border-sky-pastel-300 bg-sky-pastel-100 no-underline transition-transform duration-150 hover:-translate-y-[3px] motion-reduce:transition-none motion-reduce:hover:translate-y-0 aria-[current=true]:border-[3px] aria-[current=true]:border-sun-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 ${photo ? 'text-white' : 'text-stone-900'}`}>
+                    {photo ? (
+                      <>
+                        <div class="absolute inset-0"><PlacePhoto photo={photo} sizes="150px" credit="none" widths={[320, 480]} /></div>
+                        <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-stone-900/0 from-35% to-stone-900/80"></div>
+                      </>
+                    ) : (
+                      <CountryOutline segment={c.segment} class="pointer-events-none absolute left-1/2 top-[40%] h-[58%] w-auto max-w-[72%] -translate-x-1/2 -translate-y-1/2 fill-white stroke-sky-pastel-600 group-aria-[current=true]/c:fill-sun-400" />
+                    )}
+                    <span class="pointer-events-none absolute inset-x-3 bottom-2.5 flex flex-col gap-px"><strong class="text-[15px] leading-tight">{c.name}</strong><span class="text-xs opacity-90">{c.n} guides</span></span>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        {deadlines.length > 0 && (
+          <section data-deadlines hidden={here ? true : undefined} class="shell mt-4 [&[hidden]]:hidden" aria-labelledby="dl-h">
+            <div class="flex flex-col gap-3 rounded-[20px] border border-sun-200 bg-sun-100 p-[18px]">
+              <h2 id="dl-h" class="flex items-center gap-2.5 text-base font-bold text-stone-900"><Icon name="calendar" size={24} />Deadline guides: read these first</h2>
+              <ul class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,16.25rem),1fr))] gap-2.5">
+                {deadlines.map((d) => (
+                  <li data-deadline={d.deadline!.toISOString().slice(0, 10)}>
+                    <a href={d.href} lang={d.lang} class="grid grid-cols-[62px_minmax(0,1fr)] items-center gap-3 rounded-[14px] bg-white p-2.5 text-stone-900 no-underline hover:shadow-[0_10px_24px_-14px_rgba(146,64,14,0.5)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="guides_index_deadline" data-track-target={d.href}>
+                      <span class="flex flex-col items-start rounded-[10px] bg-sun-50 p-2"><strong class="font-display-tight text-2xl leading-none" data-days>{daysLeft(d.deadline!, now)}</strong><span class="text-[11px] font-bold text-sun-ink">days</span></span>
+                      <span class="flex min-w-0 flex-col gap-[3px]"><span class="text-xs font-bold text-sun-ink">{d.name}</span><span class="text-sm font-semibold leading-snug">{d.title}</span></span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
+        {countries.map((c) => {
+          const h = hub(c.segment);
+          return (
+            <section data-hub={c.segment} hidden={here === c.segment ? undefined : true} class="shell mt-6 [&[hidden]]:hidden" aria-label={`${h.name} guides`}>
+              <div class="relative grid items-center gap-5 overflow-hidden rounded-[22px] bg-sky-pastel-200 px-6 py-[22px] sm:grid-cols-[minmax(0,1fr)_auto]">
+                <div class="flex min-w-0 flex-col gap-2.5">
+                  <span class="text-sm font-semibold text-stone-700" lang={all.find((g) => g.segment === c.segment)?.lang}>{h.native}</span>
+                  <h2 class="font-display-tight text-[clamp(1.75rem,3.4vw,2.625rem)] leading-[1.1] text-stone-900">{h.name}: <span data-hub-n>{h.n}</span> guides</h2>
+                  <div class="flex flex-wrap gap-2">
+                    <a href={h.cta.href} class="inline-flex min-h-11 items-center rounded-lg bg-sun-400 px-4 font-bold text-stone-900 no-underline hover:bg-sun-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="guides_index_hub" data-track-target={h.cta.href}>{h.cta.label} &rarr;</a>
+                    <a href="/guides" data-clear class="inline-flex min-h-11 items-center rounded-lg border border-sky-pastel-400 bg-white px-3.5 font-semibold text-stone-900 no-underline hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900">All countries</a>
+                  </div>
+                </div>
+                <CountryOutline segment={c.segment} class="hidden h-[120px] w-auto max-w-40 fill-sun-400 stroke-sun-ink sm:block" />
+              </div>
+            </section>
+          );
+        })}
+
+        <section class="shell flex flex-col gap-10 pb-4 pt-8" aria-label="Guides by topic">
+          {groups.map((g) => (
+            <div data-group={g.topic} class="flex flex-col gap-4">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-sky-pastel-200 pb-2.5">
+                <div class="flex items-center gap-3">
+                  <span class="flex size-10 items-center justify-center rounded-xl bg-sun-100 text-stone-900"><Icon name={TOPIC_ICON[g.topic]} size={24} /></span>
+                  <h2 class="font-display-tight text-[1.625rem] text-stone-900">{GUIDE_TOPIC_LABEL[g.topic]}</h2>
+                  <span class="rounded-full bg-sky-pastel-50 px-[9px] py-0.5 text-[13px] font-bold text-stone-700" data-group-n>{g.items.length}</span>
+                </div>
+                <button type="button" data-more hidden class="min-h-11 cursor-pointer font-semibold text-sun-ink underline underline-offset-[3px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900"></button>
+              </div>
+              <ul class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,16.875rem),1fr))] gap-4">
+                {g.items.map((p) => (
+                  <li data-guide data-country={p.segment} data-name={p.name} class="[&[hidden]]:hidden">
+                    <a href={p.href} lang={p.lang} class="flex h-full flex-col overflow-hidden rounded-2xl border border-sky-pastel-300 bg-white text-stone-900 no-underline transition-[transform,box-shadow] duration-150 hover:-translate-y-[3px] hover:border-sky-pastel-600 hover:shadow-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 motion-reduce:transition-none motion-reduce:hover:translate-y-0" data-track="nav_click" data-track-placement="guides_index" data-track-target={p.href}>
+                      <div class="relative aspect-video overflow-hidden bg-sky-pastel-100">
+                        {p.photo ? <div class="absolute inset-0"><PlacePhoto photo={p.photo} sizes="(min-width: 1024px) 270px, (min-width: 640px) 45vw, 100vw" credit="text" creditAt="bottom-right" /></div>
+                          : p.cover ? <Cover class="absolute inset-0 h-full w-full" cover={p.cover} coverAlt="" topic={coverTopic({ title: p.title, state: p.state })} state={p.state ?? 'both'} />
+                          : (
+                            <>
+                              <svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" class="pointer-events-none absolute inset-0 size-full" aria-hidden="true" focusable="false"><rect width="160" height="90" fill="url(#rv-dots)"></rect><circle cx="134" cy="18" r="9" fill="#fcd34d"></circle></svg>
+                              <CountryOutline segment={p.segment} class="pointer-events-none absolute left-1/2 top-1/2 h-[68%] w-auto max-w-[56%] -translate-x-1/2 -translate-y-1/2 fill-sun-400 stroke-sun-ink" />
+                            </>
+                          )}
+                        <span class="pointer-events-none absolute left-2.5 top-2.5 z-10 flex items-center gap-1.5 rounded-full bg-white/95 py-[3px] pl-1 pr-2.5 text-xs font-bold text-stone-900"><CountryOutline segment={p.segment} class="size-4 fill-sun-400 stroke-sun-ink" />{p.name}</span>
+                      </div>
+                      <div class="flex flex-1 flex-col gap-2.5 px-4 pb-4 pt-3.5">
+                        <strong class="font-display-tight text-lg leading-snug">{p.title}</strong>
+                        <span class="mt-auto text-sm font-semibold text-sun-ink">Read guide &rarr;</span>
+                      </div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <p data-empty hidden class="rounded-2xl border border-dashed border-sky-pastel-400 bg-sky-pastel-50 p-8 text-stone-800">No guides for this topic in <span data-empty-name>this country</span> yet. <button type="button" data-reset class="font-semibold text-sun-ink underline underline-offset-2">Show all topics</button></p>
+        </section>
+      </>
+    )}
+
+    <section class="shell mb-16 mt-10" aria-labelledby="guides-cta">
+      <div class="relative isolate grid items-center gap-6 overflow-hidden rounded-3xl bg-sun-400 p-[clamp(1.5rem,4vw,2.75rem)] lg:grid-cols-2">
+        <svg viewBox="0 0 400 400" class="pointer-events-none absolute -bottom-52 -right-20 -z-10 size-[28.75rem] opacity-50 motion-safe:animate-sun-slower" aria-hidden="true" focusable="false"><circle cx="200" cy="200" r="80" fill="#fcd34d"></circle><g stroke="#fde68a" stroke-width="12" stroke-linecap="round"><path d="M200 30v60M200 310v60M30 200h60M310 200h60M80 80l42 42M278 278l42 42M80 320l42-42M278 122l42-42"></path></g></svg>
+        <h2 id="guides-cta" class="font-display-tight text-[clamp(1.75rem,3.4vw,2.625rem)] leading-[1.1] text-stone-900">Read enough? Run the numbers for your own roof.</h2>
+        <div class="flex flex-wrap gap-2.5">
+          <a href="/#calculators" class="inline-flex min-h-[3.25rem] items-center rounded-[10px] bg-stone-900 px-5 font-bold text-sun-100 no-underline hover:bg-stone-800 hover:text-sun-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="guides_index_cta" data-track-target="/#calculators">Open a calculator &rarr;</a>
+          <a href="/#report" class="inline-flex min-h-[3.25rem] items-center rounded-[10px] bg-white px-5 font-bold text-stone-900 no-underline hover:bg-sun-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="guides_index_cta" data-track-target="/#report">Get my free payback report</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  // Topic and country filters over the server-rendered list; with no JS every guide is listed. Groups show 4 guides each
+  // under "All guides" (See all expands); a single topic shows everything. Deadline day counts are recomputed here.
+  const root = document.querySelector<HTMLElement>('[data-guides]');
+  if (root) {
+    const fixed = root.dataset.fixed ?? '';
+    const topicBtns = [...root.querySelectorAll<HTMLButtonElement>('button[data-topic]')];
+    const chips = [...root.querySelectorAll<HTMLAnchorElement>('a[data-country]')];
+    const groups = [...root.querySelectorAll<HTMLElement>('[data-group]')];
+    const hubs = [...root.querySelectorAll<HTMLElement>('[data-hub]')];
+    const deadlines = root.querySelector<HTMLElement>('[data-deadlines]');
+    const empty = root.querySelector<HTMLElement>('[data-empty]');
+    const total = root.querySelector<HTMLElement>('[data-total]');
+    const PER_GROUP = 4;
+    let country = fixed || 'all', topic = 'all';
+    const expanded = new Set<string>();
+    const guides = [...root.querySelectorAll<HTMLElement>('[data-guide]')];
+    const inCountry = (li: HTMLElement) => country === 'all' || li.dataset.country === country;
+    const render = () => {
+      let visible = 0;
+      for (const g of groups) {
+        const t = g.dataset.group!;
+        const items = [...g.querySelectorAll<HTMLElement>('[data-guide]')];
+        const match = items.filter(inCountry);
+        const show = topic === 'all' || topic === t;
+        const limit = topic === 'all' && !expanded.has(t) ? PER_GROUP : Infinity;
+        items.forEach((li) => { li.hidden = true; });
+        if (show) match.slice(0, limit).forEach((li) => { li.hidden = false; });
+        g.hidden = !show || match.length === 0;
+        g.querySelector('[data-group-n]')!.textContent = String(match.length);
+        const more = g.querySelector<HTMLButtonElement>('[data-more]')!;
+        more.hidden = !(topic === 'all' && match.length > PER_GROUP);
+        more.textContent = expanded.has(t) ? 'Show fewer' : `See all ${match.length} →`;
+        if (!g.hidden) visible += 1;
+      }
+      topicBtns.forEach((b) => {
+        const t = b.dataset.topic!;
+        b.setAttribute('aria-pressed', String(t === topic));
+        b.querySelector('[data-topic-n]')!.textContent = String(guides.filter((li) => inCountry(li) && (t === 'all' || li.closest<HTMLElement>('[data-group]')?.dataset.group === t)).length);
+      });
+      if (!fixed) chips.forEach((c) => { if (c.dataset.country === country) c.setAttribute('aria-current', 'true'); else c.removeAttribute('aria-current'); });
+      hubs.forEach((h) => { h.hidden = h.dataset.hub !== country; });
+      if (deadlines && !fixed) deadlines.hidden = !(country === 'all' && (topic === 'all' || topic === 'money'));
+      const pool = guides.filter(inCountry);
+      const nc = new Set(pool.map((li) => li.dataset.country)).size;
+      if (total) total.textContent = `${pool.length} ${pool.length === 1 ? 'guide' : 'guides'} · ${nc} ${nc === 1 ? 'country' : 'countries'}`;
+      if (empty) {
+        empty.hidden = visible > 0;
+        const n = empty.querySelector('[data-empty-name]');
+        if (n) n.textContent = guides.find((li) => li.dataset.country === country)?.dataset.name ?? 'this country';
+      }
+    };
+    topicBtns.forEach((b) => b.addEventListener('click', () => { topic = b.dataset.topic!; render(); }));
+    if (!fixed) chips.forEach((c) => c.addEventListener('click', (e) => { e.preventDefault(); country = country === c.dataset.country ? 'all' : c.dataset.country!; render(); }));
+    root.querySelectorAll<HTMLAnchorElement>('[data-clear]').forEach((a) => a.addEventListener('click', (e) => { if (!fixed) { e.preventDefault(); country = 'all'; render(); } }));
+    groups.forEach((g) => g.querySelector('[data-more]')!.addEventListener('click', () => { const t = g.dataset.group!; if (expanded.has(t)) expanded.delete(t); else expanded.add(t); render(); }));
+    root.querySelector('[data-reset]')?.addEventListener('click', () => { topic = 'all'; if (!fixed) country = 'all'; render(); });
+    // Days left: recompute from each deadline's date so a long-lived page never shows a stale count; drop passed ones.
+    const today = Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+    deadlines?.querySelectorAll<HTMLElement>('[data-deadline]').forEach((li) => {
+      const days = Math.round((Date.parse(li.dataset.deadline!) - today) / 86400000);
+      if (days < 0) li.remove(); else li.querySelector('[data-days]')!.textContent = String(days);
+    });
+    render();
+  }
+</script>

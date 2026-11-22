@@ -1,5 +1,5 @@
 ---
-import IntlIndex from '../../../components/content/IntlIndex.astro';
+import GuidesIndex from '../../../components/content/GuidesIndex.astro';
 import { publishedIntlGuides } from '../../../lib/guides';
 import { countrySegment } from '../../../lib/content/paths';
 
@@ -7,8 +7,8 @@ import { countrySegment } from '../../../lib/content/paths';
 export async function getStaticPaths() {
   const all = await publishedIntlGuides();
   const segs = [...new Set(all.map((g) => countrySegment(g.data.country)))];
-  return segs.map((cc) => ({ params: { cc }, props: { country: all.find((g) => countrySegment(g.data.country) === cc)!.data.country, entries: all.filter((g) => countrySegment(g.data.country) === cc) } }));
+  return segs.map((cc) => ({ params: { cc }, props: { country: all.find((g) => countrySegment(g.data.country) === cc)!.data.country } }));
 }
-const { country, entries } = Astro.props;
+const { country } = Astro.props;
 ---
-<IntlIndex collection="guides" country={country} entries={entries} />
+<GuidesIndex country={country} />
