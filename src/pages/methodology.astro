@@ -3,7 +3,10 @@ import { PAGE_META } from '../lib/seo/page-meta';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ogImagePath } from '../lib/seo/og';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
-import PageHero from '../components/ui/PageHero.astro';
+import Icon, { type IconName } from '../components/icons/Icon';
+import CountryOutline from '../components/brand/CountryOutline.astro';
+import { COUNTRY_OUTLINES } from '../lib/brand/country-outlines';
+import { liveCalculators } from '../lib/home/global-home';
 import type { State } from '../data/schemas';
 import { DB_PAGE_CACHE_HEADERS, createRepo } from '../lib/db/repo';
 import { isHttpUrl } from '../lib/city/view';
@@ -70,194 +73,289 @@ const costSources = costs.ok
       ]),
     )
   : null;
+
+// --- Page copy (structural, from the approved design; every figure and source below comes from the database or the engine) ---
+const toc = [['The rules', '#rules'], ['Sources', '#sources'], ['Keeping current', '#current'], ['Calculators', '#calculators'], ['United States', '#united-states']] as const;
+const rules: { icon: IconName; title: string; body: string }[] = [
+  { icon: 'scale', title: 'Facts and assumptions are kept apart.', body: 'A fact (a tariff, an export rate, a rebate, a statistic) is stored with the URL of its source and the date we last checked it. An assumption (how fast rates rise, how much solar a home uses itself) is stored with the reasoning behind it. Both are listed with every result.' },
+  { icon: 'search', title: 'No source, no number.', body: 'If we cannot find a verified value, it is left out of the page rather than guessed.' },
+  { icon: 'chart', title: 'Ranges, not precision.', body: 'Costs, savings and payback are shown as low, likely and high estimates, because installer prices, your usage and future rates are all uncertain.' },
+  { icon: 'calendar', title: 'Only incentives that exist today.', body: 'We do not count a rebate or tax credit that has ended or is not yet confirmed. For the United States, the federal residential clean energy credit (Section 25D) does not apply to installs in 2026 or later, so it is $0 in every US result.' },
+  { icon: 'clipboard', title: 'An estimate is not a quote.', body: 'Financing costs, maintenance, inverter and battery replacement are not included unless a calculator says so. Installer prices and your actual usage will differ.' },
+];
+const sources: { icon: IconName; title: string; body: string }[] = [
+  { icon: 'bolt', title: 'Electricity prices and export payments', body: 'National energy regulators and the utilities\u2019 own published tariffs, price caps and feed-in or export schemes.' },
+  { icon: 'bill', title: 'Grants, rebates, VAT and tax treatment', body: 'The government, tax authority or agency that runs the scheme, read from its own publication.' },
+  { icon: 'sun', title: 'Solar production', body: 'Modelled from location. For the United States we use the PVWatts model from the National Laboratory of the Rockies (formerly NREL); for European locations we use the European Commission\u2019s PVGIS. A calculator that uses a different source says so.' },
+  { icon: 'tool', title: 'Installed costs', body: 'Published installed-price datasets and benchmarks, each labelled with its source.' },
+  { icon: 'map', title: 'Places, housing and population', body: 'National statistics offices, such as the US Census Bureau and Eurostat, for the location and size of the places we cover.' },
+];
+// Live calculators only (liveCalculators() lists the ones that exist); the sub-label is a structural description, not a figure.
+const SUB: Record<string, string> = { Florida: 'Net metering', California: 'NEM 3.0', 'United Kingdom': 'Price cap + SEG', Germany: 'EEG feed-in tariff', Australia: 'Battery rebate' };
+const calcs = liveCalculators().map((c) => ({ ...c, sub: SUB[c.label] ?? c.fact }));
+const usSteps: { title: string; body: string }[] = [
+  { title: 'Your usage, from your bill.', body: 'We work backwards from your average monthly bill through your utility\u2019s published rates to estimate how much electricity you use in a year. For Florida utilities we use the tariff\u2019s fixed charge and tiered energy rates. For California utilities we subtract the fixed charge and divide by the utility\u2019s published residential average rate.' },
+  { title: 'Solar production.', body: 'We place your ZIP code on the map and ask the PVWatts model from the National Laboratory of the Rockies (formerly NREL) how much one kilowatt of panels produces there each month, with system losses set by the amount of shade you pick.' },
+  { title: 'System size.', body: 'We size a system to cover a range of your estimated annual usage, up to a maximum size, which gives the low, likely and high system sizes. Very small results come with a note that solar may not pay off.' },
+  { title: 'Cost.', body: 'We price that system with a range of installed costs per watt for your state, and add a range of installed battery costs if you choose one or two batteries. Costs are before any incentives.' },
+  { title: 'Savings, by metering rules.', body: 'In Florida (retail net metering), each solar kilowatt-hour offsets one you would have bought, priced through your utility\u2019s tiers month by month; the fixed charge and any minimum bill still apply, and solar banked but unused at the end of the year is counted as worth nothing. In California (net billing, often called NEM 3.0), solar you use at home is valued at the retail rate, and solar you send to the grid earns a lower average export credit. A battery raises the share of solar used at home.' },
+  { title: 'Payback and long-term savings.', body: 'We project savings year by year, with retail rates rising over time (a range of yearly increases) and panel output slowly declining. Payback is the year cumulative savings first exceed the upfront cost; net savings are total bill savings over the analysis period minus that cost. Future savings are not discounted.' },
+  { title: 'No federal tax credit.', body: 'The federal residential clean energy credit (Section 25D) does not apply to installs in 2026 or later, so no federal credit is included anywhere in the results.' },
+];
+const sectionH2 = 'font-display-tight text-[clamp(1.75rem,3.2vw,2.5rem)] leading-tight text-stone-900';
+const faqSummary = 'flex w-full cursor-pointer list-none items-center justify-between gap-4 px-5 py-[1.125rem] text-stone-900 hover:bg-sky-pastel-50 group-open:bg-sun-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-stone-900 [&::-webkit-details-marker]:hidden';
+const faqBody = 'flex flex-col gap-2.5 px-5 pb-5 text-[15px] leading-[1.7] text-stone-800';
 ---
 <BaseLayout title={PAGE_META.methodology.title} description={PAGE_META.methodology.description} path="/methodology" ogImagePath={ogImagePath('methodology')}>
-  <PageHero title="How we estimate solar payback" titleId="method-title">
-    <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'Home', href: '/' }, { label: 'Methodology' }]} />
-    One method for every country: start from the country&rsquo;s own published rates and rules, show every input with its source and date, and give results as a low, likely and high range instead of a single number.
-  </PageHero>
-
-  <div class="page !pt-8">
-    {/* TODO: owner review */}
-    <h2 class="!mt-0">The rules we follow everywhere</h2>
-    <ol class="list-decimal space-y-2 pl-6">
-      <li><strong>Facts and assumptions are kept apart.</strong> A fact (a tariff, an export rate, a rebate, a statistic) is stored with the URL of its source and the date we last checked it. An assumption (how fast rates rise, how much solar a home uses itself) is stored with the reasoning behind it. Both are listed with every result.</li>
-      <li><strong>No source, no number.</strong> If we cannot find a verified value, it is left out of the page rather than guessed.</li>
-      <li><strong>Ranges, not precision.</strong> Costs, savings and payback are shown as low, likely and high estimates, because installer prices, your usage and future rates are all uncertain.</li>
-      <li><strong>Only incentives that exist today.</strong> We do not count a rebate or tax credit that has ended or is not yet confirmed. For the United States, the federal residential clean energy credit (Section 25D) does not apply to installs in 2026 or later, so it is $0 in every US result.</li>
-      <li><strong>An estimate is not a quote.</strong> Financing costs, maintenance, inverter and battery replacement are not included unless a calculator says so. Installer prices and your actual usage will differ.</li>
-    </ol>
-
-    <h2>Where each kind of number comes from</h2>
-    <ul class="list-disc space-y-2 pl-6">
-      <li><strong>Electricity prices and export payments:</strong> national energy regulators and the utilities&rsquo; own published tariffs, price caps and feed-in or export schemes.</li>
-      <li><strong>Grants, rebates, VAT and tax treatment:</strong> the government, tax authority or agency that runs the scheme, read from its own publication.</li>
-      <li><strong>Solar production:</strong> modelled from location. For the United States we use the PVWatts model from the National Laboratory of the Rockies (formerly NREL); for European locations we use the European Commission&rsquo;s PVGIS. A calculator that uses a different source says so.</li>
-      <li><strong>Installed costs:</strong> published installed-price datasets and benchmarks, each labelled with its source.</li>
-      <li><strong>Places, housing and population:</strong> national statistics offices, such as the US Census Bureau and Eurostat, for the location and size of the places we cover.</li>
-    </ul>
-
-    <h2>How figures are kept current</h2>
-    <p>
-      Rates and rules change. A scheduled job re-reads the source page behind each stored fact, respecting the site&rsquo;s robots.txt.
-      A fact counts as confirmed only while the stored figure still appears in the source text. If the surrounding words now carry a
-      different number, the fact is flagged for review instead of being published. Articles only use confirmed figures, and each
-      one shows its sources and the date of its last check.
-    </p>
-
-    <h2>Both sides of the story</h2>
-    <p>
-      Our articles cover the case for solar and the case against it: when it pays back, when it does not, what a battery adds and costs,
-      and where rule changes count against you. Offers and affiliate links sit beside the numbers and never feed the calculators.
-      See the <a href="/affiliate-disclosure">affiliate disclosure</a> for how the site is funded.
-    </p>
-
-    <h2>Country calculators</h2>
-    <p>
-      Each country calculator lists its own inputs, sources and assumptions beside its results. The full workings for the United
-      States calculators (Florida and California) follow, because they have the most inputs stored in our database. Browse the
-      <a href="/#calculators">calculators</a> or pick a <a href="/#countries">country</a>.
-    </p>
-
-    <h2 id="united-states">United States: how an estimate is built</h2>
-    <ol class="list-decimal space-y-2 pl-6">
-      <li>
-        <strong>Your usage, from your bill.</strong> We work backwards from your average monthly bill through your
-        utility&rsquo;s published rates to estimate how much electricity you use in a year. For Florida utilities we use the
-        tariff&rsquo;s fixed charge and tiered energy rates. For California utilities we subtract the fixed charge and divide by
-        the utility&rsquo;s published residential average rate.
-      </li>
-      <li>
-        <strong>Solar production.</strong> We place your ZIP code on the map and ask the PVWatts model from the National
-        Laboratory of the Rockies (formerly NREL) how much one kilowatt of panels produces there each month, with system
-        losses set by the amount of shade you pick.
-        {array ? <> The array we model is {arrayText(array)}.</> : <> The modeled array settings are being verified.</>}{" "}
-        If the live PVWatts service is unavailable, we use results precomputed with the same settings for the nearest listed city.
-      </li>
-      <li>
-        <strong>System size.</strong> We size a system to cover a range of your estimated annual usage, up to a maximum size,
-        which gives the low, likely and high system sizes. Very small results come with a note that solar may not pay off.
-      </li>
-      <li>
-        <strong>Cost.</strong> We price that system with a range of installed costs per watt for your state, and add a range of
-        installed battery costs if you choose one or two batteries. Costs are before any incentives.
-      </li>
-      <li>
-        <strong>Savings, by metering rules.</strong> In Florida (retail net metering), each solar kilowatt-hour offsets one you
-        would have bought, priced through your utility&rsquo;s tiers month by month; the fixed charge and any minimum bill still
-        apply, and solar banked but unused at the end of the year is counted as worth nothing. In California (net billing,
-        often called NEM 3.0), solar you use at home is valued at the retail rate, and solar you send to the grid earns a
-        lower average export credit. A battery raises the share of solar used at home.
-      </li>
-      <li>
-        <strong>Payback and long-term savings.</strong> We project savings year by year, with retail rates rising over time
-        (a range of yearly increases) and panel output slowly declining. Payback is the year cumulative savings first exceed
-        the upfront cost; net savings are total bill savings over the analysis period minus that cost. Future savings are not
-        discounted.
-      </li>
-      <li>
-        <strong>No federal tax credit.</strong> The federal residential clean energy credit (Section 25D) does not apply to
-        installs in 2026 or later, so no federal credit is included anywhere in the results.
-      </li>
-    </ol>
-    <p>
-      Not included: financing costs, maintenance, inverter or battery replacement, and tax effects. An estimate is not a
-      quote; installer prices and your actual usage will differ.
-    </p>
-
-    <h2>United States: lease and PPA comparison</h2>
-    <p>
-      Results include a plain-language comparison of buying with a lease or power purchase agreement (PPA), where a
-      company owns the system and you pay monthly (lease) or per kilowatt-hour produced (PPA). The company that owns the
-      system may be able to use federal tax benefits that homeowners who buy cannot, which can show up as lower prices.
-    </p>
-    {leasePpaShown ? (
-      <>
-        <p>
-          When lease and PPA price assumptions are set, we use the same system as the purchase estimate, assume the contract
-          runs for the whole analysis period, and subtract the payments from the likely-case bill savings. The low result uses
-          the highest payments and the high result the lowest. It is not discounted and leaves out buyout and transfer fees.
-          The assumptions in use:
-        </p>
-        <ul class="list-disc space-y-1 pl-6">
-          {leasePpaRows.map((r) => <li>{r.label}: {leasePpaText(r)}. <span class="text-stone-700">{r.row?.rationale}</span></li>)}
-        </ul>
-      </>
-    ) : (
-      <p>
-        We do not show lease or PPA prices yet. Lease and PPA pricing varies by installer, utility and contract, and we have
-        not verified a source for typical market terms, so the comparison in results is explanation only. When we add figures
-        they will be listed here as assumptions with their reasoning, and still shown as low, likely and high ranges.
-      </p>
-    )}
-
-    <h2>United States: batteries in Florida</h2>
-    <p>
-      Under Florida retail net metering, solar you send to the grid is credited at the retail rate, so in our estimate a
-      battery adds to the upfront cost but not to bill savings, and it lengthens payback. Its value is backup power during
-      outages, which we do not put a dollar figure on. The Florida calculator page explains what a battery can and cannot power.
-    </p>
-
-    <h2>United States: types of sources</h2>
-    <ul class="list-disc space-y-1 pl-6">
-      <li>Utility tariff documents and rate pages, for fixed charges, energy rates and minimum bills.</li>
-      <li>California Public Utilities Commission (CPUC) and Public Advocates Office reports, for California average rates, export credits and rate history.</li>
-      <li>Lawrence Berkeley National Laboratory (LBNL) installed-price data from its Tracking the Sun work, for installed solar prices.</li>
-      <li>U.S. Department of Energy (DOE) solar and storage cost benchmarks, for battery costs.</li>
-      <li>The PVWatts model from the National Laboratory of the Rockies, for solar production.</li>
-      <li>U.S. Census Bureau ZIP Code Tabulation Area data, for the location of each ZIP code.</li>
-    </ul>
-    <p>
-      Choices that are ours rather than facts, such as how fast rates rise, how much solar a home uses directly, and the
-      shade losses, are labeled as assumptions and listed in the &ldquo;How this estimate was built&rdquo; section of every result.
-    </p>
-
-    <h2>United States: utility rate sources</h2>
-    <p>Rates come from each utility&rsquo;s own published tariff or rate pages. The page we read for each one:</p>
-    {!utilities && <p>The list of rate sources is being verified.</p>}
-    {utilities && states.map(({ code, label }) => (
-      <>
-        <h3>{label}</h3>
-        <ul>
-          {utilities.filter((u) => u.state === code).map((u) => (
-            <li>
-              {isHttpUrl(u.source_url) ? <a href={u.source_url} rel="noopener">{u.name}, schedule {u.rate_schedule}</a> : <>{u.name}, schedule {u.rate_schedule}</>}
-              {u.verified_on && <> (read {u.verified_on})</>}
-            </li>
+  <section class="relative isolate overflow-hidden border-b border-sky-pastel-300 bg-gradient-to-b from-sky-pastel-200 via-sky-pastel-100 to-sky-pastel-50" aria-labelledby="method-title">
+    <svg viewBox="0 0 400 400" class="pointer-events-none absolute -right-28 -top-40 -z-10 size-[30rem] opacity-50 motion-safe:animate-sun-slower" aria-hidden="true" focusable="false">
+      <circle cx="200" cy="200" r="70" fill="#fcd34d"></circle>
+      <g stroke="#fbbf24" stroke-width="10" stroke-linecap="round"><path d="M200 40v50M200 310v50M40 200h50M310 200h50M87 87l35 35M278 278l35 35M87 313l35-35M278 122l35-35"></path></g>
+    </svg>
+    <div class="shell grid items-center gap-10 py-[clamp(2rem,5vw,4rem)] lg:grid-cols-2">
+      <div class="flex flex-col gap-[18px]">
+        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Methodology' }]} />
+        <h1 id="method-title" class="font-display-tight text-balance text-[clamp(2.375rem,5.2vw,3.875rem)] leading-[1.05] text-stone-900">How we estimate solar payback</h1>
+        <p class="max-w-[52ch] text-[19px] leading-relaxed text-stone-800">One method for every country: start from the country&rsquo;s own published rates and rules, show every input with its source and date, and give results as a low, likely and high range instead of a single number.</p>
+        <ul class="flex flex-wrap gap-2" aria-label="On this page">
+          {toc.map(([label, href]) => (
+            <li><a href={href} class="inline-flex min-h-11 items-center rounded-full border border-sky-pastel-300 bg-white px-3.5 text-sm font-semibold text-stone-900 no-underline hover:border-sky-pastel-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900">{label}</a></li>
           ))}
         </ul>
-      </>
-    ))}
+      </div>
+      <div class="flex flex-col gap-3.5 rounded-[22px] bg-white p-[22px] shadow-[0_26px_50px_-26px_rgba(28,25,23,0.4)]" role="img" aria-label="An example result: low, likely and high bars. Each input is marked as a fact with its source and date, or an assumption with its reasoning.">
+        <p class="text-[13px] font-bold uppercase tracking-[0.06em] text-stone-700">Every result looks like this</p>
+        <div class="grid h-[130px] grid-cols-3 items-end gap-2" aria-hidden="true">
+          <div class="flex h-full flex-col justify-end gap-1.5"><div class="h-[52%] rounded-[10px] bg-sky-pastel-200"></div><span class="text-[13px] text-stone-700">Low</span></div>
+          <div class="flex h-full flex-col justify-end gap-1.5"><div class="rv-pop h-full rounded-[10px] bg-sun-400"></div><span class="text-[13px] font-bold text-stone-900">Likely</span></div>
+          <div class="flex h-full flex-col justify-end gap-1.5"><div class="h-[74%] rounded-[10px] bg-sky-pastel-400"></div><span class="text-[13px] text-stone-700">High</span></div>
+        </div>
+        <div class="flex flex-col gap-2 border-t border-stone-200 pt-3" aria-hidden="true">
+          <div class="flex justify-between gap-2.5 text-sm"><span class="flex items-center gap-2"><span class="rounded-md bg-sun-100 px-2 py-0.5 text-xs font-bold text-sun-ink">FACT</span>Unit rate</span><span class="text-stone-700">Source + date checked</span></div>
+          <div class="flex justify-between gap-2.5 text-sm"><span class="flex items-center gap-2"><span class="rounded-md bg-sky-pastel-100 px-2 py-0.5 text-xs font-bold text-stone-900">ASSUMPTION</span>Yearly price rise</span><span class="text-stone-700">Reasoning shown</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <h2>United States: California average rate and export credit sources</h2>
-    {!avgRateSources || !exportSources ? (
-      <p>These sources are being verified.</p>
-    ) : (
-      <>
-        <ul>
-          {[...avgRateSources, ...exportSources].map((s) => (
-            <li>
-              {isHttpUrl(s.url) ? <a href={s.url} rel="noopener">{s.label}</a> : <>{s.label} (source being verified)</>}
-              {s.date && <> (read {s.date})</>}
-            </li>
-          ))}
-        </ul>
-        {exportNotes.map((n) => <p class="text-sm text-stone-700">Export credit: {n}</p>)}
-      </>
-    )}
+  <section id="rules" class="shell scroll-mt-20 py-[clamp(2.75rem,5vw,4.5rem)]" aria-labelledby="rules-h">
+    <h2 id="rules-h" class={`mb-6 ${sectionH2}`}>The rules we follow everywhere</h2>
+    <ol class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,13.125rem),1fr))] gap-3.5">
+      {rules.map((r, i) => (
+        <li class="flex flex-col gap-3 rounded-[18px] border border-sky-pastel-300 bg-white p-[18px] transition-[transform,box-shadow] duration-150 hover:-translate-y-[3px] hover:shadow-lift motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+          <div class="flex items-center justify-between"><span class="flex size-[52px] items-center justify-center rounded-[14px] bg-sun-100 text-stone-900"><Icon name={r.icon} size={28} /></span><span class="font-display-tight text-[28px] text-sky-pastel-600" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span></div>
+          <h3 class="font-display-tight text-[19px] leading-tight text-stone-900">{r.title}</h3>
+          <p class="text-sm leading-relaxed text-stone-700">{r.body}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
 
-    <h2>United States: cost sources</h2>
-    {!costSources ? (
-      <p>The list of cost sources is being verified.</p>
-    ) : (
-      <ul>
-        {costSources.map((s) => (
-          <li>
-            {isHttpUrl(s.url) ? <a href={s.url} rel="noopener">{s.label}</a> : <>{s.label} (source being verified)</>}
-            {s.date && <> (read {s.date})</>}
+  <section id="sources" class="scroll-mt-20 border-y border-sky-pastel-200 bg-sky-pastel-50" aria-labelledby="sources-h">
+    <div class="shell py-[clamp(2.75rem,5vw,4.5rem)]">
+      <h2 id="sources-h" class={`mb-6 ${sectionH2}`}>Where each kind of number comes from</h2>
+      <ul class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,18.75rem),1fr))] gap-3.5">
+        {sources.map((s) => (
+          <li class="grid grid-cols-[56px_minmax(0,1fr)] items-start gap-3.5 rounded-[18px] border border-sky-pastel-300 bg-white p-[18px]">
+            <span class="flex size-14 items-center justify-center rounded-2xl bg-sky-pastel-200 text-stone-900"><Icon name={s.icon} size={30} /></span>
+            <div><h3 class="text-base font-bold text-stone-900">{s.title}</h3><p class="mt-1.5 text-sm leading-relaxed text-stone-700">{s.body}</p></div>
           </li>
         ))}
       </ul>
-    )}
-  </div>
+    </div>
+  </section>
+
+  <section id="current" class="shell grid scroll-mt-20 items-center gap-9 py-[clamp(2.75rem,5vw,4.5rem)] lg:grid-cols-2" aria-labelledby="current-h">
+    <div class="flex flex-col gap-3.5">
+      <h2 id="current-h" class={sectionH2}>How figures are kept current</h2>
+      <p class="text-[17px] leading-[1.7] text-stone-800">Rates and rules change. A scheduled job re-reads the source page behind each stored fact, respecting the site&rsquo;s robots.txt. A fact counts as confirmed only while the stored figure still appears in the source text. If the surrounding words now carry a different number, the fact is flagged for review instead of being published. Articles only use confirmed figures, and each one shows its sources and the date of its last check.</p>
+    </div>
+    <div class="rounded-[22px] border border-sky-pastel-300 bg-white p-[18px]">
+      <svg viewBox="0 0 440 250" class="block h-auto w-full" font-family="system-ui" font-size="13" role="img" aria-label="Diagram: a source page is re-read; the stored figure is then either confirmed and published, or flagged for review.">
+        <g fill="none" stroke="#9ec5e8" stroke-width="2.5" stroke-dasharray="6 6" class="rv-dash"><path d="M118 125H170"></path><path d="M268 110 C 300 110, 300 60, 322 60"></path><path d="M268 140 C 300 140, 300 190, 322 190"></path></g>
+        <rect x="12" y="85" width="106" height="80" rx="14" fill="#f3f9fe" stroke="#bfd9f1"></rect>
+        <rect x="28" y="100" width="44" height="6" rx="3" fill="#9ec5e8"></rect><rect x="28" y="114" width="70" height="6" rx="3" fill="#d6e8f8"></rect><rect x="28" y="128" width="60" height="6" rx="3" fill="#d6e8f8"></rect>
+        <text x="28" y="155" fill="#292524" font-weight="600">Source page</text>
+        <rect x="170" y="85" width="98" height="80" rx="14" fill="#fef3c7" stroke="#fde68a"></rect>
+        <g class="rv-spin"><circle cx="219" cy="115" r="14" fill="none" stroke="#f59e0b" stroke-width="3" stroke-dasharray="60 30"></circle></g>
+        <text x="219" y="153" fill="#292524" font-weight="600" text-anchor="middle">Re-read</text>
+        <rect x="322" y="30" width="108" height="60" rx="14" fill="#ffffff" stroke="#f59e0b" stroke-width="2"></rect>
+        <circle cx="342" cy="60" r="10" fill="#fbbf24"></circle><path d="M337 60l4 4 7-8" fill="none" stroke="#1c1917" stroke-width="2" stroke-linecap="round"></path>
+        <text x="358" y="56" fill="#1c1917" font-weight="700">Confirmed</text><text x="358" y="72" fill="#44403c" font-size="11">published</text>
+        <rect x="322" y="160" width="108" height="60" rx="14" fill="#ffffff" stroke="#9ec5e8" stroke-width="2"></rect>
+        <circle cx="342" cy="190" r="10" fill="#d6e8f8"></circle><text x="342" y="195" text-anchor="middle" fill="#1c1917" font-weight="800">!</text>
+        <text x="358" y="186" fill="#1c1917" font-weight="700">Flagged</text><text x="358" y="202" fill="#44403c" font-size="11">for review</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="border-y border-sun-200 bg-sun-100" aria-labelledby="both-h">
+    <div class="shell grid items-center gap-7 py-[clamp(2.5rem,5vw,4rem)] lg:grid-cols-2">
+      <div class="flex items-center gap-4">
+        <svg viewBox="0 0 80 60" class="h-[72px] w-24 flex-none" aria-hidden="true" focusable="false"><path d="M40 8v44M14 52h52" stroke="#1c1917" stroke-width="3" stroke-linecap="round"></path><g class="rv-pop-beam"><path d="M10 14h60" stroke="#1c1917" stroke-width="3" stroke-linecap="round"></path><path d="M10 14l-8 18h16z" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"></path><path d="M70 14l-8 18h16z" fill="#d6e8f8" stroke="#5f8fbd" stroke-width="1.5"></path></g></svg>
+        <h2 id="both-h" class={sectionH2}>Both sides of the story</h2>
+      </div>
+      <div class="flex flex-col gap-3.5">
+        <p class="text-[17px] leading-[1.7] text-stone-800">Our articles cover the case for solar and the case against it: when it pays back, when it does not, what a battery adds and costs, and where rule changes count against you. Offers and affiliate links sit beside the numbers and never feed the calculators. See the <a href="/affiliate-disclosure" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">affiliate disclosure</a> for how the site is funded.</p>
+        <a href="/blog" class="inline-flex min-h-11 w-fit items-center gap-2 rounded-lg border border-sun-300 bg-white px-4 font-semibold text-sun-ink no-underline hover:bg-sun-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900"><Icon name="clipboard" size={18} />Read &ldquo;when solar doesn&rsquo;t pay&rdquo; posts &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="calculators" class="shell scroll-mt-20 py-[clamp(2.75rem,5vw,4.5rem)]" aria-labelledby="calcs-h">
+    <div class="mb-5 flex flex-wrap items-end justify-between gap-4">
+      <h2 id="calcs-h" class={sectionH2}>Country calculators</h2>
+      <p class="max-w-[56ch] leading-relaxed text-stone-700">Each country calculator lists its own inputs, sources and assumptions beside its results. The full workings for the United States calculators (Florida and California) follow, because they have the most inputs stored in our database.</p>
+    </div>
+    <ul class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,12.5rem),1fr))] gap-3">
+      {calcs.map((k) => (
+        <li><a href={k.href} class="flex h-full items-center gap-3 rounded-2xl border border-sky-pastel-300 bg-white p-3.5 text-stone-900 no-underline hover:border-sun-500 hover:bg-sun-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="methodology_calculators" data-track-target={k.href}>
+          <CountryOutline segment={k.segment} class="size-10 flex-none fill-sun-400 stroke-sun-ink" />
+          <span class="flex flex-col"><strong class="text-[15px]">{k.label}</strong><span class="text-[13px] text-stone-700">{k.sub}</span></span>
+        </a></li>
+      ))}
+    </ul>
+  </section>
+
+  <section id="united-states" class="scroll-mt-20 bg-sky-pastel-200" aria-labelledby="us-h">
+    <div class="shell grid items-start gap-8 py-[clamp(2.75rem,5vw,4.5rem)] lg:grid-cols-[1fr_2fr]">
+      <div class="flex min-w-0 flex-col gap-3.5 lg:sticky lg:top-24">
+        {COUNTRY_OUTLINES.us && (
+          <svg viewBox="0 0 100 53.6" class="h-auto w-full max-w-[260px]" aria-hidden="true" focusable="false"><path d={COUNTRY_OUTLINES.us.d} fill="#ffffff" stroke="#5f8fbd" stroke-width="1.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path><circle cx="77" cy="48" r="3" fill="#fbbf24" stroke="#92400e" stroke-width="0.8"></circle><circle cx="6" cy="27" r="3" fill="#fbbf24" stroke="#92400e" stroke-width="0.8"></circle></svg>
+        )}
+        <h2 id="us-h" class="font-display-tight text-[clamp(1.75rem,3vw,2.375rem)] leading-[1.1] text-stone-900">United States: how an estimate is built</h2>
+        <div class="flex flex-wrap gap-2"><span class="rounded-full bg-white px-3 py-1 text-[13px] font-semibold">Florida &middot; net metering</span><span class="rounded-full bg-white px-3 py-1 text-[13px] font-semibold">California &middot; net billing</span></div>
+      </div>
+      <ol class="flex min-w-0 flex-col gap-3">
+        {usSteps.map((u, i) => (
+          <li class="grid grid-cols-[48px_minmax(0,1fr)] gap-4 rounded-[18px] bg-white p-[18px]">
+            <span class="font-display-tight flex size-12 items-center justify-center rounded-[14px] bg-sun-100 text-xl text-stone-900" aria-hidden="true">{i + 1}</span>
+            <div>
+              <h3 class="text-[17px] font-bold text-stone-900">{u.title}</h3>
+              <p class="mt-1.5 text-[15px] leading-[1.65] text-stone-800">{u.body}{i === 1 && (array ? <> The array we model is {arrayText(array)}.</> : <> The modeled array settings are being verified.</>)}{i === 1 && ' If the live PVWatts service is unavailable, we use results precomputed with the same settings for the nearest listed city.'}</p>
+            </div>
+          </li>
+        ))}
+        <li class="rounded-[18px] border border-dashed border-sky-pastel-600 bg-sky-pastel-50 px-[18px] py-4 text-[15px] leading-relaxed text-stone-800">Not included: financing costs, maintenance, inverter or battery replacement, and tax effects. An estimate is not a quote; installer prices and your actual usage will differ.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="shell flex flex-col gap-3 py-[clamp(2.75rem,5vw,4.5rem)]" aria-label="More detail on the United States calculators">
+    <details class="group overflow-hidden rounded-2xl border border-sky-pastel-300 bg-white" open>
+      <summary class={faqSummary}>
+        <span class="flex items-center gap-3"><span class="flex size-10 flex-none items-center justify-center rounded-xl bg-sky-pastel-100"><Icon name="key" size={22} /></span><h2 class="font-display-tight text-xl">United States: lease and PPA comparison</h2></span>
+        <span class="flex size-8 flex-none items-center justify-center rounded-full bg-sun-100 font-extrabold transition-transform duration-[250ms] group-open:rotate-45 motion-reduce:transition-none" aria-hidden="true">+</span>
+      </summary>
+      <div class={faqBody}>
+        <p>Results include a plain-language comparison of buying with a lease or power purchase agreement (PPA), where a company owns the system and you pay monthly (lease) or per kilowatt-hour produced (PPA). The company that owns the system may be able to use federal tax benefits that homeowners who buy cannot, which can show up as lower prices.</p>
+        {leasePpaShown ? (
+          <>
+            <p>When lease and PPA price assumptions are set, we use the same system as the purchase estimate, assume the contract runs for the whole analysis period, and subtract the payments from the likely-case bill savings. The low result uses the highest payments and the high result the lowest. It is not discounted and leaves out buyout and transfer fees. The assumptions in use:</p>
+            <ul class="list-disc space-y-1 pl-6">
+              {leasePpaRows.map((r) => <li>{r.label}: {leasePpaText(r)}. <span class="text-stone-700">{r.row?.rationale}</span></li>)}
+            </ul>
+          </>
+        ) : (
+          <p>We do not show lease or PPA prices yet. Lease and PPA pricing varies by installer, utility and contract, and we have not verified a source for typical market terms, so the comparison in results is explanation only. When we add figures they will be listed here as assumptions with their reasoning, and still shown as low, likely and high ranges.</p>
+        )}
+      </div>
+    </details>
+
+    <details class="group overflow-hidden rounded-2xl border border-sky-pastel-300 bg-white">
+      <summary class={faqSummary}>
+        <span class="flex items-center gap-3"><span class="flex size-10 flex-none items-center justify-center rounded-xl bg-sky-pastel-100"><Icon name="battery" size={22} /></span><h2 class="font-display-tight text-xl">United States: batteries in Florida</h2></span>
+        <span class="flex size-8 flex-none items-center justify-center rounded-full bg-sun-100 font-extrabold transition-transform duration-[250ms] group-open:rotate-45 motion-reduce:transition-none" aria-hidden="true">+</span>
+      </summary>
+      <div class={faqBody}>
+        <p>Under Florida retail net metering, solar you send to the grid is credited at the retail rate, so in our estimate a battery adds to the upfront cost but not to bill savings, and it lengthens payback. Its value is backup power during outages, which we do not put a dollar figure on. The Florida calculator page explains what a battery can and cannot power.</p>
+      </div>
+    </details>
+
+    <details class="group overflow-hidden rounded-2xl border border-sky-pastel-300 bg-white">
+      <summary class={faqSummary}>
+        <span class="flex items-center gap-3"><span class="flex size-10 flex-none items-center justify-center rounded-xl bg-sky-pastel-100"><Icon name="clipboard" size={22} /></span><h2 class="font-display-tight text-xl">United States: types of sources</h2></span>
+        <span class="flex size-8 flex-none items-center justify-center rounded-full bg-sun-100 font-extrabold transition-transform duration-[250ms] group-open:rotate-45 motion-reduce:transition-none" aria-hidden="true">+</span>
+      </summary>
+      <div class={faqBody}>
+        <ul class="list-disc space-y-1 pl-6">
+          <li>Utility tariff documents and rate pages, for fixed charges, energy rates and minimum bills.</li>
+          <li>California Public Utilities Commission (CPUC) and Public Advocates Office reports, for California average rates, export credits and rate history.</li>
+          <li>Lawrence Berkeley National Laboratory (LBNL) installed-price data from its Tracking the Sun work, for installed solar prices.</li>
+          <li>U.S. Department of Energy (DOE) solar and storage cost benchmarks, for battery costs.</li>
+          <li>The PVWatts model from the National Laboratory of the Rockies, for solar production.</li>
+          <li>U.S. Census Bureau ZIP Code Tabulation Area data, for the location of each ZIP code.</li>
+        </ul>
+        <p>Choices that are ours rather than facts, such as how fast rates rise, how much solar a home uses directly, and the shade losses, are labeled as assumptions and listed in the &ldquo;How this estimate was built&rdquo; section of every result.</p>
+      </div>
+    </details>
+
+    <details class="group overflow-hidden rounded-2xl border border-sky-pastel-300 bg-white">
+      <summary class={faqSummary}>
+        <span class="flex items-center gap-3"><span class="flex size-10 flex-none items-center justify-center rounded-xl bg-sky-pastel-100"><Icon name="bill" size={22} /></span><h2 class="font-display-tight text-xl">United States: utility rate sources</h2></span>
+        <span class="flex size-8 flex-none items-center justify-center rounded-full bg-sun-100 font-extrabold transition-transform duration-[250ms] group-open:rotate-45 motion-reduce:transition-none" aria-hidden="true">+</span>
+      </summary>
+      <div class={faqBody}>
+        <p>Rates come from each utility&rsquo;s own published tariff or rate pages. The page we read for each one:</p>
+        {!utilities && <p>The list of rate sources is being verified.</p>}
+        {utilities && states.map(({ code, label }) => (
+          <>
+            <h3 class="font-semibold text-stone-900">{label}</h3>
+            <ul class="list-disc space-y-1 pl-6">
+              {utilities.filter((u) => u.state === code).map((u) => (
+                <li>
+                  {isHttpUrl(u.source_url) ? <a href={u.source_url} rel="noopener" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">{u.name}, schedule {u.rate_schedule}</a> : <>{u.name}, schedule {u.rate_schedule}</>}
+                  {u.verified_on && <> (read {u.verified_on})</>}
+                </li>
+              ))}
+            </ul>
+          </>
+        ))}
+      </div>
+    </details>
+
+    <details class="group overflow-hidden rounded-2xl border border-sky-pastel-300 bg-white">
+      <summary class={faqSummary}>
+        <span class="flex items-center gap-3"><span class="flex size-10 flex-none items-center justify-center rounded-xl bg-sky-pastel-100"><Icon name="tool" size={22} /></span><h2 class="font-display-tight text-xl">United States: cost and export credit sources</h2></span>
+        <span class="flex size-8 flex-none items-center justify-center rounded-full bg-sun-100 font-extrabold transition-transform duration-[250ms] group-open:rotate-45 motion-reduce:transition-none" aria-hidden="true">+</span>
+      </summary>
+      <div class={faqBody}>
+        <p>California average rate and export credit sources, and installed solar and battery cost sources for Florida and California, with the date each was read.</p>
+        {!avgRateSources || !exportSources ? (
+          <p>These sources are being verified.</p>
+        ) : (
+          <>
+            <ul class="list-disc space-y-1 pl-6">
+              {[...avgRateSources, ...exportSources].map((s) => (
+                <li>
+                  {isHttpUrl(s.url) ? <a href={s.url} rel="noopener" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">{s.label}</a> : <>{s.label} (source being verified)</>}
+                  {s.date && <> (read {s.date})</>}
+                </li>
+              ))}
+            </ul>
+            {exportNotes.map((n) => <p class="text-sm text-stone-700">Export credit: {n}</p>)}
+          </>
+        )}
+        {!costSources ? (
+          <p>The list of cost sources is being verified.</p>
+        ) : (
+          <ul class="list-disc space-y-1 pl-6">
+            {costSources.map((s) => (
+              <li>
+                {isHttpUrl(s.url) ? <a href={s.url} rel="noopener" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">{s.label}</a> : <>{s.label} (source being verified)</>}
+                {s.date && <> (read {s.date})</>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </details>
+  </section>
+
+  <section class="relative isolate overflow-hidden bg-sun-400" aria-labelledby="meth-cta">
+    <div class="shell flex flex-wrap items-center justify-between gap-6 py-[clamp(2.5rem,5vw,4rem)]">
+      <h2 id="meth-cta" class="font-display-tight max-w-[20ch] text-[clamp(1.75rem,3.6vw,2.75rem)] leading-[1.1] text-stone-900">See the method applied to your own home.</h2>
+      <a href="/#report" class="inline-flex min-h-14 items-center rounded-[10px] bg-stone-900 px-6 text-[17px] font-bold text-sun-100 no-underline hover:bg-stone-800 hover:text-sun-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="methodology_cta" data-track-target="/#report">Get my free payback report &rarr;</a>
+    </div>
+  </section>
 </BaseLayout>
