@@ -42,12 +42,12 @@ export async function loadDbIndexEntries(deps: DbIndexDeps = {}): Promise<Result
   const env = deps.env === undefined ? siteDbEnv() : deps.env;
   const rows = <T>(table: string, select: string, extra: Record<string, string> = {}) => selectRows<T>(env, table, { select, ...extra }, deps.fetch ?? fetch);
   const [cities, housing, production, utilities, costs, assumptions] = await Promise.all([
-    rows<CityRow>('cities', 'state,slug,name,default_utility_id,published,updated_at', { published: 'is.true', order: 'state.asc,slug.asc' }),
+    rows<CityRow>('cities', 'state,slug,name,default_utility_id,published,updated_at', { published: 'is.true', order: 'state.asc,slug.asc', country: 'eq.US' }),
     rows<HousingRow>('city_housing', 'state,slug,updated_at,verified_on'),
     rows<ProductionRow>('pvwatts_city_production', 'state,slug,updated_at,fetched_on'),
-    rows<UtilityRow>('utilities', 'id,state,name,source_url,avg_rate_source_url,export_credit_source_url,updated_at,verified_on,avg_rate_verified_on,export_credit_verified_on,utility_tier_sets(updated_at,utility_tiers(updated_at)),utility_tou_rates(updated_at)'),
-    rows<StateStamp>('cost_ranges', 'state,updated_at,verified_on'),
-    rows<StateStamp>('model_assumptions', 'state,updated_at'),
+    rows<UtilityRow>('utilities', 'id,state,name,source_url,avg_rate_source_url,export_credit_source_url,updated_at,verified_on,avg_rate_verified_on,export_credit_verified_on,utility_tier_sets(updated_at,utility_tiers(updated_at)),utility_tou_rates(updated_at)', { country: 'eq.US' }),
+    rows<StateStamp>('cost_ranges', 'state,updated_at,verified_on', { country: 'eq.US' }),
+    rows<StateStamp>('model_assumptions', 'state,updated_at', { country: 'eq.US' }),
   ]);
   if (!cities.ok) return cities;
   if (!housing.ok) return housing;

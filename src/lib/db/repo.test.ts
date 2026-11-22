@@ -37,7 +37,8 @@ function fakeRest(tables: Tables = defaultTables(), override?: (table: string) =
     let rows = (tables[table] ?? []) as Record<string, unknown>[];
     for (const [k, v] of u.searchParams) {
       if (['select', 'order', 'limit'].includes(k)) continue;
-      if (v.startsWith('eq.')) rows = rows.filter((r) => String(r[k]) === v.slice(3));
+      // fixture rows predate the country column (migration 0026 defaults existing rows to 'US')
+      if (v.startsWith('eq.')) rows = rows.filter((r) => String(r[k] ?? (k === 'country' ? 'US' : undefined)) === v.slice(3));
       else if (v === 'is.true') rows = rows.filter((r) => r[k] === true);
       else if (v === 'is.null') rows = rows.filter((r) => r[k] === null);
       else throw new Error(`unsupported filter ${k}=${v}`);

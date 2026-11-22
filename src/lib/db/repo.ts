@@ -80,7 +80,7 @@ export function createRepo(deps: RepoDeps = {}) {
   const rows = <T>(table: string, params: Record<string, string>) => selectRows<T>(env, table, params, f);
 
   async function loadUtilities(state?: State): Promise<Result<Utility[]>> {
-    const params: Record<string, string> = { select: UTILITY_SELECT, order: 'display_order.asc,id.asc' };
+    const params: Record<string, string> = { select: UTILITY_SELECT, order: 'display_order.asc,id.asc', country: 'eq.US' };
     if (state) params.state = `eq.${state}`;
     const r = await rows<UtilityRow>('utilities', params);
     if (!r.ok) return r;
@@ -89,13 +89,13 @@ export function createRepo(deps: RepoDeps = {}) {
   }
 
   async function loadCosts(): Promise<Result<Costs>> {
-    const r = await rows<CostRangeRow>('cost_ranges', { select: '*' });
+    const r = await rows<CostRangeRow>('cost_ranges', { select: '*', country: 'eq.US' });
     if (!r.ok) return r;
     return validate(CostsSchema, costsFromRows(r.value), 'cost_ranges');
   }
 
   async function loadAssumptions(state?: State): Promise<Result<Assumptions>> {
-    const r = await rows<ModelAssumptionRow>('model_assumptions', { select: 'key,state,value,unit,rationale' });
+    const r = await rows<ModelAssumptionRow>('model_assumptions', { select: 'key,state,value,unit,rationale', country: 'eq.US' });
     if (!r.ok) return r;
     return validate(AssumptionsSchema, assumptionsFromRows(r.value, state), `model_assumptions${state ? ` (${state})` : ''}`);
   }
