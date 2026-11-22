@@ -1,0 +1,111 @@
+---
+title: "How much does rooftop solar earn in Israel? By city and system size"
+seoTitle: "How much does a solar roof earn in Israel? 2026"
+description: "A 15 kW rooftop system in Israel earns roughly ILS 11,400 to 13,600 a year at the 48-agorot tariff, depending on the city, and more with the urban premium. How we get there from PVGIS output and the tariff, and how it compares with the Ministry's ILS 13,000 example."
+country: il
+lang: en-IL
+updated: 2026-11-22
+topic: chart
+draft: false
+noindex: true
+sources:
+  - title: "EU JRC PVGIS 5.3: Tel Aviv, 1 kWp, optimal angles, 14% losses (run 22 Nov 2026)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=32.0853&lon=34.7818&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Jerusalem, 1 kWp (run 22 Nov 2026)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=31.7683&lon=35.2137&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Haifa, 1 kWp (run 22 Nov 2026)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=32.7940&lon=34.9896&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Be'er Sheva, 1 kWp (run 22 Nov 2026)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=31.2518&lon=34.7913&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Eilat, 1 kWp (run 22 Nov 2026)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=29.5577&lon=34.9519&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: Tiberias, 1 kWp (run 22 Nov 2026)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=32.7922&lon=35.5312&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "pv magazine, 24 Feb 2025: Ministry of Energy says a 15 kW home system could earn ILS 13,000 a year"
+    url: "https://www.pv-magazine.com/2025/02/24/israel-targeting-100000-new-solar-rooftops-by-2030"
+  - title: "mako / Bizportal, 2026: tariff tiers, urban premium, self-consumption value, panel degradation"
+    url: "https://www.mako.co.il/news-money/2026_q3/Article-b3fc21b28d73f91026.htm"
+  - title: "Israel Electric Corp.: residential flat rate from 1 July 2026 (English PDF)"
+    url: "https://iecmedia.iec.co.il/media/5malqupk/n%D7%AA%D7%A2%D7%A8%D7%99%D7%A4%D7%99%D7%9D-%D7%91%D7%90%D7%A0%D7%92%D7%9C%D7%99%D7%AA-1726-%D7%9E%D7%A2%D7%9E-18.pdf"
+  - title: "Globes (English), 2026: IEC system management charge of 9.09 agorot per self-consumed kWh"
+    url: "https://en.globes.co.il/en/article-1001547094"
+  - title: "Calcalist, 19 Oct 2026: 2027 draft tariff path (press report)"
+    url: "https://www.calcalist.co.il/local_news/article/bju933q2fe"
+  - title: "Kipa, Apr 2025: Ofakim added to the urban premium alongside Be'er Sheva, Ashdod, Rahat and Ashkelon (press report)"
+    url: "https://www.kipa.co.il/%D7%9B%D7%A1%D7%A3/1201699-0/"
+todo:
+  - "Export tariff (48 ag), urban premium (6 ag, 15 years) and the 2027 draft are press-reported; confirm in EA decisions (gov.il blocked; no web.archive.org copy found 22 Nov 2026)."
+  - "Urban premium locality list not confirmed from the EA decision (Files_Hachlatot_primia.pdf). Tel Aviv, Jerusalem and Haifa are over 50,000 residents but their eligibility is not confirmed in a source we opened."
+  - "Tax and VAT treatment of export income not covered."
+faq:
+  - question: "How much does a 15 kW solar system earn in Israel?"
+    answer: "Using PVGIS output and the 48-agorot export tariff, roughly ILS 11,400 a year in Tiberias to ILS 13,300 in Eilat, before panel ageing and running costs. With the 6-agorot urban premium it is about 12.5% more."
+  - question: "Is the Ministry's ILS 13,000 a year realistic?"
+    answer: "For a 15 kW system in the centre, it lines up with 48 agorot plus the urban premium (about ILS 13,940 in Tel Aviv on PVGIS output). Without the premium, PVGIS output gives about ILS 12,390."
+  - question: "Is it better to use my solar power or sell it?"
+    answer: "A self-consumed kWh avoids the 63.52-agorot grid price but carries a 9.09-agorot system management charge (Globes), so it is worth about 54 agorot. An exported kWh earns about 48 agorot, or 54 with the urban premium. The two are close."
+  - question: "How much less will a system connected in 2027 earn?"
+    answer: "Under the October 2026 draft, the H1 2027 rate is 45.44 agorot, about 5% less per kWh, for 20 years instead of 25. The draft is not final."
+---
+
+A 15 kW rooftop system in Israel earns roughly ILS 11,400 to 13,300 a year at the 48-agorot export tariff, depending on where you live. That is about ILS 12,400 in Tel Aviv. In towns with the 6-agorot urban premium it is about 12.5% more for the first 15 years. These are gross figures before panel ageing and running costs. Here is the arithmetic, so you can redo it for your own roof.
+
+## Key numbers
+
+- **1,580 to 1,890 kWh per kW per year**: PVGIS output at the best tilt, from Tiberias to Mitzpe Ramon (run 22 Nov 2026).
+- **About 48 ag/kWh** export for systems up to 15 kW, 25 years (mako/Bizportal, 2026; press report).
+- **+6 ag/kWh** urban premium for the first 15 years in towns above 50,000 residents (mako/Bizportal).
+- **ILS 13,000 a year**: the Ministry of Energy's average for a 15 kW home system (pv magazine, Feb 2025).
+- **63.52 ag/kWh** including VAT: what each self-consumed kWh avoids buying (IEC, from 1 July 2026).
+- **0.5% to 1% a year**: typical panel output decline. Panels still make about 80% to 90% of their original output after 25 years (mako/Bizportal).
+
+## How much does a 15 kW system earn, city by city?
+
+Yearly output is the system size times the PVGIS kWh per kW. Yearly value is output times the tariff. The table assumes every kWh is valued at the export rate. That is close to reality in Israel, as the next section shows.
+
+| City | kWh per kW (PVGIS) | 15 kW output, kWh/yr | At 48 ag | At 54 ag (with premium) |
+|---|---|---|---|---|
+| Tiberias | 1,580 | 23,700 | ILS 11,376 | ILS 12,798 |
+| Haifa | 1,683 | 25,245 | ILS 12,118 | ILS 13,632 |
+| Tel Aviv | 1,721 | 25,815 | ILS 12,391 | ILS 13,940 |
+| Jerusalem | 1,725 | 25,875 | ILS 12,420 | ILS 13,973 |
+| Be'er Sheva | 1,760 | 26,400 | ILS 12,672 | ILS 14,256 |
+| Eilat | 1,845 | 27,675 | ILS 13,284 | ILS 14,945 |
+
+The premium column applies only where the urban premium has been granted. Press reports name Be'er Sheva, Ashdod, Ashkelon, Rahat and Ofakim (Kipa, 2025). We have not confirmed the full list, so check your town.
+
+The Ministry's ILS 13,000 figure (pv magazine) sits between the two columns for the centre of the country. It is a fair average, not a promise.
+
+## Should you use your solar power or export it?
+
+In many countries, using your own power is worth far more than exporting it. In Israel the two are close:
+
+| | Per kWh |
+|---|---|
+| Self-consumed: grid price avoided | 63.52 ag (IEC, incl. VAT) |
+| minus the system management charge | 9.09 ag (Globes) |
+| Net value of a self-consumed kWh | about 54.4 ag |
+| Exported, standard tier up to 15 kW | about 48 ag |
+| Exported, with urban premium | about 54 ag |
+
+mako/Bizportal still says the big saving comes from self-consumption, because it avoids the full home price. The gap shrinks once the system management charge is counted. It is not clear from Globes whether that charge includes VAT, which would change the gap slightly. Either way, the export tariff does most of the work, and the size of the system matters more than matching it to your consumption.
+
+## Why does system size matter?
+
+The rate of about 48 ag applies up to 15 kW. From 15 to 100 kW the reported rate drops to about 41 ag (mako/Bizportal). So the 15 kW mark is the sweet spot for a private house with enough roof. A 20 kW system would earn the lower rate on the extra kW. Check with your installer how the tiers apply to a system that crosses 15 kW.
+
+## What reduces these earnings?
+
+- **Panel ageing:** at 0.5% to 1% a year, year-25 output is about 80% to 90% of year one (mako/Bizportal).
+- **Inflation:** the standard tariff is fixed in shekels and not linked to the CPI (mako/Bizportal).
+- **Inverter replacement:** ILS 4,000 to 8,000, once (mako/Bizportal).
+- **Dirt:** up to 15% output loss without cleaning (mako/Bizportal).
+- **Shade, orientation and roof tilt** different from PVGIS's best case.
+
+## What if you connect in 2027?
+
+The Electricity Authority's October 2026 draft puts the H1 2027 rate at 45.44 ag for systems up to 15 kW, for 20 years (Calcalist; press report). For 15 kW in Tel Aviv that is about ILS 11,730 a year (25,815 x 0.4544), about ILS 660 less than at 48 ag, and for 5 fewer years. The rate would fall to 36.77 ag for systems connected in 2030. Read [why connecting before 2027 matters](/il/blog/lock-in-before-2027).
+
+## Turning earnings into payback
+
+Divide the installed cost by the yearly value. With mako/Bizportal's ILS 3,500 to 5,500 per kW before VAT, a 15 kW system costs about ILS 61,950 to 97,350 including VAT. At about ILS 12,400 a year, the simple payback is roughly 5 to 8 years. See [is rooftop solar worth it in Israel](/il/blog/is-rooftop-solar-worth-it-israel-2026) for the assumptions, and [when rooftop solar doesn't pay](/il/blog/when-rooftop-solar-doesnt-pay-israel) for what can stretch it.
