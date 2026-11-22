@@ -26,7 +26,7 @@ const o = COUNTRY_OUTLINES[segment];
 const widths = image ? [400, 640, 960].filter((w) => w <= image.width) : [];
 ---
 {photo ? (
-  <PlacePhoto photo={photo} sizes={sizes} eager={eager} credit="text" class={cls} />
+  <PlacePhoto photo={photo} sizes={sizes} eager={eager} credit="text" creditAt="bottom-left" class={cls} />
 ) : image ? (
   <Picture src={image} alt={alt} formats={['avif', 'webp']} widths={widths.length ? widths : [image.width]} sizes={sizes} width={960} height={Math.round((960 * image.height) / image.width)} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" class:list={['absolute inset-0 h-full w-full object-cover', cls]} />
 ) : (
