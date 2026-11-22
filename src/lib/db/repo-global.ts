@@ -8,7 +8,11 @@
  */
 import { z } from 'zod';
 import {
+  CalcLocationsSchema,
   ExportPoliciesSchema,
+  VatRatesSchema,
+  type CalcLocation,
+  type VatRate,
   GlobalAssumptionsSchema,
   GlobalCostsSchema,
   GlobalUtilitiesSchema,
@@ -145,6 +149,20 @@ export function createGlobalRepo(deps: GlobalRepoDeps = {}) {
     return validate(GlobalAssumptionsSchema, globalAssumptionsFromRows(r.value, country, region), `model_assumptions ${country}${region ? `/${region}` : ''}`);
   }
 
+  /** Date-effective VAT rows of a country (0035). */
+  async function loadVatRates(country: string): Promise<Result<VatRate[]>> {
+    if (!COUNTRY.test(country)) return err('not_found', 'unknown market');
+    const r = await rows<Record<string, unknown>>('vat_rates', { select: '*', country: `eq.${country}`, order: 'applies_to.asc,valid_from.asc' });
+    return r.ok ? validate(VatRatesSchema, r.value, `vat_rates ${country}`) : r;
+  }
+
+  /** The yield points (one per utility / price cap region) of a country (0035). */
+  async function loadCalcLocations(country: string): Promise<Result<CalcLocation[]>> {
+    if (!COUNTRY.test(country)) return err('not_found', 'unknown market');
+    const r = await rows<Record<string, unknown>>('calculator_locations', { select: '*', country: `eq.${country}`, order: 'id.asc' });
+    return r.ok ? validate(CalcLocationsSchema, r.value, `calculator_locations ${country}`) : r;
+  }
+
   /** One inventory table (0029), optionally filtered by exact column values (e.g. { country: 'US', region_code: 'FL' }). */
   async function loadInventory<T extends InventoryTable>(table: T, filters: Record<string, string> = {}): Promise<Result<InventoryRows<T>>> {
     const params: Record<string, string> = { select: '*' };
@@ -180,7 +198,7 @@ export function createGlobalRepo(deps: GlobalRepoDeps = {}) {
     return ok({ market: m.value, region: regionRow, utilities: u.value, exportPolicies: p.value, incentives: i.value, costs: c.value, assumptions: a.value });
   }
 
-  return { loadMarkets, loadMarket, loadRegions, loadExportPolicies, loadIncentives, loadGlobalUtilities, loadGlobalCosts, loadGlobalAssumptions, loadInventory, loadGlobalCalcConfig };
+  return { loadMarkets, loadMarket, loadRegions, loadExportPolicies, loadIncentives, loadGlobalUtilities, loadGlobalCosts, loadGlobalAssumptions, loadVatRates, loadCalcLocations, loadInventory, loadGlobalCalcConfig };
 }
 
 export type GlobalRepo = ReturnType<typeof createGlobalRepo>;

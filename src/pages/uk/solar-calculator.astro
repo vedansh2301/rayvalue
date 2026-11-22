@@ -1,0 +1,76 @@
+---
+/**
+ * UK solar + battery payback calculator: /uk/solar-calculator. Values are read from the database at request time
+ * (CDN-cached ~5 min) and passed to the island as props. If any of it cannot be loaded or is invalid the page still renders
+ * (HTTP 200) with a "verifying" message and a short cache. No lead form: leads are US-only. The affiliate slot renders
+ * only when an active offer is set up for country GB.
+ */
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import OfferSlot from '../../components/OfferSlot.astro';
+import CalculatorUk from '../../components/calculator/CalculatorUk';
+import { offersForCountry } from '../../lib/offers/load';
+import { loadUkPageData } from '../../lib/calculator/uk-page-data';
+import { DB_PAGE_CACHE_HEADERS } from '../../lib/db/repo';
+import { DB_ERROR_CACHE_HEADERS } from '../../lib/calculator/page-data';
+
+const path = '/uk/solar-calculator';
+const data = await loadUkPageData(new Date().toISOString().slice(0, 10));
+for (const [k, v] of Object.entries(data.ok ? DB_PAGE_CACHE_HEADERS : DB_ERROR_CACHE_HEADERS)) Astro.response.headers.set(k, v);
+if (!data.ok) console.error('uk calculator: data unavailable:', data.error.kind, data.error.message, data.error.issues ?? '');
+const offers = data.ok ? await offersForCountry('GB') : [];
+// Indexable only once the owner publishes the GB market (CLAUDE.md rule 9 spirit: nothing new is public before review).
+const indexable = data.ok && data.props.market.published;
+const steps = [
+  'You pick your Ofgem price cap region, say how much electricity you use, which way the roof faces and how much shade it gets.',
+  'We look up how much sun a rooftop array gets near your region using the European Commission’s PVGIS solar model, then adjust for roof direction and shade.',
+  'We work backwards from your bill, using your region’s unit rate and standing charge, to estimate how much electricity you use in a year, then size a system to cover most of it.',
+  'We price that system from the Government’s published MCS installation cost statistics, and add the VAT that applies on your install date.',
+  'We value the solar you use at home at your unit rate and the solar you export at the Smart Export Guarantee rate you chose, and project savings with a range of price rises.',
+  'We show low, likely and high results, with every assumption and source listed.',
+];
+---
+<BaseLayout
+  title="UK solar and battery payback calculator"
+  description="Estimate solar and battery cost, savings and payback for your UK home as low, likely and high ranges, using the Ofgem price cap, Smart Export Guarantee rates and official MCS costs."
+  path={path}
+  noindex={!indexable}
+  lang="en-GB"
+>
+  <div class="shell pt-8 sm:pt-10">
+    <Breadcrumbs items={[{ label: 'Home', href: '/uk' }, { label: 'Solar calculator' }]} />
+    <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">UK solar and battery payback calculator</h1>
+    <p class="mt-2 text-lg text-stone-700">Low, likely and high ranges from your regional price cap, your export payment and official installation costs. No grant is assumed.</p>
+  </div>
+
+  <div class="shell pb-24 pt-6 sm:pb-16">
+    <div class="space-y-10">
+      <section aria-label="Calculator">
+        {data.ok ? (
+          <CalculatorUk client:visible {...data.props} />
+        ) : (
+          <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+            <h2 class="text-xl font-semibold text-stone-900">We&rsquo;re verifying the data for this calculator</h2>
+            <p class="mt-2 leading-7 text-stone-700">The UK calculator is temporarily unavailable while we check our price, tariff and cost data. Please try again soon.</p>
+          </div>
+        )}
+      </section>
+
+      <div class="max-w-(--container-prose) space-y-10">
+        <OfferSlot offers={offers} pagePath={path} heading="Offers for UK homes" />
+
+        <section aria-labelledby="how-heading">
+          <h2 id="how-heading" class="text-xl font-semibold text-stone-900">How we calculated this</h2>
+          <ol class="mt-4 list-decimal space-y-2 pl-6 leading-7 text-stone-700">
+            {steps.map((s) => <li>{s}</li>)}
+          </ol>
+          <p class="mt-4 text-stone-700">
+            Every source and assumption is explained in our <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>. Estimates are not a quote; installer prices and your actual usage will differ. Northern Ireland has a different electricity market and is not covered.
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

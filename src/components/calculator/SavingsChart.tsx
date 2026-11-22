@@ -5,7 +5,7 @@
 import { TICK_FONT, LABEL_FONT, type SavingsChart as Chart } from '../../lib/calc/chart';
 import { formatUsd } from '../../lib/format';
 
-export default function SavingsChart({ chart: c, years }: { chart: Chart; years: number }) {
+export default function SavingsChart({ chart: c, years, money = formatUsd }: { chart: Chart; years: number; /** Currency formatter for the table (default US dollars). */ money?: (n: number) => string }) {
   const pb = c.crossing;
   return (
     <figure class="mt-6 rounded-xl border border-stone-200 bg-white p-4" aria-labelledby="savings-chart-cap">
@@ -49,9 +49,9 @@ export default function SavingsChart({ chart: c, years }: { chart: Chart; years:
           {c.rows.map((row) => (
             <tr key={row.year}>
               <th scope="row">{row.year}</th>
-              <td>{formatUsd(row.low)}</td>
-              <td>{formatUsd(row.likely)}</td>
-              <td>{formatUsd(row.high)}</td>
+              <td>{money(row.low)}</td>
+              <td>{money(row.likely)}</td>
+              <td>{money(row.high)}</td>
             </tr>
           ))}
         </tbody>

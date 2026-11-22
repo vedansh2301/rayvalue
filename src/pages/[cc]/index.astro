@@ -5,6 +5,7 @@ export const prerender = false;
 // blog posts. noindex below HUB_MIN_ITEMS published items. No national figures: none are held with a source yet.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CountryCalcCta from '../../components/seo/CountryCalcCta.astro';
 import { getCollection } from 'astro:content';
 import { articleIndexPath, articlePath, countrySegment } from '../../lib/content/paths';
 import { countryName, hubIndexable, hubItemCount } from '../../lib/content/country-nav';
@@ -43,6 +44,7 @@ const cardList = 'mt-3 space-y-4';
       <Breadcrumbs items={[{ label: ui.home, href: `/${seg}` }, { label: name }]} />
       <h1 class="!mt-4">{name}</h1>
       <p>{hubIntro(lang, name)}</p>
+      <CountryCalcCta country={seg} place="top" />
 
       {hubs.length > 0 && (
         <section class="mt-10" aria-labelledby="hub-places">

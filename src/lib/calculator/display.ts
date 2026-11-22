@@ -20,6 +20,17 @@ export function formatSignedUsd(n: number): string {
   return n < 0 ? `−${formatUsd(-n)}` : formatUsd(n);
 }
 
+/** Whole-unit money formatters for any market ("£12,500"; negatives use a true minus sign). Display only. */
+export function moneyFormats(locale: string, currency: string) {
+  const f = new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 0 });
+  return {
+    money: (n: number) => f.format(n),
+    signed: (n: number) => (n < 0 ? `−${f.format(-n)}` : f.format(n)),
+    /** The currency symbol alone, for chart axes ("£"). */
+    symbol: f.formatToParts(0).find((p) => p.type === 'currency')?.value ?? currency,
+  };
+}
+
 /** A rounded range; collapses to one value when low, likely and high are all equal. */
 export function displayRange(r: Range, fmt: (n: number) => string): RangeDisplay {
   if (r.low === r.high && r.low === r.likely) return { kind: 'single', value: fmt(r.likely) };

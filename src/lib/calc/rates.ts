@@ -3,8 +3,8 @@ import type { Utility } from '../../data/schemas';
 /** The utility fields rate resolution reads. US Utility records satisfy it; so do global (non-US) utility records. */
 export type RateSource = Pick<
   Utility,
-  'tier_sets' | 'minimum_bill_basis' | 'fixed_monthly_charge' | 'minimum_monthly_bill' | 'avg_rate_per_kwh' | 'avg_export_credit_per_kwh' | 'rate_type'
-> & { id: string };
+  'tier_sets' | 'minimum_bill_basis' | 'fixed_monthly_charge' | 'minimum_monthly_bill' | 'avg_rate_per_kwh' | 'avg_export_credit_per_kwh'
+> & { id: string; /** tiered | tou_summary | flat: anything but tiered resolves to one average rate. */ rate_type: string };
 
 /** A tier with every value present. `upTo` is the monthly kWh ceiling; null = open-ended. */
 export interface ResolvedTier {

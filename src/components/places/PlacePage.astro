@@ -7,6 +7,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../Breadcrumbs.astro';
 import KeyNumbers from '../seo/KeyNumbers.astro';
 import ProductionChart from '../city/ProductionChart.astro';
+import CountryCalcCta from '../seo/CountryCalcCta.astro';
 import type { PlaceView } from '../../lib/places/view';
 
 interface Props {
@@ -77,6 +78,8 @@ const kn = { source: t.source, ourData: t.sourceOurData, checked: t.checked, fig
         )}
       </>
     ))}
+
+    <CountryCalcCta country={view.country.code} place="end" />
 
     <p class="mt-8 text-sm text-stone-700">{t.disclaimer} <a href="/methodology">{t.methodologyLink}</a>.</p>
 

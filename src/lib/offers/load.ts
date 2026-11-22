@@ -24,6 +24,23 @@ export function pickOffers(rows: readonly AffiliateOfferRow[], categories: reado
   return livePublicOffers(rows, now, { categories, country: country.toUpperCase() }).slice(0, max);
 }
 
+/**
+ * Live affiliate offers that name exactly this country (global offers with no country are NOT included), any category.
+ * For calculator pages outside the US, where only an offer explicitly set up for that market may appear.
+ */
+export function pickCountryOffers(rows: readonly AffiliateOfferRow[], country: string, max: number, now: Date): PublicOffer[] {
+  const cc = country.toUpperCase();
+  return livePublicOffers(
+    rows.filter((r) => r.country === cc),
+    now,
+    { country: cc },
+  ).slice(0, max);
+}
+
+export async function offersForCountry(country: string, max = 3, now = new Date(), fetchImpl: typeof fetch = fetch): Promise<PublicOffer[]> {
+  return pickCountryOffers(await loadAffiliateRows(fetchImpl), country, max, now);
+}
+
 /** The single entry point pages use: offers to show for this page context (empty array = render nothing). */
 export async function offersForPage(ctx: PlacementContext, now = new Date(), fetchImpl: typeof fetch = fetch): Promise<PublicOffer[]> {
   const place = placementFor(ctx);
