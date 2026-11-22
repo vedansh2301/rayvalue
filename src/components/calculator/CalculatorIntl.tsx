@@ -277,8 +277,8 @@ export default function CalculatorIntl(props: CalculatorIslandProps) {
                         return (
                           <g key={u.id} role="button" tabIndex={0} aria-label={s.regionName(u.name)} aria-pressed={on} onClick={pick} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } }} class="cursor-pointer outline-none [&:focus-visible>circle:last-child]:stroke-stone-900">
                             <circle cx={d[0]} cy={d[1]} r="5" fill="transparent" />
-                            <circle cx={d[0]} cy={d[1]} r="2.6" fill="#f59e0b" />
-                            <circle cx={d[0]} cy={d[1]} r={on ? 4.6 : 3.4} fill={on ? '#fbbf24' : 'transparent'} stroke={on ? '#92400e' : '#f59e0b'} stroke-width="0.8" />
+                            {on && <circle cx={d[0]} cy={d[1]} r="3.6" fill="#f59e0b" class="rv-ping" />}
+                            <circle cx={d[0]} cy={d[1]} r={on ? 3.6 : 2.2} fill={on ? '#f59e0b' : '#9ec5e8'} stroke="#ffffff" stroke-width="0.8" />
                           </g>
                         );
                       })}
@@ -302,7 +302,7 @@ export default function CalculatorIntl(props: CalculatorIslandProps) {
                   <div class="flex flex-col gap-2">
                     <label for={`${px}-usage`} class="text-sm font-semibold text-stone-900">{mode === 'bill' ? s.usageLabelBill : s.usageLabelKwh}</label>
                     <p id={`${px}-usage-hint`} class="text-sm text-stone-700">{mode === 'bill' ? s.usageHintBill : s.usageHintKwh} {s.ui.usageHint}</p>
-                    <input type="range" aria-label={mode === 'bill' ? s.usageLabelBill : s.usageLabelKwh} min={range.min} max={range.max} step={range.step} value={sliderPosition(mode, parsedUsage)} onInput={(e) => setUsageRaw(e.currentTarget.value)} class="h-8 w-full accent-amber-500" />
+                    <input type="range" aria-label={mode === 'bill' ? s.usageLabelBill : s.usageLabelKwh} min={range.min} max={range.max} step={range.step} value={sliderPosition(mode, parsedUsage)} onInput={(e) => setUsageRaw(e.currentTarget.value)} class="rv-range h-8 w-full" />
                     <div class="flex justify-between text-xs text-stone-700" aria-hidden="true"><span>{mode === 'bill' ? fmt.money(range.min) : new Intl.NumberFormat(market.locale).format(range.min)}</span><span>{mode === 'bill' ? fmt.money(range.max) : new Intl.NumberFormat(market.locale).format(range.max)}</span></div>
                     <input id={`${px}-usage`} type="text" inputMode="decimal" value={usageRaw} placeholder={mode === 'bill' ? fmt.symbol : 'kWh'} onInput={(e) => setUsageRaw(e.currentTarget.value)} aria-invalid={errors.usage ? 'true' : 'false'} aria-describedby={errors.usage ? `${px}-usage-hint ${px}-usage-error` : `${px}-usage-hint`} class={`${inputCls} max-w-48`} />
                     {err(`${px}-usage-error`, errors.usage)}

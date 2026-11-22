@@ -42,8 +42,10 @@ interface Props {
   readsAll: { href: string; label: string };
   readLabel: string;
   picks: Pick[];
+  /** Alt text of the rooftop photo, in the page language. */
+  rooftopAlt?: string;
 }
-const { seg, lang, path, metaTitle, metaDescription, noindex, h1, sub, startLabel, chip, checks, heroPhotoId, badge, howHeading, readsHeading, readsAll, readLabel, picks } = Astro.props;
+const { seg, lang, path, metaTitle, metaDescription, noindex, h1, sub, startLabel, chip, checks, heroPhotoId, badge, howHeading, readsHeading, readsAll, readLabel, picks, rooftopAlt = 'Installers lifting a solar panel into place on a shingle roof' } = Astro.props;
 const heroPhoto = allPhotos.find((p) => p.id === heroPhotoId) ?? null;
 const [guides, posts] = await Promise.all([getCollection('guides', (e) => !e.data.draft && !e.data.noindex), getCollection('blog', (e) => !e.data.draft && !e.data.noindex)]);
 const reads = picks.flatMap((p) => {
@@ -75,10 +77,10 @@ const reads = picks.flatMap((p) => {
       </div>
       <div class="relative mx-auto grid w-full max-w-xl grid-cols-[1.15fr_0.85fr] items-end gap-3">
         <div class="relative aspect-[4/5] overflow-hidden rounded-[22px] bg-sky-pastel-100 shadow-[0_26px_50px_-26px_rgba(28,25,23,0.45)]">
-          {heroPhoto && <PlacePhoto photo={heroPhoto} sizes="(min-width: 1024px) 280px, 50vw" credit="text" creditAt="bottom-left" eager />}
+          {heroPhoto && <PlacePhoto photo={heroPhoto} sizes="(min-width: 1024px) 280px, 50vw" credit="text" creditAt="top-right" eager />}
         </div>
         <div class="relative mb-8 aspect-square overflow-hidden rounded-[22px] bg-sky-pastel-100 shadow-[0_26px_50px_-26px_rgba(28,25,23,0.45)]">
-          <Picture src={rooftop} alt="Installers lifting a solar panel into place on a shingle roof" formats={['avif', 'webp']} widths={[320, 480, 640]} sizes="(min-width: 1024px) 220px, 40vw" width={640} height={480} loading="eager" class="absolute inset-0 h-full w-full object-cover" />
+          <Picture src={rooftop} alt={rooftopAlt} formats={['avif', 'webp']} widths={[320, 480, 640]} sizes="(min-width: 1024px) 220px, 40vw" width={640} height={480} loading="eager" class="absolute inset-0 h-full w-full object-cover" />
         </div>
         {badge && (
           <div class="absolute -bottom-3 left-[34%] flex items-center gap-3 rounded-2xl bg-white p-3 pr-4 shadow-[0_18px_40px_-20px_rgba(28,25,23,0.5)] motion-safe:animate-float">

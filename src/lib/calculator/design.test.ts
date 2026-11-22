@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { UK_REGION_DOTS, answeredCount, rateBarPct, regionDot, sliderPosition, zeroVatDaysLeft, zeroVatEnd } from './design';
+import { UK_REGION_DOTS, answeredCount, rateBarPct, rebateStepDownDays, regionDot, sliderPosition, zeroVatDaysLeft, zeroVatEnd } from './design';
 
 const solar = (rate: number, from: string | null, to: string | null) => ({ applies_to: 'solar' as const, rate, valid_from: from, valid_to: to });
 
@@ -36,5 +36,18 @@ describe('rateBarPct / sliderPosition / regionDot', () => {
     expect(Object.keys(UK_REGION_DOTS)).toHaveLength(14);
     expect(regionDot('London (Ofgem price cap region)')).toEqual([48, 82]);
     expect(regionDot('Bayern')).toBeNull();
+  });
+});
+
+describe('rebateStepDownDays', () => {
+  const row = (from: string | null, to: string | null, amt: number | null = 100) => ({ amount_type: 'per_kwh_storage' as const, amount_likely: amt, effective_from: from, effective_to: to });
+  it('counts days to the end of the current per-kWh rebate row', () => {
+    expect(rebateStepDownDays([row(null, '2026-12-31'), row('2027-01-01', '2027-12-31')], '2026-11-22')).toBe(39);
+    expect(rebateStepDownDays([row(null, '2026-12-31')], '2026-12-31')).toBe(0);
+  });
+  it('is null with no dated current row', () => {
+    expect(rebateStepDownDays([row(null, null)], '2026-11-22')).toBeNull();
+    expect(rebateStepDownDays([row(null, '2026-12-31')], '2027-01-01')).toBeNull();
+    expect(rebateStepDownDays([row(null, '2026-12-31', null)], '2026-11-22')).toBeNull();
   });
 });

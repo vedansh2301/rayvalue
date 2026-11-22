@@ -3,7 +3,7 @@
  * countdown, answered-question counting, the export-rate bars and the usage slider. No tariff, rate or cost is typed
  * here: rates, VAT windows and bounds come from database rows; the map dot coordinates are drawing geometry only.
  */
-import type { VatRate } from '../../data/schemas-global';
+import type { IncentiveRecord, VatRate } from '../../data/schemas-global';
 
 /** Dot positions on the UK outline (viewBox "-4 -2 71 104", outline 62.9 x 100), keyed by price cap region name. Geometry only. */
 export const UK_REGION_DOTS: Readonly<Record<string, readonly [x: number, y: number]>> = {
@@ -64,3 +64,15 @@ export const COMPASS_DEG: Readonly<Record<'south' | 'east_west' | 'north', numbe
 
 /** Width (0..100, one decimal) of the "N of M answered" bar. */
 export const progressPct = (done: number, total: number): number => (total <= 0 ? 0 : Math.round((done / total) * 1000) / 10);
+
+/**
+ * Days from `today` to the last day of the current per-kWh battery rebate row that has an end date (the date the rebate
+ * steps down), or null when there is none. Whole days. Rows come from the incentives table.
+ */
+export function rebateStepDownDays(rows: readonly Pick<IncentiveRecord, 'amount_type' | 'amount_likely' | 'effective_from' | 'effective_to'>[], today: string): number | null {
+  const ends = rows
+    .filter((r) => r.amount_type === 'per_kwh_storage' && r.amount_likely !== null && r.effective_to !== null && (r.effective_from === null || r.effective_from <= today) && r.effective_to >= today)
+    .map((r) => r.effective_to!)
+    .sort();
+  return ends.length ? utcDay(ends[0]!) - utcDay(today) : null;
+}

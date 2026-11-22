@@ -8,8 +8,7 @@
  */
 export const prerender = false;
 
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CalcShell from '../../components/calculator/CalcShell.astro';
 import OfferSlot from '../../components/OfferSlot.astro';
 import CalculatorIntl from '../../components/calculator/CalculatorIntl';
 import { offersForCountry } from '../../lib/offers/load';
@@ -32,49 +31,52 @@ const steps = [
   'Den selbst genutzten Solarstrom bewerten wir zum Strompreis, den eingespeisten Strom nach der EEG-Vergütung der Bundesnetzagentur für Anlagen, die bis zum 31. Dezember 2026 in Betrieb gehen, und rechnen über die 20 Jahre der Vergütungsdauer mit einer Spanne für die Strompreisentwicklung.',
   'Wir zeigen niedrige, wahrscheinliche und hohe Werte, mit allen Annahmen und Quellen.',
 ];
+const nRegions = data.ok ? data.props.utilities.length : null;
+const reads = [
+  { collection: 'guides', id: 'de/einspeiseverguetung-2026' },
+  { collection: 'guides', id: 'de/eeg-2027-reform-neue-pv-anlagen' },
+  { collection: 'guides', id: 'de/solarspitzengesetz-erklaert' },
+  { collection: 'blog', id: 'de/wann-photovoltaik-nicht-lohnt' },
+] as const;
 ---
-<BaseLayout
-  title="Photovoltaik-Rechner: Amortisation und Stromspeicher"
-  description="Schätzen Sie Kosten, Ersparnis und Amortisation einer Photovoltaikanlage mit oder ohne Stromspeicher als niedrige, wahrscheinliche und hohe Werte, mit Strompreis von Eurostat, EEG-Vergütung der Bundesnetzagentur und Preisen der Verbraucherzentrale."
-  path={path}
-  noindex={!indexable}
-  lang="de"
+<CalcShell
+  seg="de" lang="de" path={path} noindex={!indexable}
+  metaTitle="Photovoltaik-Rechner: Amortisation und Stromspeicher"
+  metaDescription="Schätzen Sie Kosten, Ersparnis und Amortisation einer Photovoltaikanlage mit oder ohne Stromspeicher als niedrige, wahrscheinliche und hohe Werte, mit Strompreis von Eurostat, EEG-Vergütung der Bundesnetzagentur und Preisen der Verbraucherzentrale."
+  h1="Photovoltaik-Rechner: Amortisation und Stromspeicher"
+  sub="Niedrige, wahrscheinliche und hohe Werte aus dem Strompreis, der EEG-Vergütung und den Preisen echter Angebote. Es ist keine Förderung eingerechnet."
+  startLabel="Start · 6 kurze Fragen"
+  chip={null}
+  checks={['Strompreis von Eurostat', 'EEG-Vergütung der Bundesnetzagentur', 'Preise der Verbraucherzentrale']}
+  heroPhotoId="d-de-brandenburg"
+  badge={nRegions ? { title: `${nRegions} Bundesländer`, sub: 'Strompreis und Sonnenertrag je Land' } : null}
+  howHeading="So haben wir gerechnet" readsHeading="Lesen, bevor Sie kaufen" readsAll={{ href: '/de/blog', label: 'Alle Beiträge' }} readLabel="Lesen"
+  rooftopAlt="Monteure heben ein Solarmodul auf ein Dach"
+  picks={[...reads]}
 >
-  <div class="shell pt-8 sm:pt-10">
-    <Breadcrumbs items={[{ label: 'Startseite', href: '/de' }, { label: 'Photovoltaik-Rechner' }]} />
-    <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">Photovoltaik-Rechner: Amortisation und Stromspeicher</h1>
-    <p class="mt-2 text-lg text-stone-700">Niedrige, wahrscheinliche und hohe Werte aus dem Strompreis, der EEG-Vergütung und den Preisen echter Angebote. Es ist keine Förderung eingerechnet.</p>
-  </div>
-
-  <div class="shell pb-24 pt-6 sm:pb-16">
-    <div class="space-y-10">
-      <section aria-label="Rechner">
-        {data.ok ? (
-          <CalculatorIntl client:visible {...data.props} />
-        ) : (
-          <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
-            <h2 class="text-xl font-semibold text-stone-900">Wir prüfen gerade die Daten für diesen Rechner</h2>
-            <p class="mt-2 leading-7 text-stone-700">Der Rechner ist vorübergehend nicht verfügbar, solange wir Preis-, Vergütungs- und Kostendaten prüfen. Bitte versuchen Sie es bald erneut.</p>
-          </div>
-        )}
-      </section>
-
-      <div class="max-w-(--container-prose) space-y-10">
-        <OfferSlot offers={offers} pagePath={path} heading="Angebote für Haushalte in Deutschland" />
-
-        <section aria-labelledby="how-heading">
-          <h2 id="how-heading" class="text-xl font-semibold text-stone-900">So haben wir gerechnet</h2>
-          <ol class="mt-4 list-decimal space-y-2 pl-6 leading-7 text-stone-700">
-            {steps.map((s) => <li>{s}</li>)}
-          </ol>
-          <p class="mt-4 text-stone-700">
+  {data.ok ? (
+    <CalculatorIntl client:visible {...data.props} />
+  ) : (
+    <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+      <h2 class="text-xl font-semibold text-stone-900">Wir prüfen gerade die Daten für diesen Rechner</h2>
+      <p class="mt-2 leading-7 text-stone-700">Der Rechner ist vorübergehend nicht verfügbar, solange wir Preis-, Vergütungs- und Kostendaten prüfen. Bitte versuchen Sie es bald erneut.</p>
+    </div>
+  )}
+  <div slot="after"><OfferSlot offers={offers} pagePath={path} heading="Angebote für Haushalte in Deutschland" /></div>
+  <Fragment slot="how">
+    <ol class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {steps.map((st, i) => (
+        <li class="flex flex-col gap-2 rounded-[18px] border border-sky-pastel-300 bg-white p-[18px]">
+          <span class="font-display-tight text-[28px] text-sky-pastel-600" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <p class="text-[15px] leading-relaxed text-stone-800">{st}</p>
+        </li>
+      ))}
+    </ol>
+    <p class="mt-6 text-stone-700">
             Die EEG-Vergütung gilt nach Angaben der Bundesnetzagentur für Anlagen, die bis zum 31. Dezember 2026 in Betrieb gehen; eine Nachfolgeregelung ist noch in der parlamentarischen Beratung, deshalb rechnen wir nicht für spätere Termine. Ohne Smart Meter muss eine neue Anlage ihre Einspeiseleistung auf 60 Prozent begrenzen (§ 9 Abs. 2 EEG); diesen Ertragsverlust und die fehlende Vergütung bei negativen Strompreisen rechnen wir nicht ein.
           </p>
-          <p class="mt-4 text-stone-700">
+    <p class="mt-6 text-stone-700">
             Alle Quellen und Annahmen erklären wir in unserer <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">Methodik</a>. Eine Schätzung ist kein Angebot; Installateurpreise und Ihr tatsächlicher Verbrauch weichen ab.
           </p>
-        </section>
-      </div>
-    </div>
-  </div>
-</BaseLayout>
+  </Fragment>
+</CalcShell>

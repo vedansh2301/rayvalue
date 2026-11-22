@@ -8,8 +8,8 @@
  */
 export const prerender = false;
 
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CalcShell from '../../components/calculator/CalcShell.astro';
+import { rebateStepDownDays } from '../../lib/calculator/design';
 import OfferSlot from '../../components/OfferSlot.astro';
 import CalculatorIntl from '../../components/calculator/CalculatorIntl';
 import { offersForCountry } from '../../lib/offers/load';
@@ -32,49 +32,52 @@ const steps = [
   'We value the solar you use at home at your usage rate and the solar you export at the feed-in rate you chose, and project savings over 25 years with a range of price rises.',
   'We show low, likely and high results, with every assumption and source listed.',
 ];
+const nRegions = data.ok ? data.props.utilities.length : null;
+const rebateDays = data.ok ? rebateStepDownDays(data.props.incentives, data.props.today) : null;
+const reads = [
+  { collection: 'guides', id: 'au/battery-rebate-changes-2027' },
+  { collection: 'guides', id: 'au/battery-rebate-scams' },
+  { collection: 'guides', id: 'au/when-solar-doesnt-pay-off-australia' },
+  { collection: 'blog', id: 'au/is-solar-still-worth-it-low-feed-in-tariffs' },
+] as const;
 ---
-<BaseLayout
-  title="Australian solar and battery payback calculator"
-  description="Estimate solar and battery cost, savings and payback for your Australian home as low, likely and high ranges, with the Default Market Offer, state feed-in rates and the federal battery rebate step-down on 1 January 2027."
-  path={path}
-  noindex={!indexable}
-  lang="en-AU"
+<CalcShell
+  seg="au" lang="en-AU" path={path} noindex={!indexable}
+  metaTitle="Australian solar and battery payback calculator"
+  metaDescription="Estimate solar and battery cost, savings and payback for your Australian home as low, likely and high ranges, with the Default Market Offer, state feed-in rates and the federal battery rebate step-down on 1 January 2027."
+  h1="Australian solar and battery payback calculator"
+  sub="Low, likely and high ranges from your network’s regulated prices, your feed-in rate and the federal battery rebate, which steps down on 1 January 2027."
+  startLabel="Start · 6 quick questions"
+  chip={rebateDays !== null ? { label: `Battery rebate steps down in ${rebateDays} ${rebateDays === 1 ? 'day' : 'days'}`, href: '/au/guides/battery-rebate-changes-2027' } : null}
+  checks={['Default Market Offer prices', 'State feed-in rates', 'Federal battery rebate']}
+  heroPhotoId="d-au-opera-house"
+  badge={nRegions ? { title: `${nRegions} electricity networks`, sub: 'Regulated prices by network' } : null}
+  howHeading="How we calculated this" readsHeading="Read before you buy in Australia" readsAll={{ href: '/au/blog', label: 'All Australian posts' }} readLabel="Read"
+  picks={[...reads]}
 >
-  <div class="shell pt-8 sm:pt-10">
-    <Breadcrumbs items={[{ label: 'Home', href: '/au' }, { label: 'Solar and battery calculator' }]} />
-    <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">Australian solar and battery payback calculator</h1>
-    <p class="mt-2 text-lg text-stone-700">Low, likely and high ranges from your network&rsquo;s regulated prices, your feed-in rate and the federal battery rebate, which steps down on 1 January 2027.</p>
-  </div>
-
-  <div class="shell pb-24 pt-6 sm:pb-16">
-    <div class="space-y-10">
-      <section aria-label="Calculator">
-        {data.ok ? (
-          <CalculatorIntl client:visible {...data.props} />
-        ) : (
-          <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
-            <h2 class="text-xl font-semibold text-stone-900">We&rsquo;re verifying the data for this calculator</h2>
-            <p class="mt-2 leading-7 text-stone-700">The Australian calculator is temporarily unavailable while we check our price, tariff and cost data. Please try again soon.</p>
-          </div>
-        )}
-      </section>
-
-      <div class="max-w-(--container-prose) space-y-10">
-        <OfferSlot offers={offers} pagePath={path} heading="Offers for Australian homes" />
-
-        <section aria-labelledby="how-heading">
-          <h2 id="how-heading" class="text-xl font-semibold text-stone-900">How we calculated this</h2>
-          <ol class="mt-4 list-decimal space-y-2 pl-6 leading-7 text-stone-700">
-            {steps.map((s) => <li>{s}</li>)}
-          </ol>
-          <p class="mt-4 text-stone-700">
+  {data.ok ? (
+    <CalculatorIntl client:visible {...data.props} />
+  ) : (
+    <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+      <h2 class="text-xl font-semibold text-stone-900">We&rsquo;re verifying the data for this calculator</h2>
+      <p class="mt-2 leading-7 text-stone-700">The Australian calculator is temporarily unavailable while we check our price, tariff and cost data. Please try again soon.</p>
+    </div>
+  )}
+  <div slot="after"><OfferSlot offers={offers} pagePath={path} heading="Offers for Australian homes" /></div>
+  <Fragment slot="how">
+    <ol class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {steps.map((st, i) => (
+        <li class="flex flex-col gap-2 rounded-[18px] border border-sky-pastel-300 bg-white p-[18px]">
+          <span class="font-display-tight text-[28px] text-sky-pastel-600" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <p class="text-[15px] leading-relaxed text-stone-800">{st}</p>
+        </li>
+      ))}
+    </ol>
+    <p class="mt-6 text-stone-700">
             Installed prices are the weakest part of this estimate: no official Australian price statistic was found, so the cost range comes from secondary sources and is indicative. Victoria is not covered yet because the regulator publishes only annual bills, not the unit rate we need. Time-of-use and evening feed-in rates are not modelled.
           </p>
-          <p class="mt-4 text-stone-700">
+    <p class="mt-6 text-stone-700">
             Every source and assumption is explained in our <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>. Estimates are not a quote; installer prices and your actual usage will differ.
           </p>
-        </section>
-      </div>
-    </div>
-  </div>
-</BaseLayout>
+  </Fragment>
+</CalcShell>
