@@ -337,6 +337,8 @@ export const GlobalUtilitySchema = z
     id: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
     state: z.string().min(1),
     metering_type: z.enum(['retail_net_metering', 'nem3_net_billing', 'net_billing', 'feed_in', 'gross_metering', 'none', 'br_fio_b']),
+    /** tiered (FL), tou_summary (CA) or flat (one published unit rate + standing charge, e.g. the Ofgem price cap). */
+    rate_type: z.enum(['tiered', 'tou_summary', 'flat']),
     country: Country,
     region_code: Code,
     export_policy_id: z.string().nullable(),
@@ -375,6 +377,8 @@ export const GlobalAssumptionsSchema = z
     self_consumption_share: assumed({ solar_only: ShRange, solar_plus_1_battery: ShRange, solar_plus_2_batteries: ShRange }),
     /** Usable kWh of one battery; optional: absent = unknown, so per-kWh storage incentives are skipped, never guessed. */
     battery_usable_kwh: assumed({ value: z.number().positive() }).optional(),
+    /** Optional: output facing east/west or north as a share of south-facing output (applied to the yield by src/lib/calculator/uk.ts). */
+    orientation_yield_factor: assumed({ east_west: ShRange, north: ShRange }).optional(),
   })
   .strict()
   .superRefine((a, ctx) => {
@@ -386,6 +390,44 @@ export const GlobalAssumptionsSchema = z
     if (!(e.low <= e.likely && e.likely <= e.high)) ctx.addIssue({ code: 'custom', path: ['annual_rate_escalation'], message: 'range must satisfy low <= likely <= high' });
   });
 export type GlobalAssumptionsRecord = z.infer<typeof GlobalAssumptionsSchema>;
+
+// ------------------------------------------------------------ date-effective VAT (0035)
+
+/** VAT/GST on installed solar or batteries for a date window. Always sourced: no row without source_url + verified_on. */
+export const VatRateSchema = z
+  .object({
+    id: Slug,
+    country: Country,
+    applies_to: z.enum(['solar', 'battery']),
+    rate: z.preprocess((v) => (v === null || v === undefined ? v : Number(v)), z.number().min(0).lt(1)),
+    valid_from: IsoDate.nullable(),
+    valid_to: IsoDate.nullable(),
+    note: z.string().nullable(),
+    source_url: Url,
+    publisher: z.string().nullable(),
+    verified_on: IsoDate,
+    verification: z.enum(['agent_sourced', 'human_verified']),
+  })
+  .refine((r) => !r.valid_from || !r.valid_to || r.valid_to >= r.valid_from, { path: ['valid_to'], message: 'valid_to is before valid_from' });
+export type VatRate = z.infer<typeof VatRateSchema>;
+export const VatRatesSchema = z.array(VatRateSchema);
+
+/** The point whose solar yield stands for a calculator region (one per utility). */
+export const CalcLocationSchema = z.object({
+  id: Slug,
+  country: Country,
+  region_code: Code,
+  utility_id: z.string().min(1),
+  name: z.string().min(1),
+  lat: z.preprocess((v) => Number(v), z.number().min(-90).max(90)),
+  lon: z.preprocess((v) => Number(v), z.number().min(-180).max(180)),
+  coord_source_url: Url,
+  verified_on: IsoDate,
+  verification: z.enum(['agent_sourced', 'human_verified']),
+  note: z.string().nullable(),
+});
+export type CalcLocation = z.infer<typeof CalcLocationSchema>;
+export const CalcLocationsSchema = z.array(CalcLocationSchema);
 
 /** Table name -> row-array schema for the generic inventory loader. */
 export const INVENTORY_SCHEMAS = {

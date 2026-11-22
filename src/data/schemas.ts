@@ -180,8 +180,12 @@ export const utilityShape = {
 type UtilityBase = z.infer<z.ZodObject<typeof utilityShape>>;
 
 /** The cross-field rules, shared by UtilitySchema and the multi-country GlobalUtilitySchema. */
-export function refineUtility(u: Omit<UtilityBase, 'id' | 'state' | 'metering_type'> & { state: string; metering_type: string }, ctx: z.RefinementCtx): void {
-    if (u.rate_type === 'tiered') {
+export function refineUtility(u: Omit<UtilityBase, 'id' | 'state' | 'metering_type' | 'rate_type'> & { state: string; metering_type: string; rate_type: string }, ctx: z.RefinementCtx): void {
+    if (u.rate_type === 'flat') {
+      // One published unit rate (avg_rate_per_kwh) + standing charge: no tiers, no TOU rows (e.g. the Ofgem price cap).
+      if (u.tier_sets || u.tou_rates) ctx.addIssue({ code: 'custom', path: ['tier_sets'], message: 'flat utilities must not set tier_sets or tou_rates' });
+      if (!u.avg_rate_per_kwh) ctx.addIssue({ code: 'custom', path: ['avg_rate_per_kwh'], message: 'flat utilities need an avg_rate_per_kwh record' });
+    } else if (u.rate_type === 'tiered') {
       if (!u.tier_sets) ctx.addIssue({ code: 'custom', path: ['tier_sets'], message: 'tiered utilities need tier_sets' });
       else {
         const seen = new Map<number, number>();

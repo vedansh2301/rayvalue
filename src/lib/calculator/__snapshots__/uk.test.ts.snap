@@ -1,0 +1,91 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`engine regression for UK inputs (snapshot rows, real PVGIS yield) > scenario A: London, GBP 90 a month, Octopus SEG 4.1p, solar only, install before 1 April 2027 1`] = `
+{
+  "cost": {
+    "high": 7150,
+    "likely": 5400,
+    "low": 4200,
+  },
+  "net": {
+    "high": 14600,
+    "likely": 6400,
+    "low": 1250,
+  },
+  "payback": {
+    "high": 21,
+    "likely": 12.5,
+    "low": 8,
+  },
+  "size": {
+    "high": 3.4,
+    "likely": 3.1,
+    "low": 2.7,
+  },
+  "year1": {
+    "high": 600,
+    "likely": 400,
+    "low": 300,
+  },
+}
+`;
+
+exports[`engine regression for UK inputs (snapshot rows, real PVGIS yield) > scenario B: Manchester (North Western), GBP 140 a month, Outgoing Octopus 12p, 1 battery, install from 1 April 2027 1`] = `
+{
+  "cost": {
+    "high": 24750,
+    "likely": 19950,
+    "low": 16150,
+  },
+  "net": {
+    "high": 30300,
+    "likely": 13050,
+    "low": -150,
+  },
+  "payback": {
+    "high": null,
+    "likely": 16,
+    "low": 11.5,
+  },
+  "size": {
+    "high": 6.4,
+    "likely": 5.8,
+    "low": 5.1,
+  },
+  "year1": {
+    "high": 1400,
+    "likely": 1150,
+    "low": 900,
+  },
+}
+`;
+
+exports[`engine regression for UK inputs (snapshot rows, real PVGIS yield) > scenario C: Aberdeen (Northern Scotland), GBP 60 a month, EDF SEG 2.0p, low usage 1`] = `
+{
+  "cost": {
+    "high": 4500,
+    "likely": 3400,
+    "low": 2650,
+  },
+  "net": {
+    "high": 7450,
+    "likely": 2700,
+    "low": -250,
+  },
+  "payback": {
+    "high": null,
+    "likely": 15,
+    "low": 9.5,
+  },
+  "size": {
+    "high": 2.1,
+    "likely": 1.9,
+    "low": 1.7,
+  },
+  "year1": {
+    "high": 300,
+    "likely": 200,
+    "low": 150,
+  },
+}
+`;

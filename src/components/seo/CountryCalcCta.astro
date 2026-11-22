@@ -1,0 +1,25 @@
+---
+/**
+ * CTA card linking to a non-US country's calculator (UK today). Renders nothing for a country without one, so it can be
+ * dropped into any article or place page. No lead form: leads are US-only.
+ */
+import { countryCalculator } from '../../lib/content/country-calc';
+import { btnPrimary } from '../ui/buttons';
+
+interface Props {
+  /** ISO2 code or URL segment. */
+  country: string | null | undefined;
+  /** Only changes the heading id so two cards can sit on one page. */
+  place?: 'top' | 'end' | 'rail';
+}
+const { country, place = 'end' } = Astro.props;
+const calc = countryCalculator(country);
+const headingId = `country-calc-cta-${place}`;
+---
+{calc && (
+  <aside class:list={['not-prose rounded-2xl border border-sun-300 bg-sun-50 p-5 sm:p-6', place === 'rail' ? 'my-0' : 'my-8']} aria-labelledby={headingId}>
+    <p id={headingId} class="text-lg font-semibold text-stone-900">{calc.heading}</p>
+    <p class="mt-1 text-stone-800">{calc.body}</p>
+    <p class="mt-4"><a href={calc.href} class={btnPrimary}>{calc.cta}</a></p>
+  </aside>
+)}

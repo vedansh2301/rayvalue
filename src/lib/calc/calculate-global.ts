@@ -9,6 +9,7 @@ import { moneyRounder, roundKw, roundKwh } from './round';
 import { sizeSystem } from './sizing';
 import { moneyFormatter, num, pct } from './text';
 import { toConsumerPrice } from './tax';
+import { resolveVatRate } from './vat';
 import type { CalcFailure, Range } from './types';
 import { estimateAnnualKwh, zeroUsageMonthlyBill } from './usage';
 
@@ -54,17 +55,29 @@ export function calculateGlobal(input: GlobalCalcInput, ctx: GlobalCalcContext):
   const batFilled = input.battery > 0 ? fillSourcedRange(ctx.batteryInstalledCost.line, batPath, spread) : null;
   if (batFilled && !batFilled.ok) missing.push(...batFilled.missing);
 
+  // VAT on the install: the date-effective schedule when the market has one, else the single markets.vat_rate.
+  const vatFor = (item: 'solar' | 'battery'): number | null => {
+    if (!ctx.vatSchedule) return market.vatRate;
+    const r = resolveVatRate(ctx.vatSchedule, item, input.installDate, market.code);
+    if (r.ok) return r.value;
+    missing.push(...r.missing);
+    return null;
+  };
   let perWatt: Range | null = null;
   let battery: Range = { low: 0, likely: 0, high: 0 };
+  let solarVat: number | null = null;
+  let batteryVat: number | null = null;
   if (ppwFilled.ok) {
-    const t = toConsumerPrice(ppwFilled.value.range, { costsIncludeTax: ctx.installedCostPerWatt.includesTax, vatRate: market.vatRate }, market.code);
+    solarVat = ctx.installedCostPerWatt.includesTax === false ? vatFor('solar') : market.vatRate;
+    const t = toConsumerPrice(ppwFilled.value.range, { costsIncludeTax: ctx.installedCostPerWatt.includesTax, vatRate: solarVat }, market.code);
     if (t.ok) perWatt = t.value;
-    else missing.push(...t.missing);
+    else if (!ctx.vatSchedule) missing.push(...t.missing);
   }
   if (batFilled?.ok) {
-    const t = toConsumerPrice(batFilled.value.range, { costsIncludeTax: ctx.batteryInstalledCost.includesTax, vatRate: market.vatRate }, market.code);
+    batteryVat = ctx.batteryInstalledCost.includesTax === false ? vatFor('battery') : market.vatRate;
+    const t = toConsumerPrice(batFilled.value.range, { costsIncludeTax: ctx.batteryInstalledCost.includesTax, vatRate: batteryVat }, market.code);
     if (t.ok) battery = t.value;
-    else missing.push(...t.missing);
+    else if (!ctx.vatSchedule) missing.push(...t.missing);
   }
   const ppwEstimated = ppwFilled.ok && (ppwFilled.value.estimatedLow || ppwFilled.value.estimatedHigh);
   if (missing.length || !rates.ok || !exp?.ok || !perWatt) return fail('missing_data', [...new Set(missing)]);
@@ -110,7 +123,7 @@ export function calculateGlobal(input: GlobalCalcInput, ctx: GlobalCalcContext):
     ...r,
     incentivesApplied: incentives.applied,
     incentivesSkipped: incentives.skipped,
-    assumptions: buildText({ input, ctx, model, resolved, incentives, perWatt, battery, annualKwh, sizing, estimatedPerWatt: ppwEstimated }),
+    assumptions: buildText({ input, ctx, model, resolved, incentives, perWatt, battery, annualKwh, sizing, estimatedPerWatt: ppwEstimated, vat: ctx.vatSchedule ? { solar: solarVat, battery: input.battery > 0 ? batteryVat : null } : null }),
     warnings: buildWarnings(input, ctx, model, sizing, annualKwh),
   };
 }
@@ -151,6 +164,8 @@ interface TextArgs {
   annualKwh: number;
   sizing: ReturnType<typeof sizeSystem>;
   estimatedPerWatt: boolean;
+  /** VAT applied on the install date from the date-effective schedule (null = the market has no schedule). */
+  vat: { solar: number | null; battery: number | null } | null;
 }
 
 function buildText(t: TextArgs): string[] {
@@ -189,6 +204,10 @@ function buildText(t: TextArgs): string[] {
   const taxNote = market.pricesIncludeTax ? ' Prices include VAT/GST.' : market.pricesIncludeTax === false ? ' Prices shown before any sales tax.' : '';
   out.push(`Installed solar cost of ${m.perWatt(perWatt.low)}-${m.perWatt(perWatt.high)} (likely ${m.perWatt(perWatt.likely)}), in consumer prices.${taxNote}`);
   if (t.estimatedPerWatt) out.push(`Some bounds of the cost range are estimated as +/-${pct(a.missing_range_spread.value)} around the sourced likely value because the source gives no verified bound.`);
+  if (t.vat && t.vat.solar !== null) {
+    const batteryNote = t.vat.battery !== null && t.vat.battery !== t.vat.solar ? ` for solar and ${pct(t.vat.battery)} for batteries` : '';
+    out.push(`VAT on the installation on ${input.installDate}: ${pct(t.vat.solar)}${batteryNote}, added to the cost of the work. The rate changes with the install date.`);
+  }
   if (input.battery > 0) out.push(`${input.battery} battery ${input.battery === 1 ? 'system' : 'systems'} at ${m.money(battery.low)}-${m.money(battery.high)} each (likely ${m.money(battery.likely)}).`);
 
   // export policy

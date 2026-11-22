@@ -2,6 +2,7 @@ import type { SourcedRange } from '../../data/schemas';
 import type { ExportPolicy } from './export-policy';
 import type { AppliedIncentive, Incentive, SkippedIncentive } from './incentives';
 import type { RateSource } from './rates';
+import type { VatWindow } from './vat';
 import type { BatteryCount, CalcFailure, PaybackRange, ProductionInput, Range, Shading } from './types';
 
 /** Market facts the engine needs (markets table). All maths runs in `currency`; there is no FX inside calc. */
@@ -37,6 +38,8 @@ export interface GlobalAssumptions {
   self_consumption_share: { solar_only: Range; solar_plus_1_battery: Range; solar_plus_2_batteries: Range };
   /** Loss percent per shading level (text only; production is supplied already computed at the right loss). */
   system_loss_pct: { none: number; some: number; heavy: number };
+  /** Output facing east/west or north as a share of south-facing output (optional; applied by src/lib/calculator/uk.ts, not by the engine). */
+  orientation_yield_factor?: { east_west: Range; north: Range };
 }
 
 export interface GlobalCalcInput {
@@ -63,6 +66,11 @@ export interface GlobalCalcContext {
   assumptions: GlobalAssumptions;
   /** 1 kW DC production for this location from the market's one yield provider. */
   production: ProductionInput;
+  /**
+   * Date-effective VAT on the install (vat_rates). When given, the rate on `installDate` replaces the single
+   * markets.vat_rate for ex-tax cost lines; a date with no window is missing data. Omitted = markets.vat_rate (US unchanged).
+   */
+  vatSchedule?: readonly VatWindow[];
 }
 
 export interface GlobalCalcSuccess {

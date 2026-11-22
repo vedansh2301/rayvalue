@@ -5,6 +5,7 @@ import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../Breadcrumbs.astro';
 import GuideCalculatorLinks from '../seo/GuideCalculatorLinks.astro';
+import CountryCalcCta from '../seo/CountryCalcCta.astro';
 import ArticleByline from '../seo/ArticleByline.astro';
 import TableOfContents from '../seo/TableOfContents.astro';
 import Cover from './Cover.astro';
@@ -67,6 +68,7 @@ const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
     <OfferSlot offers={offers} pagePath={path} />
     {faq.length > 0 && <div class="mt-10"><Faq items={faq} id="guide-faq" /></div>}
     {isUs && <GuideCalculatorLinks state={state} kind="guide" slug={guide.id} place="end" />}
+    {!isUs && <CountryCalcCta country={country} place="end" />}
     <section class="mt-8" aria-labelledby="sources">
       <h2 id="sources">Sources</h2>
       <ul class="list-disc pl-5">
@@ -78,6 +80,7 @@ const jsonLd = faq.length > 0 ? [ld, faqJsonLd(faq)] : [ld];
       <div class="sticky top-6 space-y-5">
         <TableOfContents headings={headings} variant="rail" />
         {isUs && <GuideCalculatorLinks state={state} kind="guide" slug={guide.id} place="rail" />}
+        {!isUs && <CountryCalcCta country={country} place="rail" />}
       </div>
     </aside>
     </div>

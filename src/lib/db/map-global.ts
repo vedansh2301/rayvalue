@@ -3,7 +3,8 @@
  * (src/lib/calc/global-types.ts, export-policy.ts, incentives.ts). Reshape only: no values are added or defaulted.
  * Row -> domain mappers for raw PostgREST rows live next to the loaders in repo-global.ts.
  */
-import type { GlobalAssumptionsRecord, ExportPolicyRecord, GlobalCosts, IncentiveRecord, Market } from '../../data/schemas-global.ts';
+import type { GlobalAssumptionsRecord, ExportPolicyRecord, GlobalCosts, IncentiveRecord, Market, VatRate } from '../../data/schemas-global.ts';
+import type { VatWindow } from '../calc/vat.ts';
 import type { ExportPolicy } from '../calc/export-policy.ts';
 import type { GlobalAssumptions, GlobalCostLine, MarketInfo } from '../calc/global-types.ts';
 import type { Incentive } from '../calc/incentives.ts';
@@ -72,8 +73,13 @@ export function calcAssumptions(a: GlobalAssumptionsRecord): GlobalAssumptions {
       solar_plus_2_batteries: a.self_consumption_share.solar_plus_2_batteries,
     },
     system_loss_pct: { none: a.pvwatts_system_loss_pct.none, some: a.pvwatts_system_loss_pct.some, heavy: a.pvwatts_system_loss_pct.heavy },
+    ...(a.orientation_yield_factor
+      ? { orientation_yield_factor: { east_west: { ...a.orientation_yield_factor.east_west }, north: { ...a.orientation_yield_factor.north } } }
+      : {}),
   };
 }
+
+export const calcVatWindow = (v: VatRate): VatWindow => ({ appliesTo: v.applies_to, rate: v.rate, validFrom: v.valid_from, validTo: v.valid_to });
 
 /**
  * model_assumptions rows for one market as the validation shape: a region row overrides the country-wide row
