@@ -8,6 +8,7 @@
  * Answers live in component state only. The UI does no calculator math: the numbers come from the calculator it opens.
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { stateByPrefix } from '../../lib/calculator/zip';
 
 export interface FlowCountry { code: string; name: string; href: string; kind: 'calc' | 'hub' }
 export interface FlowOutline { w: number; h: number; d: string }
@@ -71,6 +72,10 @@ export default function ReportFlow({ countries, quick, outlines, initial = 'us' 
   const dest = countries.find((c) => c.code === country);
   const name = dest?.name ?? country;
   const zipOk = /^\d{5}$/.test(zip);
+  // Installer quotes are Florida and California only. A valid ZIP elsewhere in the US is not an error: the flow says so
+  // and routes to the US guides instead of sending the visitor to a quote form that would reject them.
+  const zipState = zipOk ? stateByPrefix(zip) : null;
+  const zipOutside = zipOk && !zipState;
   const valid = step !== 3 || !isUs || zipOk;
   const goalTitle = (GOALS.find((g) => g.id === goal)?.title ?? '').toLowerCase();
   const summary = `${goalTitle} in ${name}, ${cur}${bill}${bill >= 600 ? '+' : ''}/month bill`;
@@ -83,6 +88,10 @@ export default function ReportFlow({ countries, quick, outlines, initial = 'us' 
   };
 
   function finish() {
+    if (isUs && zipOutside) {
+      window.location.assign('/us');
+      return;
+    }
     if (isUs) {
       const p = new URLSearchParams({ source: 'home', zip, bill: String(bill), battery: goal === 'solar' ? 'no' : 'yes', timeline: when });
       if (own !== 'buying') p.set('homeowner', own === 'own' ? 'yes' : 'no');
@@ -103,7 +112,7 @@ export default function ReportFlow({ countries, quick, outlines, initial = 'us' 
     finish();
   }
 
-  const finalLabel = isUs ? 'Continue to installer quotes' : dest?.kind === 'calc' ? `Open my ${name} calculator` : `See ${name} guides`;
+  const finalLabel = isUs ? (zipOutside ? 'See US solar guides' : 'Continue to installer quotes') : dest?.kind === 'calc' ? `Open my ${name} calculator` : `See ${name} guides`;
 
   return (
     <div class="overflow-hidden rounded-[20px] bg-white shadow-form">
@@ -191,13 +200,17 @@ export default function ReportFlow({ countries, quick, outlines, initial = 'us' 
             {isUs ? (
               <>
                 <label class="flex flex-col gap-1.5 font-semibold text-stone-900">
-                  ZIP code
+                  ZIP code (Florida or California)
                   <input type="text" inputMode="numeric" autoComplete="postal-code" maxLength={5} value={zip} aria-invalid={touched && !zipOk ? 'true' : 'false'} aria-describedby="rf-zip-hint"
                     onInput={(e) => setZip(e.currentTarget.value.replace(/\D/g, '').slice(0, 5))}
                     class="min-h-[46px] rounded-[10px] border border-stone-300 bg-stone-50 px-3 font-normal text-stone-900 aria-[invalid=true]:border-red-700" />
                   <span id="rf-zip-hint" class={`text-sm font-normal ${touched && !zipOk ? 'text-red-800' : 'text-stone-700'}`} role={touched && !zipOk ? 'alert' : undefined}>{touched && !zipOk ? 'Enter your 5-digit ZIP code.' : 'Used to find installers that serve your area.'}</span>
                 </label>
-                <div class="rounded-xl border border-sun-200 bg-sun-50 p-3 text-sm leading-snug text-stone-900">Next is a short form for your contact details. Up to 3 local installers can send quotes to check against your report, and only the ones you agree to hear from receive your details.</div>
+                {zipOutside ? (
+                  <div role="status" class="rounded-xl border border-sky-pastel-300 bg-sky-pastel-50 p-3 text-sm leading-snug text-stone-900">That ZIP is outside Florida and California. Installer quotes and our US calculators cover only those two states for now, so we do not collect your details. Our US guides explain costs, incentives and when solar pays.</div>
+                ) : (
+                  <div class="rounded-xl border border-sun-200 bg-sun-50 p-3 text-sm leading-snug text-stone-900">Next is a short form for your contact details. Up to 3 local installers in Florida or California can send quotes to check against your report, and only the ones you agree to hear from receive your details.</div>
+                )}
               </>
             ) : (
               <div class="rounded-xl border border-sun-200 bg-sun-50 p-3 text-sm leading-snug text-stone-900">
@@ -217,7 +230,7 @@ export default function ReportFlow({ countries, quick, outlines, initial = 'us' 
             {step === 3 ? finalLabel : 'Continue'} <span aria-hidden="true">&rarr;</span>
           </button>
         </div>
-        <p class="text-xs leading-normal text-stone-700">{isUs ? 'Free, no obligation. Your details are shared only with installers you choose.' : 'Free, no obligation. We do not collect personal details for this country.'}</p>
+        <p class="text-xs leading-normal text-stone-700">{isUs && zipOutside ? 'Free. We do not collect personal details outside Florida and California.' : isUs ? 'Free, no obligation. Your details are shared only with installers you choose.' : 'Free, no obligation. We do not collect personal details for this country.'}</p>
       </div>
     </div>
   );
