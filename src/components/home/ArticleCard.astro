@@ -5,6 +5,8 @@
  * the title both link to the article. `cover` takes an ImageMetadata (frontmatter cover, or a licensed library image).
  */
 import type { ImageMetadata } from 'astro';
+import PlacePhoto from '../ui/PlacePhoto.astro';
+import type { Photo } from '../../lib/images/place-images';
 import Cover from '../content/Cover.astro';
 import CountryOutline from '../brand/CountryOutline.astro';
 import type { Topic, StateKey } from '../../lib/content/cards';
@@ -21,20 +23,23 @@ interface Props {
   topic: Topic;
   state?: StateKey;
   cover?: ImageMetadata;
+  /** Licensed library photo used when the article has no cover of its own. */
+  photo?: Photo | null;
   coverAlt?: string;
   /** Second footer link (e.g. the country's calculator). Omit for a one-link footer. */
-  cta?: { href: string; label: string };
+  cta?: { href: string; label: string; pick?: string };
   placement?: string;
   /** Hide the footer links (dense lists); the card stays one link. */
   compact?: boolean;
   /** `data-kind` for the client-side filter on the home page. */
   kind?: string;
+  readLabel?: string;
 }
-const { href, title, description, lang, segment, countryName, tag, tagTone = 'white', topic, state = 'both', cover, coverAlt, cta, placement = 'article_card', compact = false, kind } = Astro.props;
+const { href, title, description, lang, segment, countryName, tag, tagTone = 'white', topic, state = 'both', cover, photo, coverAlt, cta, placement = 'article_card', compact = false, kind, readLabel = 'Read guide' } = Astro.props;
 ---
 <article class="group flex flex-col overflow-hidden rounded-2xl border border-sky-pastel-300 bg-white transition-shadow duration-150 hover:shadow-lift" data-kind={kind}>
   <a href={href} tabindex="-1" aria-hidden="true" class="relative block aspect-video bg-sky-pastel-100" data-track="nav_click" data-track-placement={`${placement}_cover`} data-track-target={href}>
-    <div class="absolute inset-0"><Cover topic={topic} state={state} cover={cover} coverAlt={cover ? "" : coverAlt} class="h-full w-full" /></div>
+    <div class="absolute inset-0">{photo ? <PlacePhoto photo={photo} sizes="(min-width: 1024px) 384px, (min-width: 640px) 50vw, 100vw" credit="text" creditAt="bottom-right" /> : <Cover topic={topic} state={state} cover={cover} coverAlt={cover ? "" : coverAlt} class="h-full w-full" />}</div>
     <span class:list={['pointer-events-none absolute left-3 top-3 z-10 rounded-full px-2.5 py-1 text-xs font-bold text-stone-900', tagTone === 'sun' ? 'bg-sun-400' : 'bg-white/90']}>{tag}</span>
   </a>
   <div class="flex flex-1 flex-col gap-2.5 px-5 pb-5 pt-4">
@@ -43,8 +48,8 @@ const { href, title, description, lang, segment, countryName, tag, tagTone = 'wh
     <p lang={lang} class="line-clamp-3 text-[15px] leading-relaxed text-stone-700">{description}</p>
     {!compact && (
       <div class="mt-auto flex flex-wrap justify-between gap-x-3 border-t border-stone-200 pt-3 text-sm font-semibold">
-        <a href={href} class="inline-flex min-h-8 items-center text-stone-900 no-underline hover:text-sun-ink" data-track="nav_click" data-track-placement={`${placement}_read`} data-track-target={href}>Read more<span class="sr-only">: {title}</span></a>
-        {cta && <a href={cta.href} class="inline-flex min-h-8 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900" data-track="nav_click" data-track-placement={`${placement}_cta`} data-track-target={cta.href}>{cta.label} &rarr;</a>}
+        <a href={href} class="inline-flex min-h-8 items-center text-stone-900 no-underline hover:text-sun-ink" data-track="nav_click" data-track-placement={`${placement}_read`} data-track-target={href}>{readLabel}<span class="sr-only">: {title}</span></a>
+        {cta && <a href={cta.href} class="inline-flex min-h-8 items-center text-sun-ink underline underline-offset-4 hover:text-stone-900" data-track="nav_click" data-track-placement={`${placement}_cta`} data-track-target={cta.href} data-pick-country={cta.pick}>{cta.label} &rarr;</a>}
       </div>
     )}
   </div>

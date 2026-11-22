@@ -16,6 +16,8 @@ import DeadlineCard from '../components/home/DeadlineCard.astro';
 import ArticleCard from '../components/home/ArticleCard.astro';
 import CountryOutline from '../components/brand/CountryOutline.astro';
 import Cover from '../components/content/Cover.astro';
+import PlacePhoto from '../components/ui/PlacePhoto.astro';
+import { getArticleImage, getCountryImage } from '../lib/images/place-images';
 import Icon from '../components/icons/Icon';
 import { PAGE_META } from '../lib/seo/page-meta';
 import { ogImagePath } from '../lib/seo/og';
@@ -39,8 +41,11 @@ const articles: HomeArticle[] = [...guides.map((e) => toHome('guides', e)), ...p
 // Cover photo and topic for an article link: the frontmatter cover when there is one, else the generated topic cover.
 type CoverMeta = { cover?: ImageMetadata; coverAlt?: string; topic?: Topic; tags?: string[]; state?: StateKey };
 const coverProps = (l: ArticleLink) => {
-  const d = (l.collection === 'guides' ? guides : posts).find((e) => e.id === l.id)?.data as CoverMeta | undefined;
-  return { cover: d?.cover, coverAlt: d?.cover ? '' : undefined, topic: coverTopic({ topic: d?.topic, tags: d?.tags, title: l.title, state: d?.state }), state: stateKey(d?.state) };
+  const e = (l.collection === 'guides' ? guides : posts).find((x) => x.id === l.id);
+  const d = e?.data as CoverMeta | undefined;
+  // The article's own cover, else a licensed library photo (its US state or its country): never the generated cover.
+  const img = e ? getArticleImage({ id: e.id, data: { country: e.data.country, state: d?.state as 'FL' | 'CA' | 'both' | undefined, cover: d?.cover, coverAlt: (e.data as { coverAlt?: string }).coverAlt } }) : null;
+  return { cover: d?.cover, photo: d?.cover ? null : img?.photo ?? null, coverAlt: d?.cover ? '' : undefined, topic: coverTopic({ topic: d?.topic, tags: d?.tags, title: l.title, state: d?.state }), state: stateKey(d?.state) };
 };
 const placeCounts: Record<string, PlaceCounts> = {};
 if (places.ok) {
@@ -67,10 +72,10 @@ const deadlineSegs = [...new Set(deadlines.map((d) => d.country))];
 // Cards on the home page show a real photo only: articles with a frontmatter cover (never the generated topic covers).
 const coverOf = (collection: 'guides' | 'blog', id: string) => (collection === 'guides' ? guides : posts).find((e) => e.id === id)?.data as { cover?: ImageMetadata } | undefined;
 const hasCover = (a: HomeArticle) => !!coverOf(a.collection, a.id)?.cover;
-const guideLinks = latestGuideLinks(articles.filter(hasCover), 9, 3);
-const guideKinds = (['deadline', 'battery'] as const).filter((k) => guideLinks.some((g) => g.kind === k));
-const kindLabel = { deadline: 'Deadline', battery: 'Battery', guide: 'Guide' } as const;
-const kindName = { deadline: 'Deadlines', battery: 'Batteries' } as const;
+const guideLinks = latestGuideLinks(articles, 9, 1);
+const guideKinds = (['guide', 'battery', 'deadline'] as const).filter((k) => guideLinks.some((g) => g.kind === k));
+const kindLabel = { deadline: 'Deadline', battery: 'Battery', guide: 'Worth it?' } as const;
+const kindName = { guide: 'Worth it?', battery: 'Battery', deadline: 'Deadlines' } as const;
 const filters: [string, string][] = [['all', 'All'], ...guideKinds.map((k): [string, string] => [k, kindName[k]])];
 const short = (n: string) => n.replace('United States', 'US').replace('United Kingdom', 'UK');
 // Curated, as designed: the lead plus four cards, each with the design's category label and its real cover photo.
@@ -94,7 +99,7 @@ const method = [
 ];
 ---
 <BaseLayout title={PAGE_META.home.title} description={PAGE_META.home.description} path="/" ogImagePath={ogImagePath('home')}>
-  <HomeHero countries={totals.countries} destinations={destinations} featured={featured.map((card) => ({ card, dest: destOf(card.segment) }))} />
+  <HomeHero countries={totals.countries} destinations={destinations} featured={featured.map((card) => ({ card, dest: destOf(card.segment), photo: getCountryImage(card.segment) }))} />
 
   <section id="countries" class="scroll-mt-16 pt-[clamp(3rem,6vw,5rem)]" aria-labelledby="countries-heading">
     <div class="shell">
@@ -112,7 +117,7 @@ const method = [
   <section class="pb-[clamp(3rem,6vw,5rem)] pt-10" aria-label="Countries">
     <div class="shell">
       <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {featured.map((c) => <CountryCard card={c} chips={cardChips(c, articles)} deadlineDays={deadlines.find((d) => d.country === c.segment)?.days} />)}
+        {featured.map((c) => <CountryCard card={c} chips={cardChips(c, articles)} deadlineDays={deadlines.find((d) => d.country === c.segment)?.days} photo={getCountryImage(c.segment)} />)}
       </ul>
       <h3 id="all-countries" class="mb-3.5 mt-11 text-sm font-semibold uppercase tracking-wide text-stone-700">All countries</h3>
       <ul class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,210px),1fr))] gap-2.5" aria-labelledby="all-countries">
@@ -155,7 +160,7 @@ const method = [
             <a href={c.href} class="group flex h-full flex-col gap-3 rounded-2xl border border-sky-pastel-300 bg-white p-[18px] text-stone-900 no-underline hover:border-sun-500 hover:bg-sun-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_calculators" data-track-target={c.href}>
               <CountryOutline segment={c.segment} class="h-[58px] w-auto max-w-[58px] self-start fill-sun-400 stroke-sun-ink" />
               <div>
-                <strong class="block text-[17px]">{c.label}{c.label !== c.country && <span class="font-normal text-stone-700"> ({c.country})</span>}</strong>
+                <strong class="block text-[17px]">{c.label}</strong>
                 <span class="mt-1 block text-sm leading-snug text-stone-700">{c.fact}</span>
               </div>
               <span class="mt-auto font-semibold text-sun-ink">Calculate &rarr;</span>
@@ -190,7 +195,7 @@ const method = [
                 <ArticleCard
                   href={g.href} title={g.title} description={g.description} lang={g.lang} segment={g.country} countryName={g.countryName}
                   tag={kindLabel[g.kind]} tagTone={g.kind === 'deadline' ? 'sun' : 'white'} {...coverProps(g)}
-                  cta={dest ? { href: dest.href, label: dest.kind === 'calc' ? `Get my ${short(g.countryName)} payback` : `All ${short(g.countryName)} guides` } : undefined}
+                  cta={dest ? { href: '#report', label: `Get my ${short(g.countryName)} payback`, pick: dest.segment } : undefined}
                   placement="home_guides"
                 />
               </li>
@@ -212,9 +217,9 @@ const method = [
           </div>
           <a href="/blog" class="inline-flex min-h-11 items-center font-semibold text-sun-ink underline underline-offset-4 hover:text-stone-900">All posts &rarr;</a>
         </div>
-        <div class="grid gap-5 md:grid-cols-2">
+        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <a href={lead.href} lang={lead.lang} class:list={['group relative flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-[20px] bg-stone-900 text-white no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900', 'md:row-span-2']} data-track="nav_click" data-track-placement="home_blog_lead" data-track-target={lead.href}>
-            <div class="absolute inset-0"><Cover class="h-full w-full" {...coverProps(lead)} /></div>
+            <div class="absolute inset-0">{(() => { const c = coverProps(lead); return c.photo ? <PlacePhoto photo={c.photo} sizes="(min-width: 768px) 50vw, 100vw" credit="text" /> : <Cover class="h-full w-full" cover={c.cover} coverAlt={c.coverAlt} topic={c.topic} state={c.state} />; })()}</div>
             <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-stone-900/0 from-30% to-stone-900/85"></div>
             <div class="relative flex flex-col gap-2.5 p-6">
               <span class="w-fit rounded-full bg-sun-400 px-2.5 py-1 text-xs font-bold text-stone-900">{postTag(lead)}</span>
@@ -224,7 +229,7 @@ const method = [
           </a>
           {restPosts.map((p) => (
             <a href={p.href} lang={p.lang} class="grid grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-4 rounded-2xl border border-sky-pastel-300 bg-white p-3 text-stone-900 no-underline hover:border-sky-pastel-600 hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_blog" data-track-target={p.href}>
-              <div class="relative aspect-square overflow-hidden rounded-xl bg-sky-pastel-100"><Cover class="h-full w-full" {...coverProps(p)} /></div>
+              <div class="relative aspect-square overflow-hidden rounded-xl bg-sky-pastel-100">{(() => { const c = coverProps(p); return c.photo ? <PlacePhoto photo={c.photo} sizes="120px" credit="none" /> : <Cover class="h-full w-full" cover={c.cover} coverAlt={c.coverAlt} topic={c.topic} state={c.state} sizes="120px" />; })()}</div>
               <div class="flex flex-col gap-1.5">
                 <span class="text-xs font-bold uppercase tracking-wider text-sun-ink">{postTag(p)}</span>
                 <strong class="font-display-tight text-[1.1875rem] leading-tight">{p.title}</strong>
@@ -266,6 +271,11 @@ const method = [
 </BaseLayout>
 
 <script>
+  // "Get my <country> payback" on a guide card: jump to the report with that country chosen.
+  document.addEventListener('click', (e) => {
+    const a = (e.target as Element | null)?.closest<HTMLElement>('[data-pick-country]');
+    if (a?.dataset.pickCountry) window.dispatchEvent(new CustomEvent('rv:pick-country', { detail: a.dataset.pickCountry }));
+  });
   // Guides filter: show only the chosen kind (All, Deadlines, Batteries). Without JS every guide is shown.
   const root = document.querySelector<HTMLElement>('[data-guides]');
   if (root) {

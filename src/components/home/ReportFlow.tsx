@@ -7,7 +7,7 @@
  *   country's calculator prefilled with the bill and battery choice, or its guides where there is no calculator.
  * Answers live in component state only. The UI does no calculator math: the numbers come from the calculator it opens.
  */
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 
 export interface FlowCountry { code: string; name: string; href: string; kind: 'calc' | 'hub' }
 export interface FlowOutline { w: number; h: number; d: string }
@@ -55,6 +55,16 @@ export default function ReportFlow({ countries, quick, outlines, initial = 'us' 
   const [zip, setZip] = useState('');
   const [touched, setTouched] = useState(false);
   const stepRef = useRef<HTMLDivElement>(null);
+
+  // A guide card's "Get my <country> payback" link picks the country here (and returns to step 1).
+  useEffect(() => {
+    const on = (e: Event) => {
+      const code = (e as CustomEvent<string>).detail;
+      if (countries.some((c) => c.code === code)) { setCountry(code); setStep(1); }
+    };
+    window.addEventListener('rv:pick-country', on);
+    return () => window.removeEventListener('rv:pick-country', on);
+  }, [countries]);
 
   const isUs = country === 'us';
   const cur = CUR[country] ?? '€';

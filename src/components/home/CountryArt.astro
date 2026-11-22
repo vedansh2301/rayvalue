@@ -8,20 +8,26 @@
 import type { ImageMetadata } from 'astro';
 import { Picture } from 'astro:assets';
 import { COUNTRY_OUTLINES } from '../../lib/brand/country-outlines';
+import PlacePhoto from '../ui/PlacePhoto.astro';
+import type { Photo } from '../../lib/images/place-images';
 
 interface Props {
   segment: string;
   image?: ImageMetadata;
+  /** A licensed library photo (preferred over `image`): carries its credit and crop focus. */
+  photo?: Photo | null;
   alt?: string;
   sizes?: string;
   eager?: boolean;
   class?: string;
 }
-const { segment, image, alt = '', sizes = '(min-width: 1024px) 400px, 100vw', eager = false, class: cls = '' } = Astro.props;
+const { segment, image, photo, alt = '', sizes = '(min-width: 1024px) 400px, 100vw', eager = false, class: cls = '' } = Astro.props;
 const o = COUNTRY_OUTLINES[segment];
 const widths = image ? [400, 640, 960].filter((w) => w <= image.width) : [];
 ---
-{image ? (
+{photo ? (
+  <PlacePhoto photo={photo} sizes={sizes} eager={eager} credit="text" class={cls} />
+) : image ? (
   <Picture src={image} alt={alt} formats={['avif', 'webp']} widths={widths.length ? widths : [image.width]} sizes={sizes} width={960} height={Math.round((960 * image.height) / image.width)} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" class:list={['absolute inset-0 h-full w-full object-cover', cls]} />
 ) : (
   <div class:list={['absolute inset-0 flex items-center justify-center overflow-hidden bg-sky-pastel-100', cls]} aria-hidden="true">

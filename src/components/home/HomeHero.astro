@@ -7,13 +7,14 @@
 import type { ImageMetadata } from 'astro';
 import CountryOutline from '../brand/CountryOutline.astro';
 import CountryArt from './CountryArt.astro';
+import type { Photo } from '../../lib/images/place-images';
 import Icon from '../icons/Icon';
 import { cardCounts, type CountryCard, type Destination } from '../../lib/home/global-home';
 
 interface Props {
   countries: number;
   destinations: Destination[];
-  featured: { card: CountryCard; dest: Destination | undefined; image?: ImageMetadata; imageAlt?: string }[];
+  featured: { card: CountryCard; dest: Destination | undefined; image?: ImageMetadata; imageAlt?: string; photo?: Photo | null }[];
 }
 const { countries, destinations, featured } = Astro.props;
 const trust = [
@@ -59,9 +60,9 @@ const trust = [
         {featured.map((f, i) => (
           <a href={f.card.href} data-slide hidden={i !== 0 || undefined} class="relative block -rotate-[1.5deg] rounded-[22px] bg-white p-3 text-stone-900 no-underline shadow-hero-card transition-transform duration-200 hover:rotate-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 [&[hidden]]:hidden" data-track="nav_click" data-track-placement="home_hero_card" data-track-target={f.card.href}>
             <div class="relative aspect-[4/3] overflow-hidden rounded-[14px] bg-sky-pastel-100">
-              <CountryArt segment={f.card.segment} image={f.image} alt={f.imageAlt} eager={i === 0} sizes="(min-width: 1024px) 520px, 100vw" />
-              {f.image && <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-b from-stone-900/0 to-stone-900/70"></div>}
-              <div class:list={['pointer-events-none absolute inset-x-4 bottom-4 flex items-end justify-between gap-3', f.image ? 'text-white' : 'text-stone-900']}>
+              <CountryArt segment={f.card.segment} image={f.image} photo={f.photo} alt={f.imageAlt} eager={i === 0} sizes="(min-width: 1024px) 520px, 100vw" />
+              {(f.image || f.photo) && <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-b from-stone-900/0 to-stone-900/70"></div>}
+              <div class:list={['pointer-events-none absolute inset-x-4 bottom-4 flex items-end justify-between gap-3', (f.image || f.photo) ? 'text-white' : 'text-stone-900']}>
                 <div>
                   <p class="font-display-tight text-[2.125rem] leading-[1.05]">{f.card.name}</p>
                 </div>
