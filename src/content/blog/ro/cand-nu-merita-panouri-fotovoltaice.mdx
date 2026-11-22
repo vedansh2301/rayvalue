@@ -1,0 +1,92 @@
+---
+title: "Când nu merită panouri fotovoltaice: 6 situații în care calculul nu iese"
+seoTitle: "Când nu merită panouri fotovoltaice? 6 situații reale"
+description: "Panourile nu merită pentru oricine: consum mic, acoperiș umbrit sau la munte, sistem supradimensionat sub compensarea lunară, planuri care ignoră anul 2030 și oferte care promit subvenții inexistente. Cu date ANRE, PVGIS și Eurostat."
+country: ro
+lang: ro-RO
+published: 2026-11-22
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: scale
+tags: [panouri-fotovoltaice, prosumator, compensare, oferte, baterii]
+sources:
+  - title: "ANRE: noi reguli pentru prosumatori, compensare lunară (10.11.2026)"
+    url: "https://anre.ro/comunicat-de-presa-anre-aproba-noi-reguli-pentru-prosumatori-compensare-lunara-utilizarea-excedentului-pentru-mai-multe-locuri-de-consum-si-plata-sumelor-restante/"
+  - title: "EU JRC PVGIS 5.3: producția unui sistem de 1 kWp (Brașov)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=45.6427&lon=25.5887&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: producția unui sistem de 1 kWp (Craiova)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=44.3302&lon=23.7949&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "Eurostat: prețul energiei electrice pentru consumatorii casnici, nrg_pc_204 (2026-S1)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=RO&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "Ministerul Mediului: Începe programul pentru baterii (17.11.2026)"
+    url: "https://mmediu.ro/en/comunicare/comunicate-de-presa/incepe-programul-pentru-baterii-pana-la-15-000-de-lei-pentru-sisteme-de-stocare-a-energiei-inscrierile-persoanelor-fizice-incep-pe-20-noiembrie/"
+  - title: "Ministerul Mediului: Ghidul Programului pentru baterii publicat în Monitorul Oficial (14.09.2026)"
+    url: "https://mmediu.ro/en/comunicare/comunicate-de-presa/ghidul-programului-pentru-baterii-finalizat-si-publicat-in-monitorul-oficial-dupa-analizarea-a-peste-200-de-puncte-de-vedere/"
+---
+
+Panourile fotovoltaice nu merită pentru oricine. Calculul iese prost când consumul e mic, când acoperișul e umbrit sau orientat greșit, când sistemul e prea mare pentru noua compensare lunară sau când planul ignoră faptul că compensarea cantitativă se termină la 31 decembrie 2030. Mai jos sunt șase situații concrete, cu cifrele care le explică.
+
+## Cifrele principale
+
+- **minimul dintre livrat și consumat**: atât se compensează în fiecare lună din 26 iulie 2026 (ANRE, 10.11.2026).
+- **31 decembrie 2030**: încetează compensarea cantitativă pentru instalațiile de cel mult 200 kW; apoi energia livrată se valorifică la prețul PZU (ANRE).
+- **1.089 vs 1.318 kWh pe kWp pe an**: Brașov față de Craiova, o diferență de circa 21% (PVGIS 5.3).
+- **1,4584 lei/kWh**: prețul mediu cu taxe al energiei pentru gospodării, semestrul 1 din 2026 (Eurostat).
+- **minimum 10 kWh și 25% contribuție proprie**: condițiile programului de baterii; panourile nu sunt finanțate (Ministerul Mediului).
+
+## 1. Când consumul tău e mic
+
+Fiecare kWh produs și consumat pe loc înlocuiește energie cumpărată, în medie, cu 1,4584 lei ([Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=RO&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1)). Dacă factura e mică, economia anuală e mică, iar o parte din costul sistemului (montaj, avize, racordare, invertor) nu scade proporțional cu dimensiunea lui. Pentru o gospodărie cu consum redus, perioada de recuperare se poate lungi mult.
+
+**Ce faci:** uită-te la consumul pe ultimele 12 luni, pe facturi, înainte să ceri oferte. Dacă e mic, un sistem mic sau amânarea investiției pot fi mai bune.
+
+## 2. Când acoperișul e umbrit, orientat spre nord sau ești într-o zonă cu mai puțin soare
+
+[PVGIS](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=45.6427&lon=25.5887&peakpower=1&loss=14&optimalangles=1&outputformat=json) estimează 1.089 kWh pe kWp pe an la Brașov, față de [1.318 kWh la Craiova](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=44.3302&lon=23.7949&peakpower=1&loss=14&optimalangles=1&outputformat=json), ambele la unghi optim. Același sistem produce deci cu circa o cincime mai puțin la munte. Iar estimările sunt pentru orientare și unghi optime, fără umbră. Un coș, un copac sau un bloc vecin pot reduce producția mult mai mult.
+
+**Ce faci:** cere instalatorului un calcul de producție pentru acoperișul tău (orientare, înclinare, umbrire), nu o medie pe țară.
+
+## 3. Când sistemul e prea mare pentru compensarea lunară
+
+Din 26 iulie 2026, conform [ANRE](https://anre.ro/comunicat-de-presa-anre-aproba-noi-reguli-pentru-prosumatori-compensare-lunara-utilizarea-excedentului-pentru-mai-multe-locuri-de-consum-si-plata-sumelor-restante/), compensarea se face lunar: se compensează minimul dintre energia livrată și cea consumată din rețea în aceeași lună. Excedentul de vară nu mai „acoperă” automat lunile de iarnă. Un sistem supradimensionat produce vara mult excedent, a cărui valoare o poți folosi doar în anumite feluri: la alte locuri de consum ale aceluiași furnizor sau, pentru persoane fizice sub 27 kW, pe facturile de gaze.
+
+Mai e un detaliu practic: ANRE le-a dat furnizorilor termen până la 31 decembrie 2026 să-și adapteze sistemele informatice la noile reguli, precizând că termenul nu amână drepturile prosumatorilor. În primele luni, facturile pot fi deci greu de urmărit; verifică lunar cantitățile livrate, consumate și compensate.
+
+**Ce faci:** dimensionează sistemul după consumul din lunile de vară și primăvară, nu după cel mai mare acoperiș posibil. Dacă oferta propune „cât mai mulți kW”, întreabă ce se întâmplă cu excedentul lunar.
+
+## 4. Când planul de amortizare ignoră anul 2030
+
+ANRE precizează că mecanismul de compensare cantitativă pentru instalațiile de cel mult 200 kW **încetează la 31 decembrie 2030**. De atunci, energia livrată va fi valorificată la prețul mediu ponderat al Pieței pentru Ziua Următoare. O ofertă care calculează amortizarea pe mulți ani presupunând că fiecare kWh livrat valorează cât unul cumpărat, pe toată durata, supraestimează câștigul pentru anii de după 2030.
+
+**Ce faci:** cere ca simularea să separe anii până în 2030 de anii de după, sau să se bazeze doar pe autoconsum.
+
+## 5. Când oferta se bazează pe o subvenție care nu există
+
+În toamna lui 2026, programul anunțat de Ministerul Mediului finanțează **doar baterii**, nu panouri: ghidul spune că programul finanțează [instalarea unor capacități noi de stocare](https://mmediu.ro/en/comunicare/comunicate-de-presa/ghidul-programului-pentru-baterii-finalizat-si-publicat-in-monitorul-oficial-dupa-analizarea-a-peste-200-de-puncte-de-vedere/). Și pentru baterii regulile sunt stricte:
+
+| Ce poate promite o ofertă | Ce spun regulile (noiembrie 2026) |
+|---|---|
+| „Casa Verde vă dă bani pentru panouri” | Nu am găsit o sesiune 2026 pentru panouri în comunicatele ministerului |
+| „Bateria e gratuită” | Finanțarea e de maximum 75% din proiect, deci minimum 25% plătești tu, și maximum 15.000 lei |
+| „Orice baterie intră” | Minimum 10 kWh, BMS, minimum 5.000 de cicluri |
+| „Primul venit, primul servit” | Selecția se face pe punctaj din 100 de puncte |
+| „Mai e timp, ne înscriem luna viitoare” | Înscrierea persoanelor fizice: 20–25 noiembrie 2026 |
+
+Sursa pentru condițiile de mai sus: [Ministerul Mediului, 17.11.2026](https://mmediu.ro/en/comunicare/comunicate-de-presa/incepe-programul-pentru-baterii-pana-la-15-000-de-lei-pentru-sisteme-de-stocare-a-energiei-inscrierile-persoanelor-fizice-incep-pe-20-noiembrie/) și ghidul publicat pe 14.09.2026.
+
+## 6. Când nu ești sigur că rămâi în casă
+
+Un sistem fotovoltaic se amortizează în ani, iar o baterie finanțată prin program vine cu obligații pe durata stabilită în ghid. Dacă plănuiești să vinzi casa curând, verifică ce se întâmplă cu contractul de prosumator și cu finanțarea înainte să semnezi.
+
+## Semnale de alarmă în calculul instalatorului
+
+- un singur preț pentru toată energia, fără distincție între autoconsum și excedent;
+- nicio mențiune despre compensarea lunară sau despre 2030;
+- producție estimată fără date pentru acoperișul tău;
+- subvenții pentru panouri, fără link către o sursă oficială;
+- presiune să semnezi „azi”.
+
+## Când merită totuși?
+
+Dacă stai acasă ziua, ai consum mare vara (aer condiționat, pompă de căldură, boiler, mașină electrică), acoperiș orientat spre sud și fără umbră, iar sistemul e dimensionat pe consum, calculul arată mult mai bine. Detaliile sunt în [Merită panouri fotovoltaice în 2026](/ro/guides/merita-panouri-fotovoltaice-2026), iar regulile de facturare în [Compensarea pentru prosumatori în 2026](/ro/guides/compensare-prosumatori-2026).

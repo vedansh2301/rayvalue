@@ -1,0 +1,102 @@
+---
+title: "Ceny godzinowe w net-billingu: ile naprawdę jest warta Twoja nadwyżka"
+seoTitle: "Net-billing i ceny godzinowe RCE: ile warta jest nadwyżka"
+description: "Jak działa net-billing w 2026 roku: RCE i RCEm, współczynnik 1,23, zwrot 20% lub 30% z depozytu. Ceny RCE z PSE dla czerwca i października 2026, w tym okresy z ceną ujemną."
+country: pl
+lang: pl-PL
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: chart
+sources:
+  - title: "PSE: Rynkowa cena energii elektrycznej RCE (API raportów PSE, dane 15-minutowe)"
+    url: "https://api.raporty.pse.pl/api/rce-pln"
+  - title: "Ministerstwo Klimatu i Środowiska: Korzystne zmiany dla prosumentów (15.06.2025)"
+    url: "https://www.gov.pl/web/klimat/korzystne-zmiany-dla-prosumentow"
+  - title: "Eurostat: ceny energii elektrycznej dla gospodarstw domowych, nrg_pc_204 (2026-S1)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=PL&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "NFOŚiGW: Przydomowe magazyny energii część 2, o programie"
+    url: "https://przydomowemagazyny.gov.pl/o-programie/"
+faq:
+  - question: "Czym różni się RCE od RCEm?"
+    answer: "RCE to rynkowa cena energii dla każdego okresu rozliczeniowego, publikowana przez PSE. RCEm to cena miesięczna. Według ministerstwa prosumenci, którzy zaczęli produkcję przed 1 lipca 2024 roku, mogą zostać przy rozliczeniu RCEm; rozliczenie godzinowe wybiera się oświadczeniem złożonym sprzedawcy."
+  - question: "Ile dostanę za 1 kWh oddaną do sieci?"
+    answer: "Tyle, ile wynosiła cena RCE w chwili oddania, powiększone o 23% w depozycie. W czerwcu 2026 średnia RCE w godzinach 11–14 wynosiła 198,91 zł/MWh, czyli ok. 0,24 zł/kWh po współczynniku 1,23. W październiku w tych godzinach było to 469,93 zł/MWh."
+  - question: "Czy przy ujemnej cenie płacę za oddanie energii?"
+    answer: "W czerwcu 2026 roku RCE była ujemna w 127 okresach 15-minutowych w 8 dniach (dane PSE). Jak sprzedawca rozlicza takie okresy w depozycie, zależy od przepisów i Twojej umowy; zapytaj sprzedawcę o szczegóły."
+  - question: "Jaki zwrot z depozytu prosumenckiego?"
+    answer: "Według ministerstwa przy rozliczeniu godzinowym zwrot za energię wprowadzoną do sieci wzrasta z 20% do 30%."
+todo:
+  - "Miesięczne wartości RCEm z PSE (publikowane na pse.pl, strona niedostępna z naszego środowiska 22.11.2026) dodać po pobraniu z oficjalnego źródła; wartości z prasy branżowej celowo pominięte."
+  - "Zasady rozliczania ujemnych cen RCE w depozycie i okres 12 miesięcy depozytu potwierdzić w tekście ustawy o OZE (ISAP) przed dopisaniem."
+---
+
+W net-billingu energia, którą oddajesz do sieci, nie jest „magazynowana” jak w starym systemie opustów. Jest sprzedawana po rynkowej cenie z chwili oddania, a jej wartość, powiększona o 23%, trafia do depozytu prosumenckiego, z którego płacisz za prąd pobrany później. Ceny rynkowe w słoneczne południe są niskie, a wieczorem wysokie, więc w 2026 roku liczy się nie tylko ile produkujesz, ale **kiedy** oddajesz energię.
+
+## Najważniejsze liczby
+
+- **198,91 zł/MWh**: średnia RCE w godzinach 11–14 w czerwcu 2026; **797,52 zł/MWh** w godzinach 18–21 (nasze obliczenia z danych PSE).
+- **469,93 zł/MWh** i **1 073,09 zł/MWh**: te same przedziały w październiku 2026 (PSE).
+- **127 okresów 15-minutowych z ceną ujemną w 8 dniach** czerwca 2026; najniższa cena −77,02 zł/MWh (PSE).
+- **+23%**: o tyle powiększono wartość depozytu prosumenckiego (MKiŚ, zasady od 28.12.2024).
+- **20% → 30%**: zwrot za energię wprowadzoną do sieci przy rozliczeniu godzinowym (MKiŚ).
+- **1,27 zł/kWh**: średnia cena prądu dla gospodarstw domowych z podatkami, I półrocze 2026 (Eurostat).
+
+## Jak działa net-billing w 2026 roku?
+
+1. Licznik dwukierunkowy mierzy energię pobraną i oddaną w każdym okresie rozliczeniowym.
+2. Energia oddana jest wyceniana po cenie rynkowej: godzinowej (RCE) albo, dla części prosumentów, miesięcznej (RCEm).
+3. Ta wartość, powiększona o 23%, trafia do **depozytu prosumenckiego**.
+4. Z depozytu pokrywasz rachunek za energię pobraną z sieci.
+5. Niewykorzystane środki mogą być częściowo zwrócone: według [ministerstwa](https://www.gov.pl/web/klimat/korzystne-zmiany-dla-prosumentow) przy rozliczeniu godzinowym limit zwrotu rośnie z 20% do 30%.
+
+Ministerstwo pisze też, że prosumenci, którzy zaczęli produkcję przed 1 lipca 2024 roku, mogą zostać przy rozliczeniu ceną miesięczną, które daje bardziej przewidywalne koszty. Na rozliczenie godzinowe przechodzi się oświadczeniem złożonym sprzedawcy energii.
+
+## Jakie są ceny godzinowe w net-billingu?
+
+PSE publikuje ceny RCE dla każdych 15 minut w [API raportów](https://api.raporty.pse.pl/api/rce-pln). Pobraliśmy wszystkie wartości z czerwca (2 880 okresów) i października 2026 (2 980 okresów, z powodu zmiany czasu) i policzyliśmy proste średnie:
+
+| | Czerwiec 2026 | Październik 2026 |
+|---|---|---|
+| Średnia z całej doby | 486,03 zł/MWh | 738,85 zł/MWh |
+| Godziny 11–14 | 198,91 zł/MWh | 469,93 zł/MWh |
+| Godziny 18–21 | 797,52 zł/MWh | 1 073,09 zł/MWh |
+| Najniższa cena | −77,02 zł/MWh | −127,33 zł/MWh |
+| Najwyższa cena | 2 751,72 zł/MWh | 2 483,15 zł/MWh |
+| Okresy z ceną ujemną | 127 (8 dni) | 17 (4 dni) |
+
+Średnie są arytmetyczne, nie ważone produkcją PV, więc nie są tym samym co RCEm. Pokazują jednak główny mechanizm: w czerwcu energia z godzin wieczornych była średnio **cztery razy droższa** niż z południa.
+
+## Ile jest warta 1 kWh oddana do sieci?
+
+Proste przeliczenie z powyższych danych (1 MWh = 1 000 kWh):
+
+| Kiedy oddajesz | RCE | Wartość w depozycie (× 1,23) |
+|---|---|---|
+| Czerwiec, 11–14 | ok. 0,20 zł/kWh | ok. 0,24 zł/kWh |
+| Październik, 11–14 | ok. 0,47 zł/kWh | ok. 0,58 zł/kWh |
+
+Dla porównania: kWh kupiona z sieci kosztowała w I półroczu 2026 roku średnio 1,2724 zł z podatkami ([Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=PL&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1)). Ta średnia obejmuje też opłaty stałe, więc nie jest dokładną ceną każdej dodatkowej kWh, ale pokazuje skalę: latem kWh zużyta na miejscu jest warta kilka razy więcej niż kWh oddana w południe.
+
+## Co oznaczają ujemne ceny energii dla prosumenta?
+
+Ujemna cena RCE oznacza, że w danym kwadransie na rynku jest za dużo energii. W czerwcu 2026 roku zdarzyło się to w 127 okresach 15-minutowych, w październiku w 17. Jak dokładnie takie okresy wpływają na depozyt, zależy od zasad rozliczenia u sprzedawcy; zapytaj go o to na piśmie. Najprostsza ochrona to zużywanie lub magazynowanie energii w tych godzinach zamiast oddawania jej do sieci.
+
+## Rozliczenie godzinowe czy miesięczne: co wybrać?
+
+| | RCEm (miesięczna) | RCE (godzinowa) |
+|---|---|---|
+| Dla kogo | prosumenci, którzy zaczęli produkcję przed 1.07.2024, mogą przy niej zostać | pozostali; inni mogą przejść oświadczeniem |
+| Przewidywalność | wyższa, jedna cena na miesiąc | niższa, cena zmienia się co okres |
+| Zwrot niewykorzystanego depozytu | do 20% | do 30% |
+| Co ma znaczenie | ile energii oddajesz w danym miesiącu | o której godzinie oddajesz energię |
+
+To porównanie jakościowe. Który wariant wyjdzie taniej, zależy od Twojego profilu godzinowego; dane pobierzesz od operatora systemu dystrybucyjnego.
+
+## Jak podnieść wartość swojej energii?
+
+- **Zużywaj w południe**: bojler, pompa ciepła, pralka, ładowanie auta z harmonogramem.
+- **Magazyn energii**: przenosi tanią energię z południa na wieczór. Program Przydomowe magazyny energii część 2 daje do 16 000 zł dotacji w net-billingu i wymaga sterownika EMS, który pracuje według profili czasowych ([NFOŚiGW](https://przydomowemagazyny.gov.pl/o-programie/)). Szczegóły: [Dotacja do magazynu energii 2026](/pl/guides/dotacja-magazyn-energii-2026).
+- **Nie przewymiarowuj nowej instalacji**: dodatkowe kWh latem w południe to głównie tania nadwyżka.
+
+Szerszy rachunek opisujemy w poradniku [Czy fotowoltaika się opłaca w 2026](/pl/guides/czy-fotowoltaika-sie-oplaca-2026). Ceny RCE pobraliśmy z PSE 22 listopada 2026 roku.
