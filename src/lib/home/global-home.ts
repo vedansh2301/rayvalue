@@ -318,3 +318,33 @@ export function latestPostLinks(articles: readonly HomeArticle[], limit = 5, per
   }
   return out;
 }
+
+/** "All countries" tile intent: the single most useful next step for someone from that country, and one reason to take it. */
+export interface TileIntent {
+  href: string;
+  /** Call to action, e.g. "Calculate your payback". */
+  action: string;
+  /** One line of why: the nearest dated deadline, or the country's key question answered by a guide. Null when none. */
+  hint: string | null;
+  hintKind: 'deadline' | 'guide' | null;
+  /** Language of the hint text (guide titles are in the country's language). */
+  hintLang: string | null;
+}
+
+const fmtDay = (d: Date): string => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+/** Pure: per-country tile intent. Calculator first, then the country's "is it worth it" guide, then its hub. */
+export function tileIntent(card: Pick<CountryCard, 'segment' | 'href' | 'name'>, articles: readonly HomeArticle[], worthGuides: readonly { country: string; slug: string }[], now: Date): TileIntent {
+  const iso = card.segment === 'uk' ? 'gb' : card.segment;
+  const mine = articles.filter((a) => isLive(a) && a.country.toLowerCase() === iso);
+  const worth = worthGuides.filter((w) => w.country === iso).map((w) => mine.find((a) => articleSlug(a.id, iso) === w.slug)).find(Boolean) ?? null;
+  const calc = card.segment === US_SEGMENT ? { href: calcPath('FL') } : countryCalculator(card.segment);
+  const upcoming = mine
+    .filter((a) => a.deadline && a.deadline.getTime() >= now.getTime())
+    .sort((a, b) => a.deadline!.getTime() - b.deadline!.getTime())[0] ?? null;
+  const href = calc ? (card.segment === US_SEGMENT ? card.href : calc.href) : worth ? toLink(worth).href : card.href;
+  const action = calc ? 'Calculate your payback' : worth ? 'Is solar worth it here?' : 'Grants, rates and costs';
+  if (upcoming) return { href, action, hint: `Deadline ${fmtDay(upcoming.deadline!)}: ${upcoming.title}`, hintKind: 'deadline', hintLang: upcoming.lang };
+  const g = worth ?? mine.find((a) => a.collection === 'guides') ?? mine[0] ?? null;
+  return { href, action, hint: g ? g.title : null, hintKind: g ? 'guide' : null, hintLang: g ? g.lang : null };
+}

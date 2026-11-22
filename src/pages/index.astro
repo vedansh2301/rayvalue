@@ -11,6 +11,7 @@ import HomeHero from '../components/home/HomeHero.astro';
 import CountryMap from '../components/home/CountryMap.astro';
 import CountryCard from '../components/home/CountryCard.astro';
 import CountryTile from '../components/home/CountryTile.astro';
+import { WORTH_GUIDES } from '../lib/footer-links';
 import ReportSection from '../components/home/ReportSection.astro';
 import DeadlineCard from '../components/home/DeadlineCard.astro';
 import ArticleCard from '../components/home/ArticleCard.astro';
@@ -25,7 +26,7 @@ import { loadPlaceIndexEntries } from '../lib/places/index-entries';
 import { publishedCityLinks } from '../lib/seo/city-links';
 import { DB_PAGE_CACHE_HEADERS } from '../lib/db/repo';
 import { coverTopic, stateKey, type StateKey, type Topic } from '../lib/content/cards';
-import { buildCountryCards, cardChips, deadlineLinks, groupByRegion, homeDestinations, latestGuideLinks, curatedLinks, latestPostLinks,liveCalculators, siteTotals, topCountries, upcomingDeadlines, type ArticleLink, type HomeArticle, type PlaceCounts } from '../lib/home/global-home';
+import { buildCountryCards, cardChips, deadlineLinks, groupByRegion, homeDestinations, latestGuideLinks, curatedLinks, latestPostLinks,liveCalculators, siteTotals, topCountries, upcomingDeadlines, tileIntent, type ArticleLink, type HomeArticle, type PlaceCounts } from '../lib/home/global-home';
 
 const [guides, posts, places, cities] = await Promise.all([
   getCollection('guides', (e) => !e.data.draft),
@@ -119,9 +120,12 @@ const method = [
       <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {featured.map((c) => <CountryCard card={c} chips={cardChips(c, articles)} deadlineDays={deadlines.find((d) => d.country === c.segment)?.days} photo={getCountryImage(c.segment)} />)}
       </ul>
-      <h3 id="all-countries" class="mb-3.5 mt-11 text-sm font-semibold uppercase tracking-wide text-stone-700">All countries</h3>
-      <ul class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,210px),1fr))] gap-2.5" aria-labelledby="all-countries">
-        {more.map((c) => <CountryTile card={c} />)}
+      <div class="mb-3.5 mt-11">
+        <h3 id="all-countries" class="font-display-tight text-2xl text-stone-900">Is solar worth it in your country?</h3>
+        <p class="mt-1 text-sm text-stone-700">Pick yours: we take you straight to its calculator, its deadline or the guide that answers it with your country's own rates and grants.</p>
+      </div>
+      <ul class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))] gap-2.5" aria-labelledby="all-countries">
+        {more.map((c) => <CountryTile card={c} intent={tileIntent(c, articles, WORTH_GUIDES, now)} />)}
       </ul>
     </div>
   </section>

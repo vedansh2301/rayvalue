@@ -1,18 +1,20 @@
 ---
-// "All countries" tile (design: RayValue Home v2): outline on its own (no icon square), name in bold, then
-// "local name · N pages". No region text; the list is one alphabetical run.
+// "All countries" tile: the country, one reason to click (its nearest deadline, or the question its key guide answers)
+// and one clear action that leads straight to the most useful page (calculator, "is it worth it" guide, or hub).
 import CountryOutline from '../brand/CountryOutline.astro';
-import { cardWeight, type CountryCard } from '../../lib/home/global-home';
-interface Props { card: CountryCard; placement?: string }
-const { card: c, placement = 'home_more' } = Astro.props;
-const sub = `${c.localName ? `${c.localName} · ` : ''}${cardWeight(c)} pages`;
+import type { CountryCard, TileIntent } from '../../lib/home/global-home';
+interface Props { card: CountryCard; intent: TileIntent; placement?: string }
+const { card: c, intent, placement = 'home_more' } = Astro.props;
 ---
 <li>
-  <a href={c.href} class="group flex items-center gap-3 rounded-xl border border-sky-pastel-300 bg-white px-3 py-2.5 text-stone-900 no-underline transition duration-150 hover:border-sky-pastel-600 hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement={placement} data-track-target={c.href}>
-    <CountryOutline segment={c.segment} soft class="size-[34px] flex-none [&_path]:[vector-effect:non-scaling-stroke]" />
-    <span class="flex min-w-0 flex-col">
-      <strong class="text-[15px] font-semibold">{c.name}</strong>
-      <span class="text-xs text-stone-700">{sub}</span>
+  <a href={intent.href} class="group flex h-full items-start gap-3 rounded-xl border border-sky-pastel-300 bg-white px-3 py-3 text-stone-900 no-underline transition duration-150 hover:border-sky-pastel-600 hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement={placement} data-track-target={intent.href}>
+    <CountryOutline segment={c.segment} soft class="mt-0.5 size-[34px] flex-none [&_path]:[vector-effect:non-scaling-stroke]" />
+    <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+      <strong class="text-[15px] font-semibold">{c.name}{c.localName && <span lang={c.localLang ?? undefined} class="font-normal text-stone-600"> · {c.localName}</span>}</strong>
+      {intent.hint && (
+        <span lang={intent.hintLang ?? undefined} class:list={['line-clamp-2 text-xs leading-snug', intent.hintKind === 'deadline' ? 'font-medium text-sun-ink' : 'text-stone-700']}>{intent.hint}</span>
+      )}
+      <span class="mt-1 text-[13px] font-semibold text-sun-ink group-hover:underline">{intent.action} &rarr;</span>
     </span>
   </a>
 </li>
