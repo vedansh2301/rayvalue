@@ -25,7 +25,7 @@ const O = (seg: string) => COUNTRY_OUTLINES[seg]!;
     <rect width={MAP_VIEWBOX.w} height={MAP_VIEWBOX.h} fill="url(#rv-dots)"></rect>
     <g stroke="#bfd9f1" stroke-width="1" fill="none" stroke-dasharray="3 5"><path d="M0 286H1000"></path><path d="M0 200H1000"></path><path d="M0 372H1000"></path><path d="M0 115H1000"></path></g>
     {shapes.map(({ card, shape, dest }) => (
-      <a href={card.href} tabindex="-1" class="group cursor-pointer" data-country={card.segment} data-name={card.name} data-sub={sub(card)} data-href={dest?.href ?? card.href} data-cta={dest?.kind === 'calc' ? 'Open the calculator' : `See ${card.name} guides`} data-vb={`0 0 ${O(card.segment).w} ${O(card.segment).h}`} data-d={shape.d} data-on={card.segment === start?.card.segment ? 'true' : undefined}>
+      <a href={card.href} tabindex="-1" class="group cursor-pointer outline-none focus:outline-none" data-country={card.segment} data-name={card.name} data-sub={sub(card)} data-href={dest?.href ?? card.href} data-cta={dest?.kind === 'calc' ? 'Open the calculator' : `See ${card.name} guides`} data-vb={`0 0 ${O(card.segment).w} ${O(card.segment).h}`} data-d={shape.d} data-on={card.segment === start?.card.segment ? 'true' : undefined}>
         <g transform={shape.transform}>
           <path d={shape.d} stroke-width="1.4" stroke-linejoin="round" vector-effect="non-scaling-stroke" class:list={['group-data-[on=true]:fill-sun-500 group-data-[on=true]:stroke-sun-ink', dest?.kind === 'calc' ? 'fill-sun-400 stroke-amber-600' : 'fill-white stroke-sky-pastel-600']}></path>
         </g>
