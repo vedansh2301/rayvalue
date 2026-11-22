@@ -1,0 +1,115 @@
+---
+title: "Czy fotowoltaika się opłaca w 2026 roku na nowych zasadach?"
+seoTitle: "Czy fotowoltaika się opłaca w 2026? Net-billing w liczbach"
+description: "Fotowoltaika w 2026 roku nadal może się opłacać, ale zarabia głównie energia zużyta na miejscu. Ceny RCE z PSE, prąd po 1,27 zł/kWh, nasłonecznienie z PVGIS i dotacja do magazynu do 19 000 zł."
+country: pl
+lang: pl-PL
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: sun
+sources:
+  - title: "Eurostat: ceny energii elektrycznej dla gospodarstw domowych, nrg_pc_204 (2026-S1, PLN/kWh z podatkami)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=PL&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "PSE: Rynkowa cena energii elektrycznej RCE (API raportów PSE, dane 15-minutowe)"
+    url: "https://api.raporty.pse.pl/api/rce-pln"
+  - title: "Ministerstwo Klimatu i Środowiska: Korzystne zmiany dla prosumentów (15.06.2025)"
+    url: "https://www.gov.pl/web/klimat/korzystne-zmiany-dla-prosumentow"
+  - title: "NFOŚiGW: Przydomowe magazyny energii, stan naborów (20.11.2026)"
+    url: "https://przydomowemagazyny.gov.pl"
+  - title: "NFOŚiGW: Przydomowe magazyny energii część 2, o programie"
+    url: "https://przydomowemagazyny.gov.pl/o-programie/"
+  - title: "NFOŚiGW: Startuje program dotacji na instalacje fotowoltaiczne i magazyny energii (27.03.2026)"
+    url: "https://www.gov.pl/web/nfosigw/startuje-program-dotacji-na-instalacje-fotowoltaiczne-i-magazyny-energii"
+  - title: "Ministerstwo Finansów, KAS: jak skorzystać z ulgi termomodernizacyjnej (27.03.2025)"
+    url: "https://www.gov.pl/web/finanse/kas-przypomina-jak-skorzystac-z-ulgi-termomodernizacyjnej"
+  - title: "EU JRC PVGIS 5.3: uzysk instalacji PV 1 kWp (Warszawa)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=52.2297&lon=21.0122&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+faq:
+  - question: "Czy fotowoltaika opłaca się bez dotacji w 2026 roku?"
+    answer: "Może się opłacać, jeśli dużą część produkcji zużywasz na bieżąco. Energia zużyta na miejscu zastępuje prąd kupowany średnio po 1,27 zł/kWh (Eurostat, I półrocze 2026), a nadwyżka oddana w czerwcowe południe była warta w depozycie około 0,24 zł/kWh (średnia RCE z godzin 11–14 razy 1,23). Program Mój Prąd 6.0 się zakończył, więc na samą instalację PV nie ma dziś ogólnopolskiej dotacji."
+  - question: "Czy jest dotacja do fotowoltaiki w 2026 roku?"
+    answer: "Na same panele nie. Przejściowy nabór NFOŚiGW z dotacją do PV zakończył się 19 czerwca 2026. Otwarty jest program Przydomowe magazyny energii część 2 (do 1.10.2027 lub wyczerpania budżetu), ale dofinansowuje magazyn energii lub ciepła, a nie panele. Wydatki na PV można rozliczyć w uldze termomodernizacyjnej (do 53 000 zł)."
+  - question: "Ile energii wyprodukuje 1 kWp w Polsce?"
+    answer: "Według PVGIS 5.3 (optymalny kąt, 14% strat) od 1008 kWh rocznie w Szczecinie do 1095 kWh w Opolu. Warszawa to 1053 kWh."
+  - question: "Czy magazyn energii poprawia opłacalność?"
+    answer: "Przesuwa energię z południa, gdy jest tania, na wieczór, gdy kupujesz ją drożej. Czy to się zwróci, zależy od ceny magazynu, zużycia wieczornego i dotacji, która w programie PME część 2 wynosi do 16 000 zł dla net-billingu (plus do 2 000 zł premii, łącznie maks. 19 000 zł na punkt poboru)."
+todo:
+  - "Brak oficjalnego źródła średnich cen instalacji PV w PLN/kWp; dlatego artykuł nie podaje okresu zwrotu. Dodać, gdy znajdziemy publiczny szereg cen."
+  - "Eurostat 1,2724 PLN/kWh jest oznaczony jako wartość tymczasowa (provisional). Sprawdzić po aktualizacji."
+---
+
+Tak, w 2026 roku fotowoltaika nadal może się opłacać, ale z innego powodu niż kilka lat temu. W net-billingu nadwyżka trafia do depozytu po cenie rynkowej, która w słoneczne południe bywa bardzo niska, więc pieniądze robi przede wszystkim energia zużyta od razu w domu. Instalacja dobrana do zużycia, z autokonsumpcją jak najwyższą, a czasem z magazynem energii, broni się dużo lepiej niż duża instalacja „na zapas”.
+
+## Najważniejsze liczby
+
+- **1,27 zł/kWh**: średnia cena prądu dla gospodarstw domowych zużywających 2 500–4 999 kWh rocznie, z podatkami, I półrocze 2026 (Eurostat, wartość tymczasowa).
+- **198,91 zł/MWh** (ok. 0,20 zł/kWh): średnia cena RCE w godzinach 11–14 w czerwcu 2026; **797,52 zł/MWh** w godzinach 18–21 (nasze wyliczenie z danych 15-minutowych PSE, pobrane 22.11.2026).
+- **1,23**: współczynnik, o który powiększana jest wartość nadwyżki w depozycie prosumenckim; ministerstwo opisuje to jako wzrost depozytu o 23% (MKiŚ, 15.06.2025).
+- **1008–1095 kWh/kWp** rocznie: uzysk w 16 miastach wojewódzkich, Szczecin najmniej, Opole najwięcej (PVGIS 5.3).
+- **do 19 000 zł** dotacji do domowego magazynu energii w programie PME część 2, nabór do 1.10.2027 lub wyczerpania budżetu (NFOŚiGW, stan na 20.11.2026).
+- **53 000 zł**: limit ulgi termomodernizacyjnej na podatnika (Ministerstwo Finansów).
+
+## Czy fotowoltaika się opłaca na nowych zasadach?
+
+Rachunek sprowadza się do dwóch cen jednej kilowatogodziny.
+
+Pierwsza to cena, której **nie płacisz**, gdy zużywasz własny prąd. Według [Eurostatu](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=PL&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1) przeciętne gospodarstwo domowe płaciło w I półroczu 2026 roku 1,2724 zł za kWh z podatkami. To średnia, w której są też opłaty stałe, więc faktyczna oszczędność na każdej kWh jest nieco niższa, ale rząd wielkości jest właściwy.
+
+Druga to wartość kWh, którą **oddajesz do sieci**. W net-billingu jest ona liczona po rynkowej cenie energii (RCE) i trafia do depozytu prosumenckiego. Ściągnęliśmy z [API raportów PSE](https://api.raporty.pse.pl/api/rce-pln) wszystkie ceny 15-minutowe z czerwca i października 2026:
+
+| Miesiąc 2026 | Średnia RCE, cała doba | Godziny 11–14 | Godziny 18–21 | Okresy 15-min z ceną ujemną |
+|---|---|---|---|---|
+| Czerwiec | 486,03 zł/MWh | 198,91 zł/MWh | 797,52 zł/MWh | 127 (w 8 dniach) |
+| Październik | 738,85 zł/MWh | 469,93 zł/MWh | 1 073,09 zł/MWh | 17 (w 4 dniach) |
+
+Średnie arytmetyczne z okresów 15-minutowych, nasze obliczenia z danych PSE. To nie jest RCEm (ta jest ważona profilem produkcji PV).
+
+Czerwcowa kWh oddana w południe była więc warta ok. 0,20 zł, a po współczynniku 1,23 ok. 0,24 zł w depozycie. Ta sama kWh zużyta w domu oszczędza do ok. 1,27 zł. Różnica jest mniej więcej pięciokrotna. Dlatego pytanie „czy fotowoltaika się opłaca” w 2026 roku brzmi w praktyce: **ile z tej produkcji zużyjesz sam?**
+
+## Kto zyskuje najwięcej na fotowoltaice w 2026?
+
+- **Domy z dużym zużyciem w dzień**: praca zdalna, pompa ciepła używana też do ciepłej wody, klimatyzacja latem.
+- **Gospodarstwa, które mogą przesunąć zużycie**: pranie, zmywarka, bojler i ładowanie auta uruchamiane w godzinach 10–15.
+- **Właściciele domów jednorodzinnych z podatkiem PIT do odliczenia**: ulga termomodernizacyjna obniża realny koszt instalacji.
+- **Osoby planujące magazyn energii**: program PME część 2 daje dotację do magazynu, a magazyn przenosi tanią energię z południa na drogi wieczór.
+
+Gorzej wypadają instalacje przewymiarowane, z dużą nadwyżką latem, oraz domy, w których za dnia nikogo nie ma, a nic nie da się przestawić na godziny słoneczne.
+
+## Ile prądu da instalacja w Twoim mieście?
+
+Dane z [PVGIS 5.3](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=52.2297&lon=21.0122&peakpower=1&loss=14&optimalangles=1&outputformat=json) Komisji Europejskiej, dla 1 kWp ustawionego pod optymalnym kątem i 14% strat systemowych:
+
+| Miasto | kWh na 1 kWp rocznie | Instalacja 5 kWp, kWh rocznie |
+|---|---|---|
+| Opole | 1095 | ok. 5 475 |
+| Wrocław | 1094 | ok. 5 470 |
+| Rzeszów | 1086 | ok. 5 430 |
+| Kraków | 1085 | ok. 5 425 |
+| Gdańsk | 1056 | ok. 5 280 |
+| Warszawa | 1053 | ok. 5 265 |
+| Białystok | 1017 | ok. 5 085 |
+| Szczecin | 1008 | ok. 5 040 |
+
+Kolumna 5 kWp to proste mnożenie. Dach na wschód lub zachód, zacienienie czy inny kąt dadzą mniej. Różnica między najlepszym a najsłabszym miastem to ok. 9%, więc w Polsce lokalizacja ma mniejsze znaczenie niż autokonsumpcja.
+
+## Jakie wsparcie jest dostępne w 2026?
+
+**Dotacji do samych paneli obecnie nie ma.** Program Mój Prąd 6.0 się zakończył, a przejściowy nabór NFOŚiGW, który refundował m.in. instalacje PV 2–20 kW (50% kosztów, maks. 7 000 zł), był jednorazowy ([NFOŚiGW, 27.03.2026](https://www.gov.pl/web/nfosigw/startuje-program-dotacji-na-instalacje-fotowoltaiczne-i-magazyny-energii)). Według [strony programu](https://przydomowemagazyny.gov.pl) ostatnie okno tej części zamknęło się 19 czerwca 2026.
+
+**Otwarty jest program Przydomowe magazyny energii część 2** (Fundusz Modernizacyjny): nabór trwa od 20.10.2026 do 01.10.2027, budżet do 1 mld zł. Stan na 20.11.2026: 6156 wniosków na ponad 64 mln zł, czyli 6,42% budżetu. Szczegóły w poradniku [Dotacja do magazynu energii 2026](/pl/guides/dotacja-magazyn-energii-2026).
+
+**Ulga termomodernizacyjna**: właściciel lub współwłaściciel domu jednorodzinnego może odliczyć od dochodu do 53 000 zł wydatków, a niewykorzystaną kwotę rozliczać przez 6 lat. Nie odliczysz wydatków sfinansowanych z dotacji NFOŚiGW lub WFOŚiGW ([KAS, 27.03.2025](https://www.gov.pl/web/finanse/kas-przypomina-jak-skorzystac-z-ulgi-termomodernizacyjnej)).
+
+## Rozliczenie godzinowe czy miesięczne?
+
+Zgodnie z [informacją ministerstwa](https://www.gov.pl/web/klimat/korzystne-zmiany-dla-prosumentow) od 28 grudnia 2024 roku obowiązują nowe zasady: prosumenci, którzy zaczęli produkcję przed 1 lipca 2024 roku, mogą zostać przy rozliczeniu ceną miesięczną (RCEm), a przy rozliczeniu godzinowym (RCE) limit zwrotu niewykorzystanych środków z depozytu rośnie z 20% do 30%. Co to oznacza w liczbach, opisujemy w poradniku [Ceny godzinowe w net-billingu](/pl/guides/net-billing-ceny-godzinowe).
+
+## Jak zwiększyć opłacalność instalacji?
+
+1. **Dobierz moc do zużycia**, nie do powierzchni dachu. Każda kWh nadwyżki latem jest warta ułamek tego, co kWh zużyta.
+2. **Przesuń zużycie na godziny 10–15**: bojler, pralka, zmywarka, ładowarka auta z harmonogramem.
+3. **Rozważ magazyn**, jeśli wieczorem zużywasz dużo prądu. Z dotacją PME część 2 i ulgą termomodernizacyjną od pozostałej części kosztu rachunek bywa zupełnie inny niż bez wsparcia.
+4. **Uważaj na oferty z obietnicami**. Typowe pułapki opisujemy w tekście [Pułapki w ofertach fotowoltaiki](/pl/blog/pulapki-ofert-fotowoltaika).
+
+Nie podajemy tu okresu zwrotu, bo nie znaleźliśmy oficjalnego, publicznego zestawienia cen instalacji w Polsce. Poproś o 2–3 oferty i przelicz je na własnym zużyciu godzinowym, które pobierzesz od operatora. Jak pracujemy z danymi, opisuje nasza [metodologia](/methodology).
