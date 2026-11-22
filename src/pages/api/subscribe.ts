@@ -12,6 +12,11 @@ export const POST: APIRoute = ({ request }) =>
     {
       SUPABASE_URL: process.env.SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+      // Global sign-up (double opt-in): server-only secret key, email provider, mailing address for the email footer.
+      SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+      RESEND_API_KEY: process.env.RESEND_API_KEY,
+      EMAIL_FROM: process.env.EMAIL_FROM,
+      NURTURE_MAILING_ADDRESS: process.env.NURTURE_MAILING_ADDRESS,
       // Public build-time flag (PUBLIC_CONTACT_EMAIL set): no signups without a deletion contact.
       ALERTS_ENABLED,
     },

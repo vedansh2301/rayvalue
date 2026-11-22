@@ -8,6 +8,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <h1>You&rsquo;re on the list</h1>
       <p>Thanks for signing up. We&rsquo;ll email you when utility rates or solar rules change in your state. You can unsubscribe at any time.</p>
     </div>
+    <div id="alerts-confirm" hidden>
+      <h1>Check your inbox</h1>
+      <p>We sent you an email. Click the link in it to confirm your address; until you do, we send nothing else. Check your spam folder if it does not arrive within a few minutes. You can unsubscribe at any time.</p>
+    </div>
     <div id="alerts-error" hidden>
       <h1>We couldn&rsquo;t sign you up</h1>
       <p>Something went wrong on our side, or the email address wasn&rsquo;t valid. Please go back and try again in a minute.</p>
@@ -16,6 +20,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </div>
   <script>
     // Bundled (not inline) so it is covered by the CSP script hashes.
+    if (new URLSearchParams(window.location.search).get('confirm') === '1') {
+      const ok = document.getElementById('alerts-ok');
+      const confirm = document.getElementById('alerts-confirm');
+      if (ok && confirm) {
+        ok.hidden = true;
+        confirm.hidden = false;
+        document.title = 'Check your inbox | RayValue';
+      }
+    }
     if (new URLSearchParams(window.location.search).get('error') === '1') {
       const ok = document.getElementById('alerts-ok');
       const err = document.getElementById('alerts-error');

@@ -1,4 +1,12 @@
-/** Rate-alert signup logic (pure, testable). Endpoint: src/pages/api/subscribe.ts. */
+/**
+ * Email signup logic (pure, testable). Endpoint: src/pages/api/subscribe.ts. Two request shapes share the endpoint:
+ *  - legacy FL/CA rate alerts ({ email, state }): stored by the publishable key in rate_alert_subscribers (unchanged);
+ *  - global sign-up ({ email, country, topics, consent, ... }): see global-subscribe.ts (double opt-in, email_subscribers).
+ */
+import { validateGlobalSignup, type GlobalSignupFields } from '../subscribe/global';
+import { allowRequest, SUBSCRIBE_LIMIT } from './rate-limit';
+import { clientIp } from './http';
+import { processGlobalSignup, type GlobalSubscribeEnv } from './global-subscribe';
 
 export const STATES = ['FL', 'CA'] as const;
 export type SignupState = (typeof STATES)[number];
@@ -7,7 +15,7 @@ export const SUPABASE_TIMEOUT_MS = 8000;
 
 const EMAIL_RE = /^[^\s@<>()[\]\\,;:"]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+$/;
 
-export interface SubscribeFields {
+export interface SubscribeFields extends GlobalSignupFields {
   email?: unknown;
   state?: unknown;
   website?: unknown;
@@ -66,10 +74,11 @@ export function supabaseInsertRequest(env: { url: string; key: string }, email: 
 }
 
 const THANKS = '/alerts/thanks';
+const THANKS_CONFIRM = '/alerts/thanks?confirm=1';
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } });
-const redirect = (error: boolean) =>
-  new Response(null, { status: 303, headers: { Location: error ? `${THANKS}?error=1` : THANKS, 'Cache-Control': 'no-store' } });
+const redirect = (error: boolean, to = THANKS) =>
+  new Response(null, { status: 303, headers: { Location: error ? `${THANKS}?error=1` : to, 'Cache-Control': 'no-store' } });
 
 async function readFields(request: Request): Promise<SubscribeFields | null> {
   const len = Number(request.headers.get('content-length') ?? 0);
@@ -84,7 +93,18 @@ async function readFields(request: Request): Promise<SubscribeFields | null> {
     }
     if (type.includes('application/x-www-form-urlencoded') || type.includes('multipart/form-data')) {
       const fd = await request.formData();
-      return { email: fd.get('email') ?? undefined, state: fd.get('state') ?? undefined, website: fd.get('website') ?? undefined };
+      const get = (k: string) => fd.get(k) ?? undefined;
+      return {
+        email: get('email'),
+        state: get('state'),
+        website: get('website'),
+        country: get('country'),
+        region: get('region'),
+        topics: fd.getAll('topics').map(String),
+        consent: get('consent'),
+        source: get('source'),
+        locale: get('locale'),
+      };
     }
   } catch {
     return null;
@@ -92,7 +112,7 @@ async function readFields(request: Request): Promise<SubscribeFields | null> {
   return null;
 }
 
-export interface SubscribeEnv {
+export interface SubscribeEnv extends GlobalSubscribeEnv {
   SUPABASE_URL?: string;
   SUPABASE_PUBLISHABLE_KEY?: string;
   /** false while there is no public contact address (no deletion path): signups are refused. Default true. */
@@ -117,6 +137,7 @@ export async function handleSubscribe(
 
   const fields = await readFields(request);
   if (!fields) return fail(400, 'Could not read the request body.');
+  if (fields.country !== undefined) return handleGlobal(fields, request, env, fetchImpl, html);
   const v = validateSignup(fields);
   if (v.kind === 'honeypot') return html ? redirect(false) : json(200, { ok: true });
   if (v.kind === 'invalid') return fail(400, v.error);
@@ -133,5 +154,25 @@ export async function handleSubscribe(
   } catch (e) {
     console.error('subscribe: supabase request failed', e instanceof Error ? e.name : 'error');
   }
+  return fail(502, 'We could not save your signup. Please try again later.');
+}
+
+/** Global sign-up branch of POST /api/subscribe: validate, rate-limit per IP, store unconfirmed and email the confirmation. */
+async function handleGlobal(fields: SubscribeFields, request: Request, env: SubscribeEnv, fetchImpl: typeof fetch, html: boolean): Promise<Response> {
+  const fail = (status: number, error: string, field?: string) => (html ? redirect(true) : json(status, { ok: false, error, ...(field ? { field } : {}) }));
+  const v = validateGlobalSignup(fields);
+  if (v.kind === 'honeypot') return html ? redirect(false, THANKS_CONFIRM) : json(200, { ok: true });
+  if (v.kind === 'invalid') return fail(400, v.error, v.field);
+  if (!(await allowRequest(env, 'subscribe', clientIp(request), SUBSCRIBE_LIMIT.windowSeconds, SUBSCRIBE_LIMIT.max, fetchImpl))) {
+    return html
+      ? redirect(true)
+      : new Response(JSON.stringify({ ok: false, error: 'Too many requests. Please wait a few minutes and try again.' }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Retry-After': String(SUBSCRIBE_LIMIT.windowSeconds) },
+        });
+  }
+  const outcome = await processGlobalSignup(v.value, env, fetchImpl);
+  if (outcome === 'ok') return html ? redirect(false, THANKS_CONFIRM) : json(200, { ok: true, status: 'confirm' });
+  if (outcome === 'unavailable') return fail(503, 'Email sign-up is temporarily unavailable. Please try again later.');
   return fail(502, 'We could not save your signup. Please try again later.');
 }

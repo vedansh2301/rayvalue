@@ -72,7 +72,8 @@ export function isExcludedStaticPath(rawPath: string, ctx: ExclusionContext = {}
     path.startsWith('/admin') ||
     path.startsWith('/go/out/') ||
     isGoPath(path) ||
-    path === '/unsubscribe'
+    path === '/unsubscribe' ||
+    path === '/subscribe/confirm'
   );
 }
 

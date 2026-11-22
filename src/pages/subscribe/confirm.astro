@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { confirmSubscription, isToken } from '../../lib/server/global-subscribe';
+import { btnPrimary } from '../../components/ui/buttons';
+
+// Double opt-in: the link in the confirmation email opens this page; the address is confirmed only when the person presses
+// the button (a POST), so a mail scanner that opens links cannot confirm for them. Not indexed, not in the sitemap.
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+Astro.response.headers.set('Referrer-Policy', 'no-referrer');
+
+const token = new URL(Astro.request.url).searchParams.get('t');
+type State = 'ask' | 'ok' | 'invalid' | 'expired' | 'error';
+let state: State = isToken(token) ? 'ask' : 'invalid';
+if (Astro.request.method === 'POST' && isToken(token)) {
+  const env = { SUPABASE_URL: process.env.SUPABASE_URL, SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY };
+  state = await confirmSubscription(env, token);
+  if (state === 'error') Astro.response.status = 502;
+}
+if (state === 'invalid' || state === 'expired') Astro.response.status = 400;
+const action = `/subscribe/confirm?t=${encodeURIComponent(token ?? '')}`;
+const TITLES: Record<State, string> = {
+  ask: 'Confirm your email address',
+  ok: 'You are confirmed',
+  invalid: 'This link does not work',
+  expired: 'This link has expired',
+  error: 'Something went wrong',
+};
+---
+<BaseLayout title="Confirm your email" description="Confirm your email address for RayValue." path="/subscribe/confirm" noindex>
+  <div class="shell py-12">
+    <div class="max-w-(--container-prose)">
+      <h1 class="text-3xl font-bold tracking-tight text-stone-900">{TITLES[state]}</h1>
+      {state === 'ask' && (
+        <>
+          <p class="mt-4 leading-7 text-stone-700">Press the button to confirm that this is your address and that you want the RayValue emails you asked for. If you did not ask for them, close this page and nothing will be sent.</p>
+          <form method="post" action={action} class="mt-6">
+            <button type="submit" class={btnPrimary}>Confirm my email address</button>
+          </form>
+        </>
+      )}
+      {state === 'ok' && <p class="mt-4 leading-7 text-stone-700">Thank you. We will email you only what you asked for, and every email has an unsubscribe link. You can also use our <a href="/privacy/request" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">privacy request form</a> to delete your data.</p>}
+      {state === 'invalid' && <p class="mt-4 leading-7 text-stone-700">The link may be incomplete or already replaced by a newer one. Ask for a new email from the page where you signed up.</p>}
+      {state === 'expired' && <p class="mt-4 leading-7 text-stone-700">Confirmation links last 7 days. Ask for a new email from the page where you signed up.</p>}
+      {state === 'error' && <p class="mt-4 leading-7 text-stone-700">We could not save your confirmation. Please press the button again in a minute.</p>}
+    </div>
+  </div>
+</BaseLayout>

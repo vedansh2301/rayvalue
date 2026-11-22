@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { applyUnsubscribe } from '../lib/server/unsubscribe';
+import { unsubscribeSubscriber } from '../lib/server/global-subscribe';
 
 // Opening the link from a nurture email unsubscribes that address right away (no login). One-click POSTs from mail
 // clients (RFC 8058) do the same. Not indexed, not in the sitemap.
@@ -10,8 +11,11 @@ Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 Astro.response.headers.set('Referrer-Policy', 'no-referrer');
 
 const env = { SUPABASE_URL: process.env.SUPABASE_URL, SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY, UNSUBSCRIBE_SECRET: process.env.UNSUBSCRIBE_SECRET };
-const token = new URL(Astro.request.url).searchParams.get('t');
-const result = await applyUnsubscribe(env, token);
+const params = new URL(Astro.request.url).searchParams;
+const token = params.get('t');
+// ?s= is the unsubscribe token of the global email list (email_subscribers); ?t= is the signed token of the nurture emails.
+const globalToken = params.get('s');
+const result = globalToken !== null ? await unsubscribeSubscriber(env, globalToken) : await applyUnsubscribe(env, token);
 if (Astro.request.method === 'POST') {
   return new Response(result === 'ok' ? 'Unsubscribed' : 'Could not unsubscribe', { status: result === 'ok' ? 200 : result === 'invalid' ? 400 : 502, headers: { 'Cache-Control': 'no-store' } });
 }

@@ -32,4 +32,6 @@ export async function allowRequest(env: AdminEnv, scope: string, ip: string | nu
 
 /** Limits per client IP. The lead form is a handful of submits at most per person. */
 export const LEAD_LIMIT = { windowSeconds: 600, max: 8 } as const;
+/** Email sign-up: a few tries per person (typos, a second country) per 10 minutes. */
+export const SUBSCRIBE_LIMIT = { windowSeconds: 600, max: 8 } as const;
 export const ADMIN_FAIL_LIMIT = { windowSeconds: 900, max: 10 } as const;
