@@ -1,0 +1,128 @@
+---
+title: "Kan solceller betale sig i 2026?"
+seoTitle: "Kan solceller betale sig i 2026? Elpris, elafgift og solindstråling"
+description: "Solceller kan stadig betale sig i Danmark i 2026, men regnestykket hviler på den strøm, du selv bruger. Sådan påvirker den lave elafgift, spotpriserne midt på dagen og solindstrålingen dit regnestykke."
+country: dk
+lang: da-DK
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: sun
+sources:
+  - title: "Skattestyrelsen: Midlertidig nedsættelse af elafgiften i 2026 og 2027"
+    url: "https://skat.dk/erhverv/afgifter-paa-varer-og-ydelser-punktafgifter/nyhedsbrev-afgifter/midlertidig-nedsaettelse-af-elafgiften-i-2026-og-2027"
+  - title: "Skatteministeriet: Faktaark om lempelse af elafgift"
+    url: "https://skm.dk/media/fg2pvujk/faktaark-om-lempelse-af-elafgift.pdf"
+  - title: "Eurostat nrg_pc_204: husholdningers elpris inkl. afgifter, Danmark, 2026 1. halvår (2.500–4.999 kWh)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=DK&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "Energi Data Service (Energinet): DayAheadPrices DK1, 1. januar–31. oktober 2026"
+    url: "https://api.energidataservice.dk/dataset/DayAheadPrices?start=2026-01-01&end=2026-11-01&filter=%7B%22PriceArea%22:%5B%22DK1%22%5D%7D&limit=0"
+  - title: "Energi Data Service (Energinet): DayAheadPrices DK2, 1. januar–31. oktober 2026"
+    url: "https://api.energidataservice.dk/dataset/DayAheadPrices?start=2026-01-01&end=2026-11-01&filter=%7B%22PriceArea%22:%5B%22DK2%22%5D%7D&limit=0"
+  - title: "EU JRC PVGIS 5.3: årsproduktion pr. kWp, København (optimal hældning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.6761&lon=12.5683&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduktion pr. kWp, Rønne (optimal hældning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.1009&lon=14.7066&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduktion pr. kWp, Odense (optimal hældning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.4038&lon=10.4024&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduktion pr. kWp, Aarhus (optimal hældning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=56.1629&lon=10.2039&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduktion pr. kWp, Herning (optimal hældning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=56.1393&lon=8.9738&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+faq:
+  - question: "Kan solceller betale sig i 2026?"
+    answer: "For mange husejere ja, hvis de selv bruger en stor del af strømmen. Strøm, du selv bruger, sparer dig for hele kWh-prisen inkl. tariffer, afgift og moms. Strøm, du sælger, får du typisk spotprisen for, og den var i gennemsnit omkring 0,30-0,33 kr. pr. kWh midt på dagen i sommerhalvåret 2026."
+  - question: "Hvordan påvirker den lave elafgift solceller?"
+    answer: "Elafgiften er 0,8 øre pr. kWh ekskl. moms i 2026 og 2027 mod 72,7 øre efter de almindelige regler. Hver kWh, du selv bruger, sparer dig derfor for mindre afgift end før. Det gør solcellernes besparelse mindre i de to år."
+  - question: "Er der tilskud til solceller i Danmark?"
+    answer: "Vi har ikke fundet en generel statslig tilskudsordning til solceller på private boliger i 2026. Regnestykket står derfor på elprisen og egetforbruget."
+todo:
+  - "Installationspris pr. kW: ingen officiel dansk prisserie fundet. Tilføj interval, når en primærkilde findes."
+  - "Håndværkerfradrag 2026 for solceller/batteri: ikke bekræftet på skat.dk. Undersøg og tilføj, hvis relevant."
+  - "'Ingen generel statslig tilskudsordning' bygger på, at vi ikke har fundet en. Bekræft på ens.dk."
+  - "Afgrænsning DK1 = Jylland/Fyn og DK2 = Sjælland/Bornholm: ikke citeret fra Energinet i denne runde."
+  - "Status for årsbaseret nettoafregning for nye anlæg: ikke bekræftet i primærkilde i denne runde."
+---
+
+Ja, solceller kan stadig betale sig i 2026, men kun hvis du selv bruger en stor del af strømmen. Spotprisen midt på dagen i sommerhalvåret lå i 2026 i gennemsnit på 0,30-0,33 kr. pr. kWh, mens en husholdning i gennemsnit betalte 1,77 kr. pr. kWh alt inklusive. Forskellen mellem de to tal er hele pointen: Strøm, du bruger selv, er flere gange mere værd end strøm, du sælger.
+
+## Nøgletal
+
+- **1,77 kr. pr. kWh**: gennemsnitlig elpris for husholdninger inkl. afgifter og moms, 1. halvår 2026, forbrug 2.500–4.999 kWh (Eurostat).
+- **0,8 øre pr. kWh** ekskl. moms: elafgiften fra 1. januar 2026 til 31. december 2027 (Skattestyrelsen).
+- **72,7 øre pr. kWh** ekskl. moms: elafgiften efter de almindelige regler, 2026-niveau (Skatteministeriet).
+- **0,30 kr. (DK1) og 0,33 kr. (DK2)** pr. kWh: gennemsnitlig spotpris kl. 11-15 i april-september 2026, ekskl. moms (Energi Data Service).
+- **942 til 1.134 kWh** pr. installeret kWp om året, fra Herning til Rønne (PVGIS 5.3, optimal hældning).
+
+## Kan solceller betale sig i 2026?
+
+Svaret afhænger af to tal: hvor meget strøm dit tag producerer, og hvor stor en del af den du selv bruger.
+
+**Strøm, du selv bruger**, sparer dig for det, du ellers ville have betalt: selve strømmen, nettarif, afgift og moms. Ifølge [Eurostat](https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=DK&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1) var gennemsnittet for husholdninger 1,7748 kr. pr. kWh i 1. halvår 2026, alt inklusive. Dit eget tal står på elregningen.
+
+**Strøm, du sælger**, får du som udgangspunkt spotprisen for, minus et eventuelt gebyr hos dit elselskab. Spotprisen er lavest, når solen skinner mest. Vi har hentet alle kvarterpriser fra Energinets [Energi Data Service](https://api.energidataservice.dk/dataset/DayAheadPrices?start=2026-01-01&end=2026-11-01&filter=%7B%22PriceArea%22:%5B%22DK1%22%5D%7D&limit=0) for januar-oktober 2026:
+
+| Prisområde | Gns. hele perioden | Gns. kl. 11-15, apr.-sep. | Gns. kl. 17-21, apr.-sep. |
+|---|---|---|---|
+| DK1 (Jylland, Fyn) | 0,84 kr./kWh | 0,30 kr./kWh | 1,12 kr./kWh |
+| DK2 (Sjælland, Bornholm) | 0,86 kr./kWh | 0,33 kr./kWh | 1,12 kr./kWh |
+
+Spotpriser ekskl. moms, tariffer og afgifter. Tidspunkter i dansk tid. Vores egen beregning på Energi Data Service-data, hentet 22. november 2026.
+
+Midt på dagen om sommeren var spotprisen altså under en tredjedel af aftenprisen. En solcelle-kWh, der sælges kl. 13 i juni, er derfor typisk meget mindre værd end en kWh, du selv bruger.
+
+## Hvad betyder den lave elafgift for solceller?
+
+Fra 1. januar 2026 til 31. december 2027 er elafgiften sat ned til 0,8 øre pr. kWh, skriver [Skattestyrelsen](https://skat.dk/erhverv/afgifter-paa-varer-og-ydelser-punktafgifter/nyhedsbrev-afgifter/midlertidig-nedsaettelse-af-elafgiften-i-2026-og-2027). Efter de almindelige regler ville den have været 72,7 øre ekskl. moms, oplyser [Skatteministeriet](https://skm.dk/media/fg2pvujk/faktaark-om-lempelse-af-elafgift.pdf). Lempelsen er 71,9 øre pr. kWh ekskl. moms.
+
+For en solcelleejer er det et tveægget sværd. Din elregning bliver lavere, men hver kWh, du selv producerer og bruger, sparer dig også for 71,9 øre mindre i afgift end efter de almindelige regler. Solcellernes besparelse er altså mindre i 2026 og 2027. Vi går i dybden i [Lav elafgift i 2026-27: sådan påvirker den solceller](/dk/blog/elafgift-og-solceller).
+
+## Hvor meget strøm giver solceller i Danmark?
+
+PVGIS, EU's solmodel, giver denne årsproduktion for 1 kWp med optimal hældning og 14 % systemtab:
+
+| By | kWh pr. kWp om året |
+|---|---|
+| Rønne | 1.134 |
+| København | 1.053 |
+| Odense | 1.015 |
+| Aarhus | 974 |
+| Herning | 942 |
+
+Kilde: PVGIS 5.3 pr. by, hentet 22. november 2026. Tallene gælder et tag uden skygge. Retning og skygge betyder typisk mere end postnummeret.
+
+### Hvornår på året kommer strømmen?
+
+PVGIS for 1 kWp i København:
+
+| Måned | kWh pr. kWp | Måned | kWh pr. kWp |
+|---|---|---|---|
+| Januar | 28 | Juli | 135 |
+| Februar | 48 | August | 122 |
+| Marts | 94 | September | 100 |
+| April | 130 | Oktober | 66 |
+| Maj | 143 | November | 30 |
+| Juni | 139 | December | 18 |
+
+Kilde: [PVGIS 5.3, København](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.6761&lon=12.5683&peakpower=1&loss=14&optimalangles=1&outputformat=json).
+
+April-september giver 769 kWh, omkring 73 % af årets 1.053 kWh. Det er netop de måneder, hvor spotprisen midt på dagen var lavest i 2026. Derfor giver det mening at dimensionere anlægget efter sommerens dagforbrug og ikke efter årsforbruget.
+
+## Hvordan regner jeg ud, om solceller betaler sig for mig?
+
+1. **Produktion.** Gang PVGIS-tallet for din by med anlæggets størrelse i kWp.
+2. **Egetforbrug.** Vurder, hvor stor en andel du bruger, mens solen skinner. Den andel er værd din fulde kWh-pris fra elregningen.
+3. **Salg.** Resten er værd omtrent spotprisen midt på dagen. Brug tallene i tabellen ovenfor som pejlemærke.
+4. **Tilbagebetaling.** Del prisen på anlægget med den årlige besparelse. Regn med en lav, en sandsynlig og en høj elpris, og regn også med, at elafgiften efter 2027 kan komme tilbage. Det er ikke besluttet.
+
+## Hvem kan solceller betale sig for i 2026?
+
+- Husstande med varmepumpe eller elbil, der kan flytte forbrug til dagtimerne.
+- Husstande, der er hjemme i dagtimerne.
+- Huse i Østdanmark og på Bornholm med god solindstråling og et sydvendt tag.
+
+Svært bliver det for husstande med lavt forbrug om dagen, meget skygge eller et tag, der snart skal skiftes.
+
+## Hvad skal jeg tjekke i et tilbud?
+
+Spørg, hvilken årlig produktion tilbuddet regner med, og sammenlign med PVGIS for din by. Spørg, hvilken andel egetforbrug der er antaget, og hvilken pris salget er regnet til. Regner tilbuddet med, at solgt strøm er lige så meget værd som købt strøm, er regnestykket for optimistisk. Se også [DK1 og DK2: spotpriser og salg af solstrøm](/dk/guides/dk1-dk2-salg-af-solstrom).

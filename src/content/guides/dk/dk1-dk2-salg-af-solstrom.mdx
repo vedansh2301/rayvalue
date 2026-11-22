@@ -1,0 +1,118 @@
+---
+title: "DK1 og DK2: spotpriser og salg af solstrøm i 2026"
+seoTitle: "DK1 vs DK2 elpris 2026: hvad er solstrøm værd?"
+description: "Hvad får du for solstrøm, du sælger, i Vest- og Østdanmark? Spotpriser fra Energi Data Service for 2026 viser, hvor lidt strømmen er værd midt på dagen, og hvor ofte prisen var negativ."
+country: dk
+lang: da-DK
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: chart
+sources:
+  - title: "Energi Data Service (Energinet): DayAheadPrices DK1, 1. januar–31. oktober 2026"
+    url: "https://api.energidataservice.dk/dataset/DayAheadPrices?start=2026-01-01&end=2026-11-01&filter=%7B%22PriceArea%22:%5B%22DK1%22%5D%7D&limit=0"
+  - title: "Energi Data Service (Energinet): DayAheadPrices DK2, 1. januar–31. oktober 2026"
+    url: "https://api.energidataservice.dk/dataset/DayAheadPrices?start=2026-01-01&end=2026-11-01&filter=%7B%22PriceArea%22:%5B%22DK2%22%5D%7D&limit=0"
+  - title: "Energistyrelsen: Fakta om flexafregning (13. december 2023)"
+    url: "https://ens.dk/media/1829/download"
+  - title: "Eurostat nrg_pc_204: husholdningers elpris inkl. afgifter, Danmark, 2026 1. halvår (2.500–4.999 kWh)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=DK&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "EU JRC PVGIS 5.3: månedsproduktion pr. kWp, Odense (optimal hældning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.4038&lon=10.4024&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+faq:
+  - question: "Hvad er forskellen på DK1 og DK2?"
+    answer: "Danmark er delt i to prisområder på elmarkedet. DK1 er Vestdanmark og DK2 er Østdanmark. Spotprisen kan være forskellig i de to områder time for time. I januar-oktober 2026 var gennemsnittet 0,84 kr. pr. kWh i DK1 og 0,86 kr. i DK2, ekskl. moms."
+  - question: "Hvad får jeg for solstrøm, jeg sælger?"
+    answer: "Som udgangspunkt spotprisen i dit prisområde på det tidspunkt, strømmen leveres, minus eventuelle gebyrer i din aftale. Midt på dagen i april-september 2026 var gennemsnittet 0,30 kr. i DK1 og 0,33 kr. i DK2 pr. kWh."
+  - question: "Hvor ofte er elprisen negativ midt på dagen?"
+    answer: "I april-september 2026 var spotprisen negativ i 15,4 % af kvartererne mellem kl. 11 og 15 i DK1 og i 7,4 % i DK2, ifølge vores beregning på Energi Data Service-data."
+todo:
+  - "Afgrænsning DK1 = Jylland/Fyn og DK2 = Sjælland/Bornholm: almindeligt kendt, men ikke citeret fra en Energinet-side i denne runde."
+  - "Typiske gebyrer for salg af solstrøm hos elselskaber: ikke indhentet."
+---
+
+Solstrøm, du sælger, er som udgangspunkt værd spotprisen i dit prisområde, og den var lav midt på dagen i 2026. Fra april til september lå spotprisen mellem kl. 11 og 15 i gennemsnit på 0,30 kr. pr. kWh i DK1 og 0,33 kr. i DK2, mens den mellem kl. 17 og 21 var omkring 1,12 kr. Forskellen mellem Vest- og Østdanmark er lille set over året, men den største forskel ligger i, hvornår på dagen strømmen leveres.
+
+## Nøgletal
+
+- **0,84 kr. (DK1) og 0,86 kr. (DK2)** pr. kWh: gennemsnitlig spotpris januar-oktober 2026, ekskl. moms (Energi Data Service).
+- **0,30 kr. (DK1) og 0,33 kr. (DK2)** pr. kWh: gennemsnit kl. 11-15 i april-september 2026.
+- **1,12 kr.** pr. kWh i begge områder: gennemsnit kl. 17-21 i april-september 2026.
+- **15,4 % (DK1) og 7,4 % (DK2)** af kvartererne kl. 11-15 i april-september 2026 havde negativ spotpris.
+- **1,77 kr. pr. kWh**: gennemsnitlig elpris for husholdninger alt inklusive, 1. halvår 2026 (Eurostat).
+
+Alle spotpriser er vores egne beregninger på samtlige 29.184 kvarterpriser pr. prisområde fra 1. januar til 31. oktober 2026, hentet 22. november 2026.
+
+## Hvad er DK1 og DK2?
+
+Elmarkedet i Danmark er delt i to prisområder: DK1 i Vestdanmark og DK2 i Østdanmark. Hver dag fastsættes en day-ahead-pris for hvert kvarter i hvert område. Når der er nok kapacitet i nettet mellem områderne og nabolandene, er priserne ens. Når der ikke er, kan de være forskellige.
+
+Energinet offentliggør priserne gratis i [Energi Data Service](https://api.energidataservice.dk/dataset/DayAheadPrices?start=2026-01-01&end=2026-11-01&filter=%7B%22PriceArea%22:%5B%22DK2%22%5D%7D&limit=0) i datasættet DayAheadPrices.
+
+## Hvad var spotprisen i DK1 og DK2 i 2026?
+
+Månedsgennemsnit for DK1, januar-oktober 2026, ekskl. moms:
+
+| Måned | DK1, kr. pr. kWh |
+|---|---|
+| Januar | 0,79 |
+| Februar | 0,72 |
+| Marts | 0,73 |
+| April | 0,62 |
+| Maj | 0,75 |
+| Juni | 0,82 |
+| Juli | 0,76 |
+| August | 0,94 |
+| September | 1,05 |
+| Oktober | 1,19 |
+
+Kilde: Energi Data Service, DayAheadPrices, vores beregning.
+
+Månedsgennemsnittet siger dog ikke meget om solstrøm. Solceller producerer det meste midt på dagen om sommeren, og netop dér er prisen lavest.
+
+## Hvad er solstrøm værd, når den sælges?
+
+| Prisområde | Kl. 11-15, apr.-sep. | Kl. 17-21, apr.-sep. | Andel negative kvarterer kl. 11-15 |
+|---|---|---|---|
+| DK1 | 0,30 kr./kWh | 1,12 kr./kWh | 15,4 % |
+| DK2 | 0,33 kr./kWh | 1,12 kr./kWh | 7,4 % |
+
+Kilde: Energi Data Service, vores beregning. Gennemsnit af kvarterpriser, ikke vægtet efter produktion.
+
+Tre ting at tage med:
+
+1. **Dagpris er en brøkdel af aftenpris.** Midt på dagen var strømmen under en tredjedel så meget værd som om aftenen.
+2. **Negative priser er ikke sjældne.** I DK1 var mere end hvert syvende kvarter mellem kl. 11 og 15 i sommerhalvåret negativt. Afhængigt af din aftale kan du i de kvarterer få intet eller skulle betale for at levere.
+3. **Vest har lidt lavere dagpriser.** Forskellen mellem DK1 og DK2 er 3 øre pr. kWh i gennemsnit midt på dagen. Det betyder mindre end, hvor meget du selv bruger.
+
+## Hvordan bliver solstrøm afregnet?
+
+Energistyrelsen beskriver i sit [faktaark om flexafregning](https://ens.dk/media/1829/download), at egenproducenter får udbetalt spotprisen i den time, strømmen sælges. Det gælder anlæg med aftagepligt, hvor salget går via Energinet. Har du en aftale med et elselskab om køb af din overskudsstrøm, står prisen og eventuelle gebyrer i aftalen. Læs den før du vælger.
+
+Ældre anlæg med årsbaseret nettoafregning har en særlig ordning. Ifølge Energistyrelsen afregnes selve strømmen og nettariffen efter flexafregning, men elafgiften er fortsat årsnettoafregnet. Med en elafgift på 0,8 øre pr. kWh i 2026 og 2027 er den fordel næsten væk i de to år.
+
+## Hvornår producerer solceller mest?
+
+PVGIS for 1 kWp i Odense, optimal hældning:
+
+| Måned | kWh pr. kWp |
+|---|---|
+| Januar | 25 |
+| April | 128 |
+| Juni | 134 |
+| August | 116 |
+| Oktober | 65 |
+| December | 19 |
+
+Kilde: [PVGIS 5.3, Odense](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.4038&lon=10.4024&peakpower=1&loss=14&optimalangles=1&outputformat=json).
+
+Omkring 73 % af årsproduktionen på 1.015 kWh falder i april-september (739 kWh). Det er de måneder, hvor spotprisen midt på dagen var lavest.
+
+## Hvad betyder det for dit regnestykke?
+
+- **Brug strømmen selv.** En kWh, du bruger selv, sparer dig for den fulde pris på elregningen. Eurostat angiver 1,77 kr. pr. kWh som gennemsnit for husholdninger i 1. halvår 2026.
+- **Flyt forbrug til middag.** Opvaskemaskine, vaskemaskine, varmtvandsbeholder og elbil.
+- **Overvej et batteri** hvis du har meget overskud. Forskellen mellem 0,30 kr. midt på dagen og 1,12 kr. om aftenen er det, et batteri kan tjene på, før tariffer og tab.
+- **Tjek din salgsaftale** for gebyrer og for, hvad der sker ved negative priser.
+
+Læs også [Kan solceller betale sig i 2026?](/dk/guides/kan-solceller-betale-sig-2026).

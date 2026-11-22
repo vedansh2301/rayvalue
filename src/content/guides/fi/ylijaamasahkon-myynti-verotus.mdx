@@ -1,0 +1,135 @@
+---
+title: "Ylijäämäsähkön myynti: mitä aurinkosähköstä saa ja miten se verotetaan"
+seoTitle: "Ylijäämäsähkön myynti ja verotus 2026: näin se toimii"
+description: "Aurinkopaneelien ylijäämäsähkö myydään sähköyhtiölle, ja korvaus on veronalaista ansiotuloa. Verohallinnon säännöt kuluista ja poistoista, milloin ylijäämää syntyy ja miksi oma käyttö on yleensä arvokkaampaa."
+country: fi
+lang: fi-FI
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: bill
+sources:
+  - title: "Verohallinto: Kotitalouden sähköntuotannon tuloverotus (syventävä ohje, voimassa 14.8.2024 alkaen)"
+    url: "https://www.vero.fi/syventavat-vero-ohjeet/ohje-hakusivu/48484/kotitalouden-sahkontuotannon-tuloverotus2/"
+  - title: "Eurostat nrg_pc_204: kotitalouksien sähkön hinta veroineen, Suomi, 2026 1. puolivuosi (2 500–4 999 kWh)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=FI&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "EU JRC PVGIS 5.3: kuukausituotto per kWp, Helsinki (optimikallistus)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=60.1699&lon=24.9384&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: kuukausituotto per kWp, Rovaniemi (optimikallistus)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=66.5039&lon=25.7294&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "Verohallinto: Kotitalousvähennys 2026–2027 (ohje, PDF)"
+    url: "https://www.vero.fi/globalassets/henkiloasiakkaat/kotitalousvahennys/ohje--kotitalousvahennys-2026-2027.pdf"
+faq:
+  - question: "Onko ylijäämäsähkön myynti veronalaista tuloa?"
+    answer: "On. Verohallinnon mukaan sähkön myynnistä saatu korvaus on veronalaista ansiotuloa, vaikka se hyvitettäisiin sähkölaskussa. Myyntiin kohdistuvat kulut ja poistot saa kuitenkin vähentää, joten verotettavaa tuloa jää usein vähän tai ei lainkaan."
+  - question: "Onko oman aurinkosähkön käyttö verovapaata?"
+    answer: "On. Verohallinnon mukaan kotitalouden itse tuottaman sähkön käyttö omiin tarpeisiin on verovapaata elantomenojen säästöä."
+  - question: "Paljonko ylijäämäsähköstä maksetaan?"
+    answer: "Hinta määräytyy sähköyhtiön kanssa tehdyn sopimuksen mukaan, ja se on usein sidottu pörssisähkön hintaan. Verohallinnon esimerkissä 1 000 kWh:sta maksettiin 40 euroa eli 4 senttiä kilowattitunnilta, mutta se on esimerkki eikä hintatieto."
+  - question: "Voinko vähentää tappiota sähkön myynnistä?"
+    answer: "Et. Verohallinnon mukaan kotitalouden sähkön myynnistä ei vahvisteta tappiota, eikä kuluja voi vähentää muista tuloista."
+todo:
+  - "Pörssisähkön (FI) kesäpäivien keskihinta 2025/2026: ei haettu (ENTSO-E tai Fingrid vaatii API-avaimen). Lisää taulukko."
+  - "Netotus (tunti/vartti) ja jakeluverkkoyhtiön siirtomaksu tuotannolle: Energiaviraston sivu ei auennut. Vahvista ennen julkaisua."
+  - "Ylijäämäsähkön ostajien tyypilliset marginaalit: ei haettu."
+---
+
+Aurinkopaneelien ylijäämäsähkö myydään sähköyhtiölle, ja saatu korvaus on Verohallinnon mukaan veronalaista ansiotuloa. Koska myyntiin kohdistuvat kulut ja poistot saa vähentää myyntitulosta, verotettavaa tuloa jää kotitaloudelle usein vähän tai ei ollenkaan. Itse käytetty aurinkosähkö taas on kokonaan verovapaata, ja se on lähes aina arvokkaampaa kuin myyty.
+
+## Tärkeimmät luvut
+
+- **Verovapaa**: oman tuotannon käyttö kotitalouden omiin tarpeisiin (Verohallinto, ohje voimassa 14.8.2024 alkaen).
+- **Ansiotuloa**: ylijäämäsähkön myynnistä saatu korvaus, maksettiinpa se rahana tai hyvityksenä sähkölaskussa (Verohallinto).
+- **Enintään 25 %** laitteiston poistamattomasta hankintamenosta voidaan poistaa vuodessa (Verohallinto).
+- **Ei tappiota**: kulut saa vähentää vain myyntitulon määrään asti (Verohallinto).
+- **0,27 €/kWh** kotitalouksien keskimääräinen sähkön hinta veroineen ja siirtoineen vuoden 2026 alkupuoliskolla (Eurostat).
+- **Joulukuu 11 kWh, kesäkuu 143 kWh** per kWp Helsingissä (PVGIS 5.3).
+
+## Miten ylijäämäsähkön myynti toimii?
+
+Kun paneelit tuottavat enemmän kuin talous sillä hetkellä käyttää, ylijäämä syötetään sähköverkkoon. Myyt sen sähköyhtiölle, jonka kanssa olet tehnyt sopimuksen. Hinta ja mahdolliset kulut määräytyvät sopimuksen mukaan. Vertaa ostajia ennen kuin sitoudut.
+
+Ylijäämää syntyy lähes pelkästään kesäpuolella. PVGIS-mallin mukaan 1 kWp:n järjestelmä tuottaa kuukausittain:
+
+| Kuukausi | Helsinki, kWh/kWp | Rovaniemi, kWh/kWp |
+|---|---|---|
+| Tammikuu | 16 | 3 |
+| Maaliskuu | 89 | 93 |
+| Toukokuu | 147 | 131 |
+| Heinäkuu | 145 | 112 |
+| Syyskuu | 84 | 61 |
+| Marraskuu | 16 | 6 |
+| Joulukuu | 11 | 0 |
+| Koko vuosi | 974 | 806 |
+
+Lähde: [PVGIS 5.3, Helsinki](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=60.1699&lon=24.9384&peakpower=1&loss=14&optimalangles=1&outputformat=json) ja [Rovaniemi](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=66.5039&lon=25.7294&peakpower=1&loss=14&optimalangles=1&outputformat=json), optimikallistus, haettu 22.11.2026.
+
+Talvella tuotto menee käytännössä kokonaan omaan käyttöön. Kesäpäivinä taas monessa omakotitalossa tuotto ylittää kulutuksen, ja silloin ylijäämää myydään.
+
+## Miten ylijäämäsähkön myyntiä verotetaan?
+
+Verohallinnon syventävä ohje [kotitalouden sähköntuotannon tuloverotuksesta](https://www.vero.fi/syventavat-vero-ohjeet/ohje-hakusivu/48484/kotitalouden-sahkontuotannon-tuloverotus2/) linjaa:
+
+1. **Oma käyttö on verovapaata.** Itse tuotetun sähkön käyttö kotitalouden omiin tarpeisiin on verovapaata elantomenojen säästöä.
+2. **Myynti on veronalaista ansiotuloa.** Korvaus on veronalaista, maksettiinpa se rahana tai hyvitettiinpä se sähkölaskussa.
+3. **Kulut saa vähentää.** Myyntiin kohdistuvat menot ja laitteiston poistot ovat vähennyskelpoisia, mutta vain myydyn sähkön osuudelta ja enintään myyntitulon määrään asti.
+4. **Poisto on enintään 25 %** laitteiston poistamattomasta hankintamenosta vuodessa. Muuten voit itse päättää poiston suuruuden.
+5. **Tappiota ei vahvisteta.** Kuluja ei voi vähentää muista tuloista.
+
+Myydyn sähkön osuus kuluista lasketaan jakamalla myyty sähkö tuotetulla sähköllä.
+
+## Verohallinnon esimerkki: miksi veroa ei yleensä jää maksettavaksi
+
+Verohallinnon ohjeen esimerkissä talous tuottaa vuodessa 6 000 kWh ja myy siitä 1 000 kWh. Myynnistä saadaan 40 euroa. Laitteiston poistamaton hankintameno on 5 000 euroa.
+
+| Erä | Summa |
+|---|---|
+| Myyntitulo | 40 € |
+| Talous päättää tehdä poiston | 210 € |
+| Huolto- ja ylläpitokulut | 30 € |
+| Kulut yhteensä | 240 € |
+| Myydyn sähkön osuus (1 000 / 6 000) kuluista | 40 € |
+| Verotettava tulo | 0 € |
+
+Lähde: Verohallinto, esimerkki 4. Luvut ovat ohjeen esimerkki, eivät tämän päivän sähkön hintoja.
+
+Verohallinnon mukaan kotitalouden myyntitulo on yleensä tuotantokustannuksiin suhteutettuna niin vähäinen, ettei siitä jää verotettavaa. Pidä silti kirjaa myynnistä, kuluista ja hankintamenosta, ja ilmoita tiedot veroilmoituksella.
+
+## Miten poisto lasketaan?
+
+Verohallinnon ohjeen esimerkissä 3 mökille hankitun aurinkosähköjärjestelmän hankinnasta, asennuksesta ja luvista kertyy 8 000 euroa menoja.
+
+| Vuosi | Poistamaton hankintameno | Enimmäispoisto (25 %) | Esimerkin poisto |
+|---|---|---|---|
+| 1. vuosi | 8 000 € | 2 000 € | 100 € |
+| 2. vuosi | 7 900 € | 1 975 € | valinnainen |
+
+Lähde: Verohallinto, esimerkki 3. Poiston voi siis valita itse 25 %:n rajaan asti. Vähennyskelpoista on kuitenkin vain myydyn sähkön osuus, ja enintään myyntitulon verran.
+
+## Miten myyntitulo ilmoitetaan?
+
+Verohallinnon ohjeen mukaan veronalaiset tulot ja niistä tehtävät vähennykset ilmoitetaan veroilmoituksella. Säilytä sähköyhtiön tilitykset myydystä sähköstä, laitteiston hankintalaskut ja huoltokulujen kuitit. Tarvitset ne, jos haluat vähentää kuluja ja poistoja myyntitulosta.
+
+Käytännön järjestys:
+
+1. Selvitä sähköyhtiön vuosiraportista myyty kWh-määrä ja saatu korvaus.
+2. Selvitä tuotettu kokonaismäärä invertterin tai sovelluksen tiedoista.
+3. Laske myydyn sähkön osuus: myyty kWh ÷ tuotettu kWh.
+4. Kerro vuoden kulut ja valitsemasi poisto tällä osuudella.
+5. Vähennä tulos myyntitulosta. Jos jäljelle jää nolla tai vähemmän, verotettavaa ei synny.
+
+## Entä asennuksen kotitalousvähennys?
+
+Kotitalousvähennys on eri asia kuin myyntitulon verotus. Asennustyöstä voi saada vähennystä 40 % työn osuudesta vuosina 2026–2027, enintään 2 100 euroa henkilöä kohden. Lisää: [Kotitalousvähennys aurinkopaneeleista 2026–2027](/fi/guides/kotitalousvahennys-aurinkopaneelit-2026).
+
+## Kannattaako sähkö myydä vai käyttää itse?
+
+Käytä mieluummin itse. Itse käytetty kilowattitunti säästää koko ostosähkön hinnan: energian, marginaalin, siirron ja verot. Eurostatin mukaan kotitalouksien keskihinta oli 0,2694 €/kWh vuoden 2026 alkupuoliskolla, kaikki kulut mukaan lukien. Myyty kilowattitunti tuottaa vain sopimuksen mukaisen korvauksen, joka on sidottu sähkön markkinahintaan juuri silloin, kun aurinko paistaa.
+
+Keinoja lisätä omaa käyttöä:
+
+- Ajasta lämminvesivaraaja, pyykinpesu ja astianpesu keskipäivään.
+- Lataa sähköauto päivällä, jos se on kotona.
+- Harkitse akkua vasta, kun olet laskenut, paljonko ylijäämää oikeasti syntyy.
+
+Lue myös [Milloin aurinkopaneelit eivät kannata](/fi/blog/milloin-aurinkopaneelit-eivat-kannata).

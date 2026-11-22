@@ -1,0 +1,119 @@
+---
+title: "Lønner solceller seg med Norgespris?"
+seoTitle: "Lønner det seg med Norgespris og solceller? Regnestykket 2026"
+description: "Med Norgespris betaler du 50 øre per kWh med mva for strøm du bruker. Det gjør hver kWh fra solcellene mindre verdt enn med høy spotpris. Slik regner du, og hvor i landet det er vanskeligst."
+country: "no"
+lang: nb-NO
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: scale
+sources:
+  - title: "Elhub: Spørsmål og svar om Norgespris (publisert 9. september 2025)"
+    url: "https://elhub.no/artikler/sporsmal-og-svar-om-norgespris"
+  - title: "NVE: Dette er Norgespris (informasjonsdokument)"
+    url: "https://www.nve.no/media/18826/1-dette-er-norgespris-v3.docx"
+  - title: "Enova: Solcelleanlegg (støtte for bolig)"
+    url: "https://enova.no/nb/privat/bolig/stotte/solcelleanlegg"
+  - title: "NVE RME: Plusskunder i Norge 2025: Lav vekst og rekordvolumer"
+    url: "https://www.nve.no/reguleringsmyndigheten/nytt-fra-rme/nyheter-reguleringsmyndigheten-for-energi/plusskunder-i-norge-2025-lav-vekst-og-rekordvolumer"
+  - title: "NVE: Enklere å produsere strøm selv (plusskunderegler)"
+    url: "https://www.nve.no/reguleringsmyndigheten/nytt-fra-rme/nyheter-reguleringsmyndigheten-for-energi/enklere-a-produsere-strom-selv/"
+  - title: "Eurostat nrg_pc_204: husholdningers strømpris inkl. avgifter, Norge, 2026 1. halvår (2 500–4 999 kWh)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=NO&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "EU JRC PVGIS 5.3: årsproduksjon per kWp, Kristiansand (optimal helning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=58.1599&lon=8.0182&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduksjon per kWp, Bergen (optimal helning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=60.3913&lon=5.3221&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduksjon per kWp, Tromsø (optimal helning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=69.6492&lon=18.9553&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduksjon per kWp, Trondheim (optimal helning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=63.4305&lon=10.3951&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduksjon per kWp, Oslo (optimal helning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=59.9139&lon=10.7522&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+faq:
+  - question: "Lønner det seg med solceller når jeg har Norgespris?"
+    answer: "Det blir vanskeligere. Med Norgespris sparer hver kWh du produserer og bruker selv deg for 50 øre med mva i strømpris, pluss nettleiens energiledd og avgifter. Med høy spotpris ville den samme kWh-en vært mer verdt. Hvor du bor, hvor mye du bruker selv og hva anlegget koster avgjør."
+  - question: "Får jeg Norgespris for strøm jeg selger?"
+    answer: "Nei. Elhub skriver at Norgespris bare gjelder strømmen du bruker. For strømmen du selger får du spotpris etter avtalen med strømleverandøren."
+  - question: "Kan jeg ha både strømstøtte og Norgespris?"
+    answer: "Ikke på samme strømmåler. Velger du Norgespris, mister du retten til strømstøtte på den måleren i avtaleperioden, ifølge Elhub."
+  - question: "Hvor lenge er jeg bundet til Norgespris?"
+    answer: "Den første avtaleperioden varer fra du bestiller til 31. desember 2026. Elhub skriver at senere avtaleperioder gjelder per kalenderår. Etter 14 dagers angrefrist er avtalen bindende ut perioden."
+todo:
+  - "Norgespris etter 2026 (varighet og pris): regjeringen.no blokkerte henting (403). Bekreft på regjeringen.no før publisering."
+  - "Strømstøtte 2026 (terskel og dekningsgrad): ikke hentet fra regjeringen.no (403). Lagt ut av artikkelen til det er bekreftet."
+  - "Forbruksavgift (elavgift) 2026 og typisk energiledd i nettleien: ikke hentet. Legg til når Skatteetaten/NVE-kilde er åpnet."
+  - "NVE-dokumentet 'Dette er Norgespris' er et arbeidsutkast (bestillingsdato 'xx'). Erstatt med en endelig NVE- eller regjeringen-side."
+---
+
+Solceller lønner seg dårligere med Norgespris enn med høy spotpris, fordi strømmen du slipper å kjøpe bare koster 50 øre per kWh med mva. Strømmen du selger, får du fortsatt spotpris for. Med Enova-støtte, høyt eget forbruk og et soltak på Sør- eller Østlandet kan regnestykket fortsatt gå opp, men på Vestlandet og i nord er det tynt.
+
+## Nøkkeltall
+
+- **50 øre per kWh med mva** (40 øre uten mva) er Norgespris for strøm du bruker (NVE og Elhub).
+- **5 000 kWh per måned** for husholdninger og **1 000 kWh** for fritidsboliger er taket for Norgespris (Elhub).
+- **31. desember 2026** er slutten på første avtaleperiode. Senere perioder gjelder per kalenderår (Elhub).
+- **Spotpris** gjelder fortsatt for strøm du selger. Norgespris gjelder ikke salg (Elhub).
+- **2,23 kroner per kWh** var gjennomsnittlig strømpris for husholdninger alt inkludert, 1. halvår 2026 (Eurostat). Snittet gjelder alle husholdninger, også dem uten Norgespris.
+- **732 til 1 032 kWh** per kWp per år, fra Tromsø til Kristiansand (PVGIS 5.3).
+
+## Hvordan fungerer Norgespris?
+
+Norgespris er en frivillig, statlig ordning med fast strømpris. NVE skriver at prisen er 50 øre per kWh med mva, eller 40 øre uten mva, og at boliger i Nordland, Troms og Finnmark ikke betaler mva på strøm og derfor betaler 40 øre.
+
+[Elhub](https://elhub.no/artikler/sporsmal-og-svar-om-norgespris) forklarer oppgjøret: Du betaler fortsatt strømleverandøren som før. Er spotprisen høyere enn Norgesprisen, dekker staten mellomlegget som et fradrag på nettleiefakturaen. Er spotprisen lavere, betaler du mellomlegget til nettselskapet. I tillegg betaler du påslag til leverandøren, nettleie og avgifter.
+
+Du kan ikke ha både Norgespris og strømstøtte på samme strømmåler.
+
+### Hva betyr bindingen for deg som har eller vurderer solceller?
+
+Ifølge Elhub bestiller du Norgespris på Elhub Min Side, og ordningen gjelder målepunkt registrert som husholdning eller fritidsbolig. Etter 14 dagers angrefrist er strømmåleren bundet til Norgespris ut avtaleperioden. Norgespris følger måleren, ikke personen. Selger du boligen, har du opplysningsplikt om at målepunktet er bundet.
+
+For en solcelleeier betyr det at du ikke kan veksle mellom Norgespris og spotpris fra måned til måned for å utnytte solsesongen. Du velger for hele avtaleperioden.
+
+## Hvorfor gjør Norgespris solceller mindre lønnsomme?
+
+En kWh fra solcellene som du bruker selv, er verdt det du ellers ville betalt for den kWh-en. Med Norgespris er strømdelen av den prisen låst til 50 øre med mva, uansett hvor høy spotprisen blir. Du sparer fortsatt nettleiens energiledd og avgifter, men strømdelen kan ikke lenger bli dyr.
+
+Uten Norgespris er det motsatt: Når spotprisen er høy, er solstrømmen din mye verdt. NVE skriver at de ekstraordinært høye strømprisene i 2022 og 2023 trolig førte til en ekstra økning i antall nye plusskunder.
+
+Elhub skriver også at strøm du produserer selv og bruker hjemme ikke gir støtte gjennom Norgespris, og at strøm du selger ikke gjør det heller. Det er bare forbruket fra nettet som blir prissikret.
+
+## Bør jeg selge eller bruke solstrømmen når jeg har Norgespris?
+
+Elhub gir en tommelfingerregel: Er spotprisen lavere enn 50 øre per kWh, lønner det seg å bruke strømmen selv i stedet for å selge den. Er spotprisen høyere enn 50 øre, er det salget som gir mest for selve strømmen. Husk likevel at en kWh du bruker selv også sparer deg for energiledd og avgifter. Det gjør ikke en kWh du selger.
+
+| Spotpris i timen | Strøm du bruker selv sparer | Strøm du selger gir | Hva lønner seg? |
+|---|---|---|---|
+| Under 50 øre | 50 øre + energiledd + avgifter | Spotpris minus påslag | Bruke selv |
+| Over 50 øre | 50 øre + energiledd + avgifter | Spotpris minus påslag | Avhenger av energiledd, avgifter og påslag |
+
+Beløp med mva der det gjelder. Energiledd og avgifter varierer med nettselskap og er ikke tatt med som tall her.
+
+## Hvor i landet er regnestykket vanskeligst?
+
+Solinnstrålingen varierer mye mellom landsdelene. PVGIS gir for 1 kWp med optimal helning:
+
+| Sted | kWh per kWp per år |
+|---|---|
+| Kristiansand | 1 032 |
+| Oslo | 958 |
+| Trondheim | 763 |
+| Tromsø | 732 |
+| Bergen | 723 |
+
+Kilde: PVGIS 5.3, hentet 22. november 2026.
+
+Et anlegg i Bergen gir rundt 30 prosent mindre strøm per kW enn det samme anlegget i Kristiansand. Enovas støtte er den samme per kW. Når strømmen i tillegg er priset til 50 øre, blir det vanskeligst på Vestlandet og i Nord-Norge. I Nordland, Troms og Finnmark er Norgespris 40 øre fordi det ikke er mva på strøm. Det gjør hver selvprodusert kWh enda litt mindre verdt.
+
+## Når kan solceller likevel lønne seg med Norgespris?
+
+- **Høyt eget forbruk om dagen.** Varmepumpe, varmtvann og elbil som lades når solen skinner.
+- **Stort forbruk over taket.** Forbruk over 5 000 kWh i måneden betales til avtalt pris med leverandøren, ikke Norgespris. Det gjelder få husholdninger om sommeren.
+- **Lav pris på anlegget.** Enova dekker 25 prosent av kostnadene, maks 2 500 kroner per kW. Se [Enova-støtte til solceller](/no/guides/sok-enova-for-kontrakt).
+- **Godt soltak** på Sør- og Østlandet.
+
+## Hva bør jeg passe på?
+
+Sjekk om tilbudet regner med en strømpris som er høyere enn det du faktisk betaler med Norgespris. Et tilbud som verdsetter solstrømmen til en høy spotpris, overvurderer besparelsen hvis du har Norgespris. Be om et regnestykke med 50 øre per kWh pluss ditt eget energiledd og avgifter, og et regnestykke uten Norgespris, så ser du spennet. Les også [Plusskunde forklart](/no/guides/plusskunde-forklart).

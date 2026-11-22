@@ -1,0 +1,122 @@
+---
+title: "Lönar sig solceller 2026 utan skattereduktionen?"
+seoTitle: "Lönar sig solceller 2026? Avdrag, elpris och solinstrålning"
+description: "Skattereduktionen på 60 öre/kWh för såld solel försvann 1 januari 2026. Så räknar du på solceller i dag: 15 % grön teknik-avdrag, elpriset och hur mycket solen ger där du bor."
+country: se
+lang: sv-SE
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: sun
+sources:
+  - title: "Skatteverket: Så fungerar skattereduktionen för grön teknik"
+    url: "https://www.skatteverket.se/privat/fastigheterochbostad/gronteknik/safungerarskattereduktionenforgronteknik.4.676f4884175c97df4192870.html"
+  - title: "Skatteverket: Mikroproduktion av förnybar el – privatbostad"
+    url: "https://www.skatteverket.se/privat/fastigheterochbostad/inkomsterfranbostad/mikroproduktionavfornybarelprivatbostad.4.12815e4f14a62bc048f41a7.html"
+  - title: "Riksdagen: Prop. 2024/25:109 Förändrade skattesubventioner för solceller och mikroproduktion av el"
+    url: "https://www.riksdagen.se/sv/dokument-och-lagar/dokument/proposition/forandrade-skattesubventioner-for-solceller-och_hc03109/html/"
+  - title: "Eurostat nrg_pc_204: hushållens elpris inkl. skatter, Sverige, 2026 halvår 1 (2 500–4 999 kWh)"
+    url: "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204?geo=SE&nrg_cons=KWH2500-4999&tax=I_TAX&currency=NAC&unit=KWH&time=2026-S1"
+  - title: "EU JRC PVGIS 5.3: årsproduktion per kWp, Malmö (optimal lutning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.6050&lon=13.0038&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduktion per kWp, Stockholm (optimal lutning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=59.3293&lon=18.0686&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduktion per kWp, Göteborg (optimal lutning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=57.7089&lon=11.9746&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduktion per kWp, Umeå (optimal lutning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=63.8258&lon=20.2630&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: årsproduktion per kWp, Luleå (optimal lutning)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=65.5848&lon=22.1547&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+faq:
+  - question: "Får jag fortfarande 60 öre per kWh för solel jag säljer?"
+    answer: "Nej. Skattereduktionen för mikroproduktion av förnybar el gäller inte el som matas in från och med 1 januari 2026. El du matade in till och med 31 december 2025 ger fortfarande reduktion i deklarationen 2026, enligt Skatteverket."
+  - question: "Hur stort är grön teknik-avdraget för solceller 2026?"
+    answer: "15 procent av kostnaden för arbete och material, för installationer som slutbetalats efter 30 juni 2025. Taket är 50 000 kronor i skattereduktion per person och år, och det delas med batteri och laddbox."
+  - question: "Hur lång är återbetalningstiden för solceller i Sverige?"
+    answer: "Det finns ingen officiell siffra, och den beror på pris, tak, elområde och hur mycket solel du använder själv. Räkna hellre ut din egen: årsproduktion per kWp gånger anläggningens storlek, fördelat på egenanvänd el (värd ditt fulla elpris) och såld el (värd betydligt mindre)."
+todo:
+  - "Installationspris per kW: ingen officiell svensk kostnadsserie hittad. Lägg till ett spann när en primärkälla finns (t.ex. Energimyndigheten)."
+  - "Eurostats pris är ett nationellt snitt för 2 500–4 999 kWh/år. Elområdesvisa priser (SE1–SE4) saknas, behöver ENTSO-E eller Nord Pool."
+---
+
+Ja, solceller kan fortfarande löna sig 2026, men kalkylen vilar nu nästan helt på den el du använder själv. Skattereduktionen på 60 öre per såld kWh försvann 1 januari 2026, så överskott som säljs är värt betydligt mindre än el du slipper köpa. Har du ett soligt tak, använder mycket el dagtid och utnyttjar 15 procents grön teknik-avdrag, är förutsättningarna fortfarande goda.
+
+## Nyckeltal
+
+- **0 kr** i skattereduktion för solel som matas in från 1 januari 2026. Tidigare 60 öre/kWh, max 18 000 kr/år (Skatteverket, hämtat 22 november 2026).
+- **15 %** grön teknik-avdrag på arbete och material för solceller, för installationer slutbetalda efter 30 juni 2025. Var 20 % innan (Prop. 2024/25:109).
+- **50 000 kr** högsta skattereduktion för grön teknik per person och år (Skatteverket, november 2026).
+- **3,30 kr/kWh** genomsnittligt hushållspris inklusive skatter och avgifter, första halvåret 2026, för 2 500–4 999 kWh/år (Eurostat).
+- **947 till 1 065 kWh** per installerad kWp och år, från Umeå till Malmö (PVGIS 5.3, optimal lutning).
+
+## Lönar sig solceller 2026?
+
+Frågan har blivit enklare att svara på, eftersom en del av kalkylen har försvunnit. Fram till och med 2025 fick du 60 öre per kWh som du matade in på nätet, upp till 30 000 kWh. Enligt regeringens proposition var den skattereduktionen i snitt cirka 3 300 kronor per år och hushåll under 2020–2023. Från 2026 är den borta, och [Skatteverket](https://www.skatteverket.se/privat/fastigheterochbostad/inkomsterfranbostad/mikroproduktionavfornybarelprivatbostad.4.12815e4f14a62bc048f41a7.html) skriver att du inte får någon skattereduktion för el du matar in från och med 1 januari 2026.
+
+Kvar finns två saker som ger värde:
+
+1. **El du använder själv.** Varje kWh från taket som du förbrukar direkt slipper du köpa. Den är värd ungefär ditt rörliga elpris inklusive energiskatt, moms och nätets rörliga avgift. Eurostat anger 3,30 kr/kWh som nationellt snitt för hushåll första halvåret 2026, allt inräknat.
+2. **El du säljer.** Överskottet säljer du till ett elhandelsföretag, plus en mindre ersättning för nätnytta från elnätsföretaget. Läs mer i [Sälja solel 2026](/se/blog/salja-solel-2026).
+
+Slutsatsen: ju större andel av produktionen du använder själv, desto bättre lönar sig anläggningen.
+
+## Hur mycket el ger solceller där du bor?
+
+Solinstrålningen varierar mindre i Sverige än många tror. PVGIS, EU:s solmodell, ger följande årsproduktion för en kWp med optimal lutning och 14 % systemförluster:
+
+| Ort | kWh per kWp och år | December | Juni |
+|---|---|---|---|
+| Malmö | 1 065 | 17 | 142 |
+| Stockholm | 992 | 14 | 139 |
+| Luleå | 1 014 | 0 | 149 |
+| Göteborg | 957 | 15 | 131 |
+| Umeå | 947 | 2 | 143 |
+
+Källa: [PVGIS 5.3](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=55.6050&lon=13.0038&peakpower=1&loss=14&optimalangles=1&outputformat=json) per ort, hämtat 22 november 2026. Siffrorna gäller ett ideal tak utan skugga. Ditt tak kan ge mindre.
+
+Två saker sticker ut. Norrland ligger nära södra Sverige på årsbasis, eftersom de ljusa sommarmånaderna väger upp. Men vintern ger nästan ingenting i norr, vilket betyder att nästan all produktion kommer när elen ofta är billigast.
+
+## Hur fungerar grön teknik-avdraget för solceller?
+
+Avdraget görs direkt på fakturan, ungefär som rotavdraget. Enligt [Skatteverket](https://www.skatteverket.se/privat/fastigheterochbostad/gronteknik/safungerarskattereduktionenforgronteknik.4.676f4884175c97df4192870.html) gäller detta:
+
+- **15 procent** av arbete och material för solceller. Resor, utrustning och projektering ger inget avdrag.
+- **Fast pris:** vid totalentreprenad kan arbete och material räknas till 97 procent av totalpriset.
+- **Tak:** högst 50 000 kronor i skattereduktion för grön teknik per person och år, sammanlagt för solceller, batteri och laddpunkt.
+- **Krav:** du ska äga bostaden, den ska ingå i ditt hushåll och anläggningen ska förse hushållet med el. Fritidshus du själv använder räknas.
+- **Skatt:** du måste ha betalat tillräckligt med skatt under året för att kunna använda hela reduktionen.
+
+Räkneexempel: en solcellsanläggning till fast pris på 120 000 kronor. 97 procent räknas som arbete och material, alltså 116 400 kronor. 15 procent av det ger 17 460 kronor i skattereduktion. Du betalar då 102 540 kronor. Beloppet 120 000 kronor är ett exempel, inte ett marknadspris.
+
+Kombinerar du med ett batteri ger batteridelen 50 procent i avdrag. Se [50 % grön teknik-avdrag på batteri](/se/guides/batteri-50-procent-avdrag).
+
+## Vad ändrades 2025 och 2026?
+
+| Datum | Ändring | Källa |
+|---|---|---|
+| 1 juli 2025 | Grön teknik för solceller sänktes från 20 % till 15 % (installationer slutbetalda efter 30 juni 2025) | Prop. 2024/25:109 |
+| 1 januari 2026 | Skattereduktionen på 60 öre/kWh för inmatad el slopades | Skatteverket, Prop. 2024/25:109 |
+| Deklarationen 2026 | Sista gången du får reduktionen, för el inmatad 2025 | Skatteverket |
+
+## Hur räknar jag ut om solceller lönar sig för mig?
+
+Gör en enkel kalkyl i fyra steg. Den ger ett spann, inte ett exakt svar.
+
+1. **Produktion.** Ta PVGIS-värdet för din ort och multiplicera med anläggningens storlek i kWp. Dra av för skugga och sämre väderstreck.
+2. **Egenanvändning.** Uppskatta hur stor andel du använder själv. Den andelen värderar du till ditt rörliga elpris, inklusive skatt och nätets rörliga avgift. Titta på din faktura.
+3. **Försäljning.** Resten värderar du till det elhandelsföretaget betalar plus nätnyttoersättningen. Sommarens mitt på dagen-priser är ofta låga.
+4. **Kostnad.** Ta offertpriset efter grön teknik-avdraget och dela med årsbesparingen. Gör räkningen med ett lågt, ett troligt och ett högt elpris.
+
+Faktorer som höjer lönsamheten är värmepump, elbil som laddas hemma dagtid, timprisavtal och ett hushåll som är hemma på dagarna. Faktorer som sänker den är skuggor, ett litet elbehov sommartid och ett lågt elpris i ditt elområde.
+
+## Vem lönar sig solceller bäst för 2026?
+
+- Villaägare i södra Sverige med söderläge och stort elbehov dagtid.
+- Hushåll med elbil eller värmepump som kan styra förbrukningen till soltimmarna.
+- Den som planerar att byta tak ändå, eftersom arbetet kan samordnas.
+
+Mindre attraktivt är det för hushåll med låg förbrukning, mycket skugga eller ett tak som snart behöver bytas. Där kan det vara klokare att vänta eller börja med en mindre anläggning dimensionerad för egen förbrukning.
+
+## Vad ska jag tänka på innan jag skriver på?
+
+Begär flera offerter och kontrollera att arbete och material är specificerade så att avdraget blir rätt. Kontrollera att företaget begär utbetalning från Skatteverket först när arbetet är slutfört och betalt. Fråga hur många kWh per år offerten räknar med och jämför med PVGIS för din ort. Är offertens siffra mycket högre bör du fråga varför.
