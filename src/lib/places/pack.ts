@@ -8,7 +8,7 @@
  * fetch script replace the pack's own yield rows for the same key (one provider, one method per country).
  */
 import { parseCsvObjects } from '../scrape/csv.ts';
-import type { PlaceCountryCode } from './config.ts';
+import { placeCountryByCode, type PlaceCountryCode } from './config.ts';
 import { ALLOWED_KEYS } from './gate.ts';
 
 export interface PackPlace {
@@ -16,6 +16,9 @@ export interface PackPlace {
   regionSlug: string;
   slug: string;
   name: string;
+  /** Nordic / CEE packs: the NUTS3 and NUTS2 codes whose Census 2021 figures the place page uses (from pages.csv). */
+  nuts3?: string;
+  nuts2?: string;
 }
 
 export interface PackFact {
@@ -56,24 +59,45 @@ const TITLE_NAME: Record<PlaceCountryCode, RegExp> = {
   GB: / in (.+?)\?$/,
   DE: / in (.+?): /,
   AU: / in (.+?): /,
+  ES: /^Placas solares en (.+?): /,
+  IE: /worth it in (.+?)\? /,
+  SE: /^Solceller i (.+?) [–-] /,
+  DK: /^Solceller i (.+?) [–-] /,
+  NO: /^Solceller i (.+?) [–-] /,
+  FI: /^Aurinkopaneelit (.+?) [–-] /,
+  PL: /^Fotovoltaika (.+?) [–-] /,
+  CZ: /^Fotovoltaika (.+?) [–-] /,
+  RO: /^Panouri fotovoltaice (.+?) [–-] /,
 };
+
+/** Countries whose per-place data is Eurostat Census 2021 by NUTS region (ownership at NUTS2, one-dwelling buildings at NUTS3). */
+export const NUTS_COUNTRIES: ReadonlySet<PlaceCountryCode> = new Set<PlaceCountryCode>(['SE', 'DK', 'NO', 'FI', 'PL', 'CZ', 'RO']);
+const NUTS_KEYS: Readonly<Record<string, 'nuts3' | 'nuts2'>> = { one_dwelling_share_pct: 'nuts3', owner_occupied_share_pct: 'nuts2' };
+const nutsCode = (region: string): string | null => /\(([A-Z0-9]{3,6})\)\s*$/.exec(region)?.[1] ?? null;
+/** "Stockholms län (SE110)" -> "Stockholms län": the area shown under a regional figure. */
+const nutsLabel = (region: string): string => region.replace(/\s*\([A-Z0-9]{3,6}\)\s*$/, '').trim();
 const titleCase = (slug: string): string => slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
 /** City rows of pages.csv: /<cc>/<topic>/<region>/<slug>, with the name taken from the page title. */
 export function parsePackPlaces(country: PlaceCountryCode, pagesCsv: string): PackPlace[] {
   const out: PackPlace[] = [];
   const seen = new Set<string>();
+  const countyPages = placeCountryByCode(country)?.countyPages === true;
   for (const r of parseCsvObjects(pagesCsv)) {
-    if (r.page_type !== 'city') continue;
     const parts = (r.url ?? '').split('/');
-    if (parts.length !== 5) continue;
+    // Ireland: a county page (/ie/solar-payback/<county>) is a place whose slug is its region slug.
+    const isCounty = countyPages && r.page_type === 'region' && parts.length === 4;
+    if (!isCounty && (r.page_type !== 'city' || parts.length !== 5)) continue;
     const regionSlug = parts[3]!;
-    const slug = parts[4]!;
+    const slug = isCounty ? regionSlug : parts[4]!;
     const k = `${regionSlug}/${slug}`;
     if (seen.has(k) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(regionSlug)) continue;
     seen.add(k);
-    const name = TITLE_NAME[country].exec(r.title ?? '')?.[1]?.trim() || titleCase(slug);
-    out.push({ country, regionSlug, slug, name });
+    let name = TITLE_NAME[country].exec(r.title ?? '')?.[1]?.trim() || titleCase(slug);
+    if (country === 'IE') name = name.replace(/ city$/, ' City');
+    const nuts3 = /one_dwelling_share_pct ([A-Z0-9]{3,6})/.exec(r.unique_data_sections ?? '')?.[1];
+    const nuts2 = /owner_occupied_share_pct ([A-Z0-9]{3,6})/.exec(r.unique_data_sections ?? '')?.[1];
+    out.push({ country, regionSlug, slug, name, ...(NUTS_COUNTRIES.has(country) && nuts3 ? { nuts3 } : {}), ...(NUTS_COUNTRIES.has(country) && nuts2 ? { nuts2 } : {}) });
   }
   return out;
 }
@@ -87,7 +111,11 @@ export function packFactsFromCsv(csv: string): PackFact[] {
 
 /** Where a pack fact for this place is filed in facts.csv `region`. */
 export function placeLocator(p: PackPlace): string {
-  return p.country === 'GB' ? p.slug : p.country === 'AU' ? `${p.regionSlug}/${p.slug}` : `city:${p.slug}`;
+  if (p.country === 'GB' || p.country === 'ES') return p.slug;
+  if (p.country === 'AU') return `${p.regionSlug}/${p.slug}`;
+  // Ireland files a county under its own slug and a town under "<county>/<town>".
+  if (p.country === 'IE') return p.regionSlug === p.slug ? p.slug : `${p.regionSlug}/${p.slug}`;
+  return `city:${p.slug}`;
 }
 
 export const slugify = (s: string): string => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -129,6 +157,16 @@ export function mapPackFacts(country: PlaceCountryCode, places: readonly PackPla
   const idx = new Map<string, PackFact[]>();
   const add = (f: PackFact) => {
     if (!allowed.has(f.key)) return skip('key not shown on place pages');
+    // Spain: only municipal Census rows (INE code of 5 digits); the autonomous-community and national rows describe a wider area.
+    if (country === 'ES' && (f.key === 'homeownership_pct' || f.key === 'non_principal_dwellings_pct') && !/^\d{5}\b/.test(f.excerpt)) return skip('regional or national row');
+    // Nordic / CEE: Census figures are filed by NUTS code, not by place.
+    if (NUTS_COUNTRIES.has(country) && NUTS_KEYS[f.key]) {
+      const code = nutsCode(f.region);
+      if (!code) return skip('no NUTS code');
+      const kk = `${f.key}|code:${code}`;
+      idx.set(kk, [...(idx.get(kk) ?? []), f]);
+      return;
+    }
     const k = `${f.key}|${f.region}`;
     idx.set(k, [...(idx.get(k) ?? []), f]);
   };
@@ -168,6 +206,13 @@ export function mapPackFacts(country: PlaceCountryCode, places: readonly PackPla
     // GB price-cap rates are the Ofgem REGION's, so they are filed below with scope 'region', never as place figures.
     for (const key of allowed) {
       if (country === 'GB' && (key === 'price_cap_unit_rate_dd' || key === 'price_cap_standing_charge_dd')) continue;
+      const level = NUTS_COUNTRIES.has(country) ? NUTS_KEYS[key] : undefined;
+      if (level) {
+        // The figure describes the NUTS region, not the place: it is stored with scope 'region' and the region's name.
+        const code = p[level];
+        if (code) for (const f of rowsFor(key, `code:${code}`)) push(p, f, 'region', nutsLabel(f.region));
+        continue;
+      }
       for (const f of rowsFor(key, loc)) push(p, f, 'place', null);
     }
 
@@ -190,9 +235,9 @@ export function mapPackFacts(country: PlaceCountryCode, places: readonly PackPla
   return { facts: out, skipped };
 }
 
-/** Region (slug -> name) pairs from the regions INSERT in migration 0033, so a dry run needs no database. */
+/** Region rows from the regions INSERTs in the places migrations (0033, 0034), so a dry run needs no database. */
 export function regionsFromMigration(sql: string): { country: string; code: string; name: string; slug: string }[] {
   const out: { country: string; code: string; name: string; slug: string }[] = [];
-  for (const m of sql.matchAll(/\('(GB|DE|AU)',\s*'([A-Z0-9-]+)',\s*'([^']+)',\s*'([a-z0-9-]+)'/g)) out.push({ country: m[1]!, code: m[2]!, name: m[3]!, slug: m[4]! });
+  for (const m of sql.matchAll(/\('([A-Z]{2})',\s*'([A-Z0-9-]+)',\s*'((?:[^']|'')+)',\s*'([a-z0-9-]+)',\s*(?:false|true)\)/g)) out.push({ country: m[1]!, code: m[2]!, name: m[3]!.replace(/''/g, "'"), slug: m[4]! });
   return out;
 }

@@ -5,7 +5,7 @@
  */
 import type { KeyNumber, KeyNumbersBlock } from '../seo/key-numbers.ts';
 import { maxDate } from '../seo/lastmod.ts';
-import { placeCountryByCode, placePath, regionHubPath, type PlaceCountry } from './config.ts';
+import { isRegionPage, placeCountryByCode, placePath, regionHubPath, type PlaceCountry } from './config.ts';
 import { SECTION_KEYS, evaluatePlace, isSourcedFact, type SectionId } from './gate.ts';
 import { formatDate, formatMoney, formatNumber, formatPercent, formatPeriod, monthLabels } from './format.ts';
 import { PLACE_TEXT, type PlaceDict } from './i18n.ts';
@@ -34,6 +34,8 @@ export interface PlaceView {
   lang: string;
   path: string;
   hubPath: string;
+  /** True for a county page served at the hub URL (IE): the page is its own region page, so it shows no region crumb. */
+  isRegionPage: boolean;
   regionName: string;
   name: string;
   title: string;
@@ -48,9 +50,9 @@ export interface PlaceView {
   text: PlaceDict;
 }
 
-type Kind = 'int' | 'dec1' | 'dec2' | 'pct' | 'money' | 'text';
+type Kind = 'int' | 'dec1' | 'dec2' | 'pct' | 'pct0' | 'pct2' | 'money' | 'text';
 /** How each fact key is formatted. `dataUnit`: print the unit stored with the fact (for rates whose unit carries VAT / GST terms). */
-const FORMATS: Readonly<Record<string, { kind: Kind; dataUnit?: boolean; showNote?: boolean }>> = {
+const FORMATS: Readonly<Record<string, { kind: Kind; dataUnit?: boolean; showNote?: boolean; areaNote?: boolean }>> = {
   solar_yield_kwh_per_kwp: { kind: 'int' },
   price_cap_region: { kind: 'text' },
   price_cap_unit_rate_dd: { kind: 'dec2', dataUnit: true },
@@ -58,7 +60,7 @@ const FORMATS: Readonly<Record<string, { kind: Kind; dataUnit?: boolean; showNot
   pv_installations_cumulative: { kind: 'int' },
   pv_installations_per_1000_households: { kind: 'dec1' },
   pv_capacity_mw_cumulative: { kind: 'dec1' },
-  homeownership_pct: { kind: 'pct' },
+  homeownership_pct: { kind: 'pct', areaNote: true },
   houses_pct: { kind: 'pct' },
   avg_install_cost_per_kw_0_4kw_mean: { kind: 'money' },
   avg_install_cost_per_kw_4_10kw_mean: { kind: 'money' },
@@ -78,14 +80,29 @@ const FORMATS: Readonly<Record<string, { kind: Kind; dataUnit?: boolean; showNot
   separate_houses_postal_area: { kind: 'int' },
   occupied_private_dwellings: { kind: 'int' },
   separate_house_pct: { kind: 'pct' },
+  // ES (INE): municipal Census 2021 shares, household income, municipal tax breaks.
+  non_principal_dwellings_pct: { kind: 'pct' },
+  household_net_income_avg: { kind: 'money' },
+  ibi_tax_rate_urban: { kind: 'pct2' },
+  municipal_ibi_bonus_pct: { kind: 'pct0' },
+  municipal_ibi_bonus_years: { kind: 'int' },
+  municipal_icio_bonus_pct: { kind: 'pct0' },
+  // IE (CSO Census 2022): the first words of the stored note name the statistical area the figure covers.
+  solar_pv_households_pct: { kind: 'pct2', areaNote: true },
+  solar_pv_households_count: { kind: 'int', areaNote: true },
+  house_share_pct: { kind: 'pct', areaNote: true },
+  detached_share_pct: { kind: 'pct', areaNote: true },
+  // Nordic / CEE (Eurostat Census 2021 by NUTS region).
+  owner_occupied_share_pct: { kind: 'pct' },
+  one_dwelling_share_pct: { kind: 'pct' },
 };
 
 /** Candidate facts to display: have a value, an http source and a check date, and are not "unverified". */
 const displayable = (f: PlaceFact): boolean => isSourcedFact({ ...f, confidence: 'primary' });
 
 /** The fact to show for a key: primary over secondary, then the latest period. */
-export function pickFact(facts: readonly PlaceFact[], key: string): PlaceFact | null {
-  const c = facts.filter((f) => f.key === key && displayable(f));
+export function pickFact(facts: readonly PlaceFact[], key: string, primaryOnly = false): PlaceFact | null {
+  const c = facts.filter((f) => f.key === key && displayable(f) && (!primaryOnly || f.confidence === 'primary'));
   if (c.length === 0) return null;
   return [...c].sort((a, b) => (a.confidence === b.confidence ? 0 : a.confidence === 'primary' ? -1 : 1) || (a.period < b.period ? 1 : a.period > b.period ? -1 : 0))[0] ?? null;
 }
@@ -107,6 +124,12 @@ export function censusAreaFromNote(note: string | null): string | null {
   return m?.[1] ?? null;
 }
 
+/** "Dublin city and suburbs, Counties Dublin & Meath: owner occupied ..." -> the text before the first ": " (IE notes start with the CSO area). */
+export function areaFromNote(note: string | null): string | null {
+  const m = /^([^:0-9]{3,160}?): /.exec(note ?? '');
+  return m?.[1] ?? null;
+}
+
 function formatValue(f: PlaceFact, kind: Kind, country: PlaceCountry, dataUnit: boolean, unitSuffix: string | undefined): string {
   const loc = country.locale;
   if (kind === 'text' || f.value_num === null) return f.value_text ?? '';
@@ -116,6 +139,8 @@ function formatValue(f: PlaceFact, kind: Kind, country: PlaceCountry, dataUnit: 
   else if (kind === 'dec1') v = formatNumber(n, loc, 1, 1);
   else if (kind === 'dec2') v = formatNumber(n, loc, 2, 2);
   else if (kind === 'pct') return formatPercent(n, loc, 1);
+  else if (kind === 'pct0') return formatPercent(n, loc, 0);
+  else if (kind === 'pct2') return formatPercent(n, loc, 2);
   else return `${formatMoney(n, country.currency, loc, 0)}${unitSuffix ?? ''}`;
   if (dataUnit && f.unit) return `${v} ${f.unit}`;
   return `${v}${unitSuffix ?? ''}`;
@@ -128,7 +153,7 @@ function lineFor(f: PlaceFact, country: PlaceCountry, text: PlaceDict): ViewLine
   const notes: string[] = [];
   if (f.scope === 'region' && f.scope_label) notes.push(text.scopeRegion(f.scope_label));
   if (f.scope === 'network' && f.scope_label) notes.push(text.scopeNetwork(f.scope_label));
-  const area = censusAreaFromNote(f.note);
+  const area = censusAreaFromNote(f.note) ?? (fmt.areaNote && country.code === 'IE' ? areaFromNote(f.note) : null);
   if (area) notes.push(text.geography(area));
   const period = formatPeriod(f.period, country.locale, text.periodTo);
   if (period) notes.push(period);
@@ -168,7 +193,8 @@ export function buildPlaceView(place: PlaceWithFacts, region: PlaceRegion): Plac
     const support = def.id === 'tariff' ? [country.code === 'GB' ? 'price_cap_region' : 'network_for_place'] : [];
     for (const key of [...support, ...def.keys]) {
       if (key === 'solar_yield_monthly_kwh_per_kwp') continue;
-      const f = pickFact(facts, key);
+      // Municipal tax breaks are shown only from a primary source (the ayuntamiento's ordinance); a trade-press figure never is.
+      const f = pickFact(facts, key, def.id === 'municipal');
       const line = f ? lineFor(f, country, text) : null;
       if (f && line) { lines.push(line); shown.push(f); }
     }
@@ -201,6 +227,7 @@ export function buildPlaceView(place: PlaceWithFacts, region: PlaceRegion): Plac
     lang: country.htmlLang,
     path: placePath(country, region.slug, place.slug),
     hubPath: regionHubPath(country, region.slug),
+    isRegionPage: isRegionPage(country, region.slug, place.slug),
     regionName: region.name,
     name: place.name,
     title: text.title(place.name),

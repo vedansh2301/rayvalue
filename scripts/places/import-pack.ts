@@ -6,7 +6,7 @@
  *
  *   npm run places:import -- --dir <packs dir> --dry-run     # plan + 3-section gate report, no network, no env
  *   npm run places:import -- --dir <packs dir>               # needs SUPABASE_URL + SUPABASE_SECRET_KEY
- *   options: --country gb|de|au (repeatable)
+ *   options: --country gb|de|au|es|ie|se|dk|no|fi|pl|cz|ro (repeatable)
  *
  * Optional pack files written by `npm run places:fetch-yield`: <dir>/<cc>/places_coords.csv, places_yield.csv. Their PVGIS
  * rows replace the pack's own yield rows. Run the fetch first (the dry run then reports the real gate numbers).
@@ -23,7 +23,7 @@ const dir = arg('dir')[0] ?? process.env.RVPLAN_COUNTRIES_DIR;
 const dry = process.argv.includes('--dry-run');
 const only = new Set(arg('country'));
 if (!dir || !existsSync(dir)) {
-  console.error('usage: import-pack --dir <countries dir> [--dry-run] [--country gb|de|au]');
+  console.error('usage: import-pack --dir <countries dir> [--dry-run] [--country gb|de|au|es|ie|se|dk|no|fi|pl|cz|ro]');
   process.exit(2);
 }
 
@@ -36,14 +36,14 @@ if (!dry && (!env.SUPABASE_URL || !env.SUPABASE_SECRET_KEY)) {
 // Regions: from the database on a real run, from the migration seed on a dry run (no network).
 let regions: { country: string; code: string; name: string; slug: string }[];
 if (dry) {
-  regions = regionsFromMigration(readFileSync(new URL('../../supabase/migrations/0033_places.sql', import.meta.url), 'utf8'));
+  regions = ['0033_places.sql', '0034_places_europe.sql'].flatMap((f) => regionsFromMigration(readFileSync(new URL(`../../supabase/migrations/${f}`, import.meta.url), 'utf8')));
 } else {
   const rows = await selectAll<{ country: string; code: string; name: string; slug: string }>(env as never, 'regions', { select: 'country,code,name,slug', order: 'country,code' }, fetch, 5);
-  if (!rows) throw new Error('could not read regions (is migration 0033 applied?)');
+  if (!rows) throw new Error('could not read regions (are migrations 0033 and 0034 applied?)');
   regions = rows;
 }
 
-const COUNTRIES: Record<string, PlaceCountryCode> = { gb: 'GB', de: 'DE', au: 'AU' };
+const COUNTRIES: Record<string, PlaceCountryCode> = { gb: 'GB', de: 'DE', au: 'AU', es: 'ES', ie: 'IE', se: 'SE', dk: 'DK', no: 'NO', fi: 'FI', pl: 'PL', cz: 'CZ', ro: 'RO' };
 const plans: CountryPlan[] = [];
 for (const [d, cc] of Object.entries(COUNTRIES)) {
   if (only.size && !only.has(d)) continue;

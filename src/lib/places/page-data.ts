@@ -3,7 +3,7 @@
  * Result: 'ok' with a PlaceRoute (which may itself be not_found), or 'unavailable' when the database failed (the route
  * then answers 503, never a 404 that would tell crawlers the page is gone).
  */
-import { placeCountryForRoute, placePath, regionHubPath } from './config.ts';
+import { isRegionPage, placeCountryForRoute, placePath, regionHubPath } from './config.ts';
 import { evaluatePlace, hubRenders } from './gate.ts';
 import { loadPlaceRegions, loadPublishedPlaces, type PlacesRepoDeps } from './repo.ts';
 import { resolvePlaceRoute, type PlaceRoute, type RouteParams } from './resolve.ts';
@@ -36,9 +36,14 @@ export async function loadPlaceRoute(params: RouteParams, deps: PlacesRepoDeps =
 
   const route = resolvePlaceRoute(params, { regions: regions.value, places: places.value });
   const renderable = places.value.filter((p) => evaluatePlace(country.code, p).renders);
+  const here = params.city ?? (country.countyPages ? region.slug : undefined);
   const others = renderable
-    .filter((p) => p.slug !== params.city)
+    .filter((p) => p.slug !== here)
     .sort((a, b) => a.name.localeCompare(b.name, country.locale))
     .map((p) => ({ name: p.name, href: placePath(country, region.slug, p.slug) }));
-  return { status: 'ok', route, others, hubHref: hubRenders(renderable.length) ? regionHubPath(country, region.slug) : null };
+  // The region link is the hub list, or the county's own page where there is one (never a link to the page itself).
+  const regionPageRenders = renderable.some((p) => isRegionPage(country, region.slug, p.slug));
+  const onRegionPage = route.kind === 'place' && route.view.isRegionPage;
+  const hubHref = !onRegionPage && (regionPageRenders || hubRenders(renderable.length)) ? regionHubPath(country, region.slug) : null;
+  return { status: 'ok', route, others, hubHref };
 }

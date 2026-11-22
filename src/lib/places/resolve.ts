@@ -3,7 +3,7 @@
  * when the place is published AND passes the 3-section gate; a region hub only when it lists >= MIN_HUB_PLACES of them.
  * Anything else is not_found (the route answers 404; unpublished places never leak).
  */
-import { placeCountryForRoute, placePath, regionHubPath, type PlaceCountry } from './config.ts';
+import { isRegionPage, placeCountryForRoute, placePath, regionHubPath, type PlaceCountry } from './config.ts';
 import { PLACE_TEXT, type PlaceDict } from './i18n.ts';
 import { evaluatePlace, hubRenders } from './gate.ts';
 import type { PlaceRegion, PlaceWithFacts } from './schema.ts';
@@ -32,7 +32,15 @@ export function resolvePlaceRoute(params: RouteParams, data: { regions: readonly
   const region = data.regions.find((r) => r.country === country.code && r.slug === params.region);
   if (!region) return { kind: 'not_found', country };
 
+  // Countries with county pages (IE): the region's own page is served at the hub URL and wins over the list; the same page
+  // is never also served one level down (/<county>/<county>).
+  if (country.countyPages && params.city === undefined) {
+    const own = data.places.find((p) => p.country === country.code && p.region_code === region.code && isRegionPage(country, region.slug, p.slug));
+    const ownView = own ? buildPlaceView(own, region) : null;
+    if (ownView) return { kind: 'place', view: ownView };
+  }
   if (params.city !== undefined) {
+    if (isRegionPage(country, region.slug, params.city)) return { kind: 'not_found', country };
     const place = data.places.find((p) => p.country === country.code && p.region_code === region.code && p.slug === params.city);
     const view = place ? buildPlaceView(place, region) : null;
     return view ? { kind: 'place', view } : { kind: 'not_found', country };

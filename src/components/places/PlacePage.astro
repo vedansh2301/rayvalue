@@ -1,6 +1,6 @@
 ---
 /**
- * One shared page for every non-US place (GB, DE, AU). It only prints the view model built by lib/places/view.ts:
+ * One shared page for every non-US place (GB, DE, AU, ES, IE, SE, DK, NO, FI, PL, CZ, RO). It only prints the view model built by lib/places/view.ts:
  * no math, no typed-in numbers. Sections, lines and their sources all come from place_facts.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -21,7 +21,7 @@ const { view, hubHref, others, articles, articlesIndexHref } = Astro.props;
 const t = view.text;
 const crumbs = [
   { label: t.home, href: `/${view.path.split('/')[1]}` },
-  ...(hubHref ? [{ label: view.regionName, href: hubHref }] : [{ label: view.regionName }]),
+  ...(view.isRegionPage ? [] : hubHref ? [{ label: view.regionName, href: hubHref }] : [{ label: view.regionName }]),
   { label: view.name },
 ];
 const kn = { source: t.source, ourData: t.sourceOurData, checked: t.checked, figuresChecked: t.figuresChecked };
