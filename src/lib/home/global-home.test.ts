@@ -64,8 +64,8 @@ describe('deadlines and latest', () => {
 });
 
 describe('liveCalculators', () => {
-  it('lists the two US state calculators and the UK one', () => {
-    expect(liveCalculators().map((c) => c.href)).toEqual(['/us/solar-payback/florida', '/us/solar-payback/california', '/uk/solar-calculator']);
+  it('lists the two US state calculators and the UK, German and Australian ones', () => {
+    expect(liveCalculators().map((c) => c.href)).toEqual(['/us/solar-payback/florida', '/us/solar-payback/california', '/uk/solar-calculator', '/de/photovoltaik-rechner', '/au/solar-battery-calculator']);
   });
 });
 

@@ -163,7 +163,14 @@ export function liveCalculators(): HomeCalculator[] {
     { href: calcPath('FL'), country: 'United States', label: 'Florida', fact: 'Net metering and tiered utility rates' },
     { href: calcPath('CA'), country: 'United States', label: 'California', fact: 'NEM 3.0 export rates and batteries' },
   ];
-  const uk = countryCalculator('uk');
-  if (uk) out.push({ href: uk.href, country: 'United Kingdom', label: 'United Kingdom', fact: 'Price cap and Smart Export Guarantee' });
+  const intl: { code: string; country: string; fact: string }[] = [
+    { code: 'uk', country: 'United Kingdom', fact: 'Price cap and Smart Export Guarantee' },
+    { code: 'de', country: 'Germany', fact: 'EEG feed-in tariff, batteries and 0% VAT' },
+    { code: 'au', country: 'Australia', fact: 'Network prices, feed-in rates and the battery rebate' },
+  ];
+  for (const c of intl) {
+    const calc = countryCalculator(c.code);
+    if (calc) out.push({ href: calc.href, country: c.country, label: c.country, fact: c.fact });
+  }
   return out;
 }
