@@ -1,6 +1,6 @@
 /**
  * Text dictionaries for the European place-page countries added after GB / DE / AU: ES, IE (English) and the Nordic /
- * CEE set (SE, DK, NO, FI, PL, CZ, RO). Labels and sentence frames only: every number on a page comes from place_facts,
+ * CEE set (SE, DK, NO, FI, PL, CZ, RO), plus FR and NL. Labels and sentence frames only: every number on a page comes from place_facts,
  * and nothing statistical is typed here (CLAUDE.md rule 1). Types come from i18n.ts (type-only import, no cycle).
  */
 import type { PlaceDict } from './i18n.ts';
@@ -439,4 +439,121 @@ const IE_TEXT: PlaceDict = {
   unavailable: { title: 'Page temporarily unavailable', h1: 'This page is being verified', body: 'Our data is temporarily unavailable. Please try again in a few minutes.' },
 };
 
-export const EU_PLACE_TEXT = { ES: ES_TEXT, IE: IE_TEXT, SE: SE_TEXT, DK: DK_TEXT, NO: NO_TEXT, FI: FI_TEXT, PL: PL_TEXT, CZ: CZ_TEXT, RO: RO_TEXT } as const;
+/**
+ * France and the Netherlands: the figures are the place's own (INSEE RP 2023 by commune, ODRE register; CBS StatLine by
+ * gemeente), so a place page has four sections: yield, ownership, dwellings, installs. Names are used without a
+ * preposition in French ("Panneaux solaires : Le Havre") so no article agreement can go wrong.
+ */
+const FR_TEXT: PlaceDict = {
+  home: 'Accueil',
+  source: 'Source',
+  sourceOurData: 'Source : nos données',
+  checked: 'vérifié le',
+  figuresChecked: 'Chiffres vérifiés le',
+  periodTo: 'au',
+  secondary: 'Source secondaire, non utilisée dans nos contrôles.',
+  scopeRegion: (l) => `Chiffre régional : ${l}`,
+  scopeNetwork: (l) => `Chiffre du réseau : ${l}`,
+  geography: (l) => `Zone : ${l}`,
+  title: (n) => `${n} : panneaux solaires, données locales sourcées`,
+  description: (n, r) => `Ensoleillement, propriétaires, maisons et installations photovoltaïques : ${n} (${r}). Chaque chiffre indique sa source et sa date.`,
+  h1: (n) => `Panneaux solaires : ${n}`,
+  intro: (n, r) => `Cette page réunit les chiffres locaux sourcés dont nous disposons pour ${n} (${r}). Chaque chiffre indique son éditeur et la date à laquelle nous l'avons vérifié.`,
+  keyNumbersHeading: (n) => `Solaire : ${n}, les chiffres clés`,
+  answerYield: (n, kwh, f) => `Selon le modèle, une installation de 1 kWc orientée plein ${f} et inclinée de façon optimale produit environ ${kwh} kWh par an (${n}).`,
+  facing: { south: 'sud', north: 'nord' },
+  sections: {
+    yield: { heading: (n) => `Ensoleillement : ${n}` },
+    ownership: { heading: (n) => `Propriétaires et locataires : ${n}`, intro: "Installer des panneaux est plus simple dans un logement dont on est propriétaire. Chiffres du recensement de la population 2023 de l'Insee pour la commune." },
+    dwellings: { heading: (n) => `Maisons et appartements : ${n}`, intro: "Le solaire en toiture est plus simple sur une maison. Chiffres du recensement de la population 2023 de l'Insee pour la commune." },
+    installs: { heading: (n) => `Solaire déjà installé : ${n}`, intro: "Installations photovoltaïques de toutes tailles raccordées au réseau public dans la commune, d'après le registre national des installations de production d'électricité (ODRÉ) au 30 septembre 2026. Toitures, bâtiments professionnels et centrales au sol sont comptés ensemble." },
+    housing: none, tariff: none, cost: none, zone: none, heating: none, income: none, municipal: none,
+  },
+  labels: {
+    solar_yield_kwh_per_kwp: 'Production annuelle de 1 kWc de panneaux',
+    owner_occupied_share_pct: 'Résidences principales occupées par leur propriétaire',
+    house_share_pct: 'Résidences principales qui sont des maisons',
+    pv_installations_cumulative: 'Installations photovoltaïques raccordées au réseau',
+    pv_capacity_mw_cumulative: 'Puissance photovoltaïque installée',
+  },
+  units: { solar_yield_kwh_per_kwp: ' kWh par an et par kWc', pv_installations_cumulative: ' installations', pv_capacity_mw_cumulative: ' MW' },
+  chart: {
+    heading: (n) => `Ensoleillement : ${n}`,
+    intro: (a) => `Production modélisée d'un kWc de panneaux en toiture, mois par mois, avec l'outil européen PVGIS${a ? ` : environ ${a} kWh par an` : ''}. La production réelle dépend du toit, des ombres et du matériel.`,
+    title: (n) => `Production solaire mensuelle modélisée par kWc : ${n}`,
+    month: 'Mois',
+    kwh: 'kWh par kWc',
+    pending: "L'estimation de production pour ce lieu est encore en cours de vérification.",
+    method: 'Méthode',
+    methodLine: (db, tilt, loss, f) => [`données ${db}`, tilt === null ? null : `panneaux inclinés à ${tilt}° (meilleur angle sur l'année)`, `orientés plein ${f}`, loss === null ? null : `${loss} % de pertes du système`].filter(Boolean).join(', '),
+  },
+  disclaimer: "Ce sont des statistiques publiées et une estimation modélisée pour la zone, pas un devis. Votre toit, les ombres, le matériel et votre contrat d'électricité déterminent votre résultat.",
+  methodologyLink: 'Comment RayValue source ses chiffres',
+  articlesHeading: 'À lire aussi',
+  articlesIndex: 'Tous les guides pour la France',
+  otherPlaces: (r) => `Autres villes : ${r}`,
+  hubTitle: (r) => `Panneaux solaires : ${r}, villes et données locales`,
+  hubDescription: (r) => `Données solaires locales des villes de la région ${r} : ensoleillement, propriétaires, maisons et installations, chacune avec sa source et sa date.`,
+  hubH1: (r) => `Panneaux solaires : ${r}`,
+  hubIntro: (r) => `Villes de la région ${r} avec des données solaires locales sourcées. Choisissez une ville pour voir les chiffres et leur origine.`,
+  notFound: { title: 'Page introuvable', h1: "Nous n'avons pas trouvé cette ville", body: "Nous n'avons pas encore de page pour cette ville.", link: 'Voir les guides pour la France' },
+  unavailable: { title: 'Page temporairement indisponible', h1: 'Cette page est en cours de vérification', body: 'Nos données sont temporairement indisponibles. Réessayez dans quelques minutes.' },
+};
+
+const NL_TEXT: PlaceDict = {
+  home: 'Home',
+  source: 'Bron',
+  sourceOurData: 'Bron: eigen gegevens',
+  checked: 'gecontroleerd op',
+  figuresChecked: 'Cijfers gecontroleerd op',
+  periodTo: 'tot',
+  secondary: 'Secundaire bron, niet gebruikt in onze controle.',
+  scopeRegion: (l) => `Gemeentecijfer: ${l}`,
+  scopeNetwork: (l) => `Netcijfer: ${l}`,
+  geography: (l) => `Gebied: ${l}`,
+  title: (n) => `Zonnepanelen ${n}: lokale gegevens met bronnen`,
+  description: (n, r) => `Opbrengst, koopwoningen, eengezinswoningen en zonnestroom op woningen in ${n}, ${r}. Elk cijfer met bron en datum.`,
+  h1: (n) => `Zonnepanelen ${n}`,
+  intro: (n, r) => `Deze pagina bundelt de onderbouwde lokale cijfers die we hebben voor ${n} (${r}). Bij elk cijfer staat de uitgever en de datum waarop we het controleerden.`,
+  keyNumbersHeading: (n) => `Zonnepanelen ${n}: kerncijfers`,
+  answerYield: (n, kwh, f) => `Een installatie van 1 kWp op het ${f} met optimale hellingshoek levert volgens het model in ${n} ongeveer ${kwh} kWh per jaar.`,
+  facing: { south: 'zuiden', north: 'noorden' },
+  sections: {
+    yield: { heading: (n) => `Hoeveel zon krijgt ${n}` },
+    ownership: { heading: (n) => `Koop en huur in ${n}`, intro: 'Zonnepanelen leg je het makkelijkst op een woning die je zelf bezit. Cijfers van het CBS (StatLine) voor de gemeente, stand 1 januari 2026. Het CBS telt een woning als koopwoning als de bewoner de eigenaar is of als het een tweede woning is.' },
+    dwellings: { heading: (n) => `Woningtypes in ${n}`, intro: 'Het dak van een eengezinswoning is meestal het eenvoudigst voor zonnepanelen. Cijfers van het CBS (StatLine) voor de gemeente, stand 1 januari 2026.' },
+    installs: { heading: (n) => `Zonnestroom die al op daken ligt in ${n}`, intro: 'Zonnestroominstallaties op woningen in de gemeente aan het einde van 2025, volgens het CBS. Het cijfer over 2025 is nader voorlopig.' },
+    housing: none, tariff: none, cost: none, zone: none, heating: none, income: none, municipal: none,
+  },
+  labels: {
+    solar_yield_kwh_per_kwp: 'Jaaropbrengst van 1 kWp zonnepanelen',
+    owner_occupied_share_pct: 'Koopwoningen als aandeel van de woningvoorraad',
+    house_share_pct: 'Eengezinswoningen als aandeel van de woningvoorraad',
+    pv_installations_cumulative: 'Zonnestroominstallaties op woningen',
+    pv_capacity_mw_cumulative: 'Opgesteld vermogen zonnepanelen op woningen',
+  },
+  units: { solar_yield_kwh_per_kwp: ' kWh per jaar per kWp', pv_installations_cumulative: ' installaties', pv_capacity_mw_cumulative: ' MW' },
+  chart: {
+    heading: (n) => `Hoeveel zon krijgt ${n}`,
+    intro: (a) => `Gemodelleerde opbrengst van 1 kWp zonnepanelen op een dak, maand voor maand, met het Europese hulpmiddel PVGIS${a ? `: ongeveer ${a} kWh per jaar` : ''}. De echte opbrengst hangt af van je dak, schaduw en apparatuur.`,
+    title: (n) => `Gemodelleerde maandopbrengst per kWp in ${n}`,
+    month: 'Maand',
+    kwh: 'kWh per kWp',
+    pending: 'De opbrengstschatting voor deze plaats wordt nog gecontroleerd.',
+    method: 'Methode',
+    methodLine: (db, tilt, loss, f) => [`${db}-gegevens`, tilt === null ? null : `panelen onder ${tilt}° (beste hoek over het jaar)`, `gericht op het ${f}`, loss === null ? null : `${loss}% systeemverlies`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'Dit zijn gepubliceerde statistieken en een modelschatting voor het gebied, geen offerte. Je dak, schaduw, apparatuur en energiecontract bepalen je resultaat.',
+  methodologyLink: 'Hoe RayValue zijn cijfers onderbouwt',
+  articlesHeading: 'Lees verder',
+  articlesIndex: 'Alle gidsen voor Nederland',
+  otherPlaces: (r) => `Andere plaatsen in ${r}`,
+  hubTitle: (r) => `Zonnepanelen in ${r}: plaatsen en lokale gegevens`,
+  hubDescription: (r) => `Lokale zonnegegevens voor plaatsen in ${r}: opbrengst, koopwoningen, woningtypes en zonnestroom, elk met bron en datum.`,
+  hubH1: (r) => `Zonnepanelen in ${r}`,
+  hubIntro: (r) => `Plaatsen in ${r} met onderbouwde lokale zonnegegevens. Kies een plaats om de cijfers en hun herkomst te zien.`,
+  notFound: { title: 'Pagina niet gevonden', h1: 'We vonden die plaats niet', body: 'Voor die plaats hebben we nog geen pagina.', link: 'Bekijk de gidsen voor Nederland' },
+  unavailable: { title: 'Pagina tijdelijk niet beschikbaar', h1: 'Deze pagina wordt gecontroleerd', body: 'Onze gegevens zijn tijdelijk niet beschikbaar. Probeer het over een paar minuten opnieuw.' },
+};
+
+export const EU_PLACE_TEXT = { ES: ES_TEXT, IE: IE_TEXT, SE: SE_TEXT, DK: DK_TEXT, NO: NO_TEXT, FI: FI_TEXT, PL: PL_TEXT, CZ: CZ_TEXT, RO: RO_TEXT, FR: FR_TEXT, NL: NL_TEXT } as const;

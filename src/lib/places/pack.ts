@@ -68,6 +68,8 @@ const TITLE_NAME: Record<PlaceCountryCode, RegExp> = {
   PL: /^Fotovoltaika (.+?) [–-] /,
   CZ: /^Fotovoltaika (.+?) [–-] /,
   RO: /^Panouri fotovoltaice (.+?) [–-] /,
+  FR: /^Panneaux solaires a (.+?) : /,
+  NL: /^Zonnepanelen (.+?): /,
 };
 
 /** Countries whose per-place data is Eurostat Census 2021 by NUTS region (ownership at NUTS2, one-dwelling buildings at NUTS3). */
