@@ -95,20 +95,35 @@ export function buildCountryCards(articles: readonly HomeArticle[], places: Read
 }
 
 /** Cards grouped by world region in the fixed REGIONS order; empty groups are dropped. A card with no region goes last under "Other". */
-export function groupByRegion(cards: readonly CountryCard[]): { region: Region | 'Other'; cards: CountryCard[] }[] {
-  const out: { region: Region | 'Other'; cards: CountryCard[] }[] = REGIONS.map((region) => ({ region, cards: cards.filter((c) => c.region === region) }));
+export function groupByRegion<T extends { region: Region | null }>(cards: readonly T[]): { region: Region | 'Other'; cards: T[] }[] {
+  const out: { region: Region | 'Other'; cards: T[] }[] = REGIONS.map((region) => ({ region, cards: cards.filter((c) => c.region === region) }));
   out.push({ region: 'Other', cards: cards.filter((c) => c.region === null) });
   return out.filter((g) => g.cards.length > 0);
 }
 
 const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
-/** Count line for a country card, e.g. "12 guides · 4 posts · 31 places"; zero counts are omitted. */
+/** Count line for a country card, e.g. "12 guides, 4 posts, 31 places"; zero counts are omitted. */
 export function cardCounts(c: Pick<CountryCard, 'guides' | 'blog' | 'places'>): string {
   const parts: string[] = [];
   if (c.guides > 0) parts.push(plural(c.guides, 'guide'));
   if (c.blog > 0) parts.push(plural(c.blog, 'post'));
   if (c.places > 0) parts.push(plural(c.places, 'place'));
-  return parts.join(' · ');
+  return parts.join(', ');
+}
+
+/** Content volume of a country card: what the "top countries" chooser ranks by. */
+export const cardWeight = (c: Pick<CountryCard, 'guides' | 'blog' | 'places'>): number => c.guides + c.blog + c.places;
+
+/** The `limit` countries with the most published content (ties by name), for the quick chooser above the fold. */
+export function topCountries(cards: readonly CountryCard[], limit = 8): CountryCard[] {
+  return [...cards].sort((a, b) => cardWeight(b) - cardWeight(a) || a.name.localeCompare(b.name)).slice(0, limit);
+}
+
+export interface SiteTotals { countries: number; guides: number; posts: number; places: number }
+
+/** Totals shown on the home page, summed from the same cards the picker lists (so they always match what is linked). */
+export function siteTotals(cards: readonly CountryCard[]): SiteTotals {
+  return cards.reduce<SiteTotals>((t, c) => ({ countries: t.countries + 1, guides: t.guides + c.guides, posts: t.posts + c.blog, places: t.places + c.places }), { countries: 0, guides: 0, posts: 0, places: 0 });
 }
 
 /** The published guides about a dated deadline. Which articles those are is an editorial list; titles and text come from frontmatter. */
@@ -131,9 +146,11 @@ const toLink = (a: HomeArticle): ArticleLink => {
 };
 
 /** The deadline guides that are live (published, indexable), in editorial order. Missing or noindex ones are skipped. */
-export function deadlineLinks(articles: readonly HomeArticle[]): ArticleLink[] {
+export function deadlineLinks(articles: readonly HomeArticle[], country?: string): ArticleLink[] {
   const out: ArticleLink[] = [];
+  const want = country ? (country.toLowerCase() === 'uk' ? 'gb' : country.toLowerCase()) : null;
   for (const d of DEADLINE_GUIDES) {
+    if (want && d.country !== want) continue;
     const hit = articles.find((a) => isLive(a) && a.collection === d.collection && a.country.toLowerCase() === d.country && articleSlug(a.id, d.country) === d.slug);
     if (hit) out.push(toLink(hit));
   }

@@ -8,6 +8,14 @@
   --color-sun-50: #fffbeb;
   --color-sun-100: #fef3c7;
   --color-sun-ink: #92400e; /* accent text on light backgrounds, 7:1 on white */
+  /* "Night sky" ink for hero bands and the countries menu: sun-400 on ink-900 is 9:1, ink-100 on ink-900 is 12:1. */
+  --color-ink-950: #0c1626;
+  --color-ink-900: #13233a;
+  --color-ink-800: #1b3250;
+  --color-ink-700: #2c4a73;
+  --color-ink-200: #c9d6e8;
+  --color-ink-100: #e6edf7;
+  --font-display: ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
 
   /* Page grid. The gutter is redefined per breakpoint below and must match the header padding. */
   --spacing-gutter: 1rem;
@@ -38,6 +46,18 @@
   margin-inline: auto;
   padding-inline: var(--spacing-gutter);
 }
+
+/* Display type: headlines on hero bands and section titles. System serif stack, so no font download. */
+@utility font-display-tight {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+/* Header menus are <details>: hide the default marker. */
+details.menu > summary { list-style: none; }
+details.menu > summary::-webkit-details-marker { display: none; }
+details.menu[open] > summary .chev { transform: rotate(180deg); }
 
 /* Horizontally scrollable rows (mobile nav) without a visible scrollbar. */
 @utility scrollbar-none {
@@ -70,8 +90,3 @@
 .prose-guide table { @apply mt-6 block w-full overflow-x-auto text-sm border-collapse; }
 .prose-guide th { @apply text-left font-semibold text-stone-900 border-b border-stone-300 px-3 py-2 whitespace-nowrap; }
 .prose-guide td { @apply border-b border-stone-200 px-3 py-2 align-top tabular-nums; }
-
-/* Blog/guides index state filter: radios + :has(), no JS. Each chip shows only articles tagged with that state. */
-.content-index:has(#f-fl:checked) [data-filterable]:has(> article:not([data-state='FL'])),
-.content-index:has(#f-ca:checked) [data-filterable]:has(> article:not([data-state='CA'])),
-.content-index:has(#f-both:checked) [data-filterable]:has(> article:not([data-state='both'])) { display: none; }
