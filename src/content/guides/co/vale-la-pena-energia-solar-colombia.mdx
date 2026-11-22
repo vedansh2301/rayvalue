@@ -1,0 +1,92 @@
+---
+title: "¿Vale la pena la energía solar en Colombia en 2026?"
+seoTitle: "¿Vale la pena la energía solar en Colombia en 2026?"
+description: "Para muchas casas sí: un kWp produce entre unos 1.300 y 1.580 kWh al año en Bogotá, Medellín y Barranquilla, la energía que inyectas se cruza kWh por kWh con la que compras y la Ley 1715 da beneficios tributarios. Te explicamos cuándo conviene más."
+country: co
+lang: es-CO
+published: 2026-11-22
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: sun
+sources:
+  - title: "EU JRC PVGIS 5.3: producción anual por kWp, Bogotá"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=4.711&lon=-74.072&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: producción anual por kWp, Medellín"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=6.244&lon=-75.574&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: producción anual por kWp, Barranquilla"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=10.964&lon=-74.796&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "CREG: Resolución 174 de 2021, art. 25 (reconocimiento de excedentes de AGPE), texto vigente"
+    url: "https://gestornormativo.creg.gov.co/gestor/entorno/docs/resolucion_creg_0174_2021.htm"
+  - title: "Secretaría del Senado: Ley 1715 de 2014 (texto vigente con Ley 2099 de 2021)"
+    url: "http://www.secretariasenado.gov.co/senado/basedoc/ley_1715_2014.html"
+  - title: "CREG: Proyecto de Resolución 701 160 de 2026 (borrador)"
+    url: "https://gestornormativo.creg.gov.co/gestor/entorno/docs/originales/Proyecto_Resoluci%C3%B3n_CREG_701_160_2026/"
+faq:
+  - question: "¿Vale la pena instalar paneles solares en Colombia?"
+    answer: "Vale la pena sobre todo si tu casa consume de día y el sistema se dimensiona para tu consumo. En Colombia, los excedentes que no superan lo que compras en el mes se cruzan kWh por kWh con tu consumo y solo pagas el componente de comercialización por ellos (CREG 174 de 2021, art. 25)."
+  - question: "¿Cuánto produce un panel solar en Bogotá?"
+    answer: "PVGIS 5.3 estima unos 1.324 kWh al año por cada kWp en Bogotá. En Medellín son unos 1.449 kWh y en Barranquilla unos 1.577 kWh."
+  - question: "¿Hay beneficios tributarios para paneles solares en Colombia?"
+    answer: "Sí. La Ley 1715 de 2014, modificada por la Ley 2099 de 2021, da exclusión de IVA, exención de aranceles, depreciación acelerada y una deducción de renta del 50 % de la inversión. Requiere certificación de la UPME, y la deducción solo sirve si declaras renta."
+todo:
+  - "Agregar el costo unitario (CU) por kWh y estrato de Enel, EPM y Air-e (el pliego de Enel bloqueó la descarga automática)."
+  - "Agregar precio instalado por kWp con fuente colombiana fechada."
+  - "Refetch PVGIS Cali (HTTP 500 el 22/11/2026)."
+---
+
+Sí, para muchas casas en Colombia la energía solar vale la pena en 2026. El país tiene buen sol todo el año, sin inviernos marcados: según PVGIS, un kWp produce unos 1.324 kWh al año en Bogotá y 1.577 kWh en Barranquilla. Además, la regulación de la CREG deja que la energía que inyectas a la red se cruce kWh por kWh con la que compras en el mes, y la Ley 1715 da beneficios tributarios. Conviene más a quien consume de día y dimensiona el sistema para su consumo.
+
+## Cifras clave
+
+- **1.324 kWh por kWp al año** en Bogotá, **1.449** en Medellín y **1.577** en Barranquilla (PVGIS 5.3, base ERA5, consultado el 22/11/2026).
+- **100 kW**: hasta esa capacidad, un autogenerador a pequeña escala paga solo el costo de comercialización por los excedentes que se cruzan con su consumo (CREG 174 de 2021, art. 25).
+- **50 %** de la inversión deducible de la renta, en hasta 15 años, para quien declara renta (Ley 1715, art. 11).
+- **30 años**: vigencia de los beneficios tributarios de la Ley 1715, contados desde el 1 de julio de 2021.
+
+## ¿Cuánto produce un sistema solar en tu ciudad?
+
+| Ciudad | kWh por kWp al año | Mes más bajo | Mes más alto |
+|---|---|---|---|
+| Bogotá | 1.324 | n/d | n/d |
+| Medellín | 1.449 | 101 | 140 |
+| Barranquilla | 1.577 | 114 | 157 |
+
+Datos de [PVGIS 5.3](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=10.964&lon=-74.796&peakpower=1&loss=14&optimalangles=1&outputformat=json) con 14 % de pérdidas e inclinación óptima. La base ERA5 es un reanálisis climático que sirve para comparar, no para garantizar la producción de un techo. La buena noticia frente a países con estaciones es que la producción casi no cambia en el año: en Medellín el mejor mes produce apenas un 40 % más que el peor.
+
+## ¿Qué pasa con la energía que no consumes?
+
+Esta es la gran ventaja de Colombia. Según el [artículo 25 de la Resolución CREG 174 de 2021](https://gestornormativo.creg.gov.co/gestor/entorno/docs/resolucion_creg_0174_2021.htm), en su texto vigente, para un autogenerador a pequeña escala (AGPE) de hasta 100 kW:
+
+| Tipo de excedente al cierre del mes | Cómo se reconoce |
+|---|---|
+| Excedentes que no superan tu importación de la red | **Crédito de energía**: se permutan kWh por kWh con lo que compraste; solo pagas el costo de comercialización (componente Cv) por esos kWh |
+| Excedentes que superan tu importación | Se liquidan al valor MC, un precio de referencia del mercado mayorista que publica el ASIC |
+
+En la práctica, mientras en el mes no produzcas más de lo que compras, la red funciona casi como una batería: lo que inyectas de día lo recuperas de noche pagando solo la comercialización. Lo que produces de más se paga a un precio mayorista, menor. Por eso conviene dimensionar para tu consumo mensual.
+
+## ¿Qué beneficios tributarios hay?
+
+La [Ley 1715 de 2014](http://www.secretariasenado.gov.co/senado/basedoc/ley_1715_2014.html), modificada por la Ley 2099 de 2021, ofrece exclusión de IVA en equipos y servicios, exención de aranceles para equipos importados que no se producen en el país, depreciación acelerada y la deducción del 50 % de la inversión en renta. Todos exigen que la UPME evalúe y certifique el proyecto. La deducción solo le sirve a quien está obligado a declarar renta. Lo detallamos en [beneficios tributarios de la Ley 1715](/co/guides/beneficios-tributarios-ley-1715).
+
+## ¿Para quién vale más la pena?
+
+- **Casas que consumen de día**: aire acondicionado en la Costa, negocios en casa, teletrabajo.
+- **Ciudades con más sol**: en Barranquilla un kWp produce cerca de un 19 % más que en Bogotá, según PVGIS.
+- **Quien declara renta**: puede sumar la deducción de la Ley 1715 al ahorro en el recibo.
+- **Quien compra con el IVA excluido**: pide al instalador que tramite la certificación de la UPME antes de facturar.
+
+Vale menos si tu consumo es bajo, si el techo tiene sombra o si vives en arriendo y no puedes hacer obras. Tu estrato también cuenta: en los estratos que reciben subsidio el kWh que evitas vale menos para ti que en los estratos que pagan contribución, aunque no tenemos aún las tarifas por estrato con fuente verificada para mostrarlo con números.
+
+## ¿Y el borrador de la CREG de noviembre de 2026?
+
+La CREG publicó el 9 de noviembre de 2026 un [proyecto de resolución](https://gestornormativo.creg.gov.co/gestor/entorno/docs/originales/Proyecto_Resoluci%C3%B3n_CREG_701_160_2026/) con reglas transitorias por El Niño. Es un borrador y cubre sistemas de entre 0,1 MW y 1 MW, no las casas típicas. Explicamos por qué en [el borrador CREG de noviembre de 2026 no aplica a hogares](/co/blog/borrador-creg-701-160-no-aplica-hogares).
+
+## Antes de cotizar
+
+1. Revisa tus recibos de 12 meses y anota los kWh de cada mes.
+2. Pide que la cotización indique kWp, inversor, producción anual estimada y si incluye el trámite de conexión con el operador de red.
+3. Pregunta si el instalador gestiona la certificación UPME para el IVA y la renta.
+4. Compara la producción prometida con la de PVGIS para tu ciudad.
+
+No publicamos todavía un plazo de recuperación para Colombia porque nos falta el precio por kWh por estrato y el costo instalado con fuente fechada. Ver la [metodología](/methodology).

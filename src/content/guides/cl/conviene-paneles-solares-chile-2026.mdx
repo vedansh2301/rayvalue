@@ -1,0 +1,105 @@
+---
+title: "¿Conviene instalar paneles solares en Chile en 2026?"
+seoTitle: "¿Conviene instalar paneles solares en Chile en 2026?"
+description: "En la mayor parte de Chile sí: el sol rinde entre 1.100 y 2.000 kWh por kWp al año y cada kWh que usas en casa evita cargos de la boleta que superan los $290. La clave es dimensionar para tu consumo, porque la energía inyectada se paga a menos."
+country: cl
+lang: es-CL
+published: 2026-11-22
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: sun
+sources:
+  - title: "EU JRC PVGIS 5.3: producción anual por kWp, Santiago"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=-33.438&lon=-70.65&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: producción anual por kWp, Antofagasta"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=-23.65&lon=-70.4&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: producción anual por kWp, Concepción"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=-36.827&lon=-73.05&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3: producción anual por kWp, Puerto Montt"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=-41.469&lon=-72.942&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "Chilquinta: tarifas de suministro, noviembre de 2026 (tarifa BT1A)"
+    url: "https://a.storyblok.com/f/82872/x/9e22fd8fb5/suministro_chilquinta_202611.pdf"
+  - title: "BCN LeyChile: DFL 4 (Ley General de Servicios Eléctricos), art. 149 bis"
+    url: "https://www.bcn.cl/leychile/navegar?idNorma=258171"
+  - title: "BCN LeyChile: Ley 21.118 (generadoras residenciales)"
+    url: "https://www.bcn.cl/leychile/navegar?idNorma=1125560"
+  - title: "Programa Casa Solar (Ministerio de Energía y Agencia de Sostenibilidad Energética)"
+    url: "https://www.casasolar.cl/"
+faq:
+  - question: "¿Conviene poner paneles solares en Chile?"
+    answer: "Conviene sobre todo si consumes de día y dimensionas el sistema para tu propio consumo. Según PVGIS, 1 kWp produce unos 1.606 kWh al año en Santiago y 1.991 kWh en Antofagasta. La energía que inyectas se valoriza al precio regulado de la energía, no a toda la boleta, así que sobredimensionar rinde menos."
+  - question: "¿Cuánto produce un panel solar en Santiago?"
+    answer: "PVGIS 5.3 estima unos 1.606 kWh al año por cada kWp instalado en Santiago, con 14 % de pérdidas del sistema. Un sistema de 2 kWp rondaría los 3.200 kWh al año."
+  - question: "¿Puedo vender la energía que sobra?"
+    answer: "Con la Ley 20.571, modificada por la Ley 21.118, la energía inyectada se descuenta de tu boleta. Los clientes residenciales con potencia conectada de hasta 20 kW pueden pedir el pago de los remanentes que no se alcanzaron a descontar en el plazo del contrato."
+todo:
+  - "Agregar el cargo BT1 de Enel Distribución (Región Metropolitana) cuando se pueda leer el pliego oficial vigente."
+  - "Confirmar si los valores del pliego de Chilquinta son netos de IVA."
+  - "Agregar un rango de precio instalado por kWp en 2026 con fuente chilena fechada."
+---
+
+Sí, en la mayor parte de Chile instalar paneles solares conviene en 2026, sobre todo si tu casa consume electricidad de día. El país tiene una radiación muy alta: según PVGIS, 1 kWp produce entre unos 1.124 kWh al año en Puerto Montt y 1.991 kWh en Antofagasta. La condición es dimensionar el sistema para tu consumo, porque la energía que inyectas a la red se valoriza por debajo de lo que pagas por cada kWh de la boleta.
+
+## Cifras clave
+
+- **1.606 kWh por kWp al año** en Santiago (PVGIS 5.3, base ERA5, consultado el 22/11/2026).
+- **1.991 kWh por kWp al año** en Antofagasta y **1.124** en Puerto Montt (misma fuente).
+- **176,601 $/kWh**: cargo por energía de la tarifa BT1A de Chilquinta en la mayoría de las comunas del pliego de noviembre de 2026.
+- **Más de 290 $/kWh** sumando los cargos variables de esa tarifa para consumos de hasta 350 kWh al mes (sin cargo fijo).
+- **300 kW**: tope de capacidad instalada por inmueble en la ley de generación distribuida (art. 149 bis, DFL 4).
+- **20 kW**: hasta esa potencia conectada, un cliente residencial puede pedir el pago en dinero de los remanentes (Ley 21.118).
+
+## ¿Cuánto producen los paneles solares en tu ciudad?
+
+Los datos son de [PVGIS 5.3](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=-33.438&lon=-70.65&peakpower=1&loss=14&optimalangles=1&outputformat=json), el modelo solar de la Comisión Europea, con 14 % de pérdidas del sistema e inclinación óptima. Para Chile usa la base de datos ERA5, que es un reanálisis climático: sirve para comparar ciudades, no para garantizar la producción de un techo concreto.
+
+| Ciudad | kWh por kWp al año | Mes más bajo | Mes más alto |
+|---|---|---|---|
+| Antofagasta | 1.991 | n/d | n/d |
+| Santiago | 1.606 | 61 | 207 |
+| Concepción | 1.475 | 42 | 206 |
+| Puerto Montt | 1.124 | 27 | 170 |
+
+Dos lecturas útiles. Primero, incluso en el sur la producción anual es buena para estándares internacionales. Segundo, la diferencia entre invierno y verano es enorme en la zona centro-sur: en Concepción un kWp produce unas cinco veces más en el mejor mes que en el peor. Eso importa para la boleta, porque en invierno vas a seguir comprando bastante energía a la red.
+
+## ¿Cuánto vale cada kWh que produces y consumes?
+
+Cada kWh que generas y usas en el momento no pasa por el medidor, así que te ahorras todos los cargos variables de ese kWh. En el [pliego de Chilquinta de noviembre de 2026](https://a.storyblok.com/f/82872/x/9e22fd8fb5/suministro_chilquinta_202611.pdf), la tarifa residencial BT1A suma, en la mayoría de las comunas:
+
+| Cargo variable (BT1A, consumo de hasta 350 kWh/mes) | $/kWh |
+|---|---|
+| Cargo por energía | 176,601 |
+| Cargo por potencia base, componente distribución | 43,588 |
+| Uso del sistema de transmisión | 38,243 |
+| Compras de potencia | 33,965 |
+| Servicio público base | 0,855 |
+| **Total cargos variables** | **293,252** |
+
+A eso se suma un cargo fijo mensual de $1.257,23. Algunas comunas del mismo pliego tienen un cargo por energía menor (por ejemplo 167,033 $/kWh), y otras distribuidoras tienen sus propios valores, así que revisa tu boleta.
+
+## ¿Y la energía que sobra?
+
+La que no consumes se inyecta a la red. El [artículo 149 bis de la Ley General de Servicios Eléctricos](https://www.bcn.cl/leychile/navegar?idNorma=258171) dice que esas inyecciones "serán valorizadas al precio que los concesionarios de servicio público de distribución traspasan a sus clientes regulados", más las menores pérdidas de la red. Ese valor se descuenta de la boleta del mes y, si sobra, de las siguientes. No es el total de los cargos que ves arriba: por eso conviene que la mayor parte de tu producción la consumas tú. Lo explicamos en detalle en [net billing en Chile (Ley 21.118)](/cl/guides/net-billing-ley-21118-explicado).
+
+## ¿Para quién conviene más?
+
+- **Casas con consumo diurno**: teletrabajo, piscina, bomba de agua, aire acondicionado o un auto eléctrico que carga de día.
+- **El norte grande y el centro**: más producción por cada peso invertido.
+- **Quien dimensiona bien**: un sistema pensado para cubrir tu consumo anual, no para producir el doble.
+- **Casas propias**: la conexión exige trámites con la SEC y la distribuidora a nombre del dueño.
+
+Conviene menos si casi no hay nadie en casa de día, si el techo tiene mucha sombra o si tu consumo es muy bajo, porque el cargo fijo de la boleta se paga igual.
+
+## ¿Hay subsidios para instalar paneles solares?
+
+El programa [Casa Solar](https://www.casasolar.cl/) del Ministerio de Energía cofinanció sistemas de 1 y 2 kWp mediante compras agregadas, con llamados por región. Al 22/11/2026 su sitio indica que las regiones completaron sus cupos y que las nuevas inscripciones quedan registradas para un próximo llamado. Revisa los detalles en nuestra guía del [Programa Casa Solar](/cl/guides/programa-casa-solar).
+
+## Antes de pedir cotizaciones
+
+1. Suma tus kWh de los últimos 12 meses en las boletas: es la base para dimensionar.
+2. Pide que la cotización indique kWp, marca y modelo del inversor y producción anual estimada.
+3. Verifica que el instalador sea autorizado por la SEC y que el precio incluya el trámite de conexión (TE4 y formularios con la distribuidora).
+4. Compara la producción estimada con los valores de PVGIS de tu ciudad: si la cotización promete mucho más, pregunta por qué.
+
+No publicamos aún un plazo de recuperación para Chile porque no tenemos un precio instalado por kWp con fuente chilena fechada. Puedes ver cómo calculamos en la [metodología](/methodology).
