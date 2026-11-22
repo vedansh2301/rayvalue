@@ -1,0 +1,122 @@
+---
+title: "Ontario solar rebate vs net metering: which should you choose?"
+seoTitle: "Ontario solar rebate vs net metering (2026)"
+description: "Ontario's Home Renovation Savings program pays up to $5,000 for solar and $5,000 for a battery, but taking it rules out net metering. Here is how to compare the two with sourced numbers."
+country: ca
+lang: en-CA
+published: 2026-11-22
+updated: 2026-11-22
+topic: scale
+draft: false
+noindex: true
+sources:
+  - title: "Home Renovation Savings (IESO and Enbridge Gas): solar panels and battery storage"
+    url: "https://www.homerenovationsavings.ca/without-assessment/solar"
+  - title: "Toronto Hydro: Solar for your home (net metering exclusion)"
+    url: "https://www.torontohydro.com/en/for-home/savings-sustainability/clean-technology-solutions/solar"
+  - title: "Hydro One: Net metering"
+    url: "https://www.hydroone.com/business-services/generators/net-metering"
+  - title: "Hydro One: Electricity price changes (RPP prices from November 1, 2026)"
+    url: "https://www.hydroone.com/billchanges"
+  - title: "NREL PVWatts v8 API (Toronto, 1 kW, fixed roof mount, 20 degree tilt, south, 14% losses; run 22 Nov 2026)"
+    url: "https://developer.nlr.gov/docs/solar/pvwatts/v8/"
+todo:
+  - "How exported power is treated for a Home Renovation Savings (load displacement) system is not spelled out on the program page. Confirm with IESO/LDCs whether export must be blocked or is simply uncredited."
+  - "O. Reg. 541/05 text could not be opened (ontario.ca 403, OEB unreachable). The 12-month credit rule is from Hydro One's page; confirm against the regulation."
+  - "Whether net metering credits offset delivery and regulatory charges (not just the commodity) varies by LDC; we treat commodity-only as the floor."
+  - "No neutral installed-cost source for Ontario yet, so no payback years are given."
+faq:
+  - question: "Can I get the Ontario solar rebate and net metering at the same time?"
+    answer: "No. The Home Renovation Savings program says participants who receive its solar PV and battery incentive are not eligible to sign a net metering agreement with their local utility. You choose one or the other."
+  - question: "How much is the Ontario solar rebate in 2026?"
+    answer: "$1,000 per kW of solar, up to 50% of total costs and up to $5,000. A paired battery can add $300 per kWh, up to 50% of costs and up to $5,000 (program page checked 22 Nov 2026)."
+  - question: "How long do Ontario net metering credits last?"
+    answer: "Hydro One says excess generation credits can be carried forward for a consecutive 12-month period to offset future electricity costs. Fixed charges such as the monthly service charge cannot be offset."
+  - question: "Which option is better?"
+    answer: "The rebate suits homes that use most of their solar output on site, especially with a battery. Net metering suits larger systems that export a lot in summer. Compare your expected lifetime exports against the size of the rebate, as shown in this guide."
+---
+
+In Ontario you must choose. The Home Renovation Savings rebate pays up to $5,000 for solar panels and up to $5,000 for a paired battery, but anyone who takes it cannot sign a net metering agreement. Net metering gives no cash up front, but it credits the power you send to the grid against later bills for up to 12 months.
+
+## Key numbers
+
+- **$1,000 per kW** of solar, capped at 50% of total costs and **$5,000** (Home Renovation Savings, checked 22 Nov 2026).
+- **$300 per kWh** of battery storage, capped at 50% of costs and **$5,000** (same source).
+- **No net metering** for rebate recipients. Systems are for "load displacement only" (Home Renovation Savings; Toronto Hydro).
+- **12 months**: how long net metering credits can be carried forward (Hydro One, checked 22 Nov 2026).
+- **9.1¢ / 14.6¢ / 18.9¢ per kWh**: Ontario time-of-use off-peak, mid-peak and on-peak prices, 1 Nov 2026 to 31 Oct 2027 (Hydro One, quoting OEB prices).
+- **1,276 kWh per kW per year**: modelled output for a south-facing roof in Toronto (NREL PVWatts v8, run 22 Nov 2026).
+
+## What does the Ontario solar rebate pay?
+
+The Home Renovation Savings program is run by the IESO (through Save on Energy) and Enbridge Gas. For solar it pays $1,000 per kW of capacity, up to 50% of total costs, to a maximum of $5,000. A battery adds $300 per kWh, up to 50% of costs, to a maximum of $5,000. No home energy assessment is needed.
+
+The battery has to come with a new solar system. The program says the battery must be "paired with a new solar PV system and sized appropriately" and designed mainly to store solar power rather than grid power.
+
+| | Rebate | Cap |
+|---|---|---|
+| Solar panels | $1,000 per kW | 50% of costs, max $5,000 |
+| Battery storage | $300 per kWh | 50% of costs, max $5,000 |
+| Both together | Sum of the two | up to $10,000 |
+
+A 5 kW system reaches the $5,000 solar cap, as long as $5,000 is no more than half of what it cost. A battery reaches the $5,000 battery cap at about 16.7 kWh ($5,000 divided by $300).
+
+## Why can't you have both?
+
+The program page is direct: participants who get its solar and storage incentive "are not eligible to participate in a net-metering agreement with their LDC" (local distribution company). The incentives are for "load displacement only", which the program describes as solar output used to meet the home's own energy needs. Toronto Hydro repeats the same exclusion on its solar page.
+
+So the choice is between cash now and credit for exports later.
+
+## How does Ontario net metering work?
+
+Under net metering you still pay your normal bill, but surplus solar power sent to the grid earns a credit. Hydro One says credits "can be carried forward for a consecutive 12-month period to offset future electricity costs". Its page also says fixed charges, such as the monthly service charge, cannot be offset. The system must use a renewable source and generate "primarily for their own use".
+
+The 12-month limit matters. Ontario panels produce most in late spring and summer, so a system sized to bank summer credits for winter has to use them within the year or lose them.
+
+## How do I compare the rebate with net metering?
+
+Start with what each exported kWh is worth under net metering. At a minimum, a credit offsets the electricity price you would otherwise pay. Ontario's regulated time-of-use prices from 1 November 2026 are:
+
+| Period | Price per kWh |
+|---|---|
+| Off-peak | 9.1¢ |
+| Mid-peak | 14.6¢ |
+| On-peak | 18.9¢ |
+
+On the Ultra-Low Overnight plan, the overnight price is 3.7¢ and the on-peak price is 37.7¢ (Hydro One). Some utilities may also credit part of the delivery charges, so treat these commodity prices as a floor. Ask your utility how it calculates credits.
+
+Now compare the rebate with that value. This is simple arithmetic, not a forecast:
+
+- $5,000 divided by 18.9¢ is about **26,500 kWh** of exports.
+- $5,000 divided by 9.1¢ is about **54,900 kWh** of exports.
+
+If you expect your system to export more than roughly 26,500 to 55,000 kWh over its life, and you would actually use those credits within each 12-month window, net metering can be worth more than the $5,000 solar rebate. If you would export less, the rebate wins. The rebate is also paid now, while credits arrive over many years.
+
+For scale, PVWatts models about 1,276 kWh per kW per year in Toronto. A 5 kW system would make about 6,380 kWh a year. How much of that goes to the grid depends on when you use power, which is why a battery changes the answer.
+
+## Does adding a battery change the answer?
+
+Yes. With a battery, more of your daytime surplus is stored and used in the evening instead of being exported. That shrinks the export volume that net metering would have credited, so the rebate route looks better. Under the rebate you also get up to $5,000 toward the battery itself.
+
+Without a battery, a home that is empty during the day may export a large share of its output. That household loses more by giving up net metering.
+
+## Who should take the rebate?
+
+- Homes that use most of their solar power while it is being made, for example with people home during the day, a heat pump or an EV charged at midday.
+- Anyone adding a battery, since the battery keeps surplus on site and earns its own rebate.
+- Smaller systems near 5 kW, where the $5,000 solar cap is a large share of the cost.
+
+## Who should choose net metering?
+
+- Larger systems that will export a lot in summer and can use the credits within 12 months.
+- Homes with low daytime use and no plans for a battery.
+- Homes that do not meet the program rules. Home Renovation Savings requires that you own and live in a detached, semi-detached, row house, townhome or mobile home on a permanent foundation, are at least 18 and are connected to the Ontario grid. Cornwall Electric customers are not eligible.
+
+## What should I do before signing?
+
+1. **Get pre-approval first.** The program says not to buy or install any equipment before written pre-approval from Home Renovation Savings and your utility.
+2. **Ask your installer for an hourly production and use estimate.** You need an export estimate to compare the two options.
+3. **Ask your utility** how net metering credits are calculated on your rate plan.
+4. **Watch for scams.** The program warns about fake websites and people impersonating its contractors.
+
+For the full rebate rules, see [Ontario solar and battery rebates explained](/ca/guides/ontario-solar-battery-rebates). For the wider picture, read [is solar worth it in Canada in 2026](/ca/blog/is-solar-worth-it-canada-2026).
