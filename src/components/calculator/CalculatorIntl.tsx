@@ -92,6 +92,15 @@ export default function CalculatorIntl(props: UkCalculatorProps) {
   const offer = offers.find((o) => o.id === offerId);
   const region = utilities.find((u) => u.id === regionId);
 
+  // ?bill= (monthly bill in the local currency) and ?battery=1 prefill the form (links from the home-page report).
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const b = Number(q.get('bill'));
+    if (q.get('bill') && Number.isFinite(b) && b > 0 && b <= maxBill) { setMode('bill'); setUsageRaw(String(Math.round(b))); }
+    if (q.get('battery') === '1' && batteryOk) setBattery(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (focusResults.current && resultsRef.current) {
       resultsRef.current.focus({ preventScroll: true });

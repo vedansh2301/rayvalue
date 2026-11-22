@@ -194,6 +194,17 @@ export default function QuoteForm(p: Props) {
     if (/^\d{5}$/.test(z) && !touched.current.has('zip')) setValues((v) => ({ ...v, zip: z }));
     const src = q.get('source') ?? '';
     if (SOURCE_PARAM_RE.test(src)) setSource(src);
+    // Answers carried over from the home-page report flow: only valid option values are accepted, all stay editable.
+    const pre: Partial<Values> = {};
+    const bucket = billToBucket(Number(q.get('bill')));
+    if (bucket) pre.bill_bucket = bucket;
+    const bat = q.get('battery') ?? '';
+    if ((BATTERY_INTERESTS as readonly string[]).includes(bat)) pre.battery_interest = bat;
+    const tl = q.get('timeline') ?? '';
+    if ((TIMELINES as readonly string[]).includes(tl)) pre.timeline = tl;
+    const own = q.get('homeowner') ?? '';
+    if (own === 'yes' || own === 'no') pre.homeowner = own;
+    if (Object.keys(pre).length) setValues((v) => ({ ...v, ...pre }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

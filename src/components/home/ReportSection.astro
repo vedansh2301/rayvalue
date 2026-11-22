@@ -1,30 +1,37 @@
 ---
 /**
- * "Know your payback before an installer names a price." A country chooser that opens that country's calculator (or its
- * guides where no calculator exists yet). There is no lead form here: installer quotes exist for US homes only and
- * live on /quotes, linked when a US option is chosen.
+ * "Know your payback before an installer names a price." The 3-step report flow (ReportFlow island). Installer quotes
+ * and consent exist for US homes only; every other country ends at its calculator or guides, never a personal-data form.
  */
-import CountryOutline from '../brand/CountryOutline.astro';
 import Icon, { type IconName } from '../icons/Icon';
+import ReportFlow from './ReportFlow';
+import { COUNTRY_OUTLINES } from '../../lib/brand/country-outlines';
 import type { Destination } from '../../lib/home/global-home';
 
 interface Props { destinations: Destination[]; quick: string[] }
 const { destinations, quick } = Astro.props;
-const byKey = new Map(destinations.map((d) => [d.key, d]));
-const quickDest = quick.map((k) => byKey.get(k)).filter((d): d is Destination => !!d);
-const first = quickDest[0] ?? destinations[0];
-const short: Record<string, string> = { 'us-fl': 'US: Florida', 'us-ca': 'US: California', uk: 'UK' };
+// One entry per country (the US has two calculators; the flow hands US homes to the quote form instead).
+const countries = [...new Map(destinations.map((d) => [d.segment, {
+  code: d.segment,
+  name: d.segment === 'us' ? 'United States' : d.label,
+  href: d.href,
+  kind: d.kind,
+}])).values()].sort((a, b) => a.name.localeCompare(b.name));
+const short: Record<string, string> = { us: 'USA', uk: 'UK' };
+const quickSegs = quick.map((k) => (k.startsWith('us-') ? 'us' : k)).filter((k, i, a) => a.indexOf(k) === i && countries.some((c) => c.code === k));
+const quickPairs: [string, string][] = quickSegs.map((k) => [k, short[k] ?? countries.find((c) => c.code === k)!.name]);
+const outlines = Object.fromEntries(quickSegs.filter((k) => COUNTRY_OUTLINES[k]).map((k) => [k, COUNTRY_OUTLINES[k]]));
 const steps: { icon: IconName; title: string; body: string }[] = [
-  { icon: 'home', title: 'Tell us about your home', body: 'Your country, your bill and what you are deciding on' },
+  { icon: 'home', title: 'Tell us about your home', body: 'Country, bill and what you\u2019re deciding on' },
   { icon: 'chart', title: 'Get low, likely and high ranges', body: 'Every assumption and source listed' },
-  { icon: 'users', title: 'Compare quotes (US homes)', body: 'Optional. Up to 3 local installers, shared only with the ones you choose' },
+  { icon: 'users', title: 'Compare up to 3 real quotes (US homes)', body: 'Optional. Shared only with installers you choose' },
 ];
 ---
 <section id="report" class="scroll-mt-16 bg-gradient-to-b from-sky-pastel-200 to-sky-pastel-100" aria-labelledby="report-title" data-report>
   <div class="shell grid items-start gap-x-[clamp(2rem,5vw,4rem)] gap-y-10 py-[clamp(3rem,6vw,5.5rem)] lg:grid-cols-2">
     <div class="flex flex-col gap-5">
       <h2 id="report-title" class="font-display-tight text-[clamp(2rem,4vw,3.125rem)] leading-[1.08] text-stone-900">Know your payback before an installer names a price.</h2>
-      <p class="max-w-[44ch] text-lg leading-relaxed text-stone-800">A few quick choices. You get a payback range built from your country&rsquo;s official rates, and, for US homes, you can also ask for up to 3 quotes from local installers to check against it.</p>
+      <p class="max-w-[44ch] text-lg leading-relaxed text-stone-800">Three quick questions. You get a payback report built from your country&rsquo;s official rates, and, for US homes, you can also ask for up to 3 quotes from local installers to check against it.</p>
       <ol class="flex flex-col gap-3.5">
         {steps.map((s) => (
           <li class="flex items-center gap-3.5">
@@ -35,59 +42,6 @@ const steps: { icon: IconName; title: string; body: string }[] = [
       </ol>
     </div>
 
-    <div class="overflow-hidden rounded-[20px] bg-white shadow-form">
-      <div class="flex items-center justify-between gap-3 px-6 pt-5">
-        <h3 class="font-display-tight text-[1.375rem] text-stone-900">Your free payback report</h3>
-        <span class="rounded-full bg-sun-100 px-2.5 py-1 text-[13px] font-semibold text-sun-ink">No sign-up</span>
-      </div>
-      <div class="flex flex-col gap-5 px-6 pb-6 pt-5">
-        <div class="flex flex-col gap-2.5">
-          <p class="font-semibold text-stone-900" id="report-where">Where is your home?</p>
-          <ul class="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-labelledby="report-where">
-            {quickDest.map((d) => (
-              <li>
-                <button type="button" data-quick={d.key} aria-pressed={d.key === first?.key ? 'true' : 'false'} class="flex min-h-12 w-full cursor-pointer items-center gap-2 rounded-xl border border-stone-300 bg-white px-2.5 py-1.5 text-left text-sm font-semibold text-stone-900 hover:border-sky-pastel-600 aria-pressed:border-2 aria-pressed:border-sun-500 aria-pressed:bg-sun-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900">
-                  <CountryOutline segment={d.segment} class="size-6 flex-none fill-sky-pastel-200 stroke-sky-pastel-600" />{short[d.key] ?? d.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <label class="flex flex-col gap-1.5 text-sm text-stone-700">
-            Another country
-            <select id="report-country" data-country-select class="min-h-11 rounded-[10px] border border-stone-300 bg-stone-50 px-3 text-[15px] text-stone-900">
-              {destinations.map((d) => <option value={d.key} data-href={d.href} data-action={d.action} data-us={d.segment === 'us' ? '1' : undefined} selected={d.key === first?.key}>{d.label}</option>)}
-            </select>
-          </label>
-        </div>
-        <div class="flex flex-col gap-2.5">
-          <a href={first?.href ?? '/'} data-report-link class="flex min-h-[3.125rem] items-center justify-center gap-2.5 rounded-lg bg-sun-400 px-4 text-base font-bold text-stone-900 no-underline hover:bg-sun-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_report" data-track-target={first?.href ?? '/'}><span data-report-action>{first?.action}</span><span aria-hidden="true">&rarr;</span></a>
-          <p class="hidden text-sm text-stone-800" data-us-quotes>Want quotes to compare? <a href="/quotes?source=home_report" class="font-semibold text-sun-ink underline underline-offset-2 hover:text-stone-900" data-track="nav_click" data-track-placement="home_report" data-track-target="/quotes">Get up to 3 installer quotes</a> (US homes only).</p>
-          <p class="text-xs leading-normal text-stone-700">Free, no obligation. We only ask for your details if you request quotes, and share them only with installers you choose.</p>
-        </div>
-      </div>
-    </div>
+    <ReportFlow client:visible countries={countries} quick={quickPairs} outlines={outlines} initial="us" />
   </div>
 </section>
-
-<script>
-  // Report card: quick picks and the select stay in step; the button follows the choice. Hero and map selects too.
-  const root = document.querySelector<HTMLElement>('[data-report]');
-  if (root) {
-    const select = root.querySelector<HTMLSelectElement>('[data-country-select]');
-    const link = root.querySelector<HTMLAnchorElement>('[data-report-link]');
-    const action = root.querySelector('[data-report-action]');
-    const quotes = root.querySelector('[data-us-quotes]');
-    const quick = [...root.querySelectorAll<HTMLButtonElement>('[data-quick]')];
-    const sync = () => {
-      const o = select?.selectedOptions[0];
-      if (!o) return;
-      if (link) { link.href = o.dataset.href ?? '/'; link.setAttribute('data-track-target', o.dataset.href ?? '/'); }
-      if (action) action.textContent = o.dataset.action ?? '';
-      quotes?.classList.toggle('hidden', o.dataset.us !== '1');
-      quick.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.quick === o.value)));
-    };
-    select?.addEventListener('change', sync);
-    quick.forEach((b) => b.addEventListener('click', () => { if (select) { select.value = b.dataset.quick ?? ''; sync(); } }));
-    sync();
-  }
-</script>

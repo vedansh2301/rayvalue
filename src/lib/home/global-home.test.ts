@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
-import { articleKind, daysLeft, homeDestinations, latestPostLinks, upcomingDeadlines, urgencyPct, topCountries, siteTotals, DEADLINE_GUIDES, REGIONS, REGION_BY_SEGMENT, buildCountryCards, cardChips, cardCounts, deadlineLinks, groupByRegion, latestGuideLinks, liveCalculators, type HomeArticle } from './global-home';
+import { articleKind, curatedLinks, daysLeft, homeDestinations, latestPostLinks, upcomingDeadlines, urgencyPct, topCountries, siteTotals, DEADLINE_GUIDES, REGIONS, REGION_BY_SEGMENT, buildCountryCards, cardChips, cardCounts, deadlineLinks, groupByRegion, latestGuideLinks, liveCalculators, type HomeArticle } from './global-home';
 
 const art = (o: Partial<HomeArticle> & { id: string; country: string }): HomeArticle => ({ collection: 'guides', lang: 'en', title: o.id, description: 'd', updated: new Date('2026-01-01'), noindex: false, ...o });
 const many = (cc: string, n: number, lang = 'en-GB'): HomeArticle[] => Array.from({ length: n }, (_, i) => art({ id: `${cc}/a${i}`, country: cc, lang }));
@@ -199,5 +199,17 @@ describe('latestPostLinks', () => {
     const posts = [1, 2, 3].map((i) => art({ id: `gb/p${i}`, country: 'gb', collection: 'blog', updated: new Date(`2026-0${i}-01`) }));
     const out = latestPostLinks([...posts, art({ id: 'de/p', country: 'de', collection: 'blog', updated: new Date('2025-01-01') })], 5, 2);
     expect(out.map((l) => l.id)).toEqual(['gb/p3', 'gb/p2', 'de/p']);
+  });
+});
+
+describe('curatedLinks', () => {
+  const a = [art({ id: 'one', country: 'us' }), art({ id: 'two', country: 'us', collection: 'blog' }), art({ id: 'draft', country: 'us', draft: true }), art({ id: 'new', country: 'us', updated: new Date('2026-06-01') })];
+  it('keeps the picked order and only live picks', () => {
+    const out = curatedLinks(a, [{ collection: 'blog', id: 'two' }, { collection: 'guides', id: 'draft' }, { collection: 'guides', id: 'one' }], [], 3);
+    expect(out.map((l) => l.id)).toEqual(['two', 'one']);
+  });
+  it('tops up from the fill list without duplicates', () => {
+    const out = curatedLinks(a, [{ collection: 'guides', id: 'one' }], latestGuideLinks(a, 5, 5), 3);
+    expect(out.map((l) => l.id)).toEqual(['one', 'new']);
   });
 });

@@ -287,6 +287,23 @@ export function homeDestinations(cards: readonly Pick<CountryCard, 'segment' | '
   return out.sort((a, b) => a.label.localeCompare(b.label));
 }
 
+/**
+ * The home page's curated "read before you sign" list: the picked articles (collection + id) that are live, in the order
+ * given, topped up from `fill` (newest first, already filtered by the caller) when one is missing or unpublished.
+ */
+export function curatedLinks(articles: readonly HomeArticle[], picks: readonly { collection: 'guides' | 'blog'; id: string }[], fill: readonly ArticleLink[], limit = picks.length): ArticleLink[] {
+  const out: ArticleLink[] = [];
+  for (const p of picks) {
+    const a = articles.find((x) => isLive(x) && x.collection === p.collection && x.id === p.id);
+    if (a) out.push(toLink(a));
+  }
+  for (const l of fill) {
+    if (out.length >= limit) break;
+    if (!out.some((o) => o.collection === l.collection && o.id === l.id)) out.push(l);
+  }
+  return out.slice(0, limit);
+}
+
 /** Newest live blog posts across countries, at most `perCountry` from any one country. */
 export function latestPostLinks(articles: readonly HomeArticle[], limit = 5, perCountry = 2): ArticleLink[] {
   const sorted = articles.filter((a) => isLive(a) && a.collection === 'blog').sort((a, b) => stamp(b) - stamp(a) || a.id.localeCompare(b.id));

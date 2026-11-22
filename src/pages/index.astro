@@ -23,7 +23,7 @@ import { loadPlaceIndexEntries } from '../lib/places/index-entries';
 import { publishedCityLinks } from '../lib/seo/city-links';
 import { DB_PAGE_CACHE_HEADERS } from '../lib/db/repo';
 import { coverTopic, stateKey, type StateKey, type Topic } from '../lib/content/cards';
-import { buildCountryCards, cardChips, deadlineLinks, groupByRegion, homeDestinations, latestGuideLinks, latestPostLinks, liveCalculators, siteTotals, topCountries, upcomingDeadlines, type ArticleLink, type HomeArticle, type PlaceCounts } from '../lib/home/global-home';
+import { buildCountryCards, cardChips, deadlineLinks, groupByRegion, homeDestinations, latestGuideLinks, curatedLinks, latestPostLinks,liveCalculators, siteTotals, topCountries, upcomingDeadlines, type ArticleLink, type HomeArticle, type PlaceCounts } from '../lib/home/global-home';
 
 const [guides, posts, places, cities] = await Promise.all([
   getCollection('guides', (e) => !e.data.draft),
@@ -58,19 +58,31 @@ const cards = buildCountryCards(articles, placeCounts, { places: cities.length }
 const totals = siteTotals(cards);
 const featured = topCountries(cards, 6);
 const featuredSegs = new Set(featured.map((c) => c.segment));
-const more = groupByRegion(cards.filter((c) => !featuredSegs.has(c.segment))).flatMap((g) => g.cards);
+const more = cards.filter((c) => !featuredSegs.has(c.segment)).sort((a, b) => a.name.localeCompare(b.name));
 const destinations = homeDestinations(cards);
 const destOf = (seg: string) => destinations.filter((d) => d.segment === seg).sort((a, b) => Number(b.kind === 'calc') - Number(a.kind === 'calc'))[0];
 const calculators = liveCalculators();
 const deadlines = upcomingDeadlines(deadlineLinks(articles), now);
 const deadlineSegs = [...new Set(deadlines.map((d) => d.country))];
-const guideLinks = latestGuideLinks(articles, 9, 1);
+// Cards on the home page show a real photo only: articles with a frontmatter cover (never the generated topic covers).
+const coverOf = (collection: 'guides' | 'blog', id: string) => (collection === 'guides' ? guides : posts).find((e) => e.id === id)?.data as { cover?: ImageMetadata } | undefined;
+const hasCover = (a: HomeArticle) => !!coverOf(a.collection, a.id)?.cover;
+const guideLinks = latestGuideLinks(articles.filter(hasCover), 9, 3);
 const guideKinds = (['deadline', 'battery'] as const).filter((k) => guideLinks.some((g) => g.kind === k));
 const kindLabel = { deadline: 'Deadline', battery: 'Battery', guide: 'Guide' } as const;
 const kindName = { deadline: 'Deadlines', battery: 'Batteries' } as const;
 const filters: [string, string][] = [['all', 'All'], ...guideKinds.map((k): [string, string] => [k, kindName[k]])];
 const short = (n: string) => n.replace('United States', 'US').replace('United Kingdom', 'UK');
-const postLinks = latestPostLinks(articles, 5, 2);
+// Curated, as designed: the lead plus four cards, each with the design's category label and its real cover photo.
+const POST_PICKS = [
+  { collection: 'guides', id: 'how-to-compare-solar-quotes', tag: 'Before you buy' },
+  { collection: 'blog', id: 'home-battery-costs-and-backup', tag: 'Batteries' },
+  { collection: 'guides', id: 'solar-lease-vs-buy', tag: 'Financing' },
+  { collection: 'guides', id: 'california-nem-3-batteries', tag: 'California' },
+  { collection: 'blog', id: 'does-solar-increase-home-value', tag: 'Ownership' },
+] as const;
+const postTag = (l: { collection: string; id: string }) => POST_PICKS.find((p) => p.collection === l.collection && p.id === l.id)?.tag ?? 'Guide';
+const postLinks = curatedLinks(articles, POST_PICKS, [...latestGuideLinks(articles.filter(hasCover), 5, 5), ...latestPostLinks(articles.filter(hasCover), 5, 5)], 5);
 const [lead, ...restPosts] = postLinks;
 const quick = ['us-fl', 'uk', 'de', 'au', 'es', 'fr'].filter((k) => destinations.some((d) => d.key === k));
 const h2 = 'font-display-tight text-[clamp(1.75rem,3.4vw,2.625rem)] leading-[1.1] text-stone-900';
@@ -103,7 +115,7 @@ const method = [
         {featured.map((c) => <CountryCard card={c} chips={cardChips(c, articles)} deadlineDays={deadlines.find((d) => d.country === c.segment)?.days} />)}
       </ul>
       <h3 id="all-countries" class="mb-3.5 mt-11 text-sm font-semibold uppercase tracking-wide text-stone-700">All countries</h3>
-      <ul class="grid grid-cols-1 gap-2.5 min-[30rem]:grid-cols-2 md:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(13rem,1fr))]" aria-labelledby="all-countries">
+      <ul class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,210px),1fr))] gap-2.5" aria-labelledby="all-countries">
         {more.map((c) => <CountryTile card={c} />)}
       </ul>
     </div>
@@ -201,11 +213,11 @@ const method = [
           <a href="/blog" class="inline-flex min-h-11 items-center font-semibold text-sun-ink underline underline-offset-4 hover:text-stone-900">All posts &rarr;</a>
         </div>
         <div class="grid gap-5 md:grid-cols-2">
-          <a href={lead.href} lang={lead.lang} class:list={['group relative flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-[20px] bg-stone-900 text-white no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900', restPosts.length > 1 && 'md:row-span-2']} data-track="nav_click" data-track-placement="home_blog_lead" data-track-target={lead.href}>
+          <a href={lead.href} lang={lead.lang} class:list={['group relative flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-[20px] bg-stone-900 text-white no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900', 'md:row-span-2']} data-track="nav_click" data-track-placement="home_blog_lead" data-track-target={lead.href}>
             <div class="absolute inset-0"><Cover class="h-full w-full" {...coverProps(lead)} /></div>
             <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-stone-900/0 from-30% to-stone-900/85"></div>
             <div class="relative flex flex-col gap-2.5 p-6">
-              <span class="w-fit rounded-full bg-sun-400 px-2.5 py-1 text-xs font-bold text-stone-900">{lead.countryName}</span>
+              <span class="w-fit rounded-full bg-sun-400 px-2.5 py-1 text-xs font-bold text-stone-900">{postTag(lead)}</span>
               <span class="font-display-tight text-[clamp(1.625rem,2.6vw,2.125rem)] leading-[1.15]">{lead.title}</span>
               <span class="max-w-[44ch] text-base leading-normal">{lead.description}</span>
             </div>
@@ -214,7 +226,7 @@ const method = [
             <a href={p.href} lang={p.lang} class="grid grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-4 rounded-2xl border border-sky-pastel-300 bg-white p-3 text-stone-900 no-underline hover:border-sky-pastel-600 hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="home_blog" data-track-target={p.href}>
               <div class="relative aspect-square overflow-hidden rounded-xl bg-sky-pastel-100"><Cover class="h-full w-full" {...coverProps(p)} /></div>
               <div class="flex flex-col gap-1.5">
-                <span class="text-xs font-bold uppercase tracking-wider text-sun-ink">{p.countryName}</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-sun-ink">{postTag(p)}</span>
                 <strong class="font-display-tight text-[1.1875rem] leading-tight">{p.title}</strong>
                 <span class="line-clamp-2 text-sm leading-snug text-stone-700">{p.description}</span>
               </div>
