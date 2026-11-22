@@ -1,0 +1,94 @@
+---
+title: "Prime supprimée : 3, 6 ou 9 kWc, quelle puissance choisir en 2026 ?"
+seoTitle: "Prime autoconsommation supprimée : quelle puissance choisir"
+description: "Sans prime et avec un surplus à 1,1 c€/kWh, la bonne puissance est celle qui couvre votre consommation de journée, pas la surface du toit. À Paris, 3 kWc produisent environ 3 400 kWh par an, 6 kWc environ 6 800 et 9 kWc plus de 10 000, pour un foyer moyen qui consomme 4 500 kWh."
+country: fr
+lang: fr-FR
+published: 2026-11-22
+updated: 2026-11-22
+draft: false
+noindex: true
+topic: scale
+tags: [dimensionnement, kWc, prime autoconsommation, rentabilite]
+sources:
+  - title: "photovoltaique.info (HESPUL) : arrêté S21, détail des modifications et nouveau tarif unique"
+    url: "https://www.photovoltaique.info/fr/actualites/detail/arrete-s21-detail-des-modifications-et-nouveau-tarif-unique/"
+  - title: "AIDA (INERIS) : arrêté du 1er juin 2026 modifiant l'arrêté du 6 octobre 2021 (S21), texte reproduit"
+    url: "https://aida.ineris.fr/reglementation/arrete-010626-modifiant-larrete-6-octobre-2021-fixant-conditions-dachat-lelectricite"
+  - title: "CRE : communiqué de presse du 16 juillet 2026 (consommation moyenne de 4,5 MWh par an)"
+    url: "https://www.cre.fr/fileadmin/Documents/Communiques_de_presse/2026/260716_CP_TRVE_Aout_2026.pdf"
+  - title: "CRE : délibération n° 2026-147, annexe B, barèmes des tarifs Bleus au 1er août 2026"
+    url: "https://www.cre.fr/fileadmin/Documents/Deliberations/2026/260715_2026-147_TRVE_Annexe_B.pdf"
+  - title: "Service-Public.fr : panneaux solaires, TVA réduite à 5,5 % à compter du 1er octobre 2025"
+    url: "https://www.service-public.gouv.fr/particuliers/actualites/A18469"
+  - title: "EU JRC PVGIS 5.3 : 1 kWc à Paris, orientation optimale (production mensuelle)"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=48.8566&lon=2.3522&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+  - title: "EU JRC PVGIS 5.3 : 1 kWc à Marseille, orientation optimale"
+    url: "https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=43.2965&lon=5.3698&peakpower=1&loss=14&optimalangles=1&outputformat=json"
+todo:
+  - "Ajouter des fourchettes de prix par puissance (3, 6, 9 kWc) d'une source publique vérifiable."
+  - "Ajouter une source primaire sur les taux d'autoconsommation typiques selon la puissance et le profil (ADEME, Enedis)."
+---
+
+Depuis la suppression de la prime à l'autoconsommation le 5 juin 2026, la bonne puissance n'est plus « le maximum que le toit permet ». C'est celle dont vous consommerez l'essentiel de la production en journée, puisque le surplus n'est plus payé que 1,1 c€/kWh HT. Pour beaucoup de maisons, cela pousse vers des installations plus petites qu'avant, souvent autour de 3 kWc, à affiner selon vos usages de jour et votre région.
+
+## Les chiffres clés
+
+- **0 € de prime** et **1,1 c€/kWh HT** pour le surplus, pour les demandes complètes de raccordement depuis le 5 juin 2026 ([photovoltaique.info](https://www.photovoltaique.info/fr/actualites/detail/arrete-s21-detail-des-modifications-et-nouveau-tarif-unique/)).
+- **4,5 MWh par an** : consommation moyenne retenue par la CRE pour un client au tarif réglementé ([communiqué CRE, 16 juillet 2026](https://www.cre.fr/fileadmin/Documents/Communiques_de_presse/2026/260716_CP_TRVE_Aout_2026.pdf)).
+- **1 131 kWh/kWc/an** à Paris et **1 627** à Marseille en orientation optimale ([PVGIS](https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?lat=48.8566&lon=2.3522&peakpower=1&loss=14&optimalangles=1&outputformat=json)).
+- **9 kWc** : plafond pour la TVA à 5,5 % ([Service-Public.fr](https://www.service-public.gouv.fr/particuliers/actualites/A18469)) ; jusqu'à 9 kWc, seule la vente du surplus est possible ([arrêté du 1er juin 2026](https://aida.ineris.fr/reglementation/arrete-010626-modifiant-larrete-6-octobre-2021-fixant-conditions-dachat-lelectricite)).
+
+## Prime autoconsommation supprimée : pourquoi la taille change tout
+
+Avant juin 2026, la prime était versée par kWc installé (80 €/kWc au dernier barème) et le surplus payé 4 c€. Un kWc de plus rapportait donc toujours quelque chose. Aujourd'hui, un kWc ajouté au-delà de vos besoins de jour produit surtout du surplus à 1,1 c€ : 1 131 kWh à Paris rapportent environ 12 € HT par an s'ils partent sur le réseau. Le même kWc, consommé sur place, éviterait environ 226 € au tarif Base (1 131 × 0,20 €).
+
+## Combien produisent 3, 6 et 9 kWc ?
+
+Arithmétique simple à partir de PVGIS (orientation optimale, 14 % de pertes) :
+
+| Puissance | Paris | Marseille |
+|---|---|---|
+| 3 kWc | environ 3 400 kWh/an | environ 4 900 kWh/an |
+| 6 kWc | environ 6 800 kWh/an | environ 9 800 kWh/an |
+| 9 kWc | environ 10 200 kWh/an | environ 14 600 kWh/an |
+
+Comparé à une consommation moyenne de 4,5 MWh par an, même 3 kWc à Paris produisent les trois quarts de la consommation annuelle d'un foyer. Mais une bonne part de cette consommation a lieu le soir, la nuit et l'hiver, quand les panneaux produisent peu.
+
+## La saisonnalité : l'argument pour rester petit
+
+À Paris, PVGIS donne pour 1 kWc environ 43 kWh en janvier et en décembre, contre 128 à 132 kWh par mois de mai à juillet. La production d'été est trois fois celle d'hiver.
+
+| Mois (1 kWc, Paris) | Production |
+|---|---|
+| Janvier | 43 kWh |
+| Avril | 127 kWh |
+| Juillet | 132 kWh |
+| Octobre | 81 kWh |
+
+Conséquence : une installation dimensionnée pour couvrir l'hiver produira un gros surplus l'été, payé 1,1 c€. Mieux vaut dimensionner sur la consommation de journée d'été et de mi-saison, quand le surplus est le plus probable.
+
+## La méthode en 4 étapes
+
+1. **Mesurez votre consommation de jour.** Activez la courbe de charge horaire Linky et regardez votre consommation entre 10 h et 16 h, d'avril à septembre.
+2. **Ajoutez ce que vous pouvez déplacer** : chauffe-eau, lave-linge, recharge de voiture. Voir [7 façons d'utiliser son surplus](/fr/blog/autoconsommation-utiliser-son-surplus).
+3. **Choisissez la puissance** dont la production de midi, en été, reste proche de ce total. Une installation de 1 kWc produit au maximum un peu moins de 1 kW en plein soleil.
+4. **Comparez deux tailles** sur le même devis (par exemple 3 et 4,5 kWc) et demandez la part autoconsommée estimée pour chacune.
+
+## Quand une installation plus grande se justifie
+
+- Une **voiture électrique** rechargée en journée ou une **pompe à chaleur** pilotée.
+- Un foyer **présent en journée** avec une forte consommation (télétravail à plusieurs, activité à domicile).
+- Une **batterie** dimensionnée sur le surplus restant : voir [Autoconsommation totale avec batterie](/fr/blog/autoconsommation-totale-batterie).
+
+Restez à 9 kWc au plus si vous voulez garder la possibilité de la TVA à 5,5 % ([TVA sur les panneaux solaires](/fr/guides/tva-panneaux-solaires)).
+
+## En résumé
+
+| Votre profil | Puissance à étudier en premier |
+|---|---|
+| Absent en journée, peu d'usages pilotables | petite installation, voire [kit plug and play](/fr/blog/kit-solaire-plug-and-play) |
+| Présent en journée ou chauffe-eau piloté | autour de 3 kWc |
+| Voiture électrique, pompe à chaleur, grande maison | 6 kWc ou plus, avec pilotage |
+
+Ce tableau est un point de départ, pas un calcul. Le contexte complet est dans [Fin de la prime à l'autoconsommation](/fr/guides/fin-prime-autoconsommation) et [Panneaux solaires : rentables ou pas en 2026](/fr/guides/panneaux-solaires-rentables-ou-pas-2026).
