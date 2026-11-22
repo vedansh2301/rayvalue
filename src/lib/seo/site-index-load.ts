@@ -5,6 +5,7 @@
 import { getCollection } from 'astro:content';
 import { ok, err, type Result } from '../db/client';
 import { loadDbIndexEntries } from './sitemap-db';
+import { loadPlaceIndexEntries } from '../places/index-entries';
 import { articleEntries, staticEntries, type ArticleInput } from './static-entries';
 import type { IndexEntry } from './site-index';
 
@@ -17,9 +18,10 @@ async function load(): Promise<Result<IndexEntry[]>> {
     ...guides.map((g): ArticleInput => ({ collection: 'guides', id: g.id, route: g.data.route, country: g.data.country, title: g.data.title, seoTitle: g.data.seoTitle, description: g.data.description, published: g.data.published, updated: g.data.updated, draft: g.data.draft, noindex: g.data.noindex })),
     ...blog.map((b): ArticleInput => ({ collection: 'blog', id: b.id, country: b.data.country, title: b.data.title, seoTitle: b.data.seoTitle, description: b.data.description, published: b.data.published, updated: b.data.updated, draft: (b.data as { draft?: boolean }).draft, noindex: (b.data as { noindex?: boolean }).noindex })),
   ];
-  const db = await loadDbIndexEntries();
+  const [db, places] = await Promise.all([loadDbIndexEntries(), loadPlaceIndexEntries()]);
   if (!db.ok) return err(db.error.kind, db.error.message);
-  return ok([...staticEntries(articles), ...articleEntries(articles), ...db.value]);
+  if (!places.ok) return err(places.error.kind, places.error.message);
+  return ok([...staticEntries(articles), ...articleEntries(articles), ...db.value, ...places.value]);
 }
 
 export function getSiteIndex(now = Date.now()): Promise<Result<IndexEntry[]>> {

@@ -1,0 +1,38 @@
+---
+export const prerender = false;
+
+import { getCollection } from 'astro:content';
+import PlacePage from '../../../../components/places/PlacePage.astro';
+import PlaceNotFound from '../../../../components/places/PlaceNotFound.astro';
+import { articleIndexPath } from '../../../../lib/content/paths';
+import { placeArticleLinks } from '../../../../lib/places/articles';
+import { loadPlaceRoute } from '../../../../lib/places/page-data';
+import { DB_PAGE_CACHE_HEADERS } from '../../../../lib/db/repo';
+
+// /uk/solar-panels/<region>/<place>, /de/photovoltaik/<land>/<stadt>, /au/solar-payback/<state>/<place>.
+// 200 only when the place is published AND has >= 3 sourced sections; otherwise 404 (503 when the database fails).
+const { cc = '', topic = '', region = '', city = '' } = Astro.params;
+const data = await loadPlaceRoute({ cc, topic, region, city });
+
+if (data.status === 'unavailable') {
+  Astro.response.status = 503;
+  Astro.response.headers.set('Cache-Control', 'no-store');
+} else if (data.route.kind !== 'place') {
+  Astro.response.status = 404;
+} else {
+  for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
+}
+
+const view = data.status === 'ok' && data.route.kind === 'place' ? data.route.view : null;
+const articles = view
+  ? placeArticleLinks([
+      ...(await getCollection('guides')).map((e) => ({ ...e, collection: 'guides' as const })),
+      ...(await getCollection('blog')).map((e) => ({ ...e, collection: 'blog' as const })),
+    ], view.country.articleCountry)
+  : [];
+---
+{view && data.status === 'ok' ? (
+  <PlacePage view={view} hubHref={data.hubHref} others={data.others} articles={articles} articlesIndexHref={articleIndexPath('guides', view.country.articleCountry)} />
+) : (
+  <PlaceNotFound country={data.status === 'ok' && data.route.kind === 'not_found' ? data.route.country : null} unavailable={data.status === 'unavailable'} path={Astro.url.pathname} />
+)}

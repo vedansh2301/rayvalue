@@ -1,25 +1,45 @@
 ---
 import { chartBars, formatKwhLabel } from '../../lib/city/view';
 
+/** Optional localisation (non-US place pages): every field defaults to the US English text. */
+interface Labels {
+  heading: string;
+  /** Intro paragraph (already built, with its own numbers formatted). */
+  intro: string;
+  title: string;
+  pending: string;
+  monthHeader: string;
+  kwhHeader: string;
+  /** Month labels, January first. */
+  months: readonly string[];
+  /** Locale for the value labels above the bars. */
+  locale: string;
+  /** Method / source line printed under the chart. */
+  method: string | null;
+}
 interface Props {
   cityName: string;
   monthly: readonly number[] | null;
   annual: number | null;
+  labels?: Labels;
+  /** Heading id, so two charts never share one. */
+  id?: string;
 }
-const { cityName, monthly, annual } = Astro.props;
+const { cityName, monthly, annual, labels, id = 'prod-h' } = Astro.props;
 const W = 600, H = 220;
-const bars = monthly ? chartBars(monthly, W, H) : [];
-const title = `Estimated monthly solar output per kW installed in ${cityName}`;
+const bars = (monthly ? chartBars(monthly, W, H) : []).map((b, i) => (labels ? { ...b, month: labels.months[i] ?? b.month, label: Math.round(b.kwh).toLocaleString(labels.locale) } : b));
+const titleId = labels ? `${id}-title` : 'prod-title';
+const title = labels?.title ?? `Estimated monthly solar output per kW installed in ${cityName}`;
 ---
-<section aria-labelledby="prod-h">
-  <h2 id="prod-h">How much sun {cityName} gets</h2>
+<section aria-labelledby={id}>
+  <h2 id={id}>{labels?.heading ?? `How much sun ${cityName} gets`}</h2>
   {!monthly ? (
-    <p>Production estimates for this city are being verified.</p>
+    <p>{labels?.pending ?? 'Production estimates for this city are being verified.'}</p>
   ) : (
     <>
-      <p>Estimated output of 1 kW of rooftop solar, month by month, from NREL PVWatts weather data{annual ? <>: about {formatKwhLabel(annual)} kWh per year</> : ''}. Real output depends on your roof, shading and equipment.</p>
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="prod-title" class="mt-4 h-auto w-full max-w-2xl">
-        <title id="prod-title">{title}</title>
+      {labels ? <p>{labels.intro}</p> : <p>Estimated output of 1 kW of rooftop solar, month by month, from NREL PVWatts weather data{annual ? <>: about {formatKwhLabel(annual)} kWh per year</> : ''}. Real output depends on your roof, shading and equipment.</p>}
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={titleId} class="mt-4 h-auto w-full max-w-2xl">
+        <title id={titleId}>{title}</title>
         {bars.map((b) => (
           <>
             <rect x={b.x} y={b.y} width={b.w} height={b.h} rx="2" class="fill-sun-500" />
@@ -31,9 +51,10 @@ const title = `Estimated monthly solar output per kW installed in ${cityName}`;
       <!-- Wrapped: a table ignores the 1px sr-only width and would widen the page on mobile. -->
       <div class="sr-only"><table>
         <caption>{title} (kWh)</caption>
-        <thead><tr><th scope="col">Month</th><th scope="col">kWh per kW</th></tr></thead>
+        <thead><tr><th scope="col">{labels?.monthHeader ?? 'Month'}</th><th scope="col">{labels?.kwhHeader ?? 'kWh per kW'}</th></tr></thead>
         <tbody>{bars.map((b) => <tr><th scope="row">{b.month}</th><td>{b.label}</td></tr>)}</tbody>
       </table></div>
+      {labels?.method && <p class="text-sm text-stone-700">{labels.method}</p>}
     </>
   )}
 </section>

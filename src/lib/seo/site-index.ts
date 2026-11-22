@@ -6,6 +6,7 @@
  *   /sitemap.xml                        <sitemapindex>
  *   /sitemap-<cc>-<type>.xml            e.g. sitemap-us-calculators.xml, -us-utilities, -us-cities, -us-articles
  *   /sitemap-<cc>-articles.xml          non-US guides and blog (e.g. sitemap-uk-articles.xml), only when non-empty
+ *   /sitemap-<cc>-places.xml            non-US place pages and region hubs (e.g. sitemap-uk-places.xml), published + gated only
  *   /sitemap-global-pages.xml           home, guides, blog and the other country-independent pages
  */
 import { UNREVIEWED_PAGES } from './unreviewed-pages.ts';
@@ -13,12 +14,13 @@ import { PAGE_META } from './page-meta.ts';
 import { isGoPath } from '../go.ts';
 import { UTILITY_PAGES, utilityPagePath } from '../utility/pages.ts';
 import { US_BASE, taxPath } from '../paths.ts';
+import { PLACE_PATH_RE } from '../places/config.ts';
 
 export const SITE_ORIGIN = 'https://rayvalue.com';
 
-export type PageType = 'pages' | 'calculators' | 'utilities' | 'cities' | 'articles';
+export type PageType = 'pages' | 'calculators' | 'utilities' | 'cities' | 'articles' | 'places';
 /** Where an entry is listed in /llms.txt. */
-export type Section = 'home' | 'calculators' | 'utilities' | 'cities' | 'guides' | 'blog' | 'tax' | 'about';
+export type Section = 'home' | 'calculators' | 'utilities' | 'cities' | 'places' | 'guides' | 'blog' | 'tax' | 'about';
 /** 'us', 'global', or the URL segment of another country (ISO2 lowercase; GB is 'uk'). */
 export type Country = string;
 
@@ -40,6 +42,9 @@ export interface IndexEntry {
   sources?: { url: string; checkedOn: string | null }[];
   /** Display name (city or utility), for grouping in llms.txt. */
   name?: string;
+  /** Non-US place pages (type 'places'): the region name, for grouping in llms.txt, and whether this is a hub or a place. */
+  region?: string;
+  placeKind?: 'place' | 'hub';
 }
 
 /** noindex utility pages (confirmations, privacy request form). */
@@ -84,6 +89,7 @@ export function pageTypeOf(rawPath: string): PageType {
   if (utilityPaths.has(path)) return 'utilities';
   if (CITY_RE.test(path)) return 'cities';
   if (INTL_ARTICLE_RE.test(path)) return 'articles';
+  if (PLACE_PATH_RE.test(path)) return 'places';
   if (path === taxPath() || path.startsWith(`${taxPath()}/`)) return 'articles';
   return 'pages';
 }
@@ -92,12 +98,14 @@ export const countryOf = (rawPath: string): Country => {
   const path = normalize(rawPath);
   const intl = INTL_ARTICLE_RE.exec(path);
   if (intl) return intl[1]!;
+  const place = PLACE_PATH_RE.exec(path);
+  if (place) return place[1]!;
   return path === US_BASE || path.startsWith(`${US_BASE}/`) ? 'us' : 'global';
 };
 
 /** sitemap file name for a (country, type) pair. */
 export const sitemapFileName = (country: Country, type: PageType): string => `sitemap-${country}-${type}.xml`;
-export const SITEMAP_FILE_RE = /^sitemap-(us|global|[a-z]{2})-(pages|calculators|utilities|cities|articles)\.xml$/;
+export const SITEMAP_FILE_RE = /^sitemap-(us|global|[a-z]{2})-(pages|calculators|utilities|cities|articles|places)\.xml$/;
 
 export const absoluteUrl = (path: string, origin = SITE_ORIGIN): string => `${origin}${path}`;
 

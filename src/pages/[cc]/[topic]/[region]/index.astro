@@ -1,0 +1,27 @@
+---
+export const prerender = false;
+
+import PlaceHub from '../../../../components/places/PlaceHub.astro';
+import PlaceNotFound from '../../../../components/places/PlaceNotFound.astro';
+import { loadPlaceRoute } from '../../../../lib/places/page-data';
+import { DB_PAGE_CACHE_HEADERS } from '../../../../lib/db/repo';
+
+// Region hubs: /uk/solar-panels/<region>, /de/photovoltaik/<land>, /au/solar-payback/<state>. 200 only with >= 3 renderable places.
+const { cc = '', topic = '', region = '' } = Astro.params;
+const data = await loadPlaceRoute({ cc, topic, region });
+
+if (data.status === 'unavailable') {
+  Astro.response.status = 503;
+  Astro.response.headers.set('Cache-Control', 'no-store');
+} else if (data.route.kind !== 'hub') {
+  Astro.response.status = 404;
+} else {
+  for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
+}
+const hub = data.status === 'ok' && data.route.kind === 'hub' ? data.route.hub : null;
+---
+{hub ? (
+  <PlaceHub hub={hub} />
+) : (
+  <PlaceNotFound country={data.status === 'ok' && data.route.kind === 'not_found' ? data.route.country : null} unavailable={data.status === 'unavailable'} path={Astro.url.pathname} />
+)}

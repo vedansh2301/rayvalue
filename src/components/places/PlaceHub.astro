@@ -1,0 +1,20 @@
+---
+/** Region hub: lists the published places of one region (only places that pass the 3-section gate). Prints a view model. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../Breadcrumbs.astro';
+import type { HubView } from '../../lib/places/resolve';
+
+interface Props { hub: HubView }
+const { hub } = Astro.props;
+---
+<BaseLayout title={hub.title} description={hub.description} path={hub.path} lang={hub.lang}>
+  <div class="page">
+    <Breadcrumbs items={[{ label: hub.text.home, href: '/' }, { label: hub.regionName }]} />
+    <h1 class="!mt-4">{hub.h1}</h1>
+    <p>{hub.intro}</p>
+    <ul class="mt-6 grid gap-2 sm:grid-cols-2">
+      {hub.places.map((p) => <li><a class="underline underline-offset-4" href={p.href}>{p.name}</a></li>)}
+    </ul>
+    <p class="mt-8 text-sm text-stone-700"><a href="/methodology">{hub.text.methodologyLink}</a></p>
+  </div>
+</BaseLayout>

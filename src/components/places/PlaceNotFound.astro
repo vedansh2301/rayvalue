@@ -1,0 +1,21 @@
+---
+/** 404 / 503 body for place routes. Never indexed; names nothing about unpublished places. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { placeCountryByCode, type PlaceCountry } from '../../lib/places/config';
+import { PLACE_TEXT } from '../../lib/places/i18n';
+import { articleIndexPath } from '../../lib/content/paths';
+
+interface Props { country: PlaceCountry | null; unavailable?: boolean; path: string }
+const { country, unavailable = false, path } = Astro.props;
+const text = PLACE_TEXT[(country ?? placeCountryByCode('GB')!).code];
+const lang = country?.htmlLang ?? 'en';
+const copy = unavailable ? text.unavailable : text.notFound;
+const href = country ? articleIndexPath('guides', country.articleCountry) : '/';
+---
+<BaseLayout title={copy.title} description={copy.title} path={path} lang={lang} noindex canonical={false}>
+  <div class="page">
+    <h1>{copy.h1}</h1>
+    <p>{unavailable ? text.unavailable.body : text.notFound.body}</p>
+    {!unavailable && <p><a href={href}>{text.notFound.link}</a></p>}
+  </div>
+</BaseLayout>
