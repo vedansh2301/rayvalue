@@ -1,9 +1,10 @@
 /**
  * Small per-country text dictionaries for place pages (labels and sentence frames only; every number comes from
- * place_facts). The same page component renders all three countries. No figures are typed here (CLAUDE.md rule 1).
+ * place_facts). The same page component renders every country. No figures are typed here (CLAUDE.md rule 1).
  */
 import type { PlaceCountryCode } from './config.ts';
 import type { SectionId } from './gate.ts';
+import { EU_PLACE_TEXT } from './i18n-eu.ts';
 
 export interface SectionText {
   heading: (name: string) => string;
@@ -80,6 +81,10 @@ const GB_TEXT: PlaceDict = {
     cost: { heading: () => 'What installs cost in this region', intro: 'Average total installed cost per kW from MCS-certified installations in the region. Your quote will differ with system size, roof and equipment.' },
     zone: { heading: () => '' },
     heating: { heading: () => '' },
+    ownership: { heading: () => '' },
+    dwellings: { heading: () => '' },
+    income: { heading: () => '' },
+    municipal: { heading: () => '' },
   },
   labels: {
     solar_yield_kwh_per_kwp: 'Yearly output of 1 kWp of panels',
@@ -135,6 +140,10 @@ const AU_TEXT: PlaceDict = {
     tariff: { heading: () => 'Your electricity network and default price', intro: 'The Default Market Offer is the most a retailer can charge on a standing offer in this network area. Solar you use yourself avoids paying that rate.' },
     installs: { heading: (n) => `Rooftop solar and batteries around ${n}`, intro: 'Clean Energy Regulator counts for the postcode we use for this place. A city spans many postcodes, so treat the figure as a local sample, not a city total.' },
     housing: { heading: (n) => `Homes in ${n}`, intro: 'Solar is easiest on a house you own. These are Census 2021 figures for the area named under each line.' },
+    ownership: { heading: () => '' },
+    dwellings: { heading: () => '' },
+    income: { heading: () => '' },
+    municipal: { heading: () => '' },
     cost: { heading: () => '' },
     zone: { heading: () => 'Your solar rebate zone', intro: 'The Small-scale Renewable Energy Scheme gives each postcode a zone rating, which sets how many certificates (STCs) a system can create.' },
     heating: { heading: () => '' },
@@ -197,6 +206,10 @@ const DE_TEXT: PlaceDict = {
     housing: { heading: (n) => `Wohnen in ${n}`, intro: 'Solar lässt sich am einfachsten auf dem eigenen Haus umsetzen. Die Zahlen stammen aus dem Zensus 2022.' },
     cost: { heading: () => '' },
     zone: { heading: () => '' },
+    ownership: { heading: () => '' },
+    dwellings: { heading: () => '' },
+    income: { heading: () => '' },
+    municipal: { heading: () => '' },
     heating: { heading: (n) => `Heizung in ${n}`, intro: 'Wer mit Wärmepumpe oder Solarwärme heizt, kann selbst erzeugten Strom oft besser nutzen.' },
   },
   labels: {
@@ -233,4 +246,4 @@ const DE_TEXT: PlaceDict = {
   unavailable: { title: 'Seite vorübergehend nicht verfügbar', h1: 'Diese Seite wird noch geprüft', body: 'Unsere Daten sind vorübergehend nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut.' },
 };
 
-export const PLACE_TEXT: Readonly<Record<PlaceCountryCode, PlaceDict>> = { GB: GB_TEXT, DE: DE_TEXT, AU: AU_TEXT };
+export const PLACE_TEXT: Readonly<Record<PlaceCountryCode, PlaceDict>> = { GB: GB_TEXT, DE: DE_TEXT, AU: AU_TEXT, ...EU_PLACE_TEXT };

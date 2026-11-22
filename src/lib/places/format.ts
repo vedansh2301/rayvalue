@@ -6,8 +6,11 @@ export function formatNumber(n: number, locale: string, maxFractionDigits = 0, m
 
 /** The value is already in percent units (49.2 means 49.2%), so only the suffix is added: "49.2%" (en) / "49,2 %" (de). */
 export function formatPercent(n: number, locale: string, digits = 1): string {
-  const sep = locale.startsWith('de') ? ' ' : '';
-  return `${formatNumber(n, locale, digits, digits)}${sep}%`;
+  // English keeps "49.2%", German "49,2 %" (no-break space). Every other locale follows its own CLDR percent pattern
+  // (Swedish "49,2 %", Polish "49,2%" ...), so the sign sits where readers there expect it.
+  if (locale.startsWith('en')) return `${formatNumber(n, locale, digits, digits)}%`;
+  if (locale.startsWith('de')) return `${formatNumber(n, locale, digits, digits)}\u00a0%`;
+  return new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: digits, minimumFractionDigits: digits }).format(n / 100);
 }
 
 export function formatMoney(n: number, currency: string, locale: string, digits = 0): string {

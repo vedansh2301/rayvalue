@@ -1,26 +1,40 @@
 ---
 export const prerender = false;
 
+import { getCollection } from 'astro:content';
 import PlaceHub from '../../../../components/places/PlaceHub.astro';
+import PlacePage from '../../../../components/places/PlacePage.astro';
 import PlaceNotFound from '../../../../components/places/PlaceNotFound.astro';
+import { articleIndexPath } from '../../../../lib/content/paths';
+import { placeArticleLinks } from '../../../../lib/places/articles';
 import { loadPlaceRoute } from '../../../../lib/places/page-data';
 import { DB_PAGE_CACHE_HEADERS } from '../../../../lib/db/repo';
 
-// Region hubs: /uk/solar-panels/<region>, /de/photovoltaik/<land>, /au/solar-payback/<state>. 200 only with >= 3 renderable places.
+// Region hubs: /uk/solar-panels/<region>, /de/photovoltaik/<land>, /es/placas-solares/<ccaa> ... 200 only with >= 3 renderable
+// places. In countries with county pages (IE) the county's own place page is served here instead of the list.
 const { cc = '', topic = '', region = '' } = Astro.params;
 const data = await loadPlaceRoute({ cc, topic, region });
 
 if (data.status === 'unavailable') {
   Astro.response.status = 503;
   Astro.response.headers.set('Cache-Control', 'no-store');
-} else if (data.route.kind !== 'hub') {
+} else if (data.route.kind === 'not_found') {
   Astro.response.status = 404;
 } else {
   for (const [k, v] of Object.entries(DB_PAGE_CACHE_HEADERS)) Astro.response.headers.set(k, v);
 }
 const hub = data.status === 'ok' && data.route.kind === 'hub' ? data.route.hub : null;
+const view = data.status === 'ok' && data.route.kind === 'place' ? data.route.view : null;
+const articles = view
+  ? placeArticleLinks([
+      ...(await getCollection('guides')).map((e) => ({ ...e, collection: 'guides' as const })),
+      ...(await getCollection('blog')).map((e) => ({ ...e, collection: 'blog' as const })),
+    ], view.country.articleCountry)
+  : [];
 ---
-{hub ? (
+{view && data.status === 'ok' ? (
+  <PlacePage view={view} hubHref={data.hubHref} others={data.others} articles={articles} articlesIndexHref={articleIndexPath('guides', view.country.articleCountry)} />
+) : hub ? (
   <PlaceHub hub={hub} />
 ) : (
   <PlaceNotFound country={data.status === 'ok' && data.route.kind === 'not_found' ? data.route.country : null} unavailable={data.status === 'unavailable'} path={Astro.url.pathname} />

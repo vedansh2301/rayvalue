@@ -1,0 +1,442 @@
+/**
+ * Text dictionaries for the European place-page countries added after GB / DE / AU: ES, IE (English) and the Nordic /
+ * CEE set (SE, DK, NO, FI, PL, CZ, RO). Labels and sentence frames only: every number on a page comes from place_facts,
+ * and nothing statistical is typed here (CLAUDE.md rule 1). Types come from i18n.ts (type-only import, no cycle).
+ */
+import type { PlaceDict } from './i18n.ts';
+
+type Chart = PlaceDict['chart'];
+
+/** What differs between the seven Nordic / CEE languages; the shape of the page is identical. */
+interface CensusLang {
+  home: string;
+  source: string;
+  sourceOurData: string;
+  checked: string;
+  figuresChecked: string;
+  periodTo: string;
+  secondary: string;
+  scopeRegion: (l: string) => string;
+  geography: (l: string) => string;
+  south: string;
+  north: string;
+  title: (n: string) => string;
+  description: (n: string, r: string) => string;
+  h1: (n: string) => string;
+  intro: (n: string, r: string) => string;
+  keyNumbersHeading: (n: string) => string;
+  answerYield: (n: string, kwh: string, f: string) => string;
+  yieldH: (n: string) => string;
+  ownershipH: (n: string) => string;
+  ownershipIntro: string;
+  dwellingsH: (n: string) => string;
+  dwellingsIntro: string;
+  labels: { yield: string; owner: string; oneDwelling: string };
+  yieldUnit: string;
+  chart: { intro: (a: string | null) => string; title: (n: string) => string; month: string; kwh: string; pending: string; method: string; line: (db: string, tilt: number | null, loss: number | null, facing: string) => string };
+  disclaimer: string;
+  methodologyLink: string;
+  articlesHeading: string;
+  articlesIndex: string;
+  otherPlaces: (r: string) => string;
+  hubTitle: (r: string) => string;
+  hubDescription: (r: string) => string;
+  hubH1: (r: string) => string;
+  hubIntro: (r: string) => string;
+  notFound: PlaceDict['notFound'];
+  unavailable: PlaceDict['unavailable'];
+}
+
+const none = { heading: () => '' };
+
+function censusDict(L: CensusLang): PlaceDict {
+  const chart: Chart = { heading: L.yieldH, intro: L.chart.intro, title: L.chart.title, month: L.chart.month, kwh: L.chart.kwh, pending: L.chart.pending, method: L.chart.method, methodLine: L.chart.line };
+  return {
+    home: L.home,
+    source: L.source,
+    sourceOurData: L.sourceOurData,
+    checked: L.checked,
+    figuresChecked: L.figuresChecked,
+    periodTo: L.periodTo,
+    secondary: L.secondary,
+    scopeRegion: L.scopeRegion,
+    scopeNetwork: L.scopeRegion,
+    geography: L.geography,
+    title: L.title,
+    description: L.description,
+    h1: L.h1,
+    intro: L.intro,
+    keyNumbersHeading: L.keyNumbersHeading,
+    answerYield: L.answerYield,
+    facing: { south: L.south, north: L.north },
+    sections: {
+      yield: { heading: L.yieldH },
+      ownership: { heading: L.ownershipH, intro: L.ownershipIntro },
+      dwellings: { heading: L.dwellingsH, intro: L.dwellingsIntro },
+      housing: none, installs: none, tariff: none, cost: none, zone: none, heating: none, income: none, municipal: none,
+    },
+    labels: { solar_yield_kwh_per_kwp: L.labels.yield, owner_occupied_share_pct: L.labels.owner, one_dwelling_share_pct: L.labels.oneDwelling },
+    units: { solar_yield_kwh_per_kwp: L.yieldUnit },
+    chart,
+    disclaimer: L.disclaimer,
+    methodologyLink: L.methodologyLink,
+    articlesHeading: L.articlesHeading,
+    articlesIndex: L.articlesIndex,
+    otherPlaces: L.otherPlaces,
+    hubTitle: L.hubTitle,
+    hubDescription: L.hubDescription,
+    hubH1: L.hubH1,
+    hubIntro: L.hubIntro,
+    notFound: L.notFound,
+    unavailable: L.unavailable,
+  };
+}
+
+const SE_TEXT = censusDict({
+  home: 'Hem', source: 'Källa', sourceOurData: 'Källa: egna data', checked: 'kontrollerad', figuresChecked: 'Siffror kontrollerade', periodTo: 'till',
+  secondary: 'Sekundär källa, används inte i vår kontroll.',
+  scopeRegion: (l) => `Regionalt värde: ${l}`, geography: (l) => `Område: ${l}`, south: 'söder', north: 'norr',
+  title: (n) => `Solceller i ${n}: lokal data med källor`,
+  description: (n, r) => `Solinstrålning, bostadsägande och hustyper i ${n}, ${r}. Varje siffra har källa och kontrolldatum.`,
+  h1: (n) => `Solceller i ${n}`,
+  intro: (n, r) => `Den här sidan samlar de belagda lokala siffror vi har för ${n} (${r}). Varje siffra anger utgivare och datum då vi kontrollerade den.`,
+  keyNumbersHeading: (n) => `Solceller i ${n}: viktigaste siffrorna`,
+  answerYield: (n, kwh, f) => `En anläggning på 1 kWp riktad mot ${f} med bästa lutning ger enligt modellen cirka ${kwh} kWh per år i ${n}.`,
+  yieldH: (n) => `Så mycket sol får ${n}`,
+  ownershipH: (n) => `Bostadsägande i ${n}`,
+  ownershipIntro: 'Solceller är enklast på en bostad man äger. Siffran kommer från folkräkningen 2021 för det statistiska området som anges under värdet.',
+  dwellingsH: (n) => `Hustyper i ${n}`,
+  dwellingsIntro: 'Solceller passar enklast på byggnader med en enda bostad. Siffran kommer från folkräkningen 2021 för området som anges under värdet.',
+  labels: { yield: 'Årsproduktion för 1 kWp solceller', owner: 'Bebodda bostäder som ägaren själv bor i', oneDwelling: 'Bebodda bostäder i byggnader med en bostad' },
+  yieldUnit: ' kWh per år och kWp',
+  chart: {
+    intro: (a) => `Modellerad produktion från 1 kWp takmonterade solceller, månad för månad, från EU:s verktyg PVGIS${a ? `: cirka ${a} kWh per år` : ''}. Verklig produktion beror på tak, skuggning och utrustning.`,
+    title: (n) => `Modellerad månadsproduktion per kWp i ${n}`, month: 'Månad', kwh: 'kWh per kWp', pending: 'Produktionsuppskattningen för den här orten kontrolleras fortfarande.', method: 'Metod',
+    line: (db, tilt, loss, f) => [`${db}-data`, tilt === null ? null : `panelerna lutade ${tilt}° (bästa vinkeln över året)`, `riktade mot ${f}`, loss === null ? null : `${loss} % systemförluster`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'Det här är publicerad statistik och en modellberäkning för området, inte en offert. Ditt tak, skuggning, utrustning och elavtal avgör ditt resultat.',
+  methodologyLink: 'Så belägger RayValue sina siffror', articlesHeading: 'Läs mer', articlesIndex: 'Alla guider för Sverige',
+  otherPlaces: (r) => `Fler orter i ${r}`,
+  hubTitle: (r) => `Solceller i ${r}: orter och lokal data`,
+  hubDescription: (r) => `Lokal soldata för orter i ${r}: solinstrålning, bostadsägande och hustyper, alla med källa och datum.`,
+  hubH1: (r) => `Solceller i ${r}`,
+  hubIntro: (r) => `Orter i ${r} med belagd lokal soldata. Välj en ort för att se siffrorna och var de kommer från.`,
+  notFound: { title: 'Sidan hittades inte', h1: 'Vi hittade inte den orten', body: 'Vi har ännu ingen sida för den orten.', link: 'Se guider för Sverige' },
+  unavailable: { title: 'Sidan är tillfälligt otillgänglig', h1: 'Den här sidan kontrolleras', body: 'Våra data är tillfälligt otillgängliga. Försök igen om några minuter.' },
+});
+
+const DK_TEXT = censusDict({
+  home: 'Forside', source: 'Kilde', sourceOurData: 'Kilde: egne data', checked: 'kontrolleret', figuresChecked: 'Tal kontrolleret', periodTo: 'til',
+  secondary: 'Sekundær kilde, bruges ikke i vores kontrol.',
+  scopeRegion: (l) => `Regional værdi: ${l}`, geography: (l) => `Område: ${l}`, south: 'syd', north: 'nord',
+  title: (n) => `Solceller i ${n}: lokale data med kilder`,
+  description: (n, r) => `Solindstråling, boligejerskab og boligtyper i ${n}, ${r}. Hvert tal har kilde og kontroldato.`,
+  h1: (n) => `Solceller i ${n}`,
+  intro: (n, r) => `Denne side samler de dokumenterede lokale tal, vi har for ${n} (${r}). Hvert tal angiver udgiver og den dato, vi kontrollerede det.`,
+  keyNumbersHeading: (n) => `Solceller i ${n}: de vigtigste tal`,
+  answerYield: (n, kwh, f) => `Et anlæg på 1 kWp vendt mod ${f} med bedste hældning producerer ifølge modellen cirka ${kwh} kWh om året i ${n}.`,
+  yieldH: (n) => `Hvor meget sol får ${n}`,
+  ownershipH: (n) => `Boligejerskab i ${n}`,
+  ownershipIntro: 'Solceller er nemmest på en bolig, man selv ejer. Tallet stammer fra folketællingen 2021 for det statistiske område, der står under værdien.',
+  dwellingsH: (n) => `Boligtyper i ${n}`,
+  dwellingsIntro: 'Solceller passer nemmest på bygninger med én bolig. Tallet stammer fra folketællingen 2021 for det område, der står under værdien.',
+  labels: { yield: 'Årlig produktion fra 1 kWp solceller', owner: 'Beboede boliger, hvor ejeren selv bor', oneDwelling: 'Beboede boliger i bygninger med én bolig' },
+  yieldUnit: ' kWh om året pr. kWp',
+  chart: {
+    intro: (a) => `Modelleret produktion fra 1 kWp solceller på taget, måned for måned, fra EU's værktøj PVGIS${a ? `: cirka ${a} kWh om året` : ''}. Den faktiske produktion afhænger af tag, skygge og udstyr.`,
+    title: (n) => `Modelleret månedlig solproduktion pr. kWp i ${n}`, month: 'Måned', kwh: 'kWh pr. kWp', pending: 'Produktionsskønnet for dette sted bliver stadig kontrolleret.', method: 'Metode',
+    line: (db, tilt, loss, f) => [`${db}-data`, tilt === null ? null : `paneler hældet ${tilt}° (bedste vinkel over året)`, `vendt mod ${f}`, loss === null ? null : `${loss} % systemtab`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'Det er offentliggjort statistik og en modelberegning for området, ikke et tilbud. Dit tag, skygge, udstyr og din elaftale afgør dit resultat.',
+  methodologyLink: 'Sådan dokumenterer RayValue sine tal', articlesHeading: 'Læs mere', articlesIndex: 'Alle guides til Danmark',
+  otherPlaces: (r) => `Flere steder i ${r}`,
+  hubTitle: (r) => `Solceller i ${r}: steder og lokale data`,
+  hubDescription: (r) => `Lokale soldata for steder i ${r}: solindstråling, boligejerskab og boligtyper, alle med kilde og dato.`,
+  hubH1: (r) => `Solceller i ${r}`,
+  hubIntro: (r) => `Steder i ${r} med dokumenterede lokale soldata. Vælg et sted for at se tallene og hvor de kommer fra.`,
+  notFound: { title: 'Siden blev ikke fundet', h1: 'Vi kunne ikke finde det sted', body: 'Vi har endnu ingen side for det sted.', link: 'Se guides til Danmark' },
+  unavailable: { title: 'Siden er midlertidigt utilgængelig', h1: 'Denne side bliver kontrolleret', body: 'Vores data er midlertidigt utilgængelige. Prøv igen om nogle minutter.' },
+});
+
+const NO_TEXT = censusDict({
+  home: 'Hjem', source: 'Kilde', sourceOurData: 'Kilde: egne data', checked: 'kontrollert', figuresChecked: 'Tall kontrollert', periodTo: 'til',
+  secondary: 'Sekundærkilde, brukes ikke i vår kontroll.',
+  scopeRegion: (l) => `Regional verdi: ${l}`, geography: (l) => `Område: ${l}`, south: 'sør', north: 'nord',
+  title: (n) => `Solceller i ${n}: lokale data med kilder`,
+  description: (n, r) => `Solinnstråling, boligeierskap og boligtyper i ${n}, ${r}. Hvert tall har kilde og kontrolldato.`,
+  h1: (n) => `Solceller i ${n}`,
+  intro: (n, r) => `Denne siden samler de dokumenterte lokale tallene vi har for ${n} (${r}). Hvert tall oppgir utgiver og datoen vi kontrollerte det.`,
+  keyNumbersHeading: (n) => `Solceller i ${n}: de viktigste tallene`,
+  answerYield: (n, kwh, f) => `Et anlegg på 1 kWp vendt mot ${f} med best helning gir ifølge modellen omtrent ${kwh} kWh i året i ${n}.`,
+  yieldH: (n) => `Hvor mye sol får ${n}`,
+  ownershipH: (n) => `Boligeierskap i ${n}`,
+  ownershipIntro: 'Solceller er enklest på en bolig du eier. Tallet kommer fra folke- og boligtellingen 2021 for det statistiske området som er oppgitt under verdien.',
+  dwellingsH: (n) => `Boligtyper i ${n}`,
+  dwellingsIntro: 'Solceller passer enklest på bygninger med én bolig. Tallet kommer fra tellingen 2021 for området som er oppgitt under verdien.',
+  labels: { yield: 'Årlig produksjon fra 1 kWp solceller', owner: 'Bebodde boliger der eieren bor selv', oneDwelling: 'Bebodde boliger i bygninger med én bolig' },
+  yieldUnit: ' kWh i året per kWp',
+  chart: {
+    intro: (a) => `Modellert produksjon fra 1 kWp solceller på taket, måned for måned, fra EUs verktøy PVGIS${a ? `: omtrent ${a} kWh i året` : ''}. Faktisk produksjon avhenger av tak, skygge og utstyr.`,
+    title: (n) => `Modellert månedlig solproduksjon per kWp i ${n}`, month: 'Måned', kwh: 'kWh per kWp', pending: 'Produksjonsanslaget for dette stedet kontrolleres fortsatt.', method: 'Metode',
+    line: (db, tilt, loss, f) => [`${db}-data`, tilt === null ? null : `paneler med ${tilt}° helning (beste vinkel over året)`, `vendt mot ${f}`, loss === null ? null : `${loss} % systemtap`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'Dette er publisert statistikk og en modellberegning for området, ikke et tilbud. Taket ditt, skygge, utstyr og strømavtale avgjør resultatet ditt.',
+  methodologyLink: 'Slik dokumenterer RayValue tallene sine', articlesHeading: 'Les mer', articlesIndex: 'Alle guider for Norge',
+  otherPlaces: (r) => `Flere steder i ${r}`,
+  hubTitle: (r) => `Solceller i ${r}: steder og lokale data`,
+  hubDescription: (r) => `Lokale soldata for steder i ${r}: solinnstråling, boligeierskap og boligtyper, alle med kilde og dato.`,
+  hubH1: (r) => `Solceller i ${r}`,
+  hubIntro: (r) => `Steder i ${r} med dokumenterte lokale soldata. Velg et sted for å se tallene og hvor de kommer fra.`,
+  notFound: { title: 'Siden ble ikke funnet', h1: 'Vi fant ikke det stedet', body: 'Vi har ikke noen side for det stedet ennå.', link: 'Se guider for Norge' },
+  unavailable: { title: 'Siden er midlertidig utilgjengelig', h1: 'Denne siden kontrolleres', body: 'Dataene våre er midlertidig utilgjengelige. Prøv igjen om noen minutter.' },
+});
+
+const FI_TEXT = censusDict({
+  home: 'Etusivu', source: 'Lähde', sourceOurData: 'Lähde: omat tiedot', checked: 'tarkistettu', figuresChecked: 'Luvut tarkistettu', periodTo: '–',
+  secondary: 'Toissijainen lähde, ei käytössä tarkistuksessamme.',
+  scopeRegion: (l) => `Alueellinen arvo: ${l}`, geography: (l) => `Alue: ${l}`, south: 'etelään', north: 'pohjoiseen',
+  title: (n) => `Aurinkopaneelit ${n}: paikalliset tiedot lähteineen`,
+  description: (n, r) => `Auringon säteily, asuntojen omistus ja talotyypit: ${n}, ${r}. Jokaisella luvulla on lähde ja tarkistuspäivä.`,
+  h1: (n) => `Aurinkopaneelit ${n}`,
+  intro: (n, r) => `Tälle sivulle on koottu paikkakunnasta ${n} (${r}) tiedossamme olevat lähteistetyt paikalliset luvut. Jokaisen luvun yhteydessä on julkaisija ja tarkistuspäivä.`,
+  keyNumbersHeading: (n) => `Aurinkosähkö ${n}: tärkeimmät luvut`,
+  answerYield: (n, kwh, f) => `Mallin mukaan ${f} suunnattu 1 kWp:n järjestelmä parhaalla kallistuksella tuottaa paikkakunnalla ${n} noin ${kwh} kWh vuodessa.`,
+  yieldH: (n) => `Kuinka paljon aurinkoa ${n} saa`,
+  ownershipH: (n) => `Asuntojen omistus: ${n}`,
+  ownershipIntro: 'Aurinkopaneelit on helpointa asentaa omistamaasi asuntoon. Luku on vuoden 2021 väestölaskennan tieto tilastoalueelta, joka on mainittu arvon alla.',
+  dwellingsH: (n) => `Talotyypit: ${n}`,
+  dwellingsIntro: 'Aurinkopaneelit sopivat helpoimmin rakennukseen, jossa on yksi asunto. Luku on vuoden 2021 väestölaskennan tieto arvon alla mainitulta alueelta.',
+  labels: { yield: 'Vuosituotanto 1 kWp:n aurinkopaneeleilla', owner: 'Asutut asunnot, joissa omistaja asuu itse', oneDwelling: 'Asutut asunnot yhden asunnon rakennuksissa' },
+  yieldUnit: ' kWh vuodessa kWp:tä kohti',
+  chart: {
+    intro: (a) => `Mallinnettu 1 kWp:n kattoaurinkosähkön tuotanto kuukausittain EU:n PVGIS-työkalulla${a ? `: noin ${a} kWh vuodessa` : ''}. Todellinen tuotanto riippuu katosta, varjostuksesta ja laitteista.`,
+    title: (n) => `Mallinnettu kuukausituotanto kWp:tä kohti: ${n}`, month: 'Kuukausi', kwh: 'kWh per kWp', pending: 'Tämän paikkakunnan tuotantoarvio on vielä tarkistettavana.', method: 'Menetelmä',
+    line: (db, tilt, loss, f) => [`${db}-aineisto`, tilt === null ? null : `paneelit ${tilt}° kulmassa (vuoden paras kulma)`, `suunta ${f}`, loss === null ? null : `${loss} % järjestelmähäviöt`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'Nämä ovat julkaistuja tilastoja ja alueelle tehty mallilaskelma, eivät tarjous. Oma kattosi, varjostus, laitteet ja sähkösopimuksesi ratkaisevat tuloksen.',
+  methodologyLink: 'Näin RayValue lähteistää lukunsa', articlesHeading: 'Lue lisää', articlesIndex: 'Kaikki Suomen oppaat',
+  otherPlaces: (r) => `Muut paikkakunnat: ${r}`,
+  hubTitle: (r) => `Aurinkopaneelit: ${r}, paikkakunnat ja paikalliset tiedot`,
+  hubDescription: (r) => `Paikallista aurinkodataa alueelle ${r}: auringon säteily, asuntojen omistus ja talotyypit, jokaisella lähde ja päivämäärä.`,
+  hubH1: (r) => `Aurinkopaneelit: ${r}`,
+  hubIntro: (r) => `Alueen ${r} paikkakunnat, joista on lähteistettyä paikallista aurinkodataa. Valitse paikkakunta nähdäksesi luvut ja niiden lähteet.`,
+  notFound: { title: 'Sivua ei löytynyt', h1: 'Emme löytäneet tuota paikkakuntaa', body: 'Paikkakunnalle ei ole vielä sivua.', link: 'Katso Suomen oppaat' },
+  unavailable: { title: 'Sivu ei ole tilapäisesti saatavilla', h1: 'Tätä sivua tarkistetaan', body: 'Tietomme eivät ole tilapäisesti saatavilla. Yritä uudelleen muutaman minuutin kuluttua.' },
+});
+
+const PL_TEXT = censusDict({
+  home: 'Strona główna', source: 'Źródło', sourceOurData: 'Źródło: własne dane', checked: 'sprawdzono', figuresChecked: 'Dane sprawdzone', periodTo: 'do',
+  secondary: 'Źródło wtórne, nieużywane w naszej weryfikacji.',
+  scopeRegion: (l) => `Wartość regionalna: ${l}`, geography: (l) => `Obszar: ${l}`, south: 'południe', north: 'północ',
+  title: (n) => `Fotowoltaika: ${n}, lokalne dane ze źródłami`,
+  description: (n, r) => `Nasłonecznienie, własność mieszkań i typy budynków: ${n}, ${r}. Każda liczba ma źródło i datę sprawdzenia.`,
+  h1: (n) => `Fotowoltaika: ${n}`,
+  intro: (n, r) => `Ta strona zbiera udokumentowane lokalne dane, którymi dysponujemy dla miejscowości ${n} (${r}). Przy każdej liczbie podajemy wydawcę i datę, kiedy ją sprawdziliśmy.`,
+  keyNumbersHeading: (n) => `Fotowoltaika: ${n}, najważniejsze liczby`,
+  answerYield: (n, kwh, f) => `Według modelu instalacja 1 kWp skierowana na ${f} pod optymalnym kątem wyprodukuje w miejscowości ${n} około ${kwh} kWh rocznie.`,
+  yieldH: (n) => `Ile słońca dostaje ${n}`,
+  ownershipH: (n) => `Własność mieszkań: ${n}`,
+  ownershipIntro: 'Fotowoltaikę najłatwiej zamontować na własnym domu. Liczba pochodzi ze spisu powszechnego 2021 dla obszaru statystycznego podanego pod wartością.',
+  dwellingsH: (n) => `Typy budynków: ${n}`,
+  dwellingsIntro: 'Fotowoltaika najłatwiej pasuje do budynku z jednym mieszkaniem. Liczba pochodzi ze spisu 2021 dla obszaru podanego pod wartością.',
+  labels: { yield: 'Roczna produkcja z 1 kWp paneli', owner: 'Zamieszkane mieszkania zajmowane przez właściciela', oneDwelling: 'Zamieszkane mieszkania w budynkach z jednym mieszkaniem' },
+  yieldUnit: ' kWh rocznie na kWp',
+  chart: {
+    intro: (a) => `Modelowana produkcja 1 kWp paneli na dachu, miesiąc po miesiącu, z narzędzia UE PVGIS${a ? `: około ${a} kWh rocznie` : ''}. Rzeczywista produkcja zależy od dachu, zacienienia i sprzętu.`,
+    title: (n) => `Modelowana miesięczna produkcja na kWp: ${n}`, month: 'Miesiąc', kwh: 'kWh na kWp', pending: 'Szacunek produkcji dla tej miejscowości jest jeszcze weryfikowany.', method: 'Metoda',
+    line: (db, tilt, loss, f) => [`dane ${db}`, tilt === null ? null : `panele nachylone pod kątem ${tilt}° (najlepszy kąt w ciągu roku)`, `skierowane na ${f}`, loss === null ? null : `straty systemowe ${loss}%`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'To opublikowane statystyki i modelowe oszacowanie dla okolicy, a nie oferta. O Twoim wyniku decydują dach, zacienienie, sprzęt i taryfa.',
+  methodologyLink: 'Jak RayValue dokumentuje swoje liczby', articlesHeading: 'Czytaj dalej', articlesIndex: 'Wszystkie poradniki dla Polski',
+  otherPlaces: (r) => `Inne miejscowości: ${r}`,
+  hubTitle: (r) => `Fotowoltaika: ${r}, miejscowości i lokalne dane`,
+  hubDescription: (r) => `Lokalne dane o fotowoltaice dla miejscowości (${r}): nasłonecznienie, własność mieszkań i typy budynków, każde ze źródłem i datą.`,
+  hubH1: (r) => `Fotowoltaika: ${r}`,
+  hubIntro: (r) => `Miejscowości (${r}), dla których mamy udokumentowane lokalne dane. Wybierz miejscowość, aby zobaczyć liczby i ich źródła.`,
+  notFound: { title: 'Nie znaleziono strony', h1: 'Nie znaleźliśmy tej miejscowości', body: 'Nie mamy jeszcze strony dla tej miejscowości.', link: 'Zobacz poradniki dla Polski' },
+  unavailable: { title: 'Strona jest tymczasowo niedostępna', h1: 'Ta strona jest weryfikowana', body: 'Nasze dane są tymczasowo niedostępne. Spróbuj ponownie za kilka minut.' },
+});
+
+const CZ_TEXT = censusDict({
+  home: 'Úvod', source: 'Zdroj', sourceOurData: 'Zdroj: vlastní data', checked: 'ověřeno', figuresChecked: 'Čísla ověřena', periodTo: 'do',
+  secondary: 'Sekundární zdroj, v naší kontrole se nepoužívá.',
+  scopeRegion: (l) => `Regionální hodnota: ${l}`, geography: (l) => `Oblast: ${l}`, south: 'jih', north: 'sever',
+  title: (n) => `Fotovoltaika: ${n}, místní data se zdroji`,
+  description: (n, r) => `Sluneční svit, vlastnictví bytů a typy domů: ${n}, ${r}. Každé číslo má zdroj a datum ověření.`,
+  h1: (n) => `Fotovoltaika: ${n}`,
+  intro: (n, r) => `Tato stránka shromažďuje doložená místní čísla, která máme pro ${n} (${r}). U každého čísla uvádíme vydavatele a datum, kdy jsme je ověřili.`,
+  keyNumbersHeading: (n) => `Fotovoltaika: ${n}, nejdůležitější čísla`,
+  answerYield: (n, kwh, f) => `Podle modelu vyrobí zařízení o výkonu 1 kWp orientované na ${f} s nejlepším sklonem v místě ${n} zhruba ${kwh} kWh ročně.`,
+  yieldH: (n) => `Kolik slunce má ${n}`,
+  ownershipH: (n) => `Vlastnictví bydlení: ${n}`,
+  ownershipIntro: 'Fotovoltaiku nejsnáze nainstalujete na vlastní dům. Číslo pochází ze sčítání lidu 2021 pro statistickou oblast uvedenou pod hodnotou.',
+  dwellingsH: (n) => `Typy domů: ${n}`,
+  dwellingsIntro: 'Fotovoltaika nejsnáze sedí na budově s jedním bytem. Číslo pochází ze sčítání 2021 pro oblast uvedenou pod hodnotou.',
+  labels: { yield: 'Roční výroba 1 kWp panelů', owner: 'Obydlené byty užívané vlastníkem', oneDwelling: 'Obydlené byty v budovách s jedním bytem' },
+  yieldUnit: ' kWh ročně na kWp',
+  chart: {
+    intro: (a) => `Modelovaná výroba 1 kWp střešních panelů po měsících z nástroje EU PVGIS${a ? `: zhruba ${a} kWh ročně` : ''}. Skutečná výroba závisí na střeše, zastínění a vybavení.`,
+    title: (n) => `Modelovaná měsíční výroba na kWp: ${n}`, month: 'Měsíc', kwh: 'kWh na kWp', pending: 'Odhad výroby pro toto místo se stále ověřuje.', method: 'Metoda',
+    line: (db, tilt, loss, f) => [`data ${db}`, tilt === null ? null : `panely se sklonem ${tilt}° (nejlepší úhel pro celý rok)`, `orientace na ${f}`, loss === null ? null : `systémové ztráty ${loss} %`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'Jde o zveřejněné statistiky a modelový odhad pro danou oblast, nikoli o nabídku. O vašem výsledku rozhoduje střecha, zastínění, vybavení a tarif.',
+  methodologyLink: 'Jak RayValue dokládá svá čísla', articlesHeading: 'Číst dále', articlesIndex: 'Všechny průvodce pro Česko',
+  otherPlaces: (r) => `Další místa: ${r}`,
+  hubTitle: (r) => `Fotovoltaika: ${r}, místa a místní data`,
+  hubDescription: (r) => `Místní data o fotovoltaice pro místa (${r}): sluneční svit, vlastnictví bytů a typy domů, vždy se zdrojem a datem.`,
+  hubH1: (r) => `Fotovoltaika: ${r}`,
+  hubIntro: (r) => `Místa (${r}), pro která máme doložená místní data. Vyberte místo a zobrazí se čísla a jejich zdroje.`,
+  notFound: { title: 'Stránka nenalezena', h1: 'Toto místo jsme nenašli', body: 'Pro toto místo zatím stránku nemáme.', link: 'Zobrazit průvodce pro Česko' },
+  unavailable: { title: 'Stránka je dočasně nedostupná', h1: 'Tato stránka se ověřuje', body: 'Naše data jsou dočasně nedostupná. Zkuste to prosím znovu za několik minut.' },
+});
+
+const RO_TEXT = censusDict({
+  home: 'Acasă', source: 'Sursă', sourceOurData: 'Sursă: date proprii', checked: 'verificat la', figuresChecked: 'Cifre verificate la', periodTo: 'până la',
+  secondary: 'Sursă secundară, nefolosită în verificările noastre.',
+  scopeRegion: (l) => `Valoare regională: ${l}`, geography: (l) => `Zonă: ${l}`, south: 'sud', north: 'nord',
+  title: (n) => `Panouri fotovoltaice în ${n}: date locale cu surse`,
+  description: (n, r) => `Radiația solară, proprietatea asupra locuințelor și tipurile de clădiri în ${n}, ${r}. Fiecare cifră are sursa și data verificării.`,
+  h1: (n) => `Panouri fotovoltaice în ${n}`,
+  intro: (n, r) => `Această pagină adună cifrele locale documentate pe care le avem pentru ${n} (${r}). Fiecare cifră indică editorul și data la care am verificat-o.`,
+  keyNumbersHeading: (n) => `Panouri fotovoltaice în ${n}: cifrele esențiale`,
+  answerYield: (n, kwh, f) => `Conform modelului, o instalație de 1 kWp orientată spre ${f}, la înclinația optimă, produce în ${n} aproximativ ${kwh} kWh pe an.`,
+  yieldH: (n) => `Cât soare primește ${n}`,
+  ownershipH: (n) => `Proprietatea asupra locuințelor în ${n}`,
+  ownershipIntro: 'Panourile fotovoltaice se montează cel mai ușor pe o locuință pe care o deții. Cifra provine din recensământul din 2021 pentru zona statistică indicată sub valoare.',
+  dwellingsH: (n) => `Tipuri de clădiri în ${n}`,
+  dwellingsIntro: 'Panourile se potrivesc cel mai ușor pe o clădire cu o singură locuință. Cifra provine din recensământul din 2021 pentru zona indicată sub valoare.',
+  labels: { yield: 'Producția anuală a 1 kWp de panouri', owner: 'Locuințe ocupate de proprietarul lor', oneDwelling: 'Locuințe ocupate în clădiri cu o singură locuință' },
+  yieldUnit: ' kWh pe an pentru fiecare kWp',
+  chart: {
+    intro: (a) => `Producția modelată a 1 kWp de panouri pe acoperiș, lună de lună, cu instrumentul UE PVGIS${a ? `: aproximativ ${a} kWh pe an` : ''}. Producția reală depinde de acoperiș, umbrire și echipamente.`,
+    title: (n) => `Producția lunară modelată pe kWp în ${n}`, month: 'Luna', kwh: 'kWh pe kWp', pending: 'Estimarea producției pentru această localitate este încă în verificare.', method: 'Metodă',
+    line: (db, tilt, loss, f) => [`date ${db}`, tilt === null ? null : `panouri înclinate la ${tilt}° (cel mai bun unghi pe an)`, `orientate spre ${f}`, loss === null ? null : `pierderi de sistem de ${loss}%`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'Acestea sunt statistici publicate și o estimare modelată pentru zonă, nu o ofertă. Rezultatul tău depinde de acoperiș, umbrire, echipamente și tarif.',
+  methodologyLink: 'Cum își documentează RayValue cifrele', articlesHeading: 'Citește mai mult', articlesIndex: 'Toate ghidurile pentru România',
+  otherPlaces: (r) => `Alte localități din ${r}`,
+  hubTitle: (r) => `Panouri fotovoltaice în ${r}: localități și date locale`,
+  hubDescription: (r) => `Date locale despre energia solară pentru localități din ${r}: radiație solară, proprietate și tipuri de clădiri, fiecare cu sursă și dată.`,
+  hubH1: (r) => `Panouri fotovoltaice în ${r}`,
+  hubIntro: (r) => `Localități din ${r} cu date locale documentate. Alege o localitate pentru a vedea cifrele și sursele lor.`,
+  notFound: { title: 'Pagina nu a fost găsită', h1: 'Nu am găsit această localitate', body: 'Nu avem încă o pagină pentru această localitate.', link: 'Vezi ghidurile pentru România' },
+  unavailable: { title: 'Pagina este temporar indisponibilă', h1: 'Această pagină este în curs de verificare', body: 'Datele noastre sunt temporar indisponibile. Încearcă din nou peste câteva minute.' },
+});
+
+const ES_TEXT: PlaceDict = {
+  home: 'Inicio',
+  source: 'Fuente',
+  sourceOurData: 'Fuente: datos propios',
+  checked: 'comprobado el',
+  figuresChecked: 'Cifras comprobadas el',
+  periodTo: 'hasta',
+  secondary: 'Fuente secundaria, no se usa en nuestras comprobaciones.',
+  scopeRegion: (l) => `Dato regional: ${l}`,
+  scopeNetwork: (l) => `Zona de red: ${l}`,
+  geography: (l) => `Zona: ${l}`,
+  title: (n) => `Placas solares en ${n}: datos locales con fuentes`,
+  description: (n, r) => `Producción solar, vivienda en propiedad, renta de los hogares y viviendas no principales en ${n}, ${r}. Cada cifra con su fuente y fecha.`,
+  h1: (n) => `Placas solares en ${n}`,
+  intro: (n, r) => `Esta página reúne las cifras locales documentadas que tenemos de ${n} (${r}). Cada cifra indica quién la publica y la fecha en que la comprobamos.`,
+  keyNumbersHeading: (n) => `Placas solares en ${n}: cifras clave`,
+  answerYield: (n, kwh, f) => `Según el modelo, una instalación de 1 kWp orientada al ${f} y con la inclinación óptima produce en ${n} unos ${kwh} kWh al año.`,
+  facing: { south: 'sur', north: 'norte' },
+  sections: {
+    yield: { heading: (n) => `Cuánto sol recibe ${n}` },
+    housing: { heading: (n) => `Viviendas en ${n}`, intro: 'Instalar placas es más fácil en una vivienda propia. Cifras del Censo de 2021 del INE para el municipio.' },
+    income: { heading: (n) => `Renta de los hogares en ${n}`, intro: 'Renta neta media por hogar, según el Atlas de Distribución de Renta de los Hogares del INE.' },
+    municipal: { heading: () => 'Impuestos municipales: IBI e ICIO', intro: 'Bonificaciones del ayuntamiento en el IBI y el ICIO para instalaciones solares, según su ordenanza fiscal.' },
+    installs: none, tariff: none, cost: none, zone: none, heating: none, ownership: none, dwellings: none,
+  },
+  labels: {
+    solar_yield_kwh_per_kwp: 'Producción anual de 1 kWp de placas',
+    homeownership_pct: 'Viviendas principales en propiedad',
+    non_principal_dwellings_pct: 'Viviendas que no son residencia principal (segundas residencias o vacías)',
+    household_net_income_avg: 'Renta neta media por hogar',
+    municipal_ibi_bonus_pct: 'Bonificación del IBI por instalar placas',
+    municipal_ibi_bonus_years: 'Años de bonificación del IBI',
+    municipal_icio_bonus_pct: 'Bonificación del ICIO por instalar placas',
+    ibi_tax_rate_urban: 'Tipo del IBI urbano',
+  },
+  units: { solar_yield_kwh_per_kwp: ' kWh al año por kWp', household_net_income_avg: ' por hogar y año', municipal_ibi_bonus_years: ' años' },
+  chart: {
+    heading: (n) => `Cuánto sol recibe ${n}`,
+    intro: (a) => `Producción modelada de 1 kWp de placas en tejado, mes a mes, con la herramienta europea PVGIS${a ? `: unos ${a} kWh al año` : ''}. La producción real depende del tejado, las sombras y los equipos.`,
+    title: (n) => `Producción solar mensual modelada por kWp en ${n}`,
+    month: 'Mes',
+    kwh: 'kWh por kWp',
+    pending: 'La estimación de producción de este lugar aún se está comprobando.',
+    method: 'Método',
+    methodLine: (db, tilt, loss, f) => [`datos ${db}`, tilt === null ? null : `placas inclinadas ${tilt}° (el mejor ángulo del año)`, `orientadas al ${f}`, loss === null ? null : `pérdidas del sistema del ${loss} %`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'Son estadísticas publicadas y una estimación modelada para la zona, no un presupuesto. Su tejado, las sombras, los equipos y su tarifa deciden su resultado.',
+  methodologyLink: 'Cómo respalda RayValue sus cifras',
+  articlesHeading: 'Sigue leyendo',
+  articlesIndex: 'Todas las guías de España',
+  otherPlaces: (r) => `Otros lugares en ${r}`,
+  hubTitle: (r) => `Placas solares en ${r}: lugares y datos locales`,
+  hubDescription: (r) => `Datos solares locales de lugares en ${r}: producción, vivienda y renta, cada uno con su fuente y fecha.`,
+  hubH1: (r) => `Placas solares en ${r}`,
+  hubIntro: (r) => `Lugares en ${r} con datos solares locales documentados. Elija uno para ver las cifras y de dónde vienen.`,
+  notFound: { title: 'Página no encontrada', h1: 'No encontramos ese lugar', body: 'Todavía no tenemos una página para ese lugar.', link: 'Ver las guías de España' },
+  unavailable: { title: 'Página no disponible temporalmente', h1: 'Esta página se está comprobando', body: 'Nuestros datos no están disponibles temporalmente. Inténtelo de nuevo en unos minutos.' },
+};
+
+const IE_TEXT: PlaceDict = {
+  home: 'Home',
+  source: 'Source',
+  sourceOurData: 'Source: our data',
+  checked: 'checked',
+  figuresChecked: 'Figures checked on',
+  periodTo: 'to',
+  secondary: 'Secondary source, not used for our checks.',
+  scopeRegion: (l) => `Regional figure: ${l}`,
+  scopeNetwork: (l) => `Network figure: ${l}`,
+  geography: (l) => `Area used: ${l}`,
+  title: (n) => `Solar panels in ${n}: local data and sources`,
+  description: (n) => `Sunshine yield, home ownership, household solar uptake and house types in ${n}. Every figure has its source and date.`,
+  h1: (n) => `Solar panels in ${n}`,
+  intro: (n) => `This page collects the sourced local numbers we hold for ${n}. Each figure names its publisher and the date we checked it.`,
+  keyNumbersHeading: (n) => `Solar in ${n}: key numbers`,
+  answerYield: (n, kwh, f) => `A 1 kWp array facing ${f} at the best tilt is modelled to generate about ${kwh} kWh a year in ${n}.`,
+  facing: { south: 'south', north: 'north' },
+  sections: {
+    yield: { heading: (n) => `How much sun ${n} gets` },
+    ownership: { heading: (n) => `Home ownership in ${n}`, intro: 'Solar is easiest on a home you own. These are Census 2022 figures from the CSO for the area named under each line.' },
+    installs: { heading: (n) => `Solar already on roofs in ${n}`, intro: 'Households that reported solar panels for electricity on Census night in April 2022. Installations have grown since, so treat this as a 2022 baseline, not a current count.' },
+    dwellings: { heading: (n) => `Types of home in ${n}`, intro: 'Rooftop solar is simplest on a house. These are Census 2022 figures from the CSO for the area named under each line.' },
+    housing: none, tariff: none, cost: none, zone: none, heating: none, income: none, municipal: none,
+  },
+  labels: {
+    solar_yield_kwh_per_kwp: 'Yearly output of 1 kWp of panels',
+    homeownership_pct: 'Households that own their home',
+    solar_pv_households_pct: 'Households with solar panels for electricity (April 2022)',
+    solar_pv_households_count: 'Households with solar panels for electricity, count (April 2022)',
+    house_share_pct: 'Households living in a house (detached, semi-detached or terraced)',
+    detached_share_pct: 'Households living in a detached house',
+  },
+  units: { solar_yield_kwh_per_kwp: ' kWh a year per kWp', solar_pv_households_count: ' households' },
+  chart: {
+    heading: (n) => `How much sun ${n} gets`,
+    intro: (a) => `Modelled output of 1 kWp of rooftop solar, month by month, from the EU's PVGIS tool${a ? `: about ${a} kWh a year` : ''}. Real output depends on your roof, shading and equipment.`,
+    title: (n) => `Modelled monthly solar output per kWp in ${n}`,
+    month: 'Month',
+    kwh: 'kWh per kWp',
+    pending: 'Solar output estimates for this place are being verified.',
+    method: 'Method',
+    methodLine: (db, tilt, loss, facing) => [`${db} data`, tilt === null ? null : `panels tilted ${tilt}° (the best angle for the year)`, `facing ${facing}`, loss === null ? null : `${loss}% system losses`].filter(Boolean).join(', '),
+  },
+  disclaimer: 'These are published statistics and a modelled estimate for the area, not a quote. Your own roof, shading, equipment and tariff decide your result.',
+  methodologyLink: 'How RayValue sources its numbers',
+  articlesHeading: 'Read more',
+  articlesIndex: 'All Irish guides',
+  otherPlaces: (r) => `Other places in ${r}`,
+  hubTitle: (r) => `Solar panels in ${r}: places and local data`,
+  hubDescription: (r) => `Local solar data for places in ${r}: sunshine yield, home ownership, solar uptake and house types, each with its source and date.`,
+  hubH1: (r) => `Solar panels in ${r}`,
+  hubIntro: (r) => `Places in ${r} with sourced local solar data. Pick one to see the figures and where they come from.`,
+  notFound: { title: 'Page not found', h1: 'We could not find that place', body: 'We do not have a page for that place yet.', link: 'See the Irish guides' },
+  unavailable: { title: 'Page temporarily unavailable', h1: 'This page is being verified', body: 'Our data is temporarily unavailable. Please try again in a few minutes.' },
+};
+
+export const EU_PLACE_TEXT = { ES: ES_TEXT, IE: IE_TEXT, SE: SE_TEXT, DK: DK_TEXT, NO: NO_TEXT, FI: FI_TEXT, PL: PL_TEXT, CZ: CZ_TEXT, RO: RO_TEXT } as const;

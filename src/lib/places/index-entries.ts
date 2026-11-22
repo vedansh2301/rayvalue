@@ -6,7 +6,7 @@
 import { err, ok, type Result } from '../db/client.ts';
 import { maxDate, toDate } from '../seo/lastmod.ts';
 import type { IndexEntry } from '../seo/site-index.ts';
-import { placeCountryByCode, placePath, regionHubPath } from './config.ts';
+import { isRegionPage, placeCountryByCode, placePath, regionHubPath } from './config.ts';
 import { evaluatePlace, hubRenders } from './gate.ts';
 import { PLACE_TEXT } from './i18n.ts';
 import { loadPlaceRegions, loadPublishedPlaces, type PlacesRepoDeps } from './repo.ts';
@@ -41,7 +41,8 @@ export function placeIndexEntries(regions: readonly PlaceRegion[], places: reado
   }
   for (const g of byRegion.values()) {
     const country = placeCountryByCode(g.region.country);
-    if (!country || !hubRenders(g.places.length)) continue;
+    // A county page (IE) already occupies the hub URL, so no separate hub entry is listed for that region.
+    if (!country || !hubRenders(g.places.length) || g.places.some((p) => isRegionPage(country, g.region.slug, p.slug))) continue;
     const text = PLACE_TEXT[country.code];
     out.push({
       path: regionHubPath(country, g.region.slug),
