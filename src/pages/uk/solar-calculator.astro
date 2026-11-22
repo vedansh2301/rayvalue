@@ -7,8 +7,9 @@
  */
 export const prerender = false;
 
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CalcShell from '../../components/calculator/CalcShell.astro';
+import { COUNTRY_OUTLINES } from '../../lib/brand/country-outlines';
+import { zeroVatDaysLeft } from '../../lib/calculator/design';
 import OfferSlot from '../../components/OfferSlot.astro';
 import CalculatorUk from '../../components/calculator/CalculatorUk';
 import { offersForCountry } from '../../lib/offers/load';
@@ -31,46 +32,49 @@ const steps = [
   'We value the solar you use at home at your unit rate and the solar you export at the Smart Export Guarantee rate you chose, and project savings with a range of price rises.',
   'We show low, likely and high results, with every assumption and source listed.',
 ];
+const vatDays = data.ok ? zeroVatDaysLeft(data.props.vatRates, data.props.today) : null;
+const nRegions = data.ok ? data.props.utilities.length : null;
+const reads = [
+  { collection: 'blog', id: 'gb/energy-price-cap-january-2027-solar' },
+  { collection: 'guides', id: 'gb/solar-panels-vat-deadline-2027' },
+  { collection: 'blog', id: 'gb/solar-panel-scams-uk' },
+  { collection: 'blog', id: 'gb/when-solar-panels-dont-pay-uk' },
+] as const;
 ---
-<BaseLayout
-  title="UK solar and battery payback calculator"
-  description="Estimate solar and battery cost, savings and payback for your UK home as low, likely and high ranges, using the Ofgem price cap, Smart Export Guarantee rates and official MCS costs."
-  path={path}
-  noindex={!indexable}
-  lang="en-GB"
+<CalcShell
+  seg="uk" lang="en-GB" path={path} noindex={!indexable}
+  metaTitle="UK solar and battery payback calculator"
+  metaDescription="Estimate solar and battery cost, savings and payback for your UK home as low, likely and high ranges, using the Ofgem price cap, Smart Export Guarantee rates and official MCS costs."
+  h1="UK solar and battery payback calculator"
+  sub="Low, likely and high ranges from your regional price cap, your export payment and official installation costs. No grant is assumed."
+  startLabel="Start · 6 quick questions"
+  chip={vatDays !== null ? { label: `0% VAT ends in ${vatDays} ${vatDays === 1 ? 'day' : 'days'}`, href: '/uk/guides/solar-panels-vat-deadline-2027' } : null}
+  checks={['Ofgem price cap by region', 'Smart Export Guarantee rates', 'MCS installation costs']}
+  heroPhotoId="d-uk-westminster"
+  badge={nRegions ? { title: `${nRegions} price-cap regions`, sub: 'England, Scotland, Wales' } : null}
+  howHeading="How we calculated this" readsHeading="Read before you buy in the UK" readsAll={{ href: '/uk/blog', label: 'All UK posts' }} readLabel="Read"
+  picks={[...reads]}
 >
-  <div class="shell pt-8 sm:pt-10">
-    <Breadcrumbs items={[{ label: 'Home', href: '/uk' }, { label: 'Solar calculator' }]} />
-    <h1 class="mt-4 text-3xl font-bold tracking-tight text-stone-900 sm:mt-6 sm:text-4xl">UK solar and battery payback calculator</h1>
-    <p class="mt-2 text-lg text-stone-700">Low, likely and high ranges from your regional price cap, your export payment and official installation costs. No grant is assumed.</p>
-  </div>
-
-  <div class="shell pb-24 pt-6 sm:pb-16">
-    <div class="space-y-10">
-      <section aria-label="Calculator">
-        {data.ok ? (
-          <CalculatorUk client:visible {...data.props} />
-        ) : (
-          <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
-            <h2 class="text-xl font-semibold text-stone-900">We&rsquo;re verifying the data for this calculator</h2>
-            <p class="mt-2 leading-7 text-stone-700">The UK calculator is temporarily unavailable while we check our price, tariff and cost data. Please try again soon.</p>
-          </div>
-        )}
-      </section>
-
-      <div class="max-w-(--container-prose) space-y-10">
-        <OfferSlot offers={offers} pagePath={path} heading="Offers for UK homes" />
-
-        <section aria-labelledby="how-heading">
-          <h2 id="how-heading" class="text-xl font-semibold text-stone-900">How we calculated this</h2>
-          <ol class="mt-4 list-decimal space-y-2 pl-6 leading-7 text-stone-700">
-            {steps.map((s) => <li>{s}</li>)}
-          </ol>
-          <p class="mt-4 text-stone-700">
-            Every source and assumption is explained in our <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>. Estimates are not a quote; installer prices and your actual usage will differ. Northern Ireland has a different electricity market and is not covered.
-          </p>
-        </section>
-      </div>
+  {data.ok ? (
+    <CalculatorUk client:visible {...data.props} mapOutline={COUNTRY_OUTLINES.uk?.d} />
+  ) : (
+    <div class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+      <h2 class="text-xl font-semibold text-stone-900">We&rsquo;re verifying the data for this calculator</h2>
+      <p class="mt-2 leading-7 text-stone-700">The UK calculator is temporarily unavailable while we check our price, tariff and cost data. Please try again soon.</p>
     </div>
-  </div>
-</BaseLayout>
+  )}
+  <div slot="after"><OfferSlot offers={offers} pagePath={path} heading="Offers for UK homes" /></div>
+  <Fragment slot="how">
+    <ol class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {steps.map((st, i) => (
+        <li class="flex flex-col gap-2 rounded-[18px] border border-sky-pastel-300 bg-white p-[18px]">
+          <span class="font-display-tight text-[28px] text-sky-pastel-600" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <p class="text-[15px] leading-relaxed text-stone-800">{st}</p>
+        </li>
+      ))}
+    </ol>
+    <p class="mt-6 text-stone-700">
+      Every source and assumption is explained in our <a href="/methodology" class="text-sun-ink underline underline-offset-2 hover:text-stone-900">methodology</a>. Estimates are not a quote; installer prices and your actual usage will differ. Northern Ireland has a different electricity market and is not covered.
+    </p>
+  </Fragment>
+</CalcShell>

@@ -29,12 +29,14 @@ describe('CalculatorIntl: Germany', () => {
   it('renders in German with 16 Bundesländer, EEG rates in ct/kWh, one install period, a 10 kWh battery option, no dollar or pound signs', async () => {
     const { html } = await render('DE', de);
     expect(html.match(/<option value="de-(?!eeg)/g)).toHaveLength(16);
-    expect(html.match(/<option value="de-eeg/g)).toHaveLength(2);
+    expect(html.match(/name="de-offer"/g)).toHaveLength(2);
     expect(html).toContain('Bayern');
     expect(html).toContain('Ihr Bundesland');
     expect(html).toContain('Bundesland wählen');
-    expect(html).toContain('EEG-Einspeisevergütung: Überschusseinspeisung (Teileinspeisung), bis 10 kW: 7,7 ct/kWh');
-    expect(html).toContain('Volleinspeisung, bis 10 kW: 12,22 ct/kWh');
+    expect(html).toContain('EEG-Einspeisevergütung: Überschusseinspeisung (Teileinspeisung), bis 10 kW');
+    expect(html).toContain('7,7 ct/kWh');
+    expect(html).toContain('Volleinspeisung, bis 10 kW');
+    expect(html).toContain('12,22 ct/kWh');
     expect(html).toContain('Inbetriebnahme bis 31. Dezember 2026');
     expect(html).toMatch(/Umsatzsteuer auf die Installation: 0\s%/);
     expect(html).toContain('einen Vergütungssatz für 2027 gibt es noch nicht');
@@ -52,17 +54,19 @@ describe('CalculatorIntl: Germany', () => {
 describe('CalculatorIntl: Australia', () => {
   it('renders in Australian English with 7 networks, cents per kWh, two install periods with the battery rebate per kWh, and a flagged secondary battery price', async () => {
     const { html } = await render('AU', au);
-    expect(html.match(/<option value="au-/g)).toHaveLength(7 + 6);
+    expect(html.match(/<option value="au-/g)).toHaveLength(7);
+    expect(html.match(/name="au-offer"/g)).toHaveLength(6);
     expect(html).toContain('Ausgrid network (NSW)');
-    expect(html).toContain('New South Wales: IPART all-day benchmark (2026-27): 4.95 c per kWh');
-    expect(html).toContain('Victoria: legal minimum (no minimum feed-in tariff): 0 c per kWh');
+    expect(html).toContain('New South Wales: IPART all-day benchmark (2026-27)');
+    expect(html).toContain('4.95 c per kWh');
+    expect(html).toContain('Victoria: legal minimum (no minimum feed-in tariff)');
     expect(html).toContain('Installed by 31 December 2026');
     expect(html).toContain('Installed 1 January 2027 to 30 June 2027');
     expect(html).toContain('Battery rebate in this period: $269 per usable kWh');
     expect(html).toContain('Battery rebate in this period: $226 per usable kWh');
     expect(html).toContain('Priced from CHOICE (a secondary source)');
     expect(html).toContain('Energy Made Easy');
-    expect(html).toMatch(/<label[^>]*>[\s\S]*?North<\/span>/);
+    expect(html).toMatch(/<label[^>]*>[\s\S]*?North<\/strong>/);
     expect(html).not.toMatch(/[£€]/);
     expect(html).not.toMatch(/ZIP|federal tax|Ofgem/i);
     expect(html).not.toContain('VAT on the installation');

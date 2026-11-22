@@ -36,6 +36,29 @@ export interface SourceLabels {
 }
 
 export interface CalcStrings {
+  /** Text of the designed layout (progress, summary aside, next-step band). */
+  ui: {
+    sectionHeading: string;
+    answered: (done: number, total: number) => string;
+    yourEstimate: string;
+    ready: string;
+    toGo: (n: number) => string;
+    summary: { region: string; usage: string; roof: string; shade: string; install: string; offer: string; battery: string };
+    hintFree: string;
+    hintRemaining: string;
+    mapHint: string;
+    perMonth: string;
+    perYear: string;
+    usageHint: string;
+    nextTitle: string;
+    nextCta: string;
+    guidesHref: string;
+    cardsHeading: string;
+    howHeading: string;
+    stepsToGo: string;
+    battery: string;
+    chooseOne: string;
+  };
   /** Heading above the results ("Your solar estimate"). */
   resultsHeading: string;
   formLegend: string;
@@ -144,6 +167,28 @@ const fullMoney = (n: number, sym: string): string => `${sym}${Math.round(n / 10
 // ------------------------------------------------------------------ GB (the original UK island text)
 
 export const GB_STRINGS: CalcStrings = {
+  ui: {
+    sectionHeading: 'Your home and your electricity',
+    answered: (d, t) => `${d} of ${t} answered`,
+    yourEstimate: 'Your estimate',
+    ready: 'Ready to calculate',
+    toGo: (n) => `${n} ${n === 1 ? 'question' : 'questions'} to go`,
+    summary: { region: 'Region', usage: 'Usage', roof: 'Roof', shade: 'Shade', install: 'VAT', offer: 'Export', battery: 'Battery' },
+    hintFree: 'Free. No sign-up.',
+    hintRemaining: 'Answer the remaining questions to see your low, likely and high ranges.',
+    mapHint: 'Or tap your area on the map.',
+    perMonth: 'per month',
+    perYear: 'kWh a year',
+    usageHint: 'Drag the slider, or type an exact amount.',
+    nextTitle: 'Read the UK guides before you decide',
+    nextCta: 'Read the UK guides',
+    guidesHref: '/uk/guides',
+    cardsHeading: 'Read before you buy in the UK',
+    howHeading: 'How we calculated this',
+    stepsToGo: 'Start',
+    battery: 'Add a home battery?',
+    chooseOne: 'Choose one of the options.',
+  },
   resultsHeading: 'Your solar estimate',
   formLegend: 'Your home and your electricity',
   regionName: (name) => name.replace(/ \(Ofgem price cap region\)$/, ''),
@@ -271,6 +316,7 @@ export const GB_STRINGS: CalcStrings = {
 
 export const AU_STRINGS: CalcStrings = {
   ...GB_STRINGS,
+  ui: { ...GB_STRINGS.ui, nextTitle: 'Read the Australian guides before you decide', nextCta: 'Read the Australian guides', guidesHref: '/au/guides', cardsHeading: 'Read before you buy in Australia', summary: { ...GB_STRINGS.ui.summary, region: 'Network', install: 'Install date', offer: 'Feed-in' }, mapHint: '' },
   regionName: (name) => name,
   regionLabel: 'Your electricity network or tariff area',
   regionHint: () => ({
@@ -342,6 +388,28 @@ const deNum = (n: number): string => new Intl.NumberFormat('de-DE', { maximumFra
 const deFull = (n: number): string => `${new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 }).format(Math.round(n / 100) * 100)} €`;
 
 export const DE_STRINGS: CalcStrings = {
+  ui: {
+    sectionHeading: 'Ihr Haus und Ihr Strom',
+    answered: (d, t) => `${d} von ${t} beantwortet`,
+    yourEstimate: 'Ihre Schätzung',
+    ready: 'Bereit zur Berechnung',
+    toGo: (n) => `Noch ${n} ${n === 1 ? 'Frage' : 'Fragen'}`,
+    summary: { region: 'Bundesland', usage: 'Verbrauch', roof: 'Dach', shade: 'Schatten', install: 'Inbetriebnahme', offer: 'Einspeisung', battery: 'Speicher' },
+    hintFree: 'Kostenlos. Ohne Anmeldung.',
+    hintRemaining: 'Beantworten Sie die restlichen Fragen, um Ihre niedrigen, wahrscheinlichen und hohen Werte zu sehen.',
+    mapHint: '',
+    perMonth: 'pro Monat',
+    perYear: 'kWh pro Jahr',
+    usageHint: 'Schieberegler ziehen oder einen genauen Wert eintippen.',
+    nextTitle: 'Lesen Sie die Ratgeber, bevor Sie entscheiden',
+    nextCta: 'Zu den Ratgebern',
+    guidesHref: '/de/guides',
+    cardsHeading: 'Lesen, bevor Sie kaufen',
+    howHeading: 'So haben wir gerechnet',
+    stepsToGo: 'Start',
+    battery: 'Stromspeicher dazu?',
+    chooseOne: 'Wählen Sie eine der Möglichkeiten.',
+  },
   resultsHeading: 'Ihre Photovoltaik-Schätzung',
   formLegend: 'Ihr Haus und Ihr Strom',
   regionName: (name) => name,

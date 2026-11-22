@@ -24,8 +24,10 @@ describe('CalculatorUk (server render)', () => {
     const html = renderToString(h(CalculatorUk, d.props));
     expect(html.match(/<option value="gb-cap-/g)).toHaveLength(14);
     expect(html).toContain('London');
-    expect(html).toContain('Octopus Smart Export Guarantee (fixed): 4.1p per kWh');
-    expect(html).toContain('EDF SEG Export Variable: 2p per kWh');
+    expect(html).toContain('Octopus Smart Export Guarantee (fixed)');
+    expect(html).toContain('4.1p per kWh');
+    expect(html).toContain('EDF SEG Export Variable');
+    expect(html).toContain('2p per kWh');
     expect(html).toContain('Installed by 31 March 2027');
     expect(html).toContain('Installed from 1 April 2027');
     expect(html).toContain('VAT on the installation: 5%');

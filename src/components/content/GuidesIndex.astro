@@ -67,6 +67,7 @@ const meta = PAGE_META.guides;
 const path = articleIndexPath('guides', country ?? 'us');
 const empty = pool.length === 0;
 const hereName = here ? nameOf(here) : null;
+const unit = (n: number) => (n === 1 ? 'guide' : 'guides');
 const chipBase = 'rounded-full bg-white px-3 py-1';
 ---
 <BaseLayout title={here ? `${hereName} solar guides` : meta.title} description={here ? `Independent solar and home-battery guides for ${hereName}, each with its sources listed.` : meta.description} ogImagePath={here ? undefined : '/og/guides.png'} path={path} noindex={empty}>
@@ -90,7 +91,7 @@ const chipBase = 'rounded-full bg-white px-3 py-1';
               {(['all', ...GUIDE_TOPICS] as const).map((t) => (
                 <button type="button" data-topic={t} aria-pressed={t === 'all' ? 'true' : 'false'} class="topic-tile">
                   <span class="flex size-10 items-center justify-center rounded-xl bg-sky-pastel-100 text-stone-900"><Icon name={TOPIC_ICON[t]} size={24} /></span>
-                  <span class="flex flex-col gap-0.5"><strong class="text-[15px]">{t === 'all' ? 'All guides' : GUIDE_TOPIC_LABEL[t]}</strong><span class="text-xs text-stone-700"><span data-topic-n={t}>{topicN(t)}</span> guides</span></span>
+                  <span class="flex flex-col gap-0.5"><strong class="text-[15px]">{t === 'all' ? 'All guides' : GUIDE_TOPIC_LABEL[t]}</strong><span class="text-xs text-stone-700"><span data-topic-n={t}>{topicN(t)}</span> <span data-topic-unit={t}>{unit(topicN(t))}</span></span></span>
                 </button>
               ))}
             </div>
@@ -123,7 +124,7 @@ const chipBase = 'rounded-full bg-white px-3 py-1';
                     ) : (
                       <CountryOutline segment={c.segment} class="pointer-events-none absolute left-1/2 top-[40%] h-[58%] w-auto max-w-[72%] -translate-x-1/2 -translate-y-1/2 fill-white stroke-sky-pastel-600 group-aria-[current=true]/c:fill-sun-400" />
                     )}
-                    <span class="pointer-events-none absolute inset-x-3 bottom-2.5 flex flex-col gap-px"><strong class="text-[15px] leading-tight">{c.name}</strong><span class="text-xs opacity-90">{c.n} guides</span></span>
+                    <span class="pointer-events-none absolute inset-x-3 bottom-2.5 flex flex-col gap-px"><strong class="text-[15px] leading-tight">{c.name}</strong><span class="text-xs opacity-90">{c.n} {unit(c.n)}</span></span>
                   </a>
                 </li>
               );
@@ -156,7 +157,7 @@ const chipBase = 'rounded-full bg-white px-3 py-1';
               <div class="relative grid items-center gap-5 overflow-hidden rounded-[22px] bg-sky-pastel-200 px-6 py-[22px] sm:grid-cols-[minmax(0,1fr)_auto]">
                 <div class="flex min-w-0 flex-col gap-2.5">
                   <span class="text-sm font-semibold text-stone-700" lang={all.find((g) => g.segment === c.segment)?.lang}>{h.native}</span>
-                  <h2 class="font-display-tight text-[clamp(1.75rem,3.4vw,2.625rem)] leading-[1.1] text-stone-900">{h.name}: <span data-hub-n>{h.n}</span> guides</h2>
+                  <h2 class="font-display-tight text-[clamp(1.75rem,3.4vw,2.625rem)] leading-[1.1] text-stone-900">{h.name}: <span data-hub-n>{h.n}</span> {unit(h.n)}</h2>
                   <div class="flex flex-wrap gap-2">
                     <a href={h.cta.href} class="inline-flex min-h-11 items-center rounded-lg bg-sun-400 px-4 font-bold text-stone-900 no-underline hover:bg-sun-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900" data-track="nav_click" data-track-placement="guides_index_hub" data-track-target={h.cta.href}>{h.cta.label} &rarr;</a>
                     <a href="/guides" data-clear class="inline-flex min-h-11 items-center rounded-lg border border-sky-pastel-400 bg-white px-3.5 font-semibold text-stone-900 no-underline hover:bg-sky-pastel-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900">All countries</a>
@@ -260,7 +261,9 @@ const chipBase = 'rounded-full bg-white px-3 py-1';
       topicBtns.forEach((b) => {
         const t = b.dataset.topic!;
         b.setAttribute('aria-pressed', String(t === topic));
-        b.querySelector('[data-topic-n]')!.textContent = String(guides.filter((li) => inCountry(li) && (t === 'all' || li.closest<HTMLElement>('[data-group]')?.dataset.group === t)).length);
+        const n = guides.filter((li) => inCountry(li) && (t === 'all' || li.closest<HTMLElement>('[data-group]')?.dataset.group === t)).length;
+        b.querySelector('[data-topic-n]')!.textContent = String(n);
+        b.querySelector('[data-topic-unit]')!.textContent = n === 1 ? 'guide' : 'guides';
       });
       if (!fixed) chips.forEach((c) => { if (c.dataset.country === country) c.setAttribute('aria-current', 'true'); else c.removeAttribute('aria-current'); });
       hubs.forEach((h) => { h.hidden = h.dataset.hub !== country; });
