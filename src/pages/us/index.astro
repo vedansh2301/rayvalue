@@ -1,6 +1,9 @@
 ---
 import { PAGE_META } from '../../lib/seo/page-meta';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/ui/PageHero.astro';
+import Ray from '../../components/brand/Ray.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { ogImagePath } from '../../lib/seo/og';
 import { btnPrimary, btnText } from '../../components/ui/buttons';
 import UtilityLinks from '../../components/utility/UtilityLinks.astro';
@@ -51,63 +54,52 @@ const steps: { title: string; body: string; icon: IconName }[] = [
   ogImagePath={ogImagePath('us')}
   jsonLd={[faqJsonLd(faq)]}
 >
-  <section class="bg-gradient-to-b from-sun-100 to-stone-50">
-    <div class="shell grid items-center gap-8 pb-7 pt-14 sm:pb-10 sm:pt-20 lg:grid-cols-[3fr_2fr]">
-     <div>
-      <h1 class="max-w-(--container-prose) text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl">
-        See if solar pays off on your home &mdash; using your actual utility rates
-      </h1>
-      <p class="mt-5 max-w-(--container-prose) text-lg leading-8 text-stone-700">
-        The federal tax credit is gone, so we show Florida and California homeowners honest cost, savings and payback ranges from their own utility&rsquo;s rates.
-      </p>
-      <div class="mt-6">
-        <div role="group" aria-labelledby="hero-state-label" class="flex flex-col gap-2">
-          <p id="hero-state-label" class="text-sm font-medium text-stone-700">Pick your state to start</p>
-          <div class="flex flex-col gap-2 sm:flex-row">
-            <a href="/us/solar-payback/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>
-            <a href="/us/solar-payback/california" class={btnPrimary}>Check my payback<span class="font-normal">&middot; California</span><span aria-hidden="true">&rarr;</span></a>
-          </div>
-        </div>
-        <p class="mt-2"><a href="/quotes?source=home" class={btnText}>Get installer quotes <span aria-hidden="true">&rarr;</span></a></p>
+  <PageHero title="See if solar pays off on your home, using your actual utility rates" size="lg" titleId="us-title">
+    <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'RayValue', href: '/' }, { label: 'United States' }]} />
+    The federal tax credit is gone, so we show Florida and California homeowners honest cost, savings and payback ranges from their own utility&rsquo;s rates.
+    <div slot="actions" role="group" aria-labelledby="hero-state-label" class="flex w-full flex-col gap-2">
+      <p id="hero-state-label" class="text-sm font-medium text-ink-200">Pick your state to start</p>
+      <div class="flex flex-col gap-2 sm:flex-row">
+        <a href="/us/solar-payback/florida" class={btnPrimary}>Check my payback<span class="font-normal">in Florida</span></a>
+        <a href="/us/solar-payback/california" class={btnPrimary}>Check my payback<span class="font-normal">in California</span></a>
       </div>
-      <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-stone-800" aria-label="Why use RayValue">
-        {trust.map((t) => (
-          <li class="flex items-center gap-2">
-            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class="shrink-0 text-sun-ink">
-              <path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-            {t}
-          </li>
-        ))}
-      </ul>
-     </div>
-     <div class="mx-auto w-full max-w-md lg:max-w-none">
-       <Picture
-         src={heroPhoto}
-         formats={['avif', 'webp']}
-         widths={[480, 768, 1100]}
-         sizes="(min-width: 1024px) 440px, (min-width: 480px) 448px, calc(100vw - 2rem)"
-         alt="Aerial view of a California home with dark solar panels on its red tile roof, palm trees and a backyard pool"
-         width={1100}
-         height={825}
-         loading="eager"
-         fetchpriority="high"
-         decoding="async"
-         class="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-md"
-       />
-     </div>
+      <p class="mt-1"><a href="/quotes?source=home" class="inline-flex min-h-11 items-center font-medium text-sun-300 underline underline-offset-4 hover:text-white focus-visible:outline-sun-300">Get installer quotes</a></p>
     </div>
-  </section>
+    <Picture
+      slot="aside"
+      src={heroPhoto}
+      formats={['avif', 'webp']}
+      widths={[480, 768, 1100]}
+      sizes="(min-width: 1024px) 440px, (min-width: 480px) 448px, calc(100vw - 2rem)"
+      alt="Aerial view of a California home with dark solar panels on its red tile roof, palm trees and a backyard pool"
+      width={1100}
+      height={825}
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+      class="aspect-[4/3] w-full rounded-2xl object-cover object-center shadow-lg ring-1 ring-ink-700"
+    />
+    <ul slot="below" class="mt-8 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-ink-100" aria-label="Why use RayValue">
+      {trust.map((t) => (
+        <li class="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" class="shrink-0 text-sun-300">
+            <path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          {t}
+        </li>
+      ))}
+    </ul>
+  </PageHero>
 
-  <section class="shell py-12" aria-labelledby="pick-state">
-    <h2 id="pick-state" class="text-2xl font-bold tracking-tight text-stone-900">Choose your state</h2>
+  <section class="shell py-14" aria-labelledby="pick-state">
+    <div class="flex items-center gap-3"><Ray pose="point" size={84} class="shrink-0" /><h2 id="pick-state" class="font-display-tight text-3xl text-stone-900">Choose your state</h2></div>
     <ul class="mt-6 grid gap-5 sm:grid-cols-2">
       {states.map((s) => (
         <li class="flex flex-col rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
           <div class="flex items-center gap-3">
             <Icon name={s.icon} size={32} class="text-stone-900" />
             <div>
-              <h3 class="text-xl font-semibold text-stone-900">{s.name}</h3>
+              <h3 class="font-display-tight text-2xl text-stone-900">{s.name}</h3>
               <p class="text-sm font-medium text-sun-ink">{s.fact}</p>
             </div>
           </div>
@@ -125,7 +117,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
   </section>
 
   <section class="shell pb-16" aria-labelledby="how-it-works">
-    <h2 id="how-it-works" class="text-2xl font-bold tracking-tight text-stone-900">How it works</h2>
+    <h2 id="how-it-works" class="font-display-tight text-3xl text-stone-900">How it works</h2>
     <ol class="mt-6 grid gap-5 sm:grid-cols-3">
       {steps.map((s, i) => (
         <li class="rounded-xl border border-stone-200 bg-white p-6">
@@ -142,7 +134,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
   </section>
 
   <section class="shell pb-16" aria-labelledby="for-you">
-    <h2 id="for-you" class="text-2xl font-bold tracking-tight text-stone-900">How RayValue works for you</h2>
+    <h2 id="for-you" class="font-display-tight text-3xl text-stone-900">How RayValue works for you</h2>
     <ul class="mt-6 grid gap-5 sm:grid-cols-3">
       {forYou.map((c) => (
         <li class="rounded-xl border border-stone-200 bg-white p-6">
@@ -156,7 +148,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
 
   {countries.length > 0 && (
     <section aria-labelledby="countries-heading" class="shell pb-16">
-      <h2 id="countries-heading" class="text-2xl font-bold tracking-tight text-stone-900">Solar guides outside the United States</h2>
+      <h2 id="countries-heading" class="font-display-tight text-3xl text-stone-900">Solar guides in other countries</h2>
       <ul class="mt-4 flex flex-wrap gap-x-6">
         {countries.map((c) => <li><a href={c.href} class={`inline-flex min-h-11 items-center font-medium ${link}`}>{c.name}</a></li>)}
         <li><a href="/#countries" class={`inline-flex min-h-11 items-center font-medium ${link}`}>All countries</a></li>
@@ -165,7 +157,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
   )}
 
   <section aria-labelledby="stories-heading" class="shell pb-16">
-    <h2 id="stories-heading" class="text-2xl font-bold tracking-tight text-stone-900">What&rsquo;s happened with solar in Florida and California</h2>
+    <h2 id="stories-heading" class="font-display-tight text-3xl text-stone-900">What&rsquo;s happened with solar in Florida and California</h2>
     <p class="mt-2 mb-6 max-w-(--container-prose) text-stone-700">Publicly reported events, each linked to the original reporting.</p>
     <StoryCards compact />
     <p class="mt-5"><a href="/stories" class="font-medium text-sun-ink underline underline-offset-4 hover:text-stone-900">See all stories <span aria-hidden="true">&rarr;</span></a></p>
@@ -200,7 +192,7 @@ const steps: { title: string; body: string; icon: IconName }[] = [
 
   <section aria-labelledby="closing-cta" class="shell pb-16">
     <div class="rounded-2xl border border-sun-300 bg-sun-50 p-6 sm:p-8">
-      <h2 id="closing-cta" class="text-2xl font-bold tracking-tight text-stone-900">Ready to see your numbers?</h2>
+      <h2 id="closing-cta" class="font-display-tight text-3xl text-stone-900">Ready to see your numbers?</h2>
       <p class="mt-2 max-w-(--container-prose) text-stone-800">It takes about a minute, it&rsquo;s free, and no federal tax credit is assumed.</p>
       <div class="mt-5 flex flex-col gap-2 sm:flex-row">
         <a href="/us/solar-payback/florida" class={btnPrimary}>Check my payback<span class="font-normal">&middot; Florida</span><span aria-hidden="true">&rarr;</span></a>

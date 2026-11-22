@@ -13,12 +13,12 @@ export const PAGE_META = {
     description: 'Honest solar and battery payback estimates for US homeowners in Florida and California, as low, likely and high ranges, with no federal tax credit.',
   },
   blog: {
-    title: 'Solar and battery costs, rates and payback blog',
-    description: 'Analysis of solar and battery costs, electricity rates and payback for Florida and California homeowners, with sources for every number we cite.',
+    title: 'Solar and battery news and analysis, worldwide',
+    description: 'Analysis of solar and battery costs, electricity rates, rebates and payback in every country we cover, with a source and a check date for each number.',
   },
   guides: {
-    title: 'Solar and battery payback guides for FL and CA',
-    description: 'Plain-language guides on solar and battery payback for Florida and California homeowners: tax credit changes, NEM 3.0, quotes, leases and loans.',
+    title: 'Solar and battery guides for every country',
+    description: 'Plain-language guides on solar and home batteries from every country we cover: tariffs, rebates, tax rules, quotes and payback, each with its sources.',
   },
   methodology: {
     title: 'How we estimate solar payback: methodology',

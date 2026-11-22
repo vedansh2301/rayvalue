@@ -6,11 +6,13 @@ import { UNREVIEWED_PAGES } from '../lib/seo/unreviewed-pages';
 
 const path = '/contact';
 ---
-<BaseLayout title="Contact us about solar payback estimates" description="Questions about a solar or battery payback estimate for a Florida or California home? Email RayValue, or use the privacy form to see or delete your data." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
+<BaseLayout title="Contact RayValue about a solar estimate" description="Questions about a solar or battery payback estimate, a country guide or a number you think is wrong? Email RayValue, or use the form to see or delete your data." path={path} noindex={UNREVIEWED_PAGES.has(path)}>
   <div class="page">
     <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Contact' }]} />
     <h1 class="!mt-4">Contact</h1>
-    {CONTACT_EMAIL && <p>Email us at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>}
+    <p>RayValue covers solar and home batteries in many countries. Write to us about a calculator result, a country guide, or a figure that looks out of date. If you can, tell us the country and the page, and include a link to the source you checked.</p>
+    {CONTACT_EMAIL && <p>Email us at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We correct a wrong number once we have confirmed it against its source.</p>}
     <p>To access, correct or delete your information, or to opt out, {CONTACT_EMAIL ? 'you can also ' : ''}use the <a href="/privacy/request">privacy request form</a>.</p>
+    <p>RayValue is independent. We cannot see your utility account and we do not install solar.</p>
   </div>
 </BaseLayout>

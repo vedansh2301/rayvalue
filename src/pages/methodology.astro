@@ -3,6 +3,7 @@ import { PAGE_META } from '../lib/seo/page-meta';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ogImagePath } from '../lib/seo/og';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import PageHero from '../components/ui/PageHero.astro';
 import type { State } from '../data/schemas';
 import { DB_PAGE_CACHE_HEADERS, createRepo } from '../lib/db/repo';
 import { isHttpUrl } from '../lib/city/view';
@@ -71,17 +72,54 @@ const costSources = costs.ok
   : null;
 ---
 <BaseLayout title={PAGE_META.methodology.title} description={PAGE_META.methodology.description} path="/methodology" ogImagePath={ogImagePath('methodology')}>
-  <div class="page">
+  <PageHero title="How we estimate solar payback" titleId="method-title" pose="magnifier">
+    <Breadcrumbs slot="crumbs" tone="dark" items={[{ label: 'Home', href: '/' }, { label: 'Methodology' }]} />
+    One method for every country: start from the country&rsquo;s own published rates and rules, show every input with its source and date, and give results as a low, likely and high range instead of a single number.
+  </PageHero>
+
+  <div class="page !pt-8">
     {/* TODO: owner review */}
-    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Methodology' }]} />
-    <h1 class="!mt-4">Methodology</h1>
+    <h2 class="!mt-0">The rules we follow everywhere</h2>
+    <ol class="list-decimal space-y-2 pl-6">
+      <li><strong>Facts and assumptions are kept apart.</strong> A fact (a tariff, an export rate, a rebate, a statistic) is stored with the URL of its source and the date we last checked it. An assumption (how fast rates rise, how much solar a home uses itself) is stored with the reasoning behind it. Both are listed with every result.</li>
+      <li><strong>No source, no number.</strong> If we cannot find a verified value, it is left out of the page rather than guessed.</li>
+      <li><strong>Ranges, not precision.</strong> Costs, savings and payback are shown as low, likely and high estimates, because installer prices, your usage and future rates are all uncertain.</li>
+      <li><strong>Only incentives that exist today.</strong> We do not count a rebate or tax credit that has ended or is not yet confirmed. For the United States, the federal residential clean energy credit (Section 25D) does not apply to installs in 2026 or later, so it is $0 in every US result.</li>
+      <li><strong>An estimate is not a quote.</strong> Financing costs, maintenance, inverter and battery replacement are not included unless a calculator says so. Installer prices and your actual usage will differ.</li>
+    </ol>
+
+    <h2>Where each kind of number comes from</h2>
+    <ul class="list-disc space-y-2 pl-6">
+      <li><strong>Electricity prices and export payments:</strong> national energy regulators and the utilities&rsquo; own published tariffs, price caps and feed-in or export schemes.</li>
+      <li><strong>Grants, rebates, VAT and tax treatment:</strong> the government, tax authority or agency that runs the scheme, read from its own publication.</li>
+      <li><strong>Solar production:</strong> modelled from location. For the United States we use the PVWatts model from the National Laboratory of the Rockies (formerly NREL); for European locations we use the European Commission&rsquo;s PVGIS. A calculator that uses a different source says so.</li>
+      <li><strong>Installed costs:</strong> published installed-price datasets and benchmarks, each labelled with its source.</li>
+      <li><strong>Places, housing and population:</strong> national statistics offices, such as the US Census Bureau and Eurostat, for the location and size of the places we cover.</li>
+    </ul>
+
+    <h2>How figures are kept current</h2>
     <p>
-      RayValue estimates what rooftop solar, with or without a battery, could cost and save on a home in Florida or
-      California. Every rate, cost and assumption it uses is stored with its source (for facts) or its reasoning (for
-      our own modeling choices), and every result is shown as a low, likely and high range rather than a single number.
+      Rates and rules change. A scheduled job re-reads the source page behind each stored fact, respecting the site&rsquo;s robots.txt.
+      A fact counts as confirmed only while the stored figure still appears in the source text. If the surrounding words now carry a
+      different number, the fact is flagged for review instead of being published. Articles only use confirmed figures, and each
+      one shows its sources and the date of its last check.
     </p>
 
-    <h2>How an estimate is built</h2>
+    <h2>Both sides of the story</h2>
+    <p>
+      Our articles cover the case for solar and the case against it: when it pays back, when it does not, what a battery adds and costs,
+      and where rule changes count against you. Offers and affiliate links sit beside the numbers and never feed the calculators.
+      See the <a href="/affiliate-disclosure">affiliate disclosure</a> for how the site is funded.
+    </p>
+
+    <h2>Country calculators</h2>
+    <p>
+      Each country calculator lists its own inputs, sources and assumptions beside its results. The full workings for the United
+      States calculators (Florida and California) follow, because they have the most inputs stored in our database. Browse the
+      <a href="/#calculators">calculators</a> or pick a <a href="/#countries">country</a>.
+    </p>
+
+    <h2 id="united-states">United States: how an estimate is built</h2>
     <ol class="list-decimal space-y-2 pl-6">
       <li>
         <strong>Your usage, from your bill.</strong> We work backwards from your average monthly bill through your
@@ -127,7 +165,7 @@ const costSources = costs.ok
       quote; installer prices and your actual usage will differ.
     </p>
 
-    <h2>Lease and PPA comparison</h2>
+    <h2>United States: lease and PPA comparison</h2>
     <p>
       Results include a plain-language comparison of buying with a lease or power purchase agreement (PPA), where a
       company owns the system and you pay monthly (lease) or per kilowatt-hour produced (PPA). The company that owns the
@@ -153,14 +191,14 @@ const costSources = costs.ok
       </p>
     )}
 
-    <h2>Batteries in Florida</h2>
+    <h2>United States: batteries in Florida</h2>
     <p>
       Under Florida retail net metering, solar you send to the grid is credited at the retail rate, so in our estimate a
       battery adds to the upfront cost but not to bill savings, and it lengthens payback. Its value is backup power during
       outages, which we do not put a dollar figure on. The Florida calculator page explains what a battery can and cannot power.
     </p>
 
-    <h2>Types of sources</h2>
+    <h2>United States: types of sources</h2>
     <ul class="list-disc space-y-1 pl-6">
       <li>Utility tariff documents and rate pages, for fixed charges, energy rates and minimum bills.</li>
       <li>California Public Utilities Commission (CPUC) and Public Advocates Office reports, for California average rates, export credits and rate history.</li>
@@ -174,7 +212,7 @@ const costSources = costs.ok
       shade losses, are labeled as assumptions and listed in the &ldquo;How this estimate was built&rdquo; section of every result.
     </p>
 
-    <h2>Utility rate sources</h2>
+    <h2>United States: utility rate sources</h2>
     <p>Rates come from each utility&rsquo;s own published tariff or rate pages. The page we read for each one:</p>
     {!utilities && <p>The list of rate sources is being verified.</p>}
     {utilities && states.map(({ code, label }) => (
@@ -191,7 +229,7 @@ const costSources = costs.ok
       </>
     ))}
 
-    <h2>California average rate and export credit sources</h2>
+    <h2>United States: California average rate and export credit sources</h2>
     {!avgRateSources || !exportSources ? (
       <p>These sources are being verified.</p>
     ) : (
@@ -208,7 +246,7 @@ const costSources = costs.ok
       </>
     )}
 
-    <h2>Cost sources</h2>
+    <h2>United States: cost sources</h2>
     {!costSources ? (
       <p>The list of cost sources is being verified.</p>
     ) : (

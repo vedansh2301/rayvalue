@@ -1,0 +1,13 @@
+---
+// A country's outline (Natural Earth 1:110m, public domain, simplified; see scripts/gen-country-outlines.mjs).
+// Decorative: the country name sits next to it. Colour comes from `currentColor` via the class.
+import { COUNTRY_OUTLINES } from '../../lib/brand/country-outlines';
+interface Props { segment: string; class?: string }
+const { segment, class: cls } = Astro.props;
+const o = COUNTRY_OUTLINES[segment];
+---
+{o && (
+  <svg viewBox={`0 0 ${o.w} ${o.h}`} class={cls} fill="currentColor" stroke="currentColor" stroke-width="0.8" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    <path d={o.d}></path>
+  </svg>
+)}
