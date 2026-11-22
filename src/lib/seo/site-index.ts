@@ -118,6 +118,7 @@ export const STATIC_INDEX: Readonly<Record<string, { title: string; summary: str
   '/contact': { title: 'Contact RayValue', summary: 'Email RayValue about a solar or battery payback estimate, or use the privacy form to see or delete your data.', section: 'about' },
   '/guides': { title: PAGE_META.guides.title, summary: PAGE_META.guides.description, section: 'guides' },
   '/blog': { title: PAGE_META.blog.title, summary: PAGE_META.blog.description, section: 'blog' },
+  '/uk/solar-calculator': { title: 'UK solar and battery payback calculator', summary: 'Estimate solar panel and battery cost, savings and payback for a UK home as low, likely and high ranges, using Ofgem price-cap rates, Smart Export Guarantee tariffs and official MCS install costs.', section: 'calculators' },
 };
 
 /** Per-country (non-US) article index page, e.g. /uk/guides. */
