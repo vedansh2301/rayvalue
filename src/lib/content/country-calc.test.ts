@@ -8,6 +8,13 @@ describe('countryCalculator', () => {
     expect(countryCalculator('uk')?.cta).toBe('Run my UK numbers');
   });
   it('countries without a calculator, the US and empty values get none (so no CTA renders)', () => {
-    for (const c of ['us', 'de', 'au', '', null, undefined]) expect(countryCalculator(c)).toBeNull();
+    for (const c of ['us', 'fr', 'jp', '', null, undefined]) expect(countryCalculator(c)).toBeNull();
+  });
+});
+
+describe('launched calculators', () => {
+  it('Germany and Australia have their own calculator', () => {
+    expect(countryCalculator('de')?.href).toBe('/de/photovoltaik-rechner');
+    expect(countryCalculator('AU')?.href).toBe('/au/solar-battery-calculator');
   });
 });
